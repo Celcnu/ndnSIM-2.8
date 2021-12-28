@@ -44,10 +44,13 @@ namespace cs {
 class Cs : noncopyable
 {
 public:
+  // 构造函数，默认最大存10个包
   explicit
   Cs(size_t nMaxPackets = 10);
 
-  /** \brief inserts a Data packet
+  /** 
+   * 1 识别数据的缓存策略+把data塞进m_table且Fresh data++
+   * 2 使用当前FIFO缓存策略处理data在队列中的位置
    */
   void
   insert(const Data& data, bool isUnsolicited = false);
@@ -58,6 +61,10 @@ public:
    *  \param limit max number of entries to erase
    *  \param cb callback to receive the actual number of erased entries; must not be empty;
    *            it may be invoked either before or after erase() returns
+   */
+  /**
+   * 异步擦除前缀名为prefix下的条目,得到擦除的条目数nErased
+   * 擦除后执行回调函数cb
    */
   template<typename AfterEraseCallback>
   void
@@ -76,6 +83,10 @@ public:
    *  \note A lookup invokes either callback exactly once.
    *        The callback may be invoked either before or after find() returns
    */
+  /**
+   * 用发的interest在CS中最匹配的data包，得到目标对应m_table中的迭代器
+   * 如果找到，执行回调函数hit，否则执行回调函数miss
+   */
   template<typename HitCallback, typename MissCallback>
   void
   find(const Interest& interest, HitCallback&& hit, MissCallback&& miss) const
@@ -90,6 +101,7 @@ public:
 
   /** \brief get number of stored packets
    */
+  // 返回m_table的size，即CS储存的条目数
   size_t
   size() const
   {
@@ -99,6 +111,7 @@ public:
 public: // configuration
   /** \brief get capacity (in number of packets)
    */
+  // 获取储存上限
   size_t
   getLimit() const
   {
@@ -107,6 +120,7 @@ public: // configuration
 
   /** \brief change capacity (in number of packets)
    */
+  // 设置储存上限
   void
   setLimit(size_t nMaxPackets)
   {
@@ -115,6 +129,7 @@ public: // configuration
 
   /** \brief get replacement policy
    */
+  // 获取缓存替换策略
   Policy*
   getPolicy() const
   {
@@ -124,12 +139,14 @@ public: // configuration
   /** \brief change replacement policy
    *  \pre size() == 0
    */
+  // 更改缓存替换策略 (必须size() == 0才能执行)
   void
   setPolicy(unique_ptr<Policy> policy);
 
   /** \brief get CS_ENABLE_ADMIT flag
    *  \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Update-config
    */
+  // 返回m_shouldAdmit (if false, no Data will be admitted)
   bool
   shouldAdmit() const
   {
@@ -139,12 +156,14 @@ public: // configuration
   /** \brief set CS_ENABLE_ADMIT flag
    *  \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Update-config
    */
+  // Set m_shouldAdmit
   void
   enableAdmit(bool shouldAdmit);
 
   /** \brief get CS_ENABLE_SERVE flag
    *  \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Update-config
    */
+  // 返回m_shouldServe (if false, all lookups will miss)
   bool
   shouldServe() const
   {
@@ -154,6 +173,7 @@ public: // configuration
   /** \brief set CS_ENABLE_SERVE flag
    *  \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Update-config
    */
+  // Set m_shouldServe
   void
   enableServe(bool shouldServe);
 
@@ -173,25 +193,30 @@ public: // enumeration
   }
 
 private:
+  // 用Table进行二分查找，获得前缀为prefix的区间
   std::pair<const_iterator, const_iterator>
   findPrefixRange(const Name& prefix) const;
 
+  // 上面的erase函数会调用eraseImpl函数作为具体实现
+  // 擦除方式是调用findPrefixRange函数获得区间,然后擦掉所有元素,然后用find_if函数遍历查找?
+  // limit是擦除的上限，超过了就不擦了，不然全擦
   size_t
   eraseImpl(const Name& prefix, size_t limit);
 
   const_iterator
   findImpl(const Interest& interest) const;
 
+  // 前面的setPolicy函数会调用setPolicyImpl函数作为具体实现
   void
   setPolicyImpl(unique_ptr<Policy> policy);
 
 PUBLIC_WITH_TESTS_ELSE_PRIVATE:
   void
-  dump();
+  dump(); // 显示m_table里全部内容，仅测试时可用
 
 private:
-  Table m_table;
-  unique_ptr<Policy> m_policy;
+  Table m_table; // 存CS内容的表
+  unique_ptr<Policy> m_policy; // 存缓存(替换)策略
   signal::ScopedConnection m_beforeEvictConnection;
 
   bool m_shouldAdmit = true; ///< if false, no Data will be admitted

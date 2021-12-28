@@ -200,9 +200,9 @@ private: // registry
   getRegistry();
 
 private:
-  std::string m_policyName;
-  size_t m_limit;
-  Cs* m_cs;
+  std::string m_policyName; // 缓存(替换)策略名
+  size_t m_limit; // 缓存容量
+  Cs* m_cs; // 指向被维护的CS的指针
 };
 
 } // namespace cs

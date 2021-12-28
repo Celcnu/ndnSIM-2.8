@@ -51,6 +51,8 @@ class Strategy;
 class Forwarder
 {
 public:
+
+  // 构造函数, 用于给成员的各种信号连接到本类的管道上 ---> 不同的管道对应不同的处理流程
   explicit
   Forwarder(FaceTable& faceTable);
 
@@ -75,6 +77,12 @@ public:
     BOOST_ASSERT(policy != nullptr);
     m_unsolicitedDataPolicy = std::move(policy);
   }
+
+
+// 主要就是下面这4个函数: startProcessInterest, startProcessData, startProcessNack
+// 单独为FIB搞了个 startProcessNewNextHop, 用于添加新的路由
+// 这些函数通过目标类的信号, 使得目标类可以通过信号使用本类的管道
+// 即 构造函数里信号连接的 startProcessXXX函数, 在这里转到了Forwarder的onIncomingXXX了
 
 public: // forwarding entrypoints and tables
   /** \brief start incoming Interest processing
@@ -117,6 +125,7 @@ public: // forwarding entrypoints and tables
     this->onNewNextHop(prefix, nextHop);
   }
 
+  // Get方法
   NameTree&
   getNameTree()
   {
@@ -165,7 +174,7 @@ public: // forwarding entrypoints and tables
     return m_networkRegionTable;
   }
 
-public:
+public: // 信号(Signal)
   /** \brief trigger before PIT entry is satisfied
    *  \sa Strategy::beforeSatisfyInterest
    */
@@ -184,6 +193,8 @@ public:
    */
   signal::Signal<Forwarder, Interest> afterCsMiss;
 
+
+// 管道(pipelines)
 PUBLIC_WITH_TESTS_ELSE_PRIVATE: // pipelines
   /** \brief incoming Interest pipeline
    */
@@ -289,7 +300,7 @@ private:
   Cs                 m_cs;
   Measurements       m_measurements;
   StrategyChoice     m_strategyChoice;
-  DeadNonceList      m_deadNonceList;
+  DeadNonceList      m_deadNonceList; // 用于避免兴趣包环路
   NetworkRegionTable m_networkRegionTable;
   shared_ptr<Face>   m_csFace;
 

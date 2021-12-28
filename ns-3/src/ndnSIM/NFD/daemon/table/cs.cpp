@@ -56,6 +56,8 @@ Cs::insert(const Data& data, bool isUnsolicited)
   NFD_LOG_DEBUG("insert " << data.getName());
 
   // recognize CachePolicy
+  // 尝试取出data的CachePolicyType，如果data没Tag，视为要求缓存
+  // 如果tag指明不缓存 直接return
   shared_ptr<lp::CachePolicyTag> tag = data.getTag<lp::CachePolicyTag>();
   if (tag != nullptr) {
     lp::CachePolicyType policy = tag->get().getPolicy();
@@ -64,14 +66,26 @@ Cs::insert(const Data& data, bool isUnsolicited)
     }
   }
 
+  // 缓存 ↓↓↓
+
+  /**
+   * 尝试把(data, isUnsolicited)压入m_table表
+   * 压入后把自己在表中的迭代器返回给it（无论是否重复）
+   * 因为table是set类型，所以会调用data的重载operator==分析是否重复
+   * 如果有重复元素,说明不是NewEntry,isNewEntry=false
+   * 为什么会有newEntry? 不是new 说明缓存中已经有了? 或者之前已经存过?
+   */
   const_iterator it;
   bool isNewEntry = false;
   std::tie(it, isNewEntry) = m_table.emplace(data.shared_from_this(), isUnsolicited);
   Entry& entry = const_cast<Entry&>(*it);
 
+  // fresh一下新来的这个包
   entry.updateFreshUntil();
 
+  // 如果不是新的包 ---> 缓存中已经存在
   if (!isNewEntry) { // existing entry
+    // TODO: ???
     // XXX This doesn't forbid unsolicited Data from refreshing a solicited entry.
     if (entry.isUnsolicited() && !isUnsolicited) {
       entry.clearUnsolicited();

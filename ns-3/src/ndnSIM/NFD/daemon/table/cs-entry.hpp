@@ -95,9 +95,9 @@ public: // used by ContentStore implementation
   }
 
 private:
-  shared_ptr<const Data> m_data;
-  bool m_isUnsolicited;
-  time::steady_clock::TimePoint m_freshUntil;
+  shared_ptr<const Data> m_data; // 数据内容
+  bool m_isUnsolicited; // 未经请求的数据(PIT中没有的数据就是未经请求的) 
+  time::steady_clock::TimePoint m_freshUntil; // Fresh截止时间, 超过这个时间 这个缓存的数据就变成"不新鲜的"了
 };
 
 bool
