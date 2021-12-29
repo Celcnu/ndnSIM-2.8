@@ -35,6 +35,8 @@ namespace ndn {
  * !!! ATTENTION !!! This is highly experimental and relies on experimental features of the
  * simulator.
  * Behavior may be unpredictable if used incorrectly.
+ * 似乎是以滑动窗口的方式执行拥塞控制的消费者
+ * 代码里提到本类是高度实验性的，要小心使用!!!
  */
 class ConsumerWindow : public Consumer {
 public:

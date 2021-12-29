@@ -59,10 +59,12 @@ public:
   virtual ~Consumer(){};
 
   // From App
+  // 收到消费者返回的Data包，执行相应的处理与回显，并更新RTT(Round-Trip Time)
   virtual void
   OnData(shared_ptr<const Data> contentObject);
 
   // From App
+  // 如果Not ACK，显示对应的信息与原因
   virtual void
   OnNack(shared_ptr<const lp::Nack> nack);
 
@@ -70,12 +72,15 @@ public:
    * @brief Timeout event
    * @param sequenceNumber time outed sequence number
    */
+  // 超时就重传 (RTT翻倍?)
   virtual void
   OnTimeout(uint32_t sequenceNumber);
 
   /**
    * @brief Actually send packet
    */
+  // 发interest包，该函数由ScheduleNextPacket设置事件触发
+  // 该函数给interest包填充信息后把任务交接给m_appLink->onReceiveInterest准备向自己的链路层发interest
   void
   SendPacket();
 
@@ -98,6 +103,8 @@ public:
 
 protected:
   // from App
+  // 调用App创建相关的App管理接口，如AppLinkService这种东西，并把管理链路层和传输层的接口放到Ndn Stack里
+  // 创建完执行ScheduleNextPacket，调用派生类的发包控制函数
   virtual void
   StartApplication();
 
@@ -108,12 +115,15 @@ protected:
    * \brief Constructs the Interest packet and sends it using a callback to the underlying NDN
    * protocol
    */
+  // 发包的调度策略，如Cbr就是以恒定速率发包（纯虚函数，由子类实现）
+  // 这是个纯虚函数,即没有实现,所以消费者一定要用它的派生类
   virtual void
   ScheduleNextPacket() = 0;
 
   /**
    * \brief Checks if the packet need to be retransmitted becuase of retransmission timer expiration
    */
+  // 检查数据包是否需要超时重传
   void
   CheckRetxTimeout();
 
@@ -132,7 +142,7 @@ protected:
   GetRetxTimer() const;
 
 protected:
-  Ptr<UniformRandomVariable> m_rand; ///< @brief nonce generator
+  Ptr<UniformRandomVariable> m_rand; ///< @brief nonce generator 生成nonce
 
   uint32_t m_seq;      ///< @brief currently requested sequence number
   uint32_t m_seqMax;   ///< @brief maximum number of sequence number
@@ -140,11 +150,11 @@ protected:
   Time m_retxTimer;    ///< @brief Currently estimated retransmission timer
   EventId m_retxEvent; ///< @brief Event to check whether or not retransmission should be performed
 
-  Ptr<RttEstimator> m_rtt; ///< @brief RTT estimator
+  Ptr<RttEstimator> m_rtt; ///< @brief RTT estimator 用来估计RTT
 
   Time m_offTime;          ///< \brief Time interval between packets
-  Name m_interestName;     ///< \brief NDN Name of the Interest (use Name)
-  Time m_interestLifeTime; ///< \brief LifeTime for interest packet
+  Name m_interestName;     ///< \brief NDN Name of the Interest (use Name)  就是ndn-simple.cpp设置的Prefix
+  Time m_interestLifeTime; ///< \brief LifeTime for interest packet  就是ndn-simple.cpp设置的LifeTime
 
   /// @cond include_hidden
   /**

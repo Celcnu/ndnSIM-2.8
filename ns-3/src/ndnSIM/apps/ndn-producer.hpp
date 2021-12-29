@@ -42,28 +42,33 @@ namespace ndn {
  */
 class Producer : public App {
 public:
+  // 接口，返回关于本类对象的TypeId信息，方便外部配置
   static TypeId
   GetTypeId(void);
 
   Producer();
 
   // inherited from NdnApp
+  // 收到interest包后，装载一个data包（内部有编码为block的成员），最后把任务交接给到m_appLink->onReceiveData
+  // NOTE: 这是应用层收包
   virtual void
   OnInterest(shared_ptr<const Interest> interest);
 
 protected:
   // inherited from Application base class.
+  // 调用App创建相关的App管理接口，如AppLinkService这种东西，并把管理链路层和传输层的接口放到Ndn Stack里
   virtual void
   StartApplication(); // Called at time specified by Start
 
+  // m_active = false并关闭m_face
   virtual void
   StopApplication(); // Called at time specified by Stop
 
 private:
-  Name m_prefix;
-  Name m_postfix;
-  uint32_t m_virtualPayloadSize;
-  Time m_freshness;
+  Name m_prefix;  // 前缀
+  Name m_postfix; // 后缀???
+  uint32_t m_virtualPayloadSize;  // 一个包装载数据byte数
+  Time m_freshness; // 新鲜时间???
 
   uint32_t m_signature;
   Name m_keyLocator;
