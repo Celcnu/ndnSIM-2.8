@@ -248,6 +248,9 @@ PointToPointNetDevice::TransmitStart (Ptr<Packet> p)
   m_currentPkt = p;
   m_phyTxBeginTrace (m_currentPkt);
 
+  // 根据 p->GetSize 计算发送时间 txTime
+  // 每个包发了之后,会让仿真系统推迟一段时间 txTime? 
+  // TODO: 什么叫推迟?
   Time txTime = m_bps.CalculateBytesTxTime (p->GetSize ());
   Time txCompleteTime = txTime + m_tInterframeGap;
 
@@ -331,7 +334,7 @@ PointToPointNetDevice::SetReceiveErrorModel (Ptr<ErrorModel> em)
 void
 PointToPointNetDevice::Receive (Ptr<Packet> packet)
 {
-  NS_LOG_FUNCTION (this << packet);
+	NS_LOG_FUNCTION (this << packet);
   uint16_t protocol = 0;
 
   if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt (packet) ) 
@@ -365,8 +368,11 @@ PointToPointNetDevice::Receive (Ptr<Packet> packet)
       // there is no difference in what the promisc callback sees and what the
       // normal receive callback sees.
       //
+      // promisc怎么翻译?
       ProcessHeader (packet, protocol);
 
+      // 通过回调函数m_promiscCallback触发Node::PromiscReceiveFromDevice函数
+      // TODO: 怎么触发的???
       if (!m_promiscCallback.IsNull ())
         {
           m_macPromiscRxTrace (originalPacket);
@@ -526,7 +532,8 @@ PointToPointNetDevice::Send (
   //
   // Stick a point to point protocol header on the packet in preparation for
   // shoving it out the door.
-  //
+  // 
+  // 添加L3Protocol协议头header???
   AddHeader (packet, protocolNumber);
 
   m_macTxTrace (packet);

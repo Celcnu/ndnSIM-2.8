@@ -85,7 +85,7 @@ ConsumerCbr::ScheduleNextPacket()
     m_sendEvent = Simulator::Schedule(Seconds(0.0), &Consumer::SendPacket, this);
     m_firstTime = false;
   }
-  // 每隔1/freq秒产生1次事件 --> sendPacket
+  // 每隔1/freq秒产生1次事件 --> 调用基类的 Consumer::SendPacket 函数
   else if (!m_sendEvent.IsRunning())
     m_sendEvent = Simulator::Schedule((m_random == 0) ? Seconds(1.0 / m_frequency)
                                                       : Seconds(m_random->GetValue()),

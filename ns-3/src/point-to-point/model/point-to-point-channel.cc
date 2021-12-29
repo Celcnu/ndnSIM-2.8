@@ -97,6 +97,9 @@ PointToPointChannel::TransmitStart (
 
   uint32_t wire = src == m_link[0].m_src ? 0 : 1;
 
+  // 给下一跳添加PointToPointNetDevice::Receive事件
+  // 触发时间: txTime + m_delay 之后
+  // TODO: 如果想做链路拥塞如何仿真实现?
   Simulator::ScheduleWithContext (m_link[wire].m_dst->GetNode ()->GetId (),
                                   txTime + m_delay, &PointToPointNetDevice::Receive,
                                   m_link[wire].m_dst, p->Copy ());

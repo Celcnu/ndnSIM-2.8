@@ -155,6 +155,7 @@ Consumer::StopApplication() // Called at time specified by Stop
   App::StopApplication();
 }
 
+// 该函数造出一个兴趣包，然后用 m_appLink->onReceiveInterest 发出去
 void
 Consumer::SendPacket()
 {

@@ -28,8 +28,12 @@
 namespace nfd {
 namespace face {
 
+// Face的构造函数, 构造Face时将会和链路服务(linkservice)、物理传输层服务(transport)捆绑到一起
+// face把自己的这个信号和linkservice的信号绑定到了一起
+// 所以 LinkService 的 afterReceiveInterest 通过 Face 连接到了 Forwarder::startProcessInterest 上
+// 即 LinkService 的 afterReceiveInterest 信号等价于 Forwarder::startProcessInterest 函数 !
 Face::Face(unique_ptr<LinkService> service, unique_ptr<Transport> transport)
-  : afterReceiveInterest(service->afterReceiveInterest)
+  : afterReceiveInterest(service->afterReceiveInterest) 
   , afterReceiveData(service->afterReceiveData)
   , afterReceiveNack(service->afterReceiveNack)
   , onDroppedInterest(service->onDroppedInterest)

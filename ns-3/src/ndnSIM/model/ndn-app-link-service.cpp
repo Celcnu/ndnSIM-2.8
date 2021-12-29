@@ -52,15 +52,19 @@ AppLinkService::doSendInterest(const Interest& interest, const nfd::EndpointId& 
   NS_LOG_FUNCTION(this << &interest);
 
   // to decouple callbacks
+  // 添加了事件App::OnInterest,而该函数为虚函数
+  // 实际添加的是Producer::OnInterest事件
   Simulator::ScheduleNow(&App::OnInterest, m_app, interest.shared_from_this());
 }
 
+// 将数据包发送出去
 void
 AppLinkService::doSendData(const Data& data, const nfd::EndpointId& endpoint)
 {
   NS_LOG_FUNCTION(this << &data);
 
   // to decouple callbacks
+  // 添加 Consumer::onData 事件
   Simulator::ScheduleNow(&App::OnData, m_app, data.shared_from_this());
 }
 
@@ -74,7 +78,7 @@ AppLinkService::doSendNack(const lp::Nack& nack, const nfd::EndpointId& endpoint
 }
 
 //
-
+// 把兴趣包发出去
 void
 AppLinkService::onReceiveInterest(const Interest& interest)
 {

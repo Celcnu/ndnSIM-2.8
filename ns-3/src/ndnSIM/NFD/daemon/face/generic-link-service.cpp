@@ -70,6 +70,7 @@ GenericLinkService::requestIdlePacket(const EndpointId& endpointId)
   this->sendLpPacket({}, endpointId);
 }
 
+// 把packet类型的包wireEncode成block类型,准备移交给transport层 ---> 传输层? 这个传输层怎么感觉像链路层
 void
 GenericLinkService::sendLpPacket(lp::Packet&& pkt, const EndpointId& endpointId)
 {
@@ -92,16 +93,19 @@ GenericLinkService::sendLpPacket(lp::Packet&& pkt, const EndpointId& endpointId)
   this->sendPacket(block, endpointId);
 }
 
+// 把interest转换为packet
 void
 GenericLinkService::doSendInterest(const Interest& interest, const EndpointId& endpointId)
 {
   lp::Packet lpPacket(interest.wireEncode());
 
+  // 给包打上链路层标签
   encodeLpFields(interest, lpPacket);
 
   this->sendNetPacket(std::move(lpPacket), endpointId, true);
 }
 
+// 把data转化为packet,执行encodeLpFields给包打上链路层标签
 void
 GenericLinkService::doSendData(const Data& data, const EndpointId& endpointId)
 {
@@ -171,6 +175,7 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
   }
 }
 
+// 这里会执行frag分片操作 ---> 后面的操作对于Interest和Data来说都是一样的!!!
 void
 GenericLinkService::sendNetPacket(lp::Packet&& pkt, const EndpointId& endpointId, bool isInterest)
 {
@@ -285,6 +290,7 @@ GenericLinkService::checkCongestionLevel(lp::Packet& pkt)
   }
 }
 
+// 链路层收包
 void
 GenericLinkService::doReceivePacket(const Block& packet, const EndpointId& endpoint)
 {
@@ -306,6 +312,8 @@ GenericLinkService::doReceivePacket(const Block& packet, const EndpointId& endpo
       return;
     }
 
+    // 合并fragment为netPkt,并检查fragment的完整性
+    // TODO: 什么叫Fragment???
     bool isReassembled = false;
     Block netPkt;
     lp::Packet firstPkt;
@@ -324,17 +332,18 @@ void
 GenericLinkService::decodeNetPacket(const Block& netPkt, const lp::Packet& firstPkt,
                                     const EndpointId& endpointId)
 {
+  // 判block的类型
   try {
     switch (netPkt.type()) {
-      case tlv::Interest:
+      case tlv::Interest: // 兴趣包
         if (firstPkt.has<lp::NackField>()) {
           this->decodeNack(netPkt, firstPkt, endpointId);
         }
-        else {
+        else { 
           this->decodeInterest(netPkt, firstPkt, endpointId);
         }
         break;
-      case tlv::Data:
+      case tlv::Data: // 数据包
         this->decodeData(netPkt, firstPkt, endpointId);
         break;
       default:
@@ -349,6 +358,7 @@ GenericLinkService::decodeNetPacket(const Block& netPkt, const lp::Packet& first
   }
 }
 
+// 将Block类型转为interest,并打上各种tag,按照 lp::Packet& firstPkt
 void
 GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstPkt,
                                    const EndpointId& endpointId)
@@ -414,6 +424,7 @@ GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstP
   this->receiveInterest(*interest, endpointId);
 }
 
+// 类似Interest,将Block类型转码为Data,并打上各种tag
 void
 GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt,
                                const EndpointId& endpointId)

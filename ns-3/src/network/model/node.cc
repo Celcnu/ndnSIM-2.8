@@ -282,6 +282,7 @@ Node::ChecksumEnabled (void)
   return val.Get ();
 }
 
+// PointToPointNetDevice::Receive ---> m_promiscCallback 回调 ↓
 bool
 Node::PromiscReceiveFromDevice (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol,
                                 const Address &from, const Address &to, NetDevice::PacketType packetType)
@@ -322,6 +323,8 @@ Node::ReceiveFromDevice (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16
             {
               if (promiscuous == i->promiscuous)
                 {
+                  // 通过回调函数handler触发NetDeviceTransport::receiveFromNetDevice函数
+                  // TODO: ???
                   i->handler (device, packet, protocol, from, to, packetType);
                   found = true;
                 }

@@ -94,6 +94,7 @@ Producer::StopApplication()
   App::StopApplication();
 }
 
+// 生产者收到兴趣包之后的处理 ---> 按照Interest的要求,准备好编码后的data
 void
 Producer::OnInterest(shared_ptr<const Interest> interest)
 {

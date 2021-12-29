@@ -84,7 +84,7 @@ public:
 // 这些函数通过目标类的信号, 使得目标类可以通过信号使用本类的管道
 // 即 构造函数里信号连接的 startProcessXXX函数, 在这里转到了Forwarder的onIncomingXXX了
 
-public: // forwarding entrypoints and tables
+public: // forwarding entrypoints and tables;
   /** \brief start incoming Interest processing
    *  \param ingress face on which Interest is received and endpoint of the sender
    *  \param interest the incoming Interest, must be well-formed and created with make_shared

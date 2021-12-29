@@ -265,6 +265,7 @@ StackHelper::DefaultNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn,
   return face;
 }
 
+// ndnStack在InstallAll时，调用了本函数，为节点生成了链路、物理传输助手，并把它们绑定到face上
 shared_ptr<Face>
 StackHelper::PointToPointNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn,
                                            Ptr<NetDevice> device) const
@@ -288,6 +289,8 @@ StackHelper::PointToPointNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn,
   opts.allowReassembly = true;
   opts.allowCongestionMarking = true;
 
+  // 为节点生成linkservice(对应链路层)和transport(对应物理层)
+  // 将它们都绑定到face上,交给这个face来管理
   auto linkService = make_unique<::nfd::face::GenericLinkService>(opts);
 
   auto transport = make_unique<NetDeviceTransport>(node, netDevice,

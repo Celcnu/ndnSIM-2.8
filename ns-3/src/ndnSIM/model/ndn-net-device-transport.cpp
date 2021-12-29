@@ -72,6 +72,7 @@ NetDeviceTransport::NetDeviceTransport(Ptr<Node> node,
 
   NS_ASSERT_MSG(m_netDevice != 0, "NetDeviceFace needs to be assigned a valid NetDevice");
 
+  // Node::ReceiveFromDevice ---> NetDeviceTransport::receiveFromNetDevice
   m_node->RegisterProtocolHandler(MakeCallback(&NetDeviceTransport::receiveFromNetDevice, this),
                                   L3Protocol::ETHERNET_FRAME_TYPE, m_netDevice,
                                   true /*promiscuous mode*/);
@@ -105,6 +106,7 @@ NetDeviceTransport::doClose()
   this->setState(nfd::face::TransportState::CLOSED);
 }
 
+// 给Block添加header, 打包成packet
 void
 NetDeviceTransport::doSend(const Block& packet, const nfd::EndpointId& endpoint)
 {
@@ -117,7 +119,8 @@ NetDeviceTransport::doSend(const Block& packet, const nfd::EndpointId& endpoint)
   Ptr<ns3::Packet> ns3Packet = Create<ns3::Packet>();
   ns3Packet->AddHeader(header);
 
-  // send the NS3 packet
+  // send the NS3 packet 
+  // TODO: 在这里之后的代码跳转和教程里介绍的不一致???
   m_netDevice->Send(ns3Packet, m_netDevice->GetBroadcast(),
                     L3Protocol::ETHERNET_FRAME_TYPE);
 }
@@ -135,6 +138,7 @@ NetDeviceTransport::receiveFromNetDevice(Ptr<NetDevice> device,
   // Convert NS3 packet to NFD packet
   Ptr<ns3::Packet> packet = p->Copy();
 
+  // 去掉packet的header,转化为Block类型准备向上传
   BlockHeader header;
   packet->RemoveHeader(header);
 

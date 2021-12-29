@@ -20,18 +20,18 @@
 #ifndef NDNSIM_NDN_COMMON_H
 #define NDNSIM_NDN_COMMON_H
 
+#include "ns3/attribute-helper.h"
+#include "ns3/attribute.h"
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
-#include "ns3/attribute.h"
-#include "ns3/attribute-helper.h"
 
-#include <ndn-cxx/interest.hpp>
-#include <ndn-cxx/encoding/block.hpp>
-#include <ndn-cxx/signature.hpp>
-#include <ndn-cxx/signature-info.hpp>
-#include <ndn-cxx/name.hpp>
 #include <ndn-cxx/data.hpp>
+#include <ndn-cxx/encoding/block.hpp>
+#include <ndn-cxx/interest.hpp>
+#include <ndn-cxx/name.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
+#include <ndn-cxx/signature-info.hpp>
+#include <ndn-cxx/signature.hpp>
 
 #include <ndn-cxx/util/time.hpp>
 
@@ -56,19 +56,19 @@ namespace lp {
 using namespace ::ndn::lp;
 }
 
-using std::shared_ptr;
 using std::make_shared;
+using std::shared_ptr;
 
-using ::ndn::Interest;
+using ::ndn::Block;
 using ::ndn::Data;
+using ::ndn::Interest;
+using ::ndn::KeyChain;
 using ::ndn::KeyLocator;
 using ::ndn::Signature;
 using ::ndn::SignatureInfo;
-using ::ndn::Block;
-using ::ndn::KeyChain;
 
-using ::nfd::Face;
 using ::ndn::FaceUri;
+using ::nfd::Face;
 
 #ifndef DOXYGEN
 // For python bindings

@@ -59,6 +59,9 @@ LinkService::sendInterest(const Interest& interest, const EndpointId& endpoint)
 
   ++this->nOutInterests;
 
+  // 对于ndn-simple.cpp中的节点2来说,作为producer,它具有App特性
+  // 因此其链路层是AppLinkService,而非GenericLinkService
+  // TODO: 这个是在哪里设置的?
   doSendInterest(interest, endpoint);
 
   afterSendInterest(interest);
@@ -97,6 +100,12 @@ LinkService::receiveInterest(const Interest& interest, const EndpointId& endpoin
 
   ++this->nInInterests;
 
+  // 然后到这里就和之前的章节连上了 ↓↓↓
+
+  // 触发信号 afterReceiveInterest
+  // 该信号连接到 Forwarder::startProcessInterest !  
+  // TODO: 怎么连接的? 通过Forwarder的构造函数
+  // 里面的 faceTable 将里面每个 face 的 afterReceiveInterest 信号都连接到了 Forwarder::startProcessInterest 上
   afterReceiveInterest(interest, endpoint);
 }
 
@@ -107,6 +116,7 @@ LinkService::receiveData(const Data& data, const EndpointId& endpoint)
 
   ++this->nInData;
 
+  // 触发信号afterReceiveData,该信号连接到Forwarder::startProcessData 
   afterReceiveData(data, endpoint);
 }
 

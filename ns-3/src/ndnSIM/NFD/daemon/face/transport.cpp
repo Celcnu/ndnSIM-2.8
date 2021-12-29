@@ -121,6 +121,7 @@ Transport::receive(const Block& packet, const EndpointId& endpoint)
   ++this->nInPackets;
   this->nInBytes += packet.size();
 
+  // 在这里交给链路层: LinkService
   m_service->receivePacket(packet, endpoint);
 }
 
