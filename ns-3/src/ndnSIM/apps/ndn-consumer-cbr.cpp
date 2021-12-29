@@ -40,7 +40,7 @@ TypeId
 ConsumerCbr::GetTypeId(void)
 {
   static TypeId tid =
-    TypeId("ns3::ndn::ConsumerCbr")
+    TypeId("ns3::ndn::ConsumerCbr") // TypeId简单理解就是可以直接通过它来访问这个类
       .SetGroupName("Ndn")
       .SetParent<Consumer>()
       .AddConstructor<ConsumerCbr>()
@@ -85,6 +85,7 @@ ConsumerCbr::ScheduleNextPacket()
     m_sendEvent = Simulator::Schedule(Seconds(0.0), &Consumer::SendPacket, this);
     m_firstTime = false;
   }
+  // 每隔1/freq秒产生1次事件 --> sendPacket
   else if (!m_sendEvent.IsRunning())
     m_sendEvent = Simulator::Schedule((m_random == 0) ? Seconds(1.0 / m_frequency)
                                                       : Seconds(m_random->GetValue()),

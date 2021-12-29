@@ -63,6 +63,9 @@ StackHelper::StackHelper()
 
   m_ndnFactory.SetTypeId("ns3::ndn::L3Protocol");
 
+  // PointToPointNetDeviceCallback 用于配置点对点网络对象
+  // 创建GenericLinkService 和 NetDeviceTransport 的链路层、传输层管理器
+  // 并创建了一个 Face 来管理它们, 后续的所有发包和收包都靠它
   m_netDeviceCallbacks.push_back(
     std::make_pair(PointToPointNetDevice::GetTypeId(),
                    MakeCallback(&StackHelper::PointToPointNetDeviceCallback, this)));
@@ -154,6 +157,7 @@ StackHelper::Install(Ptr<Node> node) const
                    << node->GetId());
     return;
   }
+  // ScheduleWithContext 函数为每一个 Node 都在 Simulator 里添加了一个 StackHelper::doInstall 事件
   Simulator::ScheduleWithContext(node->GetId(), Seconds(0), &StackHelper::doInstall, this, node);
   ProcessWarmupEvents();
 }
@@ -186,6 +190,8 @@ StackHelper::doInstall(Ptr<Node> node) const
     // if (DynamicCast<LoopbackNetDevice> (device) != 0)
     //   continue; // don't create face for a LoopbackNetDevice
 
+    // 调用 PointToPointNetDeviceCallback 
+    // 创建一个管理 GenericLinkService 和 NetDeviceTransport 的接口 Face
     this->createAndRegisterFace(node, ndn, device);
   }
 }

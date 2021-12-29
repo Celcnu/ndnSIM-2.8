@@ -160,6 +160,7 @@ Node::AddApplication (Ptr<Application> application)
   uint32_t index = m_applications.size ();
   m_applications.push_back (application);
   application->SetNode (this);
+  // 调用ScheduleWithContext设置Initialize事件
   Simulator::ScheduleWithContext (GetId (), Seconds (0.0), 
                                   &Application::Initialize, application);
   return index;

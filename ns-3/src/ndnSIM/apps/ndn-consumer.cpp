@@ -202,6 +202,7 @@ Consumer::SendPacket()
   m_transmittedInterests(interest, this, m_face);
   m_appLink->onReceiveInterest(*interest);
 
+  // 这个是怎么跳回cbr的?
   ScheduleNextPacket();
 }
 

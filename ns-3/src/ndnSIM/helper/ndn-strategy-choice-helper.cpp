@@ -28,6 +28,7 @@ namespace ndn {
 
 NS_LOG_COMPONENT_DEFINE("ndn.StrategyChoiceHelper");
 
+// sendCommand函数的作用是为当前节点添加parameters
 void
 StrategyChoiceHelper::sendCommand(const ControlParameters& parameters, Ptr<Node> node)
 {
@@ -62,6 +63,7 @@ StrategyChoiceHelper::Install(Ptr<Node> node, const Name& namePrefix, const Name
   NS_LOG_DEBUG("Node ID: " << node->GetId() << " with forwarding strategy " << strategy);
   parameters.setStrategy(strategy);
 
+  // 通过ScheduleWithContext为每个node在Simulator里添加了一个StrategyChoiceHelper::sendCommand事件
   Simulator::ScheduleWithContext(node->GetId(), Seconds(0),
                                  &StrategyChoiceHelper::sendCommand, parameters, node);
   StackHelper::ProcessWarmupEvents();

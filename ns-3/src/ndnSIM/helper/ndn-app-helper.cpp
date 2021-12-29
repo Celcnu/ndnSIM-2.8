@@ -36,6 +36,7 @@ namespace ndn {
 
 AppHelper::AppHelper(const std::string& app)
 {
+  // 将参数字符串作为TypeID, 例如"ns3::ndn::ConsumerCbr"
   m_factory.SetTypeId(app);
 }
 

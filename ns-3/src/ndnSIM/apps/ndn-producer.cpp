@@ -36,6 +36,10 @@ namespace ndn {
 
 NS_OBJECT_ENSURE_REGISTERED(Producer);
 
+/**
+ * 对于 Producer 类，我们可以通过 "ns3::ndn::Producer" 来找到这个类
+ * 并且可以访问、初始化这个类的所有被 AddAttribute 的变量。
+ */
 TypeId
 Producer::GetTypeId(void)
 {
