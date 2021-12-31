@@ -146,7 +146,7 @@ App::StartApplication() // Called at time specified by Start
                 "Ndn stack should be installed on the node " << GetNode());
 
   // step 1. Create a face
-  auto appLink = make_unique<AppLinkService>(this);
+  auto appLink = make_unique<AppLinkService>(this); // 所以是在这里绑定的LinkService !!!
   auto transport = make_unique<NullTransport>("appFace://", "appFace://",
                                               ::ndn::nfd::FACE_SCOPE_LOCAL);
   // @TODO Consider making AppTransport instead

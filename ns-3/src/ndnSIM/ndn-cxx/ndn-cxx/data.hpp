@@ -31,7 +31,13 @@
 namespace ndn {
 
 /** @brief Represents a Data packet.
+ * 这个类代表一个Data包,那下面的成员,每一个Data包中都需要包括吗?
  */
+/**
+ * 先用 EncodingEstimator 计算出需要的 buffer 的大小
+ * 然后再用 EncodingBuffer 造出一个真正的 buffer
+ * 对这个 buffer 执行 wireDecode 函数, 更新自己的成员函数
+ */ 
 class Data : public PacketBase, public std::enable_shared_from_this<Data>
 {
 public:
@@ -41,12 +47,18 @@ public:
     using tlv::Error::Error;
   };
 
+
+  // 以下是几种不同的构造Data包的方式 ↓
+
   /** @brief Construct an unsigned Data packet with given @p name and empty Content.
    *  @warning In certain contexts that use `Data::shared_from_this()`, Data must be created
    *           using `make_shared`. Otherwise, `shared_from_this()` will trigger undefined behavior.
+   * make_shared???
    */
+  // 构造一个未签名的Data包,带有给定的name,内容为空
   explicit
   Data(const Name& name = Name());
+
 
   /** @brief Construct a Data packet by decoding from @p wire.
    *  @param wire @c tlv::Data element as defined in NDN Packet Format v0.2 or v0.3.
@@ -54,8 +66,12 @@ public:
    *  @warning In certain contexts that use `Data::shared_from_this()`, Data must be created
    *           using `make_shared`. Otherwise, `shared_from_this()` will trigger undefined behavior.
    */
+  // 通过对wire中Block数据进行解码, 构造一个Data类型的包 
+  // 1) 从网络中接收到的数据, 先转换成Block, 再转换成Data类型?
+  // 2) 本地要发出去的数据 ,先组织成Block, 再转换成Data类型?
   explicit
   Data(const Block& wire);
+
 
   /** @brief Prepend wire encoding to @p encoder in NDN Packet Format v0.2.
    *  @param encoder EncodingEstimator or EncodingBuffer instance
@@ -64,6 +80,7 @@ public:
    *         element. This is intended to be used with wireEncode(encoder, signatureValue).
    *  @throw Error SignatureBits are not provided and wantUnsignedPortionOnly is false.
    */
+  // 对内容进行Encode, 其中TAG分为EncodingEstimator和EncodingBuffer
   template<encoding::Tag TAG>
   size_t
   wireEncode(EncodingImpl<TAG>& encoder, bool wantUnsignedPortionOnly = false) const;
@@ -99,6 +116,7 @@ public:
 
   /** @brief Decode from @p wire in NDN Packet Format v0.2 or v0.3.
    */
+  // 按照Name->MetaInfo(?)->Content(?)->SignatureInfo->SignatureValue的顺序解码到自己的成员函数里
   void
   wireDecode(const Block& wire);
 
@@ -117,7 +135,7 @@ public:
   const Name&
   getFullName() const;
 
-public: // Data fields
+public: // Data fields 数据的Get和Set
   /** @brief Get name
    */
   const Name&
@@ -199,7 +217,7 @@ public: // Data fields
   Data&
   setSignatureValue(const Block& value);
 
-public: // MetaInfo fields
+public: // MetaInfo的Get和Set
   uint32_t
   getContentType() const
   {
@@ -232,13 +250,13 @@ protected:
    *  @note This does not clear the SignatureValue.
    */
   void
-  resetWire();
+  resetWire();  // 每次set之后都要重置wire
 
 private:
-  Name m_name;
-  MetaInfo m_metaInfo;
-  Block m_content;
-  Signature m_signature;
+  Name m_name;  // Data的name
+  MetaInfo m_metaInfo;  // metaInfo?
+  Block m_content;  // Data数据? Block到底是啥类型?
+  Signature m_signature;  // 签名
 
   mutable Block m_wire;
   mutable Name m_fullName; ///< cached FullName computed from m_wire

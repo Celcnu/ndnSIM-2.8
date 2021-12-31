@@ -36,6 +36,7 @@ class Data;
 /** @var const unspecified_duration_type DEFAULT_INTEREST_LIFETIME;
  *  @brief default value for InterestLifetime
  */
+// 兴趣包的默认生存时间是4s
 const time::milliseconds DEFAULT_INTEREST_LIFETIME = 4_s;
 
 /** @brief Represents an Interest packet.
@@ -63,6 +64,7 @@ public:
    *  @warning In certain contexts that use `Interest::shared_from_this()`, Interest must be created
    *           using `make_shared`. Otherwise, `shared_from_this()` will trigger undefined behavior.
    */
+  // 用Block造一个Interest
   explicit
   Interest(const Block& wire);
 
@@ -72,6 +74,10 @@ public:
   size_t
   wireEncode(EncodingImpl<TAG>& encoder) const;
 
+  // 先执行wireEncode<EncodingEstimator>，这部分用于计算buffer的大小，不执行操作
+  // 再执行wireEncode<EncodingBuffer>，这部分用于真正创建一个buffer，并对它进行Encode操作
+  // 最后把buffer用于执行wireDecode，更新本Data的成员函数
+
   /** @brief Encode into a Block according to NDN Packet Format v0.3.
    */
   const Block&
@@ -79,6 +85,7 @@ public:
 
   /** @brief Decode from @p wire according to NDN Packet Format v0.3.
    */
+  // Name(SHA256?)->CanBePrefix?->MustBeFresh?->ForwardingHint?->Nonce->InterestLifetime?->HopLimit?->ApplicationParameters?
   void
   wireDecode(const Block& wire);
 
@@ -100,7 +107,7 @@ public:
   std::string
   toUri() const;
 
-public: // matching
+public: // matching 匹配,看interest能否匹配上data
   /** @brief Check if Interest can be satisfied by @p data.
    *
    *  This method considers Name, CanBePrefix, and MustBeFresh. However, MustBeFresh processing
@@ -113,6 +120,7 @@ public: // matching
    *
    *  Two Interests match if both have the same Name, CanBePrefix, and MustBeFresh.
    */
+  // 比较Name和CanBePrefix和MustBeFresh
   bool
   matchesInterest(const Interest& other) const;
 
@@ -126,6 +134,7 @@ public: // element access
   /** @brief Set the Interest's name.
    *  @throw std::invalid_argument @p name is invalid
    */
+  // set m_name，并且如果自己的m_parameters有SHA256参数，则添加到m_name
   Interest&
   setName(const Name& name);
 
@@ -412,6 +421,7 @@ private:
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(Interest);
 
+// 输出CanBePrefix和MustBeFresh和Nonce和Lifetime和HopLimit
 std::ostream&
 operator<<(std::ostream& os, const Interest& interest);
 

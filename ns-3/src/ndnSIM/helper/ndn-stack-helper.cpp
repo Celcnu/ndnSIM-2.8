@@ -291,6 +291,7 @@ StackHelper::PointToPointNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn,
 
   // 为节点生成linkservice(对应链路层)和transport(对应物理层)
   // 将它们都绑定到face上,交给这个face来管理
+  // 每个节点都会吗? 不! 是在每一个p2p链路上创建!
   auto linkService = make_unique<::nfd::face::GenericLinkService>(opts);
 
   auto transport = make_unique<NetDeviceTransport>(node, netDevice,
