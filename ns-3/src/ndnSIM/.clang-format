@@ -4,8 +4,8 @@ BasedOnStyle: GNU
 ---
 Language: Cpp
 AlwaysBreakAfterDefinitionReturnType: true
-AlwaysBreakAfterDeclarationReturnType: true
-ColumnLimit: 100
+# AlwaysBreakAfterDeclarationReturnType: true
+ColumnLimit: 120
 SpaceBeforeParens: ControlStatements
 Cpp11BracedListStyle: true
 BreakBeforeBraces: Stroustrup
@@ -22,12 +22,16 @@ NamespaceIndentation: None
 Standard: Cpp11
 
 AlwaysBreakTemplateDeclarations: true
-IndentWidth: 2
+IndentWidth: 4
 PenaltyBreakBeforeFirstCallParameter: 500
 SpacesBeforeTrailingComments: 1
 UseTab: Never
 ConstructorInitializerIndentWidth: 2
 
-SpaceBetweenTemplateAndOpeningAngle: false
+# SpaceBetweenTemplateAndOpeningAngle: false
 BreakBeforeBinaryOperators: NonAssignment
 ContinuationIndentWidth: 2
+
+# chaochao added
+IndentCaseLabels:	true
+NamespaceIndentation:	All

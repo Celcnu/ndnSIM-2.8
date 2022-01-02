@@ -28,10 +28,10 @@
 #include "ndn-cxx/encoding/encoding-buffer.hpp"
 #include "ndn-cxx/util/time.hpp"
 
-#include <sstream>
 #include <boost/functional/hash.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/concepts.hpp>
+#include <sstream>
 
 namespace ndn {
 
@@ -54,12 +54,13 @@ const size_t Name::npos = std::numeric_limits<size_t>::max();
 Name::Name()
   : m_wire(tlv::Name)
 {
+    // 这个构造函数啥都不干 ?
 }
 
 Name::Name(const Block& wire)
   : m_wire(wire)
 {
-  m_wire.parse();
+    m_wire.parse();
 }
 
 Name::Name(const char* uri)
@@ -69,61 +70,61 @@ Name::Name(const char* uri)
 
 Name::Name(std::string uri)
 {
-  if (uri.empty())
-    return;
-
-  size_t iColon = uri.find(':');
-  if (iColon != std::string::npos) {
-    // Make sure the colon came before a '/'.
-    size_t iFirstSlash = uri.find('/');
-    if (iFirstSlash == std::string::npos || iColon < iFirstSlash) {
-      // Omit the leading protocol such as ndn:
-      uri.erase(0, iColon + 1);
-    }
-  }
-
-  // Trim the leading slash and possibly the authority.
-  if (uri[0] == '/') {
-    if (uri.size() >= 2 && uri[1] == '/') {
-      // Strip the authority following "//".
-      size_t iAfterAuthority = uri.find('/', 2);
-      if (iAfterAuthority == std::string::npos)
-        // Unusual case: there was only an authority.
+    if (uri.empty())
         return;
-      else {
-        uri.erase(0, iAfterAuthority + 1);
-      }
+
+    size_t iColon = uri.find(':');
+    if (iColon != std::string::npos) {
+        // Make sure the colon came before a '/'.
+        size_t iFirstSlash = uri.find('/');
+        if (iFirstSlash == std::string::npos || iColon < iFirstSlash) {
+            // Omit the leading protocol such as ndn:
+            uri.erase(0, iColon + 1);
+        }
     }
-    else {
-      uri.erase(0, 1);
+
+    // Trim the leading slash and possibly the authority.
+    if (uri[0] == '/') {
+        if (uri.size() >= 2 && uri[1] == '/') {
+            // Strip the authority following "//".
+            size_t iAfterAuthority = uri.find('/', 2);
+            if (iAfterAuthority == std::string::npos)
+                // Unusual case: there was only an authority.
+                return;
+            else {
+                uri.erase(0, iAfterAuthority + 1);
+            }
+        }
+        else {
+            uri.erase(0, 1);
+        }
     }
-  }
 
-  size_t iComponentStart = 0;
+    size_t iComponentStart = 0;
 
-  // Unescape the components.
-  while (iComponentStart < uri.size()) {
-    size_t iComponentEnd = uri.find("/", iComponentStart);
-    if (iComponentEnd == std::string::npos)
-      iComponentEnd = uri.size();
+    // Unescape the components.
+    while (iComponentStart < uri.size()) {
+        size_t iComponentEnd = uri.find("/", iComponentStart);
+        if (iComponentEnd == std::string::npos)
+            iComponentEnd = uri.size();
 
-    append(Component::fromEscapedString(&uri[0], iComponentStart, iComponentEnd));
-    iComponentStart = iComponentEnd + 1;
-  }
+        append(Component::fromEscapedString(&uri[0], iComponentStart, iComponentEnd));
+        iComponentStart = iComponentEnd + 1;
+    }
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 Name::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
-  for (const Component& comp : *this | boost::adaptors::reversed) {
-    totalLength += comp.wireEncode(encoder);
-  }
+    size_t totalLength = 0;
+    for (const Component& comp : *this | boost::adaptors::reversed) {
+        totalLength += comp.wireEncode(encoder);
+    }
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::Name);
-  return totalLength;
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::Name);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(Name);
@@ -131,38 +132,38 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(Name);
 const Block&
 Name::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+    m_wire.parse();
+
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  m_wire.parse();
-
-  return m_wire;
 }
 
 void
 Name::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::Name)
-    NDN_THROW(tlv::Error("Name", wire.type()));
+    if (wire.type() != tlv::Name)
+        NDN_THROW(tlv::Error("Name", wire.type()));
 
-  m_wire = wire;
-  m_wire.parse();
+    m_wire = wire;
+    m_wire.parse();
 }
 
 Name
 Name::deepCopy() const
 {
-  Name copiedName(*this);
-  copiedName.m_wire.resetWire();
-  copiedName.wireEncode(); // "compress" the underlying buffer
-  return copiedName;
+    Name copiedName(*this);
+    copiedName.m_wire.resetWire();
+    copiedName.wireEncode(); // "compress" the underlying buffer
+    return copiedName;
 }
 
 // ---- accessors ----
@@ -170,34 +171,34 @@ Name::deepCopy() const
 const name::Component&
 Name::at(ssize_t i) const
 {
-  if (i < 0) {
-    i += static_cast<ssize_t>(size());
-  }
+    if (i < 0) {
+        i += static_cast<ssize_t>(size());
+    }
 
-  if (i < 0 || static_cast<size_t>(i) >= size()) {
-    NDN_THROW(Error("Requested component does not exist (out of bounds)"));
-  }
+    if (i < 0 || static_cast<size_t>(i) >= size()) {
+        NDN_THROW(Error("Requested component does not exist (out of bounds)"));
+    }
 
-  return reinterpret_cast<const Component&>(m_wire.elements()[i]);
+    return reinterpret_cast<const Component&>(m_wire.elements()[i]);
 }
 
 PartialName
 Name::getSubName(ssize_t iStartComponent, size_t nComponents) const
 {
-  PartialName result;
+    PartialName result;
 
-  if (iStartComponent < 0)
-    iStartComponent += static_cast<ssize_t>(size());
-  size_t iStart = iStartComponent < 0 ? 0 : static_cast<size_t>(iStartComponent);
+    if (iStartComponent < 0)
+        iStartComponent += static_cast<ssize_t>(size());
+    size_t iStart = iStartComponent < 0 ? 0 : static_cast<size_t>(iStartComponent);
 
-  size_t iEnd = size();
-  if (nComponents != npos)
-    iEnd = std::min(size(), iStart + nComponents);
+    size_t iEnd = size();
+    if (nComponents != npos)
+        iEnd = std::min(size(), iStart + nComponents);
 
-  for (size_t i = iStart; i < iEnd; ++i)
-    result.append(at(i));
+    for (size_t i = iStart; i < iEnd; ++i)
+        result.append(at(i));
 
-  return result;
+    return result;
 }
 
 // ---- modifiers ----
@@ -205,81 +206,80 @@ Name::getSubName(ssize_t iStartComponent, size_t nComponents) const
 Name&
 Name::set(ssize_t i, const Component& component)
 {
-  if (i < 0) {
-    i += static_cast<ssize_t>(size());
-  }
+    if (i < 0) {
+        i += static_cast<ssize_t>(size());
+    }
 
-  const_cast<Block::element_container&>(m_wire.elements())[i] = component;
-  m_wire.resetWire();
-  return *this;
+    const_cast<Block::element_container&>(m_wire.elements())[i] = component;
+    m_wire.resetWire();
+    return *this;
 }
 
 Name&
 Name::set(ssize_t i, Component&& component)
 {
-  if (i < 0) {
-    i += static_cast<ssize_t>(size());
-  }
+    if (i < 0) {
+        i += static_cast<ssize_t>(size());
+    }
 
-  const_cast<Block::element_container&>(m_wire.elements())[i] = std::move(component);
-  m_wire.resetWire();
-  return *this;
+    const_cast<Block::element_container&>(m_wire.elements())[i] = std::move(component);
+    m_wire.resetWire();
+    return *this;
 }
 
 Name&
 Name::appendVersion(optional<uint64_t> version)
 {
-  return append(Component::fromVersion(version.value_or(time::toUnixTimestamp(time::system_clock::now()).count())));
+    return append(Component::fromVersion(
+      version.value_or(time::toUnixTimestamp(time::system_clock::now()).count())));
 }
 
 Name&
 Name::appendTimestamp(optional<time::system_clock::TimePoint> timestamp)
 {
-  return append(Component::fromTimestamp(timestamp.value_or(time::system_clock::now())));
+    return append(Component::fromTimestamp(timestamp.value_or(time::system_clock::now())));
 }
 
 Name&
 Name::append(const PartialName& name)
 {
-  if (&name == this)
-    // Copying from this name, so need to make a copy first.
-    return append(PartialName(name));
+    if (&name == this)
+        // Copying from this name, so need to make a copy first.
+        return append(PartialName(name));
 
-  for (size_t i = 0; i < name.size(); ++i)
-    append(name.at(i));
+    for (size_t i = 0; i < name.size(); ++i)
+        append(name.at(i));
 
-  return *this;
+    return *this;
 }
 
 static constexpr uint8_t SHA256_OF_EMPTY_STRING[] = {
-  0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14,
-  0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
-  0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
-  0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55,
+  0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
+  0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55,
 };
 
 Name&
 Name::appendParametersSha256DigestPlaceholder()
 {
-  static const Component placeholder(tlv::ParametersSha256DigestComponent,
-                                     SHA256_OF_EMPTY_STRING, sizeof(SHA256_OF_EMPTY_STRING));
-  return append(placeholder);
+    static const Component placeholder(tlv::ParametersSha256DigestComponent, SHA256_OF_EMPTY_STRING,
+                                       sizeof(SHA256_OF_EMPTY_STRING));
+    return append(placeholder);
 }
 
 void
 Name::erase(ssize_t i)
 {
-  if (i < 0) {
-    i += static_cast<ssize_t>(size());
-  }
+    if (i < 0) {
+        i += static_cast<ssize_t>(size());
+    }
 
-  m_wire.erase(m_wire.elements_begin() + i);
+    m_wire.erase(m_wire.elements_begin() + i);
 }
 
 void
 Name::clear()
 {
-  m_wire = Block(tlv::Name);
+    m_wire = Block(tlv::Name);
 }
 
 // ---- algorithms ----
@@ -287,59 +287,60 @@ Name::clear()
 Name
 Name::getSuccessor() const
 {
-  if (empty()) {
-    static const Name n("/sha256digest=0000000000000000000000000000000000000000000000000000000000000000");
-    return n;
-  }
+    if (empty()) {
+        static const Name n(
+          "/sha256digest=0000000000000000000000000000000000000000000000000000000000000000");
+        return n;
+    }
 
-  return getPrefix(-1).append(get(-1).getSuccessor());
+    return getPrefix(-1).append(get(-1).getSuccessor());
 }
 
 bool
 Name::isPrefixOf(const Name& other) const
 {
-  // This name is longer than the name we are checking against.
-  if (size() > other.size())
-    return false;
+    // This name is longer than the name we are checking against.
+    if (size() > other.size())
+        return false;
 
-  // Check if at least one of given components doesn't match.
-  for (size_t i = 0; i < size(); ++i) {
-    if (get(i) != other.get(i))
-      return false;
-  }
+    // Check if at least one of given components doesn't match.
+    for (size_t i = 0; i < size(); ++i) {
+        if (get(i) != other.get(i))
+            return false;
+    }
 
-  return true;
+    return true;
 }
 
 bool
 Name::equals(const Name& other) const
 {
-  if (size() != other.size())
-    return false;
+    if (size() != other.size())
+        return false;
 
-  for (size_t i = 0; i < size(); ++i) {
-    if (get(i) != other.get(i))
-      return false;
-  }
+    for (size_t i = 0; i < size(); ++i) {
+        if (get(i) != other.get(i))
+            return false;
+    }
 
-  return true;
+    return true;
 }
 
 int
 Name::compare(size_t pos1, size_t count1, const Name& other, size_t pos2, size_t count2) const
 {
-  count1 = std::min(count1, this->size() - pos1);
-  count2 = std::min(count2, other.size() - pos2);
-  size_t count = std::min(count1, count2);
+    count1 = std::min(count1, this->size() - pos1);
+    count2 = std::min(count2, other.size() - pos2);
+    size_t count = std::min(count1, count2);
 
-  for (size_t i = 0; i < count; ++i) {
-    int comp = get(pos1 + i).compare(other.get(pos2 + i));
-    if (comp != 0) { // i-th component differs
-      return comp;
+    for (size_t i = 0; i < count; ++i) {
+        int comp = get(pos1 + i).compare(other.get(pos2 + i));
+        if (comp != 0) { // i-th component differs
+            return comp;
+        }
     }
-  }
-  // [pos1, pos1+count) of this Name equals [pos2, pos2+count) of other Name
-  return count1 - count2;
+    // [pos1, pos1+count) of this Name equals [pos2, pos2+count) of other Name
+    return count1 - count2;
 }
 
 // ---- URI representation ----
@@ -347,33 +348,33 @@ Name::compare(size_t pos1, size_t count1, const Name& other, size_t pos2, size_t
 void
 Name::toUri(std::ostream& os, name::UriFormat format) const
 {
-  if (empty()) {
-    os << "/";
-    return;
-  }
+    if (empty()) {
+        os << "/";
+        return;
+    }
 
-  for (const auto& component : *this) {
-    os << "/";
-    component.toUri(os, format);
-  }
+    for (const auto& component : *this) {
+        os << "/";
+        component.toUri(os, format);
+    }
 }
 
 std::string
 Name::toUri(name::UriFormat format) const
 {
-  std::ostringstream os;
-  toUri(os, format);
-  return os.str();
+    std::ostringstream os;
+    toUri(os, format);
+    return os.str();
 }
 
 std::istream&
 operator>>(std::istream& is, Name& name)
 {
-  std::string inputString;
-  is >> inputString;
-  name = Name(inputString);
+    std::string inputString;
+    is >> inputString;
+    name = Name(inputString);
 
-  return is;
+    return is;
 }
 
 } // namespace ndn
@@ -383,8 +384,8 @@ namespace std {
 size_t
 hash<ndn::Name>::operator()(const ndn::Name& name) const
 {
-  return boost::hash_range(name.wireEncode().wire(),
-                           name.wireEncode().wire() + name.wireEncode().size());
+    return boost::hash_range(name.wireEncode().wire(),
+                             name.wireEncode().wire() + name.wireEncode().size());
 }
 
 } // namespace std

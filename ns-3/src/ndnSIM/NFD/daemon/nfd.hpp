@@ -55,78 +55,71 @@ class FaceSystem;
  *
  * This class is used to initialize all components of NFD.
  */
-class Nfd : noncopyable
-{
-public:
-  /**
-   * \brief Create NFD instance using an absolute or relative path to a configuration file.
-   */
-  Nfd(const std::string& configFile, ndn::KeyChain& keyChain);
+class Nfd : noncopyable {
+  public:
+    /**
+     * \brief Create NFD instance using an absolute or relative path to a configuration file.
+     */
+    Nfd(const std::string& configFile, ndn::KeyChain& keyChain);
 
-  /**
-   * \brief Create NFD instance using a parsed ConfigSection.
-   *
-   * This version of the constructor is more appropriate for integrated environments,
-   * such as NS-3 or Android.
-   *
-   * \note When using this version of the constructor, error messages will show
-   *       "internal://nfd.conf" when referring to configuration errors.
-   */
-  Nfd(const ConfigSection& config, ndn::KeyChain& keyChain);
+    /**
+     * \brief Create NFD instance using a parsed ConfigSection.
+     *
+     * This version of the constructor is more appropriate for integrated environments,
+     * such as NS-3 or Android.
+     *
+     * \note When using this version of the constructor, error messages will show
+     *       "internal://nfd.conf" when referring to configuration errors.
+     */
+    Nfd(const ConfigSection& config, ndn::KeyChain& keyChain);
 
-  /**
-   * \brief Destructor.
-   */
-  ~Nfd();
+    /**
+     * \brief Destructor.
+     */
+    ~Nfd();
 
-  /**
-   * \brief Perform initialization of NFD instance.
-   *
-   * After initialization, NFD can be started by invoking `getGlobalIoService().run()`.
-   */
-  void
-  initialize();
+    /**
+     * \brief Perform initialization of NFD instance.
+     *
+     * After initialization, NFD can be started by invoking `getGlobalIoService().run()`.
+     */
+    void initialize();
 
-  /**
-   * \brief Reload configuration file and apply updates (if any).
-   */
-  void
-  reloadConfigFile();
+    /**
+     * \brief Reload configuration file and apply updates (if any).
+     */
+    void reloadConfigFile();
 
-private:
-  explicit
-  Nfd(ndn::KeyChain& keyChain);
+  private:
+    explicit Nfd(ndn::KeyChain& keyChain);
 
-  void
-  configureLogging();
+    void configureLogging();
 
-  void
-  initializeManagement();
+    void initializeManagement();
 
-  void
-  reloadConfigFileFaceSection();
+    void reloadConfigFileFaceSection();
 
-private:
-  std::string m_configFile;
-  ConfigSection m_configSection;
+  private:
+    std::string m_configFile;
+    ConfigSection m_configSection;
 
-  unique_ptr<FaceTable> m_faceTable;
-  unique_ptr<face::FaceSystem> m_faceSystem;
-  unique_ptr<Forwarder> m_forwarder;
+    unique_ptr<FaceTable> m_faceTable;
+    unique_ptr<face::FaceSystem> m_faceSystem;
+    unique_ptr<Forwarder> m_forwarder;
 
-  ndn::KeyChain& m_keyChain;
-  shared_ptr<face::Face> m_internalFace;
-  shared_ptr<ndn::Face> m_internalClientFace;
-  unique_ptr<ndn::mgmt::Dispatcher> m_dispatcher;
-  shared_ptr<CommandAuthenticator> m_authenticator;
-  unique_ptr<ForwarderStatusManager> m_forwarderStatusManager;
-  unique_ptr<FaceManager> m_faceManager;
-  unique_ptr<FibManager> m_fibManager;
-  unique_ptr<CsManager> m_csManager;
-  unique_ptr<StrategyChoiceManager> m_strategyChoiceManager;
+    ndn::KeyChain& m_keyChain;
+    shared_ptr<face::Face> m_internalFace;
+    shared_ptr<ndn::Face> m_internalClientFace;
+    unique_ptr<ndn::mgmt::Dispatcher> m_dispatcher;
+    shared_ptr<CommandAuthenticator> m_authenticator;
+    unique_ptr<ForwarderStatusManager> m_forwarderStatusManager;
+    unique_ptr<FaceManager> m_faceManager;
+    unique_ptr<FibManager> m_fibManager;
+    unique_ptr<CsManager> m_csManager;
+    unique_ptr<StrategyChoiceManager> m_strategyChoiceManager;
 
-  shared_ptr<ndn::net::NetworkMonitor> m_netmon;
-  scheduler::ScopedEventId m_reloadConfigEvent;
+    shared_ptr<ndn::net::NetworkMonitor> m_netmon;
+    scheduler::ScopedEventId m_reloadConfigEvent;
 };
 
 } // namespace nfd
