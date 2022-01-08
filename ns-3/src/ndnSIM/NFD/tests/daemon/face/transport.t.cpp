@@ -52,22 +52,22 @@ BOOST_AUTO_TEST_SUITE(TestTransport)
 
 BOOST_AUTO_TEST_CASE(PersistencyChange)
 {
-  auto transport = make_unique<DummyTransport>();
-  BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
-  BOOST_CHECK_EQUAL(transport->persistencyHistory.size(), 0);
+    auto transport = make_unique<DummyTransport>();
+    BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
+    BOOST_CHECK_EQUAL(transport->persistencyHistory.size(), 0);
 
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_NONE), false);
-  BOOST_REQUIRE_EQUAL(transport->canChangePersistencyTo(transport->getPersistency()), true);
-  BOOST_REQUIRE_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_NONE), false);
+    BOOST_REQUIRE_EQUAL(transport->canChangePersistencyTo(transport->getPersistency()), true);
+    BOOST_REQUIRE_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
 
-  transport->setPersistency(transport->getPersistency());
-  BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
-  BOOST_CHECK_EQUAL(transport->persistencyHistory.size(), 0);
+    transport->setPersistency(transport->getPersistency());
+    BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
+    BOOST_CHECK_EQUAL(transport->persistencyHistory.size(), 0);
 
-  transport->setPersistency(ndn::nfd::FACE_PERSISTENCY_PERMANENT);
-  BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
-  BOOST_REQUIRE_EQUAL(transport->persistencyHistory.size(), 1);
-  BOOST_CHECK_EQUAL(transport->persistencyHistory.back(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
+    transport->setPersistency(ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+    BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+    BOOST_REQUIRE_EQUAL(transport->persistencyHistory.size(), 1);
+    BOOST_CHECK_EQUAL(transport->persistencyHistory.back(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
 }
 
 /** \brief a macro to declare a TransportState as a integral constant
@@ -79,170 +79,139 @@ BOOST_AUTO_TEST_CASE(PersistencyChange)
  *         for entering this state from UP
  */
 typedef mpl::map<
-  mpl::pair<TRANSPORT_STATE_C(UP),
-    mpl::vector<>>,
-  mpl::pair<TRANSPORT_STATE_C(DOWN),
-    mpl::vector<
-      TRANSPORT_STATE_C(DOWN)
-    >>,
-  mpl::pair<TRANSPORT_STATE_C(CLOSING),
-    mpl::vector<
-      TRANSPORT_STATE_C(CLOSING)
-    >>,
-  mpl::pair<TRANSPORT_STATE_C(FAILED),
-    mpl::vector<
-      TRANSPORT_STATE_C(FAILED)
-    >>,
-  mpl::pair<TRANSPORT_STATE_C(CLOSED),
-    mpl::vector<
-      TRANSPORT_STATE_C(CLOSING),
-      TRANSPORT_STATE_C(CLOSED)
-    >>
-> StateEntering;
+  mpl::pair<TRANSPORT_STATE_C(UP), mpl::vector<>>,
+  mpl::pair<TRANSPORT_STATE_C(DOWN), mpl::vector<TRANSPORT_STATE_C(DOWN)>>,
+  mpl::pair<TRANSPORT_STATE_C(CLOSING), mpl::vector<TRANSPORT_STATE_C(CLOSING)>>,
+  mpl::pair<TRANSPORT_STATE_C(FAILED), mpl::vector<TRANSPORT_STATE_C(FAILED)>>,
+  mpl::pair<TRANSPORT_STATE_C(CLOSED), mpl::vector<TRANSPORT_STATE_C(CLOSING), TRANSPORT_STATE_C(CLOSED)>>>
+  StateEntering;
 
 /** \brief a sequence of all valid TransportStates
  */
-typedef mpl::fold<StateEntering,
-  mpl::vector<>,
-  mpl::push_back<mpl::_1, mpl::first<mpl::_2>>
->::type States;
+typedef mpl::fold<StateEntering, mpl::vector<>, mpl::push_back<mpl::_1, mpl::first<mpl::_2>>>::type States;
 
 /** \brief a set of all valid state transitions
  */
-typedef mpl::set<
-  mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(DOWN)>,
-  mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(UP)>,
-  mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(CLOSING)>,
-  mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(FAILED)>,
-  mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(CLOSING)>,
-  mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(FAILED)>,
-  mpl::pair<TRANSPORT_STATE_C(CLOSING), TRANSPORT_STATE_C(CLOSED)>,
-  mpl::pair<TRANSPORT_STATE_C(FAILED), TRANSPORT_STATE_C(CLOSED)>
-> ValidStateTransitions;
+typedef mpl::set<mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(DOWN)>,
+                 mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(UP)>,
+                 mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(CLOSING)>,
+                 mpl::pair<TRANSPORT_STATE_C(UP), TRANSPORT_STATE_C(FAILED)>,
+                 mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(CLOSING)>,
+                 mpl::pair<TRANSPORT_STATE_C(DOWN), TRANSPORT_STATE_C(FAILED)>,
+                 mpl::pair<TRANSPORT_STATE_C(CLOSING), TRANSPORT_STATE_C(CLOSED)>,
+                 mpl::pair<TRANSPORT_STATE_C(FAILED), TRANSPORT_STATE_C(CLOSED)>>
+  ValidStateTransitions;
 
 /** \brief a metafunction to generate a sequence of all state transitions
  *         from a specified state
  */
-template<typename FromState, typename Result>
-struct StateTransitionsFrom : mpl::fold<
-                                States,
-                                Result,
-                                mpl::push_back<mpl::_1, mpl::pair<FromState, mpl::_2>>>
-{
+template <typename FromState, typename Result>
+struct StateTransitionsFrom : mpl::fold<States, Result, mpl::push_back<mpl::_1, mpl::pair<FromState, mpl::_2>>> {
 };
 
 /** \brief a sequence of all state transitions
  */
-typedef mpl::fold<
-  States,
-  mpl::vector<>,
-  mpl::lambda<StateTransitionsFrom<mpl::_2, mpl::_1>>
->::type AllStateTransitions;
+typedef mpl::fold<States, mpl::vector<>, mpl::lambda<StateTransitionsFrom<mpl::_2, mpl::_1>>>::type AllStateTransitions;
 
 #undef TRANSPORT_STATE_C
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetState, T, AllStateTransitions)
 {
-  auto transport = make_unique<DummyTransport>();
+    auto transport = make_unique<DummyTransport>();
 
-  TransportState from = static_cast<TransportState>(T::first::value);
-  TransportState to = static_cast<TransportState>(T::second::value);
-  BOOST_TEST_MESSAGE("SetState " << from << " -> " << to);
+    TransportState from = static_cast<TransportState>(T::first::value);
+    TransportState to = static_cast<TransportState>(T::second::value);
+    BOOST_TEST_MESSAGE("SetState " << from << " -> " << to);
 
-  // enter from state
-  using Steps = typename mpl::at<StateEntering, mpl::int_<T::first::value>>::type;
-  mpl::for_each<Steps>([&transport] (int state) {
-    transport->setState(static_cast<TransportState>(state));
-  });
-  BOOST_REQUIRE_EQUAL(transport->getState(), from);
+    // enter from state
+    using Steps = typename mpl::at<StateEntering, mpl::int_<T::first::value>>::type;
+    mpl::for_each<Steps>([&transport](int state) { transport->setState(static_cast<TransportState>(state)); });
+    BOOST_REQUIRE_EQUAL(transport->getState(), from);
 
-  bool hasSignal = false;
-  transport->afterStateChange.connect(
-    [from, to, &hasSignal] (TransportState oldState, TransportState newState) {
-      hasSignal = true;
-      BOOST_CHECK_EQUAL(oldState, from);
-      BOOST_CHECK_EQUAL(newState, to);
+    bool hasSignal = false;
+    transport->afterStateChange.connect([from, to, &hasSignal](TransportState oldState, TransportState newState) {
+        hasSignal = true;
+        BOOST_CHECK_EQUAL(oldState, from);
+        BOOST_CHECK_EQUAL(newState, to);
     });
 
-  // do transition
-  bool isValid = from == to ||
-                 mpl::has_key<ValidStateTransitions,
-                   mpl::pair<mpl::int_<T::first::value>, mpl::int_<T::second::value>>
-                 >::value;
-  if (isValid) {
-    BOOST_REQUIRE_NO_THROW(transport->setState(to));
-    BOOST_CHECK_EQUAL(hasSignal, from != to);
-  }
-  else {
-    BOOST_CHECK_THROW(transport->setState(to), std::runtime_error);
-  }
+    // do transition
+    bool isValid =
+      from == to
+      || mpl::has_key<ValidStateTransitions, mpl::pair<mpl::int_<T::first::value>, mpl::int_<T::second::value>>>::value;
+    if (isValid) {
+        BOOST_REQUIRE_NO_THROW(transport->setState(to));
+        BOOST_CHECK_EQUAL(hasSignal, from != to);
+    }
+    else {
+        BOOST_CHECK_THROW(transport->setState(to), std::runtime_error);
+    }
 }
 
-class DummyTransportFixture : public GlobalIoFixture
-{
-protected:
-  void
-  initialize(unique_ptr<DummyTransport> t = make_unique<DummyTransport>())
-  {
-    this->face = make_unique<nfd::Face>(make_unique<DummyLinkService>(), std::move(t));
-    this->transport = static_cast<DummyTransport*>(face->getTransport());
-    this->sentPackets = &this->transport->sentPackets;
-    this->receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
-  }
+class DummyTransportFixture : public GlobalIoFixture {
+  protected:
+    void
+    initialize(unique_ptr<DummyTransport> t = make_unique<DummyTransport>())
+    {
+        this->face = make_unique<nfd::Face>(make_unique<DummyLinkService>(), std::move(t));
+        this->transport = static_cast<DummyTransport*>(face->getTransport());
+        this->sentPackets = &this->transport->sentPackets;
+        this->receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+    }
 
-protected:
-  unique_ptr<nfd::Face> face;
-  DummyTransport* transport = nullptr;
-  const std::vector<TxPacket>* sentPackets = nullptr;
-  const std::vector<RxPacket>* receivedPackets = nullptr;
+  protected:
+    unique_ptr<nfd::Face> face;
+    DummyTransport* transport = nullptr;
+    const std::vector<TxPacket>* sentPackets = nullptr;
+    const std::vector<RxPacket>* receivedPackets = nullptr;
 };
 
 BOOST_FIXTURE_TEST_CASE(Send, DummyTransportFixture)
 {
-  this->initialize();
+    this->initialize();
 
-  Block pkt1 = ndn::encoding::makeStringBlock(300, "Lorem ipsum dolor sit amet,");
-  transport->send(pkt1);
+    Block pkt1 = ndn::encoding::makeStringBlock(300, "Lorem ipsum dolor sit amet,");
+    transport->send(pkt1);
 
-  Block pkt2 = ndn::encoding::makeStringBlock(301, "consectetur adipiscing elit,");
-  transport->send(pkt2);
+    Block pkt2 = ndn::encoding::makeStringBlock(301, "consectetur adipiscing elit,");
+    transport->send(pkt2);
 
-  transport->setState(TransportState::DOWN);
-  Block pkt3 = ndn::encoding::makeStringBlock(302, "sed do eiusmod tempor incididunt ");
-  transport->send(pkt3);
+    transport->setState(TransportState::DOWN);
+    Block pkt3 = ndn::encoding::makeStringBlock(302, "sed do eiusmod tempor incididunt ");
+    transport->send(pkt3);
 
-  transport->setState(TransportState::CLOSING);
-  Block pkt4 = ndn::encoding::makeStringBlock(303, "ut labore et dolore magna aliqua.");
-  transport->send(pkt4);
+    transport->setState(TransportState::CLOSING);
+    Block pkt4 = ndn::encoding::makeStringBlock(303, "ut labore et dolore magna aliqua.");
+    transport->send(pkt4);
 
-  BOOST_CHECK_EQUAL(transport->getCounters().nOutPackets, 2);
-  BOOST_CHECK_EQUAL(transport->getCounters().nOutBytes, pkt1.size() + pkt2.size());
-  BOOST_REQUIRE_EQUAL(sentPackets->size(), 3);
-  BOOST_CHECK(sentPackets->at(0).packet == pkt1);
-  BOOST_CHECK(sentPackets->at(1).packet == pkt2);
-  BOOST_CHECK(sentPackets->at(2).packet == pkt3);
+    BOOST_CHECK_EQUAL(transport->getCounters().nOutPackets, 2);
+    BOOST_CHECK_EQUAL(transport->getCounters().nOutBytes, pkt1.size() + pkt2.size());
+    BOOST_REQUIRE_EQUAL(sentPackets->size(), 3);
+    BOOST_CHECK(sentPackets->at(0).packet == pkt1);
+    BOOST_CHECK(sentPackets->at(1).packet == pkt2);
+    BOOST_CHECK(sentPackets->at(2).packet == pkt3);
 }
 
 BOOST_FIXTURE_TEST_CASE(Receive, DummyTransportFixture)
 {
-  this->initialize();
+    this->initialize();
 
-  Block pkt1 = ndn::encoding::makeStringBlock(300, "Lorem ipsum dolor sit amet,");
-  transport->receivePacket(pkt1);
+    Block pkt1 = ndn::encoding::makeStringBlock(300, "Lorem ipsum dolor sit amet,");
+    transport->receivePacket(pkt1);
 
-  Block pkt2 = ndn::encoding::makeStringBlock(301, "consectetur adipiscing elit,");
-  transport->receivePacket(pkt2);
+    Block pkt2 = ndn::encoding::makeStringBlock(301, "consectetur adipiscing elit,");
+    transport->receivePacket(pkt2);
 
-  transport->setState(TransportState::DOWN);
-  Block pkt3 = ndn::encoding::makeStringBlock(302, "sed do eiusmod tempor incididunt ");
-  transport->receivePacket(pkt3);
+    transport->setState(TransportState::DOWN);
+    Block pkt3 = ndn::encoding::makeStringBlock(302, "sed do eiusmod tempor incididunt ");
+    transport->receivePacket(pkt3);
 
-  BOOST_CHECK_EQUAL(transport->getCounters().nInPackets, 3);
-  BOOST_CHECK_EQUAL(transport->getCounters().nInBytes, pkt1.size() + pkt2.size() + pkt3.size());
-  BOOST_REQUIRE_EQUAL(receivedPackets->size(), 3);
-  BOOST_CHECK(receivedPackets->at(0).packet == pkt1);
-  BOOST_CHECK(receivedPackets->at(1).packet == pkt2);
-  BOOST_CHECK(receivedPackets->at(2).packet == pkt3);
+    BOOST_CHECK_EQUAL(transport->getCounters().nInPackets, 3);
+    BOOST_CHECK_EQUAL(transport->getCounters().nInBytes, pkt1.size() + pkt2.size() + pkt3.size());
+    BOOST_REQUIRE_EQUAL(receivedPackets->size(), 3);
+    BOOST_CHECK(receivedPackets->at(0).packet == pkt1);
+    BOOST_CHECK(receivedPackets->at(1).packet == pkt2);
+    BOOST_CHECK(receivedPackets->at(2).packet == pkt3);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTransport

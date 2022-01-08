@@ -27,65 +27,60 @@ namespace lp {
 
 GeoTag::GeoTag(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 GeoTag::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t length = 0;
-  length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<2>(m_pos));
-  length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<1>(m_pos));
-  length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<0>(m_pos));
-  length += encoder.prependVarNumber(length);
-  length += encoder.prependVarNumber(tlv::GeoTag);
-  return length;
+    size_t length = 0;
+    length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<2>(m_pos));
+    length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<1>(m_pos));
+    length += prependDoubleBlock(encoder, tlv::GeoTagPos, std::get<0>(m_pos));
+    length += encoder.prependVarNumber(length);
+    length += encoder.prependVarNumber(tlv::GeoTag);
+    return length;
 }
 
-template size_t
-GeoTag::wireEncode<encoding::EncoderTag>(EncodingImpl<encoding::EncoderTag>& encoder) const;
+template size_t GeoTag::wireEncode<encoding::EncoderTag>(EncodingImpl<encoding::EncoderTag>& encoder) const;
 
-template size_t
-GeoTag::wireEncode<encoding::EstimatorTag>(EncodingImpl<encoding::EstimatorTag>& encoder) const;
+template size_t GeoTag::wireEncode<encoding::EstimatorTag>(EncodingImpl<encoding::EstimatorTag>& encoder) const;
 
 const Block&
 GeoTag::wireEncode() const
 {
-  if (m_wire.hasWire()) {
+    if (m_wire.hasWire()) {
+        return m_wire;
+    }
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+
     return m_wire;
-  }
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-
-  return m_wire;
 }
 
 void
 GeoTag::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::GeoTag) {
-    NDN_THROW(ndn::tlv::Error("expecting GeoTag block"));
-  }
+    if (wire.type() != tlv::GeoTag) {
+        NDN_THROW(ndn::tlv::Error("expecting GeoTag block"));
+    }
 
-  m_wire = wire;
-  m_wire.parse();
+    m_wire = wire;
+    m_wire.parse();
 
-  if (m_wire.elements().size() < 3 ||
-      m_wire.elements()[0].type() != tlv::GeoTagPos ||
-      m_wire.elements()[1].type() != tlv::GeoTagPos ||
-      m_wire.elements()[2].type() != tlv::GeoTagPos) {
-    NDN_THROW(ndn::tlv::Error("Unexpected input while decoding GeoTag"));
-  }
-  m_pos = {encoding::readDouble(m_wire.elements()[0]),
-           encoding::readDouble(m_wire.elements()[1]),
-           encoding::readDouble(m_wire.elements()[2])};
+    if (m_wire.elements().size() < 3 || m_wire.elements()[0].type() != tlv::GeoTagPos
+        || m_wire.elements()[1].type() != tlv::GeoTagPos || m_wire.elements()[2].type() != tlv::GeoTagPos) {
+        NDN_THROW(ndn::tlv::Error("Unexpected input while decoding GeoTag"));
+    }
+    m_pos = {encoding::readDouble(m_wire.elements()[0]), encoding::readDouble(m_wire.elements()[1]),
+             encoding::readDouble(m_wire.elements()[2])};
 }
 
 } // namespace lp

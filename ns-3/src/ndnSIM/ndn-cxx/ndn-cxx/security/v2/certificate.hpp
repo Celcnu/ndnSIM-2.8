@@ -78,114 +78,98 @@ namespace v2 {
  *
  * @see doc/specs/certificate-format.rst
  */
-class Certificate : public Data
-{
-public:
-  Certificate();
+class Certificate : public Data {
+  public:
+    Certificate();
 
-  /**
-   * @brief Construct certificate from a data object
-   * @throw tlv::Error if data does not follow certificate format
-   */
-  explicit
-  Certificate(Data&& data);
+    /**
+     * @brief Construct certificate from a data object
+     * @throw tlv::Error if data does not follow certificate format
+     */
+    explicit Certificate(Data&& data);
 
-  /**
-   * @brief Construct certificate from a data object
-   * @throw tlv::Error if data does not follow certificate format
-   */
-  explicit
-  Certificate(const Data& data);
+    /**
+     * @brief Construct certificate from a data object
+     * @throw tlv::Error if data does not follow certificate format
+     */
+    explicit Certificate(const Data& data);
 
-  /**
-   * @brief Construct certificate from a wire encoding
-   * @throw tlv::Error if wire encoding is invalid or does not follow certificate format
-   */
-  explicit
-  Certificate(const Block& block);
+    /**
+     * @brief Construct certificate from a wire encoding
+     * @throw tlv::Error if wire encoding is invalid or does not follow certificate format
+     */
+    explicit Certificate(const Block& block);
 
-  /**
-   * @brief Get key name
-   */
-  Name
-  getKeyName() const;
+    /**
+     * @brief Get key name
+     */
+    Name getKeyName() const;
 
-  /**
-   * @brief Get identity name
-   */
-  Name
-  getIdentity() const;
+    /**
+     * @brief Get identity name
+     */
+    Name getIdentity() const;
 
-  /**
-   * @brief Get key ID
-   */
-  name::Component
-  getKeyId() const;
+    /**
+     * @brief Get key ID
+     */
+    name::Component getKeyId() const;
 
-  /**
-   * @brief Get issuer ID
-   */
-  name::Component
-  getIssuerId() const;
+    /**
+     * @brief Get issuer ID
+     */
+    name::Component getIssuerId() const;
 
-  /**
-   * @brief Get public key bits (in PKCS#8 format)
-   * @throw Error If content is empty
-   */
-  Buffer
-  getPublicKey() const;
+    /**
+     * @brief Get public key bits (in PKCS#8 format)
+     * @throw Error If content is empty
+     */
+    Buffer getPublicKey() const;
 
-  /**
-   * @brief Get validity period of the certificate
-   */
-  ValidityPeriod
-  getValidityPeriod() const;
+    /**
+     * @brief Get validity period of the certificate
+     */
+    ValidityPeriod getValidityPeriod() const;
 
-  /**
-   * @brief Check if the certificate is valid at @p ts.
-   */
-  bool
-  isValid(const time::system_clock::TimePoint& ts = time::system_clock::now()) const;
+    /**
+     * @brief Check if the certificate is valid at @p ts.
+     */
+    bool isValid(const time::system_clock::TimePoint& ts = time::system_clock::now()) const;
 
-  /**
-   * @brief Get extension with TLV @p type
-   * @throw ndn::SignatureInfo::Error if the specified block type does not exist
-   */
-  const Block&
-  getExtension(uint32_t type) const;
+    /**
+     * @brief Get extension with TLV @p type
+     * @throw ndn::SignatureInfo::Error if the specified block type does not exist
+     */
+    const Block& getExtension(uint32_t type) const;
 
-  // @TODO Implement extension enumeration (Issue #3907)
-public:
-  /**
-   * @brief Check if the specified name follows the naming convention for the certificate
-   */
-  static bool
-  isValidName(const Name& certName);
+    // @TODO Implement extension enumeration (Issue #3907)
+  public:
+    /**
+     * @brief Check if the specified name follows the naming convention for the certificate
+     */
+    static bool isValidName(const Name& certName);
 
-public:
-  static const ssize_t VERSION_OFFSET;
-  static const ssize_t ISSUER_ID_OFFSET;
-  static const ssize_t KEY_COMPONENT_OFFSET;
-  static const ssize_t KEY_ID_OFFSET;
-  static const size_t MIN_CERT_NAME_LENGTH;
-  static const size_t MIN_KEY_NAME_LENGTH;
-  static const name::Component KEY_COMPONENT;
+  public:
+    static const ssize_t VERSION_OFFSET;
+    static const ssize_t ISSUER_ID_OFFSET;
+    static const ssize_t KEY_COMPONENT_OFFSET;
+    static const ssize_t KEY_ID_OFFSET;
+    static const size_t MIN_CERT_NAME_LENGTH;
+    static const size_t MIN_KEY_NAME_LENGTH;
+    static const name::Component KEY_COMPONENT;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const Certificate& cert);
+std::ostream& operator<<(std::ostream& os, const Certificate& cert);
 
 /**
  * @brief Extract identity namespace from the certificate name @p certName
  */
-Name
-extractIdentityFromCertName(const Name& certName);
+Name extractIdentityFromCertName(const Name& certName);
 
 /**
  * @brief Extract key name from the certificate name @p certName
  */
-Name
-extractKeyNameFromCertName(const Name& certName);
+Name extractKeyNameFromCertName(const Name& certName);
 
 } // namespace v2
 } // namespace security

@@ -28,42 +28,42 @@ namespace cfstring {
 CFReleaser<CFStringRef>
 fromBuffer(const uint8_t* buf, size_t buflen)
 {
-  CFStringRef cfStr = CFStringCreateWithBytes(kCFAllocatorDefault, buf, buflen, kCFStringEncodingUTF8, false);
-  if (cfStr == nullptr) {
-    NDN_THROW(std::runtime_error("Failed to create CFString from buffer"));
-  }
-  return cfStr;
+    CFStringRef cfStr = CFStringCreateWithBytes(kCFAllocatorDefault, buf, buflen, kCFStringEncodingUTF8, false);
+    if (cfStr == nullptr) {
+        NDN_THROW(std::runtime_error("Failed to create CFString from buffer"));
+    }
+    return cfStr;
 }
 
 CFReleaser<CFStringRef>
 fromStdString(const std::string& str)
 {
-  CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorDefault, str.data(), kCFStringEncodingUTF8);
-  if (cfStr == nullptr) {
-    NDN_THROW(std::runtime_error("Failed to create CFString from std::string"));
-  }
-  return cfStr;
+    CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorDefault, str.data(), kCFStringEncodingUTF8);
+    if (cfStr == nullptr) {
+        NDN_THROW(std::runtime_error("Failed to create CFString from std::string"));
+    }
+    return cfStr;
 }
 
 std::string
 toStdString(CFStringRef cfStr)
 {
-  const char* cStr = CFStringGetCStringPtr(cfStr, kCFStringEncodingUTF8);
-  if (cStr != nullptr) {
-    // fast path
-    return cStr;
-  }
+    const char* cStr = CFStringGetCStringPtr(cfStr, kCFStringEncodingUTF8);
+    if (cStr != nullptr) {
+        // fast path
+        return cStr;
+    }
 
-  // reserve space for the string + null terminator
-  std::string str(CFStringGetLength(cfStr) + 1, '\0');
-  // copy the CFString into the std::string buffer
-  if (!CFStringGetCString(cfStr, &str.front(), str.size(), kCFStringEncodingUTF8)) {
-    NDN_THROW(std::runtime_error("CFString to std::string conversion failed"));
-  }
-  // drop the null terminator, std::string doesn't need it
-  str.pop_back();
+    // reserve space for the string + null terminator
+    std::string str(CFStringGetLength(cfStr) + 1, '\0');
+    // copy the CFString into the std::string buffer
+    if (!CFStringGetCString(cfStr, &str.front(), str.size(), kCFStringEncodingUTF8)) {
+        NDN_THROW(std::runtime_error("CFString to std::string conversion failed"));
+    }
+    // drop the null terminator, std::string doesn't need it
+    str.pop_back();
 
-  return str;
+    return str;
 }
 
 } // namespace cfstring

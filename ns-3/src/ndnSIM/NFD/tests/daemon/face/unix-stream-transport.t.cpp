@@ -36,28 +36,28 @@ BOOST_FIXTURE_TEST_SUITE(TestUnixStreamTransport, UnixStreamTransportFixture)
 
 BOOST_AUTO_TEST_CASE(StaticProperties)
 {
-  initialize();
+    initialize();
 
-  checkStaticPropertiesInitialized(*transport);
+    checkStaticPropertiesInitialized(*transport);
 
-  BOOST_CHECK_EQUAL(transport->getLocalUri().getScheme(), "unix");
-  BOOST_CHECK_EQUAL(transport->getLocalUri().getHost(), "");
-  BOOST_CHECK_EQUAL(transport->getLocalUri().getPath(), localEp.path());
-  BOOST_CHECK_EQUAL(transport->getRemoteUri().getScheme(), "fd");
-  BOOST_CHECK_EQUAL(transport->getScope(), ndn::nfd::FACE_SCOPE_LOCAL);
-  BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
-  BOOST_CHECK_EQUAL(transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  BOOST_CHECK_EQUAL(transport->getMtu(), MTU_UNLIMITED);
-  BOOST_CHECK_EQUAL(transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
+    BOOST_CHECK_EQUAL(transport->getLocalUri().getScheme(), "unix");
+    BOOST_CHECK_EQUAL(transport->getLocalUri().getHost(), "");
+    BOOST_CHECK_EQUAL(transport->getLocalUri().getPath(), localEp.path());
+    BOOST_CHECK_EQUAL(transport->getRemoteUri().getScheme(), "fd");
+    BOOST_CHECK_EQUAL(transport->getScope(), ndn::nfd::FACE_SCOPE_LOCAL);
+    BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    BOOST_CHECK_EQUAL(transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    BOOST_CHECK_EQUAL(transport->getMtu(), MTU_UNLIMITED);
+    BOOST_CHECK_EQUAL(transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
 }
 
 BOOST_AUTO_TEST_CASE(PersistencyChange)
 {
-  initialize();
+    initialize();
 
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), true);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), true);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestUnixStreamTransport

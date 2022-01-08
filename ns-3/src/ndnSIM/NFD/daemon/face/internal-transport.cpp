@@ -35,102 +35,102 @@ NFD_LOG_MEMBER_INIT(InternalClientTransport, InternalClientTransport);
 InternalForwarderTransport::InternalForwarderTransport(const FaceUri& localUri, const FaceUri& remoteUri,
                                                        ndn::nfd::FaceScope scope, ndn::nfd::LinkType linkType)
 {
-  this->setLocalUri(localUri);
-  this->setRemoteUri(remoteUri);
-  this->setScope(scope);
-  this->setPersistency(ndn::nfd::FACE_PERSISTENCY_PERMANENT);
-  this->setLinkType(linkType);
-  this->setMtu(MTU_UNLIMITED);
+    this->setLocalUri(localUri);
+    this->setRemoteUri(remoteUri);
+    this->setScope(scope);
+    this->setPersistency(ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+    this->setLinkType(linkType);
+    this->setMtu(MTU_UNLIMITED);
 
-  NFD_LOG_FACE_DEBUG("Creating transport");
+    NFD_LOG_FACE_DEBUG("Creating transport");
 }
 
 void
 InternalForwarderTransport::receivePacket(const Block& packet)
 {
-  getGlobalIoService().post([this, packet] {
-    NFD_LOG_FACE_TRACE("Received: " << packet.size() << " bytes");
-    receive(packet);
-  });
+    getGlobalIoService().post([this, packet] {
+        NFD_LOG_FACE_TRACE("Received: " << packet.size() << " bytes");
+        receive(packet);
+    });
 }
 
 void
 InternalForwarderTransport::doSend(const Block& packet, const EndpointId&)
 {
-  NFD_LOG_FACE_TRACE("Sending to " << m_peer);
+    NFD_LOG_FACE_TRACE("Sending to " << m_peer);
 
-  if (m_peer)
-    m_peer->receivePacket(packet);
+    if (m_peer)
+        m_peer->receivePacket(packet);
 }
 
 void
 InternalForwarderTransport::doClose()
 {
-  NFD_LOG_FACE_TRACE(__func__);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  setState(TransportState::CLOSED);
+    setState(TransportState::CLOSED);
 }
 
 InternalClientTransport::~InternalClientTransport()
 {
-  if (m_forwarder != nullptr) {
-    m_forwarder->setPeer(nullptr);
-  }
+    if (m_forwarder != nullptr) {
+        m_forwarder->setPeer(nullptr);
+    }
 }
 
 void
 InternalClientTransport::connectToForwarder(InternalForwarderTransport* forwarder)
 {
-  NFD_LOG_DEBUG(__func__ << " " << forwarder);
+    NFD_LOG_DEBUG(__func__ << " " << forwarder);
 
-  if (m_forwarder != nullptr) {
-    // disconnect from the old forwarder transport
-    m_forwarder->setPeer(nullptr);
-    m_fwTransportStateConn.disconnect();
-  }
+    if (m_forwarder != nullptr) {
+        // disconnect from the old forwarder transport
+        m_forwarder->setPeer(nullptr);
+        m_fwTransportStateConn.disconnect();
+    }
 
-  m_forwarder = forwarder;
+    m_forwarder = forwarder;
 
-  if (m_forwarder != nullptr) {
-    // connect to the new forwarder transport
-    m_forwarder->setPeer(this);
-    m_fwTransportStateConn = m_forwarder->afterStateChange.connect(
-      [this] (TransportState oldState, TransportState newState) {
-        if (newState == TransportState::CLOSED) {
-          connectToForwarder(nullptr);
-        }
-      });
-  }
+    if (m_forwarder != nullptr) {
+        // connect to the new forwarder transport
+        m_forwarder->setPeer(this);
+        m_fwTransportStateConn =
+          m_forwarder->afterStateChange.connect([this](TransportState oldState, TransportState newState) {
+              if (newState == TransportState::CLOSED) {
+                  connectToForwarder(nullptr);
+              }
+          });
+    }
 }
 
 void
 InternalClientTransport::receivePacket(const Block& packet)
 {
-  getGlobalIoService().post([this, packet] {
-    NFD_LOG_TRACE("Received: " << packet.size() << " bytes");
-    if (m_receiveCallback) {
-      m_receiveCallback(packet);
-    }
-  });
+    getGlobalIoService().post([this, packet] {
+        NFD_LOG_TRACE("Received: " << packet.size() << " bytes");
+        if (m_receiveCallback) {
+            m_receiveCallback(packet);
+        }
+    });
 }
 
 void
 InternalClientTransport::send(const Block& wire)
 {
-  NFD_LOG_TRACE("Sending to " << m_forwarder);
+    NFD_LOG_TRACE("Sending to " << m_forwarder);
 
-  if (m_forwarder)
-    m_forwarder->receivePacket(wire);
+    if (m_forwarder)
+        m_forwarder->receivePacket(wire);
 }
 
 void
 InternalClientTransport::send(const Block& header, const Block& payload)
 {
-  ndn::EncodingBuffer encoder(header.size() + payload.size(), header.size() + payload.size());
-  encoder.appendByteArray(header.wire(), header.size());
-  encoder.appendByteArray(payload.wire(), payload.size());
+    ndn::EncodingBuffer encoder(header.size() + payload.size(), header.size() + payload.size());
+    encoder.appendByteArray(header.wire(), header.size());
+    encoder.appendByteArray(payload.wire(), payload.size());
 
-  send(encoder.block());
+    send(encoder.block());
 }
 
 } // namespace face

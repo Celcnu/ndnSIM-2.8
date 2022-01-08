@@ -36,28 +36,24 @@ namespace transform {
  *  This transform interprets the input as a byte string, and puts all bytes except
  *  whitespace characters on the output.
  */
-class StripSpace : public Transform
-{
-public:
-  static const char* const DEFAULT_WHITESPACES;
+class StripSpace : public Transform {
+  public:
+    static const char* const DEFAULT_WHITESPACES;
 
-  explicit
-  StripSpace(const char* whitespaces = DEFAULT_WHITESPACES);
+    explicit StripSpace(const char* whitespaces = DEFAULT_WHITESPACES);
 
-private:
-  size_t
-  convert(const uint8_t* buf, size_t buflen) final;
+  private:
+    size_t convert(const uint8_t* buf, size_t buflen) final;
 
-private:
-  static constexpr size_t CHARMAP_SIZE = 1 << CHAR_BIT;
-  std::bitset<CHARMAP_SIZE> m_isWhitespace; // char => whether char is whitespace
+  private:
+    static constexpr size_t CHARMAP_SIZE = 1 << CHAR_BIT;
+    std::bitset<CHARMAP_SIZE> m_isWhitespace; // char => whether char is whitespace
 };
 
 /** \brief constructs a StripSpace transform
  *  \param whitespaces characters classified as whitespaces, terminated with null
  */
-unique_ptr<Transform>
-stripSpace(const char* whitespaces = StripSpace::DEFAULT_WHITESPACES);
+unique_ptr<Transform> stripSpace(const char* whitespaces = StripSpace::DEFAULT_WHITESPACES);
 
 } // namespace transform
 } // namespace security

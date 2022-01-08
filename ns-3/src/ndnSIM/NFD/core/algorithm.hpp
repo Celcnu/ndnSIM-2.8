@@ -40,17 +40,15 @@ namespace nfd {
  *
  *  Complexity: at most \p last-first invocations of \p p
  */
-template<typename It, typename Pred>
+template <typename It, typename Pred>
 BOOST_CONCEPT_REQUIRES(
-  ((boost::BidirectionalIterator<It>))
-  ((boost::UnaryPredicate<Pred, typename std::iterator_traits<It>::value_type>)),
-  (It)
-)
+  ((boost::BidirectionalIterator<It>))((boost::UnaryPredicate<Pred, typename std::iterator_traits<It>::value_type>)),
+  (It))
 find_last_if(It first, It last, Pred p)
 {
-  std::reverse_iterator<It> firstR(first), lastR(last);
-  auto found = std::find_if(lastR, firstR, p);
-  return found == firstR ? last : std::prev(found.base());
+    std::reverse_iterator<It> firstR(first), lastR(last);
+    auto found = std::find_if(lastR, firstR, p);
+    return found == firstR ? last : std::prev(found.base());
 }
 
 } // namespace nfd

@@ -39,11 +39,11 @@ BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(Normal)
 {
-  faceSystem.m_factories["pf"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  auto pf = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("pf"));
-  pf->newProvidedSchemes.insert("udp4+dev");
+    faceSystem.m_factories["pf"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    auto pf = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("pf"));
+    pf->newProvidedSchemes.insert("udp4+dev");
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       pf
@@ -84,13 +84,13 @@ BOOST_AUTO_TEST_CASE(Normal)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 }
 
 BOOST_AUTO_TEST_CASE(NonCanonicalRemote)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       netdev_bound
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(NonCanonicalRemote)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig

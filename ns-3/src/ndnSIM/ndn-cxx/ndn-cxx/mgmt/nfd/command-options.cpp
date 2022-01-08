@@ -36,26 +36,26 @@ CommandOptions::CommandOptions()
 CommandOptions&
 CommandOptions::setTimeout(const time::milliseconds& timeout)
 {
-  if (timeout <= time::milliseconds::zero()) {
-    NDN_THROW(std::out_of_range("Timeout must be positive"));
-  }
+    if (timeout <= time::milliseconds::zero()) {
+        NDN_THROW(std::out_of_range("Timeout must be positive"));
+    }
 
-  m_timeout = timeout;
-  return *this;
+    m_timeout = timeout;
+    return *this;
 }
 
 CommandOptions&
 CommandOptions::setPrefix(const Name& prefix)
 {
-  m_prefix = prefix;
-  return *this;
+    m_prefix = prefix;
+    return *this;
 }
 
 CommandOptions&
 CommandOptions::setSigningInfo(const security::SigningInfo& signingInfo)
 {
-  m_signingInfo = signingInfo;
-  return *this;
+    m_signingInfo = signingInfo;
+    return *this;
 }
 
 } // namespace nfd

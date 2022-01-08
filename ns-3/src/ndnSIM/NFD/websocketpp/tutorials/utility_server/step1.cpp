@@ -40,9 +40,10 @@
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 class utility_server {
-public:
-    utility_server() {
-         // Set logging settings
+  public:
+    utility_server()
+    {
+        // Set logging settings
         m_endpoint.set_error_channels(websocketpp::log::elevel::all);
         m_endpoint.set_access_channels(websocketpp::log::alevel::all ^ websocketpp::log::alevel::frame_payload);
 
@@ -50,7 +51,9 @@ public:
         m_endpoint.init_asio();
     }
 
-    void run() {
+    void
+    run()
+    {
         // Listen on port 9002
         m_endpoint.listen(9002);
 
@@ -60,11 +63,14 @@ public:
         // Start the Asio io_service run loop
         m_endpoint.run();
     }
-private:
+
+  private:
     server m_endpoint;
 };
 
-int main() {
+int
+main()
+{
     utility_server s;
     s.run();
     return 0;

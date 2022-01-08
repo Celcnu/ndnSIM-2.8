@@ -39,40 +39,29 @@ namespace ndn {
  * \ingroup ndn-face
  * \brief ndnSIM-specific transport
  */
-class NetDeviceTransport : public nfd::face::Transport
-{
-public:
-  NetDeviceTransport(Ptr<Node> node, const Ptr<NetDevice>& netDevice,
-                     const std::string& localUri,
-                     const std::string& remoteUri,
-                     ::ndn::nfd::FaceScope scope = ::ndn::nfd::FACE_SCOPE_NON_LOCAL,
-                     ::ndn::nfd::FacePersistency persistency = ::ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
-                     ::ndn::nfd::LinkType linkType = ::ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+class NetDeviceTransport : public nfd::face::Transport {
+  public:
+    NetDeviceTransport(Ptr<Node> node, const Ptr<NetDevice>& netDevice, const std::string& localUri,
+                       const std::string& remoteUri, ::ndn::nfd::FaceScope scope = ::ndn::nfd::FACE_SCOPE_NON_LOCAL,
+                       ::ndn::nfd::FacePersistency persistency = ::ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
+                       ::ndn::nfd::LinkType linkType = ::ndn::nfd::LINK_TYPE_POINT_TO_POINT);
 
-  ~NetDeviceTransport();
+    ~NetDeviceTransport();
 
-  Ptr<NetDevice>
-  GetNetDevice() const;
+    Ptr<NetDevice> GetNetDevice() const;
 
-  virtual ssize_t
-  getSendQueueLength() final;
+    virtual ssize_t getSendQueueLength() final;
 
-private:
-  virtual void
-  doClose() override;
+  private:
+    virtual void doClose() override;
 
-  virtual void
-  doSend(const Block& packet, const nfd::EndpointId& endpoint) override;
+    virtual void doSend(const Block& packet, const nfd::EndpointId& endpoint) override;
 
-  void
-  receiveFromNetDevice(Ptr<NetDevice> device,
-                       Ptr<const ns3::Packet> p,
-                       uint16_t protocol,
-                       const Address& from, const Address& to,
-                       NetDevice::PacketType packetType);
+    void receiveFromNetDevice(Ptr<NetDevice> device, Ptr<const ns3::Packet> p, uint16_t protocol, const Address& from,
+                              const Address& to, NetDevice::PacketType packetType);
 
-  Ptr<NetDevice> m_netDevice; ///< \brief Smart pointer to NetDevice
-  Ptr<Node> m_node;
+    Ptr<NetDevice> m_netDevice; ///< \brief Smart pointer to NetDevice
+    Ptr<Node> m_node;
 };
 
 } // namespace ndn

@@ -31,14 +31,14 @@ namespace pit {
 void
 FaceRecord::update(const Interest& interest)
 {
-  m_lastNonce = interest.getNonce();
-  m_lastRenewed = time::steady_clock::now();
+    m_lastNonce = interest.getNonce();
+    m_lastRenewed = time::steady_clock::now();
 
-  auto lifetime = interest.getInterestLifetime();
-  if (lifetime < 0_ms) {
-    lifetime = ndn::DEFAULT_INTEREST_LIFETIME;
-  }
-  m_expiry = m_lastRenewed + lifetime;
+    auto lifetime = interest.getInterestLifetime();
+    if (lifetime < 0_ms) {
+        lifetime = ndn::DEFAULT_INTEREST_LIFETIME;
+    }
+    m_expiry = m_lastRenewed + lifetime;
 }
 
 } // namespace pit

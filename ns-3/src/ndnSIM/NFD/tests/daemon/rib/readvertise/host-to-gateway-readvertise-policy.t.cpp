@@ -37,25 +37,24 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class HostToGatewayReadvertisePolicyFixture : public GlobalIoFixture, public KeyChainFixture
-{
-public:
-  static RibRouteRef
-  makeNewRoute(const Name& prefix)
-  {
-    auto entry = make_shared<RibEntry>();
-    entry->setName(prefix);
+class HostToGatewayReadvertisePolicyFixture : public GlobalIoFixture, public KeyChainFixture {
+  public:
+    static RibRouteRef
+    makeNewRoute(const Name& prefix)
+    {
+        auto entry = make_shared<RibEntry>();
+        entry->setName(prefix);
 
-    Route route;
-    auto routeIt = entry->insertRoute(route).first;
-    return RibRouteRef{entry, routeIt};
-  }
+        Route route;
+        auto routeIt = entry->insertRoute(route).first;
+        return RibRouteRef{entry, routeIt};
+    }
 
-  shared_ptr<HostToGatewayReadvertisePolicy>
-  makePolicy(const ConfigSection& section = ConfigSection())
-  {
-    return make_shared<HostToGatewayReadvertisePolicy>(m_keyChain, section);
-  }
+    shared_ptr<HostToGatewayReadvertisePolicy>
+    makePolicy(const ConfigSection& section = ConfigSection())
+    {
+        return make_shared<HostToGatewayReadvertisePolicy>(m_keyChain, section);
+    }
 };
 
 BOOST_AUTO_TEST_SUITE(Readvertise)
@@ -63,49 +62,49 @@ BOOST_FIXTURE_TEST_SUITE(TestHostToGatewayReadvertisePolicy, HostToGatewayReadve
 
 BOOST_AUTO_TEST_CASE(PrefixToAdvertise)
 {
-  BOOST_REQUIRE(addIdentity("/A"));
-  BOOST_REQUIRE(addIdentity("/A/B"));
-  BOOST_REQUIRE(addIdentity("/C/nrd"));
+    BOOST_REQUIRE(addIdentity("/A"));
+    BOOST_REQUIRE(addIdentity("/A/B"));
+    BOOST_REQUIRE(addIdentity("/C/nrd"));
 
-  auto test = [this] (Name routeName, optional<ReadvertiseAction> expectedAction) {
-    auto policy = makePolicy();
-    auto action = policy->handleNewRoute(makeNewRoute(routeName));
+    auto test = [this](Name routeName, optional<ReadvertiseAction> expectedAction) {
+        auto policy = makePolicy();
+        auto action = policy->handleNewRoute(makeNewRoute(routeName));
 
-    if (expectedAction) {
-      BOOST_REQUIRE(action);
-      BOOST_CHECK_EQUAL(action->prefix, expectedAction->prefix);
-      BOOST_REQUIRE_EQUAL(action->signer, expectedAction->signer);
-    }
-    else {
-      BOOST_REQUIRE(!action);
-    }
-  };
+        if (expectedAction) {
+            BOOST_REQUIRE(action);
+            BOOST_CHECK_EQUAL(action->prefix, expectedAction->prefix);
+            BOOST_REQUIRE_EQUAL(action->signer, expectedAction->signer);
+        }
+        else {
+            BOOST_REQUIRE(!action);
+        }
+    };
 
-  test("/D/app", nullopt);
-  test("/A/B/app", ReadvertiseAction{"/A", ndn::security::signingByIdentity("/A")});
-  test("/C/nrd", ReadvertiseAction{"/C", ndn::security::signingByIdentity("/C/nrd")});
+    test("/D/app", nullopt);
+    test("/A/B/app", ReadvertiseAction{"/A", ndn::security::signingByIdentity("/A")});
+    test("/C/nrd", ReadvertiseAction{"/C", ndn::security::signingByIdentity("/C/nrd")});
 }
 
 BOOST_AUTO_TEST_CASE(DontReadvertise)
 {
-  auto policy = makePolicy();
-  BOOST_REQUIRE(!policy->handleNewRoute(makeNewRoute("/localhost/test")));
-  BOOST_REQUIRE(!policy->handleNewRoute(makeNewRoute("/localhop/nfd")));
+    auto policy = makePolicy();
+    BOOST_REQUIRE(!policy->handleNewRoute(makeNewRoute("/localhost/test")));
+    BOOST_REQUIRE(!policy->handleNewRoute(makeNewRoute("/localhop/nfd")));
 }
 
 BOOST_AUTO_TEST_CASE(LoadRefreshInterval)
 {
-  auto policy = makePolicy();
-  BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 25_s); // default setting is 25
+    auto policy = makePolicy();
+    BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 25_s); // default setting is 25
 
-  ConfigSection section;
-  section.put("refresh_interval_wrong", 10);
-  policy = makePolicy(section);
-  BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 25_s); // wrong formate
+    ConfigSection section;
+    section.put("refresh_interval_wrong", 10);
+    policy = makePolicy(section);
+    BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 25_s); // wrong formate
 
-  section.put("refresh_interval", 10);
-  policy = makePolicy(section);
-  BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 10_s);
+    section.put("refresh_interval", 10);
+    policy = makePolicy(section);
+    BOOST_CHECK_EQUAL(policy->getRefreshInterval(), 10_s);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestHostToGatewayReadvertisePolicy

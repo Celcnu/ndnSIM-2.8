@@ -34,46 +34,38 @@ namespace nfdc {
 
 namespace xml {
 
-void
-printHeader(std::ostream& os);
+void printHeader(std::ostream& os);
 
-void
-printFooter(std::ostream& os);
+void printFooter(std::ostream& os);
 
-struct Text
-{
-  const std::string& s;
+struct Text {
+    const std::string& s;
 };
 
 /** \brief print XML text with special character represented as predefined entities
  */
-std::ostream&
-operator<<(std::ostream& os, const Text& text);
+std::ostream& operator<<(std::ostream& os, const Text& text);
 
 /** \brief print true as an empty element and false as nothing
  */
-struct Flag
-{
-  const char* elementName;
-  bool flag;
+struct Flag {
+    const char* elementName;
+    bool flag;
 };
 
-std::ostream&
-operator<<(std::ostream& os, Flag v);
+std::ostream& operator<<(std::ostream& os, Flag v);
 
 /** \return duration in XML duration format
  *
  *  Definition of this format: https://www.w3.org/TR/xmlschema11-2/#duration
  */
-std::string
-formatDuration(time::nanoseconds d);
+std::string formatDuration(time::nanoseconds d);
 
 /** \return timestamp in XML dateTime format
  *
  *  Definition of this format: https://www.w3.org/TR/xmlschema11-2/#dateTime
  */
-std::string
-formatTimestamp(time::system_clock::TimePoint t);
+std::string formatTimestamp(time::system_clock::TimePoint t);
 
 } // namespace xml
 
@@ -81,13 +73,11 @@ namespace text {
 
 /** \brief print a number of whitespaces
  */
-struct Spaces
-{
-  int nSpaces; ///< number of spaces; print nothing if negative
+struct Spaces {
+    int nSpaces; ///< number of spaces; print nothing if negative
 };
 
-std::ostream&
-operator<<(std::ostream& os, const Spaces& spaces);
+std::ostream& operator<<(std::ostream& os, const Spaces& spaces);
 
 /** \brief print different string on first and subsequent usage
  *
@@ -99,30 +89,27 @@ operator<<(std::ostream& os, const Spaces& spaces);
  *  // prints: 1,2,3
  *  \endcode
  */
-class Separator : noncopyable
-{
-public:
-  Separator(const std::string& first, const std::string& subsequent);
+class Separator : noncopyable {
+  public:
+    Separator(const std::string& first, const std::string& subsequent);
 
-  explicit
-  Separator(const std::string& subsequent);
+    explicit Separator(const std::string& subsequent);
 
-  int
-  getCount() const
-  {
-    return m_count;
-  }
+    int
+    getCount() const
+    {
+        return m_count;
+    }
 
-private:
-  std::string m_first;
-  std::string m_subsequent;
-  int m_count;
+  private:
+    std::string m_first;
+    std::string m_subsequent;
+    int m_count;
 
-  friend std::ostream& operator<<(std::ostream& os, Separator& sep);
+    friend std::ostream& operator<<(std::ostream& os, Separator& sep);
 };
 
-std::ostream&
-operator<<(std::ostream& os, Separator& sep);
+std::ostream& operator<<(std::ostream& os, Separator& sep);
 
 /** \brief print attributes of an item
  *
@@ -140,129 +127,117 @@ operator<<(std::ostream& os, Separator& sep);
  *  // uri=udp4://192.0.2.1:6363 [newline]
  *  \endcode
  */
-class ItemAttributes : noncopyable
-{
-public:
-  /** \brief constructor
-   *  \param wantMultiLine true to select multi-line style, false to use single-line style
-   *  \param maxAttributeWidth maximum width of attribute names, for alignment in multi-line style
-   */
-  explicit
-  ItemAttributes(bool wantMultiLine = false, int maxAttributeWidth = 0);
+class ItemAttributes : noncopyable {
+  public:
+    /** \brief constructor
+     *  \param wantMultiLine true to select multi-line style, false to use single-line style
+     *  \param maxAttributeWidth maximum width of attribute names, for alignment in multi-line style
+     */
+    explicit ItemAttributes(bool wantMultiLine = false, int maxAttributeWidth = 0);
 
-  struct Attribute
-  {
-    ItemAttributes& ia;
-    std::string attribute;
-  };
+    struct Attribute {
+        ItemAttributes& ia;
+        std::string attribute;
+    };
 
-  /** \note Caller must ensure ItemAttributes object is alive until after all Attribute objects are
-   *        destructed.
-   */
-  Attribute
-  operator()(const std::string& attribute);
+    /** \note Caller must ensure ItemAttributes object is alive until after all Attribute objects are
+     *        destructed.
+     */
+    Attribute operator()(const std::string& attribute);
 
-  std::string
-  end() const;
+    std::string end() const;
 
-private:
-  bool m_wantMultiLine;
-  int m_maxAttributeWidth;
-  int m_count;
+  private:
+    bool m_wantMultiLine;
+    int m_maxAttributeWidth;
+    int m_count;
 
-  friend std::ostream& operator<<(std::ostream& os, const ItemAttributes::Attribute& attr);
+    friend std::ostream& operator<<(std::ostream& os, const ItemAttributes::Attribute& attr);
 };
 
-std::ostream&
-operator<<(std::ostream& os, const ItemAttributes::Attribute& attr);
+std::ostream& operator<<(std::ostream& os, const ItemAttributes::Attribute& attr);
 
 /** \brief print boolean as 'on' or 'off'
  */
-struct OnOff
-{
-  bool flag;
+struct OnOff {
+    bool flag;
 };
 
-std::ostream&
-operator<<(std::ostream& os, OnOff v);
+std::ostream& operator<<(std::ostream& os, OnOff v);
 
 /** \brief print boolean as 'yes' or 'no'
  */
-struct YesNo
-{
-  bool flag;
+struct YesNo {
+    bool flag;
 };
 
-std::ostream&
-operator<<(std::ostream& os, YesNo v);
+std::ostream& operator<<(std::ostream& os, YesNo v);
 
 namespace detail {
 
-template<typename DurationT>
-std::string
-getTimeUnit(bool isLong);
+template <typename DurationT>
+std::string getTimeUnit(bool isLong);
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::nanoseconds>(bool isLong)
 {
-  return isLong ? "nanoseconds" : "ns";
+    return isLong ? "nanoseconds" : "ns";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::microseconds>(bool isLong)
 {
-  return isLong ? "microseconds" : "us";
+    return isLong ? "microseconds" : "us";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::milliseconds>(bool isLong)
 {
-  return isLong ? "milliseconds" : "ms";
+    return isLong ? "milliseconds" : "ms";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::seconds>(bool isLong)
 {
-  return isLong ? "seconds" : "s";
+    return isLong ? "seconds" : "s";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::minutes>(bool isLong)
 {
-  return isLong ? "minutes" : "m";
+    return isLong ? "minutes" : "m";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::hours>(bool isLong)
 {
-  return isLong ? "hours" : "h";
+    return isLong ? "hours" : "h";
 }
 
-template<>
+template <>
 inline std::string
 getTimeUnit<time::days>(bool isLong)
 {
-  return isLong ? "days" : "d";
+    return isLong ? "days" : "d";
 }
 
 } // namespace detail
 
-template<typename OutputPrecision>
+template <typename OutputPrecision>
 std::string
 formatDuration(time::nanoseconds d, bool isLong = false)
 {
-  return to_string(time::duration_cast<OutputPrecision>(d).count()) +
-         (isLong ? " " : "") + detail::getTimeUnit<OutputPrecision>(isLong);
+    return to_string(time::duration_cast<OutputPrecision>(d).count()) + (isLong ? " " : "")
+           + detail::getTimeUnit<OutputPrecision>(isLong);
 }
 
-std::string
-formatTimestamp(time::system_clock::TimePoint t);
+std::string formatTimestamp(time::system_clock::TimePoint t);
 
 } // namespace text
 

@@ -28,44 +28,44 @@ namespace detail {
 const EVP_MD*
 digestAlgorithmToEvpMd(DigestAlgorithm algo)
 {
-  switch (algo) {
-  case DigestAlgorithm::SHA224:
-    return EVP_sha224();
-  case DigestAlgorithm::SHA256:
-    return EVP_sha256();
-  case DigestAlgorithm::SHA384:
-    return EVP_sha384();
-  case DigestAlgorithm::SHA512:
-    return EVP_sha512();
+    switch (algo) {
+        case DigestAlgorithm::SHA224:
+            return EVP_sha224();
+        case DigestAlgorithm::SHA256:
+            return EVP_sha256();
+        case DigestAlgorithm::SHA384:
+            return EVP_sha384();
+        case DigestAlgorithm::SHA512:
+            return EVP_sha512();
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(OPENSSL_NO_BLAKE2)
-  case DigestAlgorithm::BLAKE2B_512:
-    return EVP_blake2b512();
-  case DigestAlgorithm::BLAKE2S_256:
-    return EVP_blake2s256();
+        case DigestAlgorithm::BLAKE2B_512:
+            return EVP_blake2b512();
+        case DigestAlgorithm::BLAKE2S_256:
+            return EVP_blake2s256();
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x10101001L
-  case DigestAlgorithm::SHA3_224:
-    return EVP_sha3_224();
-  case DigestAlgorithm::SHA3_256:
-    return EVP_sha3_256();
-  case DigestAlgorithm::SHA3_384:
-    return EVP_sha3_384();
-  case DigestAlgorithm::SHA3_512:
-    return EVP_sha3_512();
+        case DigestAlgorithm::SHA3_224:
+            return EVP_sha3_224();
+        case DigestAlgorithm::SHA3_256:
+            return EVP_sha3_256();
+        case DigestAlgorithm::SHA3_384:
+            return EVP_sha3_384();
+        case DigestAlgorithm::SHA3_512:
+            return EVP_sha3_512();
 #endif
-  default:
-    return nullptr;
-  }
+        default:
+            return nullptr;
+    }
 }
 
 int
 getEvpPkeyType(EVP_PKEY* key)
 {
-  return
+    return
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-    EVP_PKEY_type(key->type);
+      EVP_PKEY_type(key->type);
 #else
-    EVP_PKEY_base_id(key);
+      EVP_PKEY_base_id(key);
 #endif
 }
 
@@ -76,64 +76,64 @@ EvpMdCtx::EvpMdCtx()
   : m_ctx(EVP_MD_CTX_new())
 #endif
 {
-  if (m_ctx == nullptr)
-    NDN_THROW(std::runtime_error("EVP_MD_CTX creation failed"));
+    if (m_ctx == nullptr)
+        NDN_THROW(std::runtime_error("EVP_MD_CTX creation failed"));
 }
 
 EvpMdCtx::~EvpMdCtx()
 {
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  EVP_MD_CTX_destroy(m_ctx);
+    EVP_MD_CTX_destroy(m_ctx);
 #else
-  EVP_MD_CTX_free(m_ctx);
+    EVP_MD_CTX_free(m_ctx);
 #endif
 }
 
 EvpPkeyCtx::EvpPkeyCtx(EVP_PKEY* key)
   : m_ctx(EVP_PKEY_CTX_new(key, nullptr))
 {
-  if (m_ctx == nullptr)
-    NDN_THROW(std::runtime_error("EVP_PKEY_CTX creation failed"));
+    if (m_ctx == nullptr)
+        NDN_THROW(std::runtime_error("EVP_PKEY_CTX creation failed"));
 }
 
 EvpPkeyCtx::EvpPkeyCtx(int id)
   : m_ctx(EVP_PKEY_CTX_new_id(id, nullptr))
 {
-  if (m_ctx == nullptr)
-    NDN_THROW(std::runtime_error("EVP_PKEY_CTX creation failed"));
+    if (m_ctx == nullptr)
+        NDN_THROW(std::runtime_error("EVP_PKEY_CTX creation failed"));
 }
 
 EvpPkeyCtx::~EvpPkeyCtx()
 {
-  EVP_PKEY_CTX_free(m_ctx);
+    EVP_PKEY_CTX_free(m_ctx);
 }
 
 Bio::Bio(Bio::MethodPtr method)
   : m_bio(BIO_new(method))
 {
-  if (m_bio == nullptr)
-    NDN_THROW(std::runtime_error("BIO creation failed"));
+    if (m_bio == nullptr)
+        NDN_THROW(std::runtime_error("BIO creation failed"));
 }
 
 Bio::~Bio()
 {
-  BIO_free_all(m_bio);
+    BIO_free_all(m_bio);
 }
 
 bool
 Bio::read(uint8_t* buf, size_t buflen) const noexcept
 {
-  BOOST_ASSERT(buflen <= std::numeric_limits<int>::max());
-  int n = BIO_read(m_bio, buf, static_cast<int>(buflen));
-  return n >= 0 && static_cast<size_t>(n) == buflen;
+    BOOST_ASSERT(buflen <= std::numeric_limits<int>::max());
+    int n = BIO_read(m_bio, buf, static_cast<int>(buflen));
+    return n >= 0 && static_cast<size_t>(n) == buflen;
 }
 
 bool
 Bio::write(const uint8_t* buf, size_t buflen) noexcept
 {
-  BOOST_ASSERT(buflen <= std::numeric_limits<int>::max());
-  int n = BIO_write(m_bio, buf, static_cast<int>(buflen));
-  return n >= 0 && static_cast<size_t>(n) == buflen;
+    BOOST_ASSERT(buflen <= std::numeric_limits<int>::max());
+    int n = BIO_write(m_bio, buf, static_cast<int>(buflen));
+    return n >= 0 && static_cast<size_t>(n) == buflen;
 }
 
 } // namespace detail

@@ -30,27 +30,24 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Mgmt)
 BOOST_AUTO_TEST_SUITE(TestControlResponse)
 
-static const uint8_t WIRE[] = {
-  0x65, 0x17, // ControlResponse
-        0x66, 0x02, // StatusCode
-              0x01, 0x94,
-        0x67, 0x11, // StatusText
-              0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x20, 0x6e, 0x6f, 0x74, 0x20,
-              0x66, 0x6f, 0x75, 0x6e, 0x64};
+static const uint8_t WIRE[] = {0x65, 0x17,             // ControlResponse
+                               0x66, 0x02,             // StatusCode
+                               0x01, 0x94, 0x67, 0x11, // StatusText
+                               0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x20, 0x6e,
+                               0x6f, 0x74, 0x20, 0x66, 0x6f, 0x75, 0x6e, 0x64};
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-  ControlResponse cr(404, "Nothing not found");
-  const Block& wire = cr.wireEncode();
-  BOOST_CHECK_EQUAL_COLLECTIONS(WIRE, WIRE + sizeof(WIRE),
-                                wire.begin(), wire.end());
+    ControlResponse cr(404, "Nothing not found");
+    const Block& wire = cr.wireEncode();
+    BOOST_CHECK_EQUAL_COLLECTIONS(WIRE, WIRE + sizeof(WIRE), wire.begin(), wire.end());
 }
 
 BOOST_AUTO_TEST_CASE(Decode)
 {
-  ControlResponse cr(Block(WIRE, sizeof(WIRE)));
-  BOOST_CHECK_EQUAL(cr.getCode(), 404);
-  BOOST_CHECK_EQUAL(cr.getText(), "Nothing not found");
+    ControlResponse cr(Block(WIRE, sizeof(WIRE)));
+    BOOST_CHECK_EQUAL(cr.getCode(), 404);
+    BOOST_CHECK_EQUAL(cr.getText(), "Nothing not found");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestControlResponse

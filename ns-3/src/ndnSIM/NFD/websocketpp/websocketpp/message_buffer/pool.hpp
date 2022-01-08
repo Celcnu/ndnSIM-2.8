@@ -81,12 +81,15 @@ namespace message_buffer {
  * this deleter frees the memory.
  */
 template <typename T>
-void message_deleter(T* msg) {
+void
+message_deleter(T* msg)
+{
     try {
         if (!msg->recycle()) {
             delete msg;
         }
-    } catch (...) {
+    }
+    catch (...) {
         // TODO: is there a better way to ensure this function doesn't throw?
         delete msg;
     }
@@ -99,25 +102,35 @@ void message_deleter(T* msg) {
  */
 template <typename con_msg_manager>
 class message {
-public:
+  public:
     typedef lib::shared_ptr<message> ptr;
 
     typedef typename con_msg_manager::weak_ptr con_msg_man_ptr;
 
     message(con_msg_man_ptr manager, size_t size = 128)
       : m_manager(manager)
-      , m_payload(size) {}
+      , m_payload(size)
+    {
+    }
 
-    frame::opcode::value get_opcode() const {
+    frame::opcode::value
+    get_opcode() const
+    {
         return m_opcode;
     }
-    const std::string& get_header() const {
+    const std::string&
+    get_header() const
+    {
         return m_header;
     }
-    const std::string& get_extension_data() const {
+    const std::string&
+    get_extension_data() const
+    {
         return m_extension_data;
     }
-    const std::string& get_payload() const {
+    const std::string&
+    get_payload() const
+    {
         return m_payload;
     }
 
@@ -134,22 +147,26 @@ public:
      *
      * @return true if the message was successfully recycled, false otherwise.
      */
-    bool recycle() {
+    bool
+    recycle()
+    {
         typename con_msg_manager::ptr shared = m_manager.lock();
 
         if (shared) {
             return shared->(recycle(this));
-        } else {
+        }
+        else {
             return false;
         }
     }
-private:
-    con_msg_man_ptr             m_manager;
 
-    frame::opcode::value        m_opcode;
-    std::string                 m_header;
-    std::string                 m_extension_data;
-    std::string                 m_payload;
+  private:
+    con_msg_man_ptr m_manager;
+
+    frame::opcode::value m_opcode;
+    std::string m_header;
+    std::string m_extension_data;
+    std::string m_payload;
 };
 
 namespace alloc {
@@ -158,7 +175,7 @@ namespace alloc {
 /// request.
 template <typename message>
 class con_msg_manager {
-public:
+  public:
     typedef lib::shared_ptr<con_msg_manager> ptr;
     typedef lib::weak_ptr<con_msg_manager> weak_ptr;
 
@@ -170,7 +187,9 @@ public:
      *
      * @return A shared pointer to a new message with specified size.
      */
-    message_ptr get_message(size_t size) const {
+    message_ptr
+    get_message(size_t size) const
+    {
         return lib::make_shared<message>(size);
     }
 
@@ -184,7 +203,9 @@ public:
      *
      * @return true if the message was successfully recycled, false otherwse.
      */
-    bool recycle(message * msg) {
+    bool
+    recycle(message* msg)
+    {
         return false;
     }
 };
@@ -193,14 +214,16 @@ public:
 /// connection.
 template <typename con_msg_manager>
 class endpoint_msg_manager {
-public:
+  public:
     typedef typename con_msg_manager::ptr con_msg_man_ptr;
 
     /// Get a pointer to a connection message manager
     /**
      * @return A pointer to the requested connection message manager.
      */
-    con_msg_man_ptr get_manager() const {
+    con_msg_man_ptr
+    get_manager() const
+    {
         return lib::make_shared<con_msg_manager>();
     }
 };
@@ -212,13 +235,11 @@ namespace pool {
 /// A connection messages manager that maintains a pool of messages that is
 /// used to fulfill get_message requests.
 class con_msg_manager {
-
 };
 
 /// An endpoint manager that maintains a shared pool of connection managers
 /// and returns an appropriate one for the requesting connection.
 class endpoint_msg_manager {
-
 };
 
 } // namespace pool

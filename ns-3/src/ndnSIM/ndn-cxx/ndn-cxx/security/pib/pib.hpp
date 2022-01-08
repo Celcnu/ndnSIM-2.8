@@ -49,132 +49,121 @@ class PibImpl;
  *
  * @throw PibImpl::Error when underlying implementation has non-semantic error.
  */
-class Pib : noncopyable
-{
-public:
-  /// @brief represents a semantic error
-  class Error : public std::runtime_error
-  {
+class Pib : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    /// @brief represents a semantic error
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-public:
-  ~Pib();
+  public:
+    ~Pib();
 
-  /**
-   * @brief return the scheme of the PIB Locator
-   */
-  std::string
-  getScheme() const
-  {
-    return m_scheme;
-  }
+    /**
+     * @brief return the scheme of the PIB Locator
+     */
+    std::string
+    getScheme() const
+    {
+        return m_scheme;
+    }
 
-  /**
-   * @brief Get PIB Locator
-   */
-  std::string
-  getPibLocator() const;
+    /**
+     * @brief Get PIB Locator
+     */
+    std::string getPibLocator() const;
 
-  /**
-   * @brief Set the corresponding TPM information to @p tpmLocator.
-   *
-   * If the provided @p tpmLocator is different from the existing one, PIB will be reset.
-   * Otherwise, nothing will be changed.
-   */
-  void
-  setTpmLocator(const std::string& tpmLocator);
+    /**
+     * @brief Set the corresponding TPM information to @p tpmLocator.
+     *
+     * If the provided @p tpmLocator is different from the existing one, PIB will be reset.
+     * Otherwise, nothing will be changed.
+     */
+    void setTpmLocator(const std::string& tpmLocator);
 
-  /**
-   * @brief Get TPM Locator
-   * @throws Error if TPM locator is empty
-   */
-  std::string
-  getTpmLocator() const;
+    /**
+     * @brief Get TPM Locator
+     * @throws Error if TPM locator is empty
+     */
+    std::string getTpmLocator() const;
 
-  /**
-   * @brief Reset content in PIB, including reset of the TPM locator
-   */
-  void
-  reset();
+    /**
+     * @brief Reset content in PIB, including reset of the TPM locator
+     */
+    void reset();
 
-  /**
-   * @brief Get an identity with name @p identityName.
-   * @throw Pib::Error if the identity does not exist.
-   */
-  Identity
-  getIdentity(const Name& identityName) const;
+    /**
+     * @brief Get an identity with name @p identityName.
+     * @throw Pib::Error if the identity does not exist.
+     */
+    Identity getIdentity(const Name& identityName) const;
 
-  /**
-   * @brief Get all the identities
-   */
-  const IdentityContainer&
-  getIdentities() const;
+    /**
+     * @brief Get all the identities
+     */
+    const IdentityContainer& getIdentities() const;
 
-  /**
-   * @brief Get the default identity.
-   * @throw Pib::Error if no default identity exists.
-   */
-  const Identity&
-  getDefaultIdentity() const;
+    /**
+     * @brief Get the default identity.
+     * @throw Pib::Error if no default identity exists.
+     */
+    const Identity& getDefaultIdentity() const;
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE: // write operations should be private
-  /**
-   * @brief Create a Pib instance
-   *
-   * @param scheme The scheme for the Pib
-   * @param location The location for the Pib
-   * @param impl The backend implementation
-   */
-  Pib(const std::string& scheme, const std::string& location, shared_ptr<PibImpl> impl);
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE
+      : // write operations should be private
+        /**
+         * @brief Create a Pib instance
+         *
+         * @param scheme The scheme for the Pib
+         * @param location The location for the Pib
+         * @param impl The backend implementation
+         */
+        Pib(const std::string& scheme, const std::string& location, shared_ptr<PibImpl> impl);
 
-  /**
-   * @brief Add an identity.
-   *
-   * If no default identity is set before, the new identity will be set as the default identity
-   *
-   * @return handle of the added identity.
-   */
-  Identity
-  addIdentity(const Name& identity);
+    /**
+     * @brief Add an identity.
+     *
+     * If no default identity is set before, the new identity will be set as the default identity
+     *
+     * @return handle of the added identity.
+     */
+    Identity addIdentity(const Name& identity);
 
-  /**
-   * @brief Remove an identity.
-   *
-   * If the default identity is being removed, no default identity will be selected.
-   */
-  void
-  removeIdentity(const Name& identity);
+    /**
+     * @brief Remove an identity.
+     *
+     * If the default identity is being removed, no default identity will be selected.
+     */
+    void removeIdentity(const Name& identity);
 
-  /**
-   * @brief Set an identity as the default identity.
-   *
-   * Create the identity if it does not exist.
-   *
-   * @return handle of the default identity
-   */
-  const Identity&
-  setDefaultIdentity(const Name& identity);
+    /**
+     * @brief Set an identity as the default identity.
+     *
+     * Create the identity if it does not exist.
+     *
+     * @return handle of the default identity
+     */
+    const Identity& setDefaultIdentity(const Name& identity);
 
-  shared_ptr<PibImpl>
-  getImpl()
-  {
-    return m_impl;
-  }
+    shared_ptr<PibImpl>
+    getImpl()
+    {
+        return m_impl;
+    }
 
-protected:
-  std::string m_scheme;
-  std::string m_location;
+  protected:
+    std::string m_scheme;
+    std::string m_location;
 
-  mutable bool m_isDefaultIdentityLoaded;
-  mutable Identity m_defaultIdentity;
+    mutable bool m_isDefaultIdentityLoaded;
+    mutable Identity m_defaultIdentity;
 
-  IdentityContainer m_identities;
+    IdentityContainer m_identities;
 
-  shared_ptr<PibImpl> m_impl;
+    shared_ptr<PibImpl> m_impl;
 
-  friend class v2::KeyChain;
+    friend class v2::KeyChain;
 };
 
 } // namespace pib

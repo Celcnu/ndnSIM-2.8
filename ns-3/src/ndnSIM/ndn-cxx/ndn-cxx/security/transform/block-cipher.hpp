@@ -35,72 +35,61 @@ namespace transform {
  * The padding scheme of the block cipher is set to the OpenSSL default,
  * which is PKCS padding.
  */
-class BlockCipher : public Transform
-{
-public:
-  /**
-   * @brief Create a block cipher
-   *
-   * @param algo   The block cipher algorithm to use.
-   * @param op     Whether to encrypt or decrypt.
-   * @param key    Pointer to the key.
-   * @param keyLen Size of the key.
-   * @param iv     Pointer to the initialization vector.
-   * @param ivLen  Length of the initialization vector.
-   */
-  BlockCipher(BlockCipherAlgorithm algo, CipherOperator op,
-              const uint8_t* key, size_t keyLen,
-              const uint8_t* iv, size_t ivLen);
+class BlockCipher : public Transform {
+  public:
+    /**
+     * @brief Create a block cipher
+     *
+     * @param algo   The block cipher algorithm to use.
+     * @param op     Whether to encrypt or decrypt.
+     * @param key    Pointer to the key.
+     * @param keyLen Size of the key.
+     * @param iv     Pointer to the initialization vector.
+     * @param ivLen  Length of the initialization vector.
+     */
+    BlockCipher(BlockCipherAlgorithm algo, CipherOperator op, const uint8_t* key, size_t keyLen, const uint8_t* iv,
+                size_t ivLen);
 
-  ~BlockCipher();
+    ~BlockCipher();
 
-private:
-  /**
-   * @brief Read partial transformation result (if exists) from BIO
-   */
-  void
-  preTransform() final;
+  private:
+    /**
+     * @brief Read partial transformation result (if exists) from BIO
+     */
+    void preTransform() final;
 
-  /**
-   * @brief Write @p data into the cipher
-   *
-   * @return number of bytes that are actually accepted
-   */
-  size_t
-  convert(const uint8_t* data, size_t dataLen) final;
+    /**
+     * @brief Write @p data into the cipher
+     *
+     * @return number of bytes that are actually accepted
+     */
+    size_t convert(const uint8_t* data, size_t dataLen) final;
 
-  /**
-   * @brief Finalize the encryption
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize the encryption
+     */
+    void finalize() final;
 
-  /**
-   * @brief Fill output buffer with the encryption result from BIO.
-   */
-  void
-  fillOutputBuffer();
+    /**
+     * @brief Fill output buffer with the encryption result from BIO.
+     */
+    void fillOutputBuffer();
 
-  /**
-   * @return true if the cipher does not have partial result.
-   */
-  bool
-  isConverterEmpty() const;
+    /**
+     * @return true if the cipher does not have partial result.
+     */
+    bool isConverterEmpty() const;
 
-private:
-  void
-  initializeAesCbc(const uint8_t* key, size_t keyLen,
-                   const uint8_t* iv, size_t ivLen, CipherOperator op);
+  private:
+    void initializeAesCbc(const uint8_t* key, size_t keyLen, const uint8_t* iv, size_t ivLen, CipherOperator op);
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
-unique_ptr<Transform>
-blockCipher(BlockCipherAlgorithm algo, CipherOperator op,
-            const uint8_t* key, size_t keyLen,
-            const uint8_t* iv, size_t ivLen);
+unique_ptr<Transform> blockCipher(BlockCipherAlgorithm algo, CipherOperator op, const uint8_t* key, size_t keyLen,
+                                  const uint8_t* iv, size_t ivLen);
 
 } // namespace transform
 } // namespace security

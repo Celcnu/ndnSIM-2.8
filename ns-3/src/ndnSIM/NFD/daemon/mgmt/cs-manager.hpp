@@ -40,37 +40,30 @@ class ForwarderCounters;
  * \brief Implements the CS Management of NFD Management Protocol.
  * \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt
  */
-class CsManager : public ManagerBase
-{
-public:
-  CsManager(cs::Cs& cs, const ForwarderCounters& fwCounters,
-            Dispatcher& dispatcher, CommandAuthenticator& authenticator);
+class CsManager : public ManagerBase {
+  public:
+    CsManager(cs::Cs& cs, const ForwarderCounters& fwCounters, Dispatcher& dispatcher,
+              CommandAuthenticator& authenticator);
 
-private:
-  /** \brief Process cs/config command.
-   */
-  void
-  changeConfig(const ControlParameters& parameters,
-               const ndn::mgmt::CommandContinuation& done);
+  private:
+    /** \brief Process cs/config command.
+     */
+    void changeConfig(const ControlParameters& parameters, const ndn::mgmt::CommandContinuation& done);
 
-  /** \brief Process cs/erase command.
-   */
-  void
-  erase(const ControlParameters& parameters,
-        const ndn::mgmt::CommandContinuation& done);
+    /** \brief Process cs/erase command.
+     */
+    void erase(const ControlParameters& parameters, const ndn::mgmt::CommandContinuation& done);
 
-  /** \brief Serve CS information dataset.
-   */
-  void
-  serveInfo(const Name& topPrefix, const Interest& interest,
-            ndn::mgmt::StatusDatasetContext& context) const;
+    /** \brief Serve CS information dataset.
+     */
+    void serveInfo(const Name& topPrefix, const Interest& interest, ndn::mgmt::StatusDatasetContext& context) const;
 
-public:
-  static constexpr size_t ERASE_LIMIT = 256;
+  public:
+    static constexpr size_t ERASE_LIMIT = 256;
 
-private:
-  cs::Cs& m_cs;
-  const ForwarderCounters& m_fwCounters;
+  private:
+    cs::Cs& m_cs;
+    const ForwarderCounters& m_fwCounters;
 };
 
 } // namespace nfd

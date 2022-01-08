@@ -38,34 +38,29 @@ namespace face {
  *  A channel can listen on a local endpoint and initiate outgoing connection from a local endpoint.
  *  A channel creates Face objects and retains shared ownership of them.
  */
-class Channel : noncopyable
-{
-public:
-  virtual
-  ~Channel();
+class Channel : noncopyable {
+  public:
+    virtual ~Channel();
 
-  const FaceUri&
-  getUri() const
-  {
-    return m_uri;
-  }
+    const FaceUri&
+    getUri() const
+    {
+        return m_uri;
+    }
 
-  /** \brief Returns whether the channel is listening
-   */
-  virtual bool
-  isListening() const = 0;
+    /** \brief Returns whether the channel is listening
+     */
+    virtual bool isListening() const = 0;
 
-  /** \brief Returns the number of faces in the channel
-   */
-  virtual size_t
-  size() const = 0;
+    /** \brief Returns the number of faces in the channel
+     */
+    virtual size_t size() const = 0;
 
-protected:
-  void
-  setUri(const FaceUri& uri);
+  protected:
+    void setUri(const FaceUri& uri);
 
-private:
-  FaceUri m_uri;
+  private:
+    FaceUri m_uri;
 };
 
 /** \brief Prototype for the callback that is invoked when a face is created
@@ -84,8 +79,7 @@ using FaceCreationFailedCallback = std::function<void(uint32_t status, const std
  *  This function connects a callback to the afterStateChange signal of \p face,
  *  and invokes \p f when the state becomes CLOSED.
  */
-void
-connectFaceClosedSignal(Face& face, std::function<void()> f);
+void connectFaceClosedSignal(Face& face, std::function<void()> f);
 
 } // namespace face
 } // namespace nfd

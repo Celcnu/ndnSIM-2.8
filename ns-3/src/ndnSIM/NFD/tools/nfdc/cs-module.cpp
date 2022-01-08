@@ -35,137 +35,123 @@ namespace nfdc {
 void
 CsModule::registerCommands(CommandParser& parser)
 {
-  CommandDefinition defCsConfig("cs", "config");
-  defCsConfig
-    .setTitle("change CS configuration")
-    .addArg("capacity", ArgValueType::UNSIGNED, Required::NO, Positional::NO)
-    .addArg("admit", ArgValueType::BOOLEAN, Required::NO, Positional::NO)
-    .addArg("serve", ArgValueType::BOOLEAN, Required::NO, Positional::NO);
-  parser.addCommand(defCsConfig, &CsModule::config);
+    CommandDefinition defCsConfig("cs", "config");
+    defCsConfig.setTitle("change CS configuration")
+      .addArg("capacity", ArgValueType::UNSIGNED, Required::NO, Positional::NO)
+      .addArg("admit", ArgValueType::BOOLEAN, Required::NO, Positional::NO)
+      .addArg("serve", ArgValueType::BOOLEAN, Required::NO, Positional::NO);
+    parser.addCommand(defCsConfig, &CsModule::config);
 
-  CommandDefinition defCsErase("cs", "erase");
-  defCsErase
-    .setTitle("erase cached Data")
-    .addArg("prefix", ArgValueType::NAME, Required::YES, Positional::YES)
-    .addArg("count", ArgValueType::UNSIGNED, Required::NO, Positional::NO);
-  parser.addCommand(defCsErase, &CsModule::erase);
+    CommandDefinition defCsErase("cs", "erase");
+    defCsErase.setTitle("erase cached Data")
+      .addArg("prefix", ArgValueType::NAME, Required::YES, Positional::YES)
+      .addArg("count", ArgValueType::UNSIGNED, Required::NO, Positional::NO);
+    parser.addCommand(defCsErase, &CsModule::erase);
 }
 
 void
 CsModule::config(ExecuteContext& ctx)
 {
-  using boost::logic::indeterminate;
+    using boost::logic::indeterminate;
 
-  auto capacity = ctx.args.getOptional<uint64_t>("capacity");
-  auto enableAdmit = ctx.args.getTribool("admit");
-  auto enableServe = ctx.args.getTribool("serve");
+    auto capacity = ctx.args.getOptional<uint64_t>("capacity");
+    auto enableAdmit = ctx.args.getTribool("admit");
+    auto enableServe = ctx.args.getTribool("serve");
 
-  ControlParameters p;
-  if (capacity) {
-    p.setCapacity(*capacity);
-  }
-  if (!indeterminate(enableAdmit)) {
-    p.setFlagBit(ndn::nfd::BIT_CS_ENABLE_ADMIT, bool(enableAdmit));
-  }
-  if (!indeterminate(enableServe)) {
-    p.setFlagBit(ndn::nfd::BIT_CS_ENABLE_SERVE, bool(enableServe));
-  }
+    ControlParameters p;
+    if (capacity) {
+        p.setCapacity(*capacity);
+    }
+    if (!indeterminate(enableAdmit)) {
+        p.setFlagBit(ndn::nfd::BIT_CS_ENABLE_ADMIT, bool(enableAdmit));
+    }
+    if (!indeterminate(enableServe)) {
+        p.setFlagBit(ndn::nfd::BIT_CS_ENABLE_SERVE, bool(enableServe));
+    }
 
-  ctx.controller.start<ndn::nfd::CsConfigCommand>(p,
-    [&] (const ControlParameters& resp) {
-      text::ItemAttributes ia;
-      ctx.out << "cs-config-updated "
-              << ia("capacity") << resp.getCapacity()
-              << ia("admit") << text::OnOff{resp.getFlagBit(ndn::nfd::BIT_CS_ENABLE_ADMIT)}
-              << ia("serve") << text::OnOff{resp.getFlagBit(ndn::nfd::BIT_CS_ENABLE_SERVE)}
-              << '\n';
-    },
-    ctx.makeCommandFailureHandler("updating CS config"),
-    ctx.makeCommandOptions());
+    ctx.controller.start<ndn::nfd::CsConfigCommand>(
+      p,
+      [&](const ControlParameters& resp) {
+          text::ItemAttributes ia;
+          ctx.out << "cs-config-updated " << ia("capacity") << resp.getCapacity() << ia("admit")
+                  << text::OnOff{resp.getFlagBit(ndn::nfd::BIT_CS_ENABLE_ADMIT)} << ia("serve")
+                  << text::OnOff{resp.getFlagBit(ndn::nfd::BIT_CS_ENABLE_SERVE)} << '\n';
+      },
+      ctx.makeCommandFailureHandler("updating CS config"), ctx.makeCommandOptions());
 
-  ctx.face.processEvents();
+    ctx.face.processEvents();
 }
 
 void
 CsModule::erase(ExecuteContext& ctx)
 {
-  auto prefix = ctx.args.get<Name>("prefix");
-  auto count = ctx.args.getOptional<uint64_t>("count");
+    auto prefix = ctx.args.get<Name>("prefix");
+    auto count = ctx.args.getOptional<uint64_t>("count");
 
-  ControlParameters params;
-  params.setName(prefix);
-  if (count) {
-    params.setCount(*count);
-  }
+    ControlParameters params;
+    params.setName(prefix);
+    if (count) {
+        params.setCount(*count);
+    }
 
-  ctx.controller.start<ndn::nfd::CsEraseCommand>(
-    params,
-    [&] (const ControlParameters& resp) {
-      text::ItemAttributes ia;
-      ctx.out << "cs-erased "
-              << ia("prefix") << resp.getName()
-              << ia("count") << resp.getCount()
-              << ia("has-more") << text::YesNo{resp.hasCapacity()}
-              << '\n';
-    },
-    ctx.makeCommandFailureHandler("erasing cached Data"),
-    ctx.makeCommandOptions());
+    ctx.controller.start<ndn::nfd::CsEraseCommand>(
+      params,
+      [&](const ControlParameters& resp) {
+          text::ItemAttributes ia;
+          ctx.out << "cs-erased " << ia("prefix") << resp.getName() << ia("count") << resp.getCount() << ia("has-more")
+                  << text::YesNo{resp.hasCapacity()} << '\n';
+      },
+      ctx.makeCommandFailureHandler("erasing cached Data"), ctx.makeCommandOptions());
 
-  ctx.face.processEvents();
+    ctx.face.processEvents();
 }
 
 void
-CsModule::fetchStatus(Controller& controller,
-                      const std::function<void()>& onSuccess,
-                      const Controller::DatasetFailCallback& onFailure,
-                      const CommandOptions& options)
+CsModule::fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                      const Controller::DatasetFailCallback& onFailure, const CommandOptions& options)
 {
-  controller.fetch<ndn::nfd::CsInfoDataset>(
-    [this, onSuccess] (const CsInfo& result) {
-      m_status = result;
-      onSuccess();
-    },
-    onFailure, options);
+    controller.fetch<ndn::nfd::CsInfoDataset>(
+      [this, onSuccess](const CsInfo& result) {
+          m_status = result;
+          onSuccess();
+      },
+      onFailure, options);
 }
 
 void
 CsModule::formatStatusXml(std::ostream& os) const
 {
-  formatItemXml(os, m_status);
+    formatItemXml(os, m_status);
 }
 
 void
 CsModule::formatItemXml(std::ostream& os, const CsInfo& item)
 {
-  os << "<cs>";
-  os << "<capacity>" << item.getCapacity() << "</capacity>";
-  os << xml::Flag{"admitEnabled", item.getEnableAdmit()};
-  os << xml::Flag{"serveEnabled", item.getEnableServe()};
-  os << "<nEntries>" << item.getNEntries() << "</nEntries>";
-  os << "<nHits>" << item.getNHits() << "</nHits>";
-  os << "<nMisses>" << item.getNMisses() << "</nMisses>";
-  os << "</cs>";
+    os << "<cs>";
+    os << "<capacity>" << item.getCapacity() << "</capacity>";
+    os << xml::Flag{"admitEnabled", item.getEnableAdmit()};
+    os << xml::Flag{"serveEnabled", item.getEnableServe()};
+    os << "<nEntries>" << item.getNEntries() << "</nEntries>";
+    os << "<nHits>" << item.getNHits() << "</nHits>";
+    os << "<nMisses>" << item.getNMisses() << "</nMisses>";
+    os << "</cs>";
 }
 
 void
 CsModule::formatStatusText(std::ostream& os) const
 {
-  os << "CS information:\n";
-  ndn::util::IndentedStream indented(os, "  ");
-  formatItemText(indented, m_status);
+    os << "CS information:\n";
+    ndn::util::IndentedStream indented(os, "  ");
+    formatItemText(indented, m_status);
 }
 
 void
 CsModule::formatItemText(std::ostream& os, const CsInfo& item)
 {
-  text::ItemAttributes ia(true, 8);
-  os << ia("capacity") << item.getCapacity()
-     << ia("admit") << text::OnOff{item.getEnableAdmit()}
-     << ia("serve") << text::OnOff{item.getEnableServe()}
-     << ia("nEntries") << item.getNEntries()
-     << ia("nHits") << item.getNHits()
-     << ia("nMisses") << item.getNMisses()
-     << ia.end();
+    text::ItemAttributes ia(true, 8);
+    os << ia("capacity") << item.getCapacity() << ia("admit") << text::OnOff{item.getEnableAdmit()} << ia("serve")
+       << text::OnOff{item.getEnableServe()} << ia("nEntries") << item.getNEntries() << ia("nHits") << item.getNHits()
+       << ia("nMisses") << item.getNMisses() << ia.end();
 }
 
 } // namespace nfdc

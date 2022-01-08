@@ -37,51 +37,45 @@ class PublicKey;
  *
  * The next module in the chain is usually BoolSink.
  */
-class VerifierFilter : public Transform
-{
-public:
-  /**
-   * @brief Create a verifier module to verify signature @p sig using algorithm @p algo and public key @p key
-   */
-  VerifierFilter(DigestAlgorithm algo, const PublicKey& key, const uint8_t* sig, size_t sigLen);
+class VerifierFilter : public Transform {
+  public:
+    /**
+     * @brief Create a verifier module to verify signature @p sig using algorithm @p algo and public key @p key
+     */
+    VerifierFilter(DigestAlgorithm algo, const PublicKey& key, const uint8_t* sig, size_t sigLen);
 
-  /**
-   * @brief Create a verifier module to verify signature @p sig using algorithm @p algo and HMAC key @p key
-   */
-  VerifierFilter(DigestAlgorithm algo, const PrivateKey& key, const uint8_t* sig, size_t sigLen);
+    /**
+     * @brief Create a verifier module to verify signature @p sig using algorithm @p algo and HMAC key @p key
+     */
+    VerifierFilter(DigestAlgorithm algo, const PrivateKey& key, const uint8_t* sig, size_t sigLen);
 
-  ~VerifierFilter();
+    ~VerifierFilter();
 
-private:
-  void
-  init(DigestAlgorithm algo, void* pkey);
+  private:
+    void init(DigestAlgorithm algo, void* pkey);
 
-  /**
-   * @brief Write data @p buf into verifier
-   *
-   * @return The number of bytes that are actually written
-   */
-  size_t
-  convert(const uint8_t* buf, size_t size) final;
+    /**
+     * @brief Write data @p buf into verifier
+     *
+     * @return The number of bytes that are actually written
+     */
+    size_t convert(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize verification and write the result (single byte) into next module.
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize verification and write the result (single byte) into next module.
+     */
+    void finalize() final;
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 
-  KeyType m_keyType;
+    KeyType m_keyType;
 };
 
-unique_ptr<Transform>
-verifierFilter(DigestAlgorithm algo, const PublicKey& key, const uint8_t* sig, size_t sigLen);
+unique_ptr<Transform> verifierFilter(DigestAlgorithm algo, const PublicKey& key, const uint8_t* sig, size_t sigLen);
 
-unique_ptr<Transform>
-verifierFilter(DigestAlgorithm algo, const PrivateKey& key, const uint8_t* sig, size_t sigLen);
+unique_ptr<Transform> verifierFilter(DigestAlgorithm algo, const PrivateKey& key, const uint8_t* sig, size_t sigLen);
 
 } // namespace transform
 } // namespace security

@@ -40,15 +40,15 @@ BOOST_FIXTURE_TEST_SUITE(TestKey, PibDataFixture)
 
 BOOST_AUTO_TEST_CASE(ValidityChecking)
 {
-  Key key;
-  BOOST_CHECK(!key);
-  BOOST_CHECK_EQUAL(static_cast<bool>(key), false);
+    Key key;
+    BOOST_CHECK(!key);
+    BOOST_CHECK_EQUAL(static_cast<bool>(key), false);
 
-  auto keyImpl = make_shared<detail::KeyImpl>(id1Key1Name, id1Key1.data(), id1Key1.size(),
-                                              make_shared<pib::PibMemory>());
-  key = Key(keyImpl);
-  BOOST_CHECK(key);
-  BOOST_CHECK_EQUAL(!key, false);
+    auto keyImpl =
+      make_shared<detail::KeyImpl>(id1Key1Name, id1Key1.data(), id1Key1.size(), make_shared<pib::PibMemory>());
+    key = Key(keyImpl);
+    BOOST_CHECK(key);
+    BOOST_CHECK_EQUAL(!key, false);
 }
 
 // pib::Key is a wrapper of pib::detail::KeyImpl.  Since the functionalities of KeyImpl
@@ -56,39 +56,39 @@ BOOST_AUTO_TEST_CASE(ValidityChecking)
 // of pib::Key in this test case.
 BOOST_AUTO_TEST_CASE(SharedImpl)
 {
-  auto keyImpl = make_shared<detail::KeyImpl>(id1Key1Name, id1Key1.data(), id1Key1.size(),
-                                              make_shared<pib::PibMemory>());
-  Key key1(keyImpl);
-  Key key2(keyImpl);
-  BOOST_CHECK_EQUAL(key1, key2);
-  BOOST_CHECK_NE(key1, Key());
-  BOOST_CHECK_EQUAL(Key(), Key());
+    auto keyImpl =
+      make_shared<detail::KeyImpl>(id1Key1Name, id1Key1.data(), id1Key1.size(), make_shared<pib::PibMemory>());
+    Key key1(keyImpl);
+    Key key2(keyImpl);
+    BOOST_CHECK_EQUAL(key1, key2);
+    BOOST_CHECK_NE(key1, Key());
+    BOOST_CHECK_EQUAL(Key(), Key());
 
-  key1.addCertificate(id1Key1Cert1);
-  BOOST_CHECK_NO_THROW(key2.getCertificate(id1Key1Cert1.getName()));
-  key2.removeCertificate(id1Key1Cert1.getName());
-  BOOST_CHECK_THROW(key1.getCertificate(id1Key1Cert1.getName()), pib::Pib::Error);
+    key1.addCertificate(id1Key1Cert1);
+    BOOST_CHECK_NO_THROW(key2.getCertificate(id1Key1Cert1.getName()));
+    key2.removeCertificate(id1Key1Cert1.getName());
+    BOOST_CHECK_THROW(key1.getCertificate(id1Key1Cert1.getName()), pib::Pib::Error);
 
-  key1.setDefaultCertificate(id1Key1Cert1);
-  BOOST_CHECK_NO_THROW(key2.getDefaultCertificate());
+    key1.setDefaultCertificate(id1Key1Cert1);
+    BOOST_CHECK_NO_THROW(key2.getDefaultCertificate());
 }
 
 BOOST_AUTO_TEST_CASE(Helpers)
 {
-  BOOST_CHECK_EQUAL(v2::constructKeyName("/hello", name::Component("world")), "/hello/KEY/world");
+    BOOST_CHECK_EQUAL(v2::constructKeyName("/hello", name::Component("world")), "/hello/KEY/world");
 
-  BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello"), false);
-  BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/KEY"), false);
-  BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/KEY/world"), true);
+    BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello"), false);
+    BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/KEY"), false);
+    BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/KEY/world"), true);
 
-  BOOST_CHECK_EQUAL(v2::isValidKeyName("/KEY/hello"), true);
-  BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/world/KEY/!"), true);
+    BOOST_CHECK_EQUAL(v2::isValidKeyName("/KEY/hello"), true);
+    BOOST_CHECK_EQUAL(v2::isValidKeyName("/hello/world/KEY/!"), true);
 
-  BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/KEY/hello"), "/");
-  BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/hello/KEY/world"), "/hello");
-  BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/hello/world/KEY/!"), "/hello/world");
+    BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/KEY/hello"), "/");
+    BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/hello/KEY/world"), "/hello");
+    BOOST_CHECK_EQUAL(v2::extractIdentityFromKeyName("/hello/world/KEY/!"), "/hello/world");
 
-  BOOST_CHECK_THROW(v2::extractIdentityFromKeyName("/hello"), std::invalid_argument);
+    BOOST_CHECK_THROW(v2::extractIdentityFromKeyName("/hello"), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestKey

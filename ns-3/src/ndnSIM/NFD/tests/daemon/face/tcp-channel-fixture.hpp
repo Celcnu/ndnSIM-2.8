@@ -35,54 +35,53 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-class TcpChannelFixture : public ChannelFixture<TcpChannel, tcp::Endpoint>
-{
-protected:
-  TcpChannelFixture()
-  {
-    local.assign({{"subnet", "127.0.0.0/8"}, {"subnet", "::1/128"}}, {});
-  }
-
-  unique_ptr<TcpChannel>
-  makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
-  {
-    if (port == 0)
-      port = getNextPort();
-
-    return make_unique<TcpChannel>(tcp::Endpoint(addr, port), false,
-                                   std::bind(&TcpChannelFixture::determineFaceScope, this, _1, _2));
-  }
-
-  void
-  connect(TcpChannel& channel) final
-  {
-    g_io.post([&] {
-      channel.connect(listenerEp, {},
-        [this] (const shared_ptr<Face>& newFace) {
-          BOOST_REQUIRE(newFace != nullptr);
-          connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
-          clientFaces.push_back(newFace);
-          limitedIo.afterOp();
-        },
-        ChannelFixture::unexpectedFailure);
-    });
-  }
-
-  ndn::nfd::FaceScope
-  determineFaceScope(const boost::asio::ip::address& localAddress,
-                     const boost::asio::ip::address& remoteAddress)
-  {
-    if (local(localAddress) && local(remoteAddress)) {
-      return ndn::nfd::FACE_SCOPE_LOCAL;
+class TcpChannelFixture : public ChannelFixture<TcpChannel, tcp::Endpoint> {
+  protected:
+    TcpChannelFixture()
+    {
+        local.assign({{"subnet", "127.0.0.0/8"}, {"subnet", "::1/128"}}, {});
     }
-    else {
-      return ndn::nfd::FACE_SCOPE_NON_LOCAL;
-    }
-  }
 
-protected:
-  std::vector<shared_ptr<Face>> clientFaces;
-  IpAddressPredicate local;
+    unique_ptr<TcpChannel>
+    makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
+    {
+        if (port == 0)
+            port = getNextPort();
+
+        return make_unique<TcpChannel>(tcp::Endpoint(addr, port), false,
+                                       std::bind(&TcpChannelFixture::determineFaceScope, this, _1, _2));
+    }
+
+    void
+    connect(TcpChannel& channel) final
+    {
+        g_io.post([&] {
+            channel.connect(
+              listenerEp, {},
+              [this](const shared_ptr<Face>& newFace) {
+                  BOOST_REQUIRE(newFace != nullptr);
+                  connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
+                  clientFaces.push_back(newFace);
+                  limitedIo.afterOp();
+              },
+              ChannelFixture::unexpectedFailure);
+        });
+    }
+
+    ndn::nfd::FaceScope
+    determineFaceScope(const boost::asio::ip::address& localAddress, const boost::asio::ip::address& remoteAddress)
+    {
+        if (local(localAddress) && local(remoteAddress)) {
+            return ndn::nfd::FACE_SCOPE_LOCAL;
+        }
+        else {
+            return ndn::nfd::FACE_SCOPE_NON_LOCAL;
+        }
+    }
+
+  protected:
+    std::vector<shared_ptr<Face>> clientFaces;
+    IpAddressPredicate local;
 };
 
 } // namespace tests

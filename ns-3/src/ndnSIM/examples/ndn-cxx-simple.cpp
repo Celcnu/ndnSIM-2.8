@@ -31,24 +31,23 @@ NS_OBJECT_ENSURE_REGISTERED(RealAppStarter);
 int
 main(int argc, char* argv[])
 {
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  Ptr<Node> node = CreateObject<Node>();
+    Ptr<Node> node = CreateObject<Node>();
 
-  ndn::StackHelper ndnHelper;
-  ndnHelper.Install(node);
+    ndn::StackHelper ndnHelper;
+    ndnHelper.Install(node);
 
-  ndn::AppHelper appHelper("RealAppStarter");
-  appHelper.Install(node)
-    .Start(Seconds(6.5));
+    ndn::AppHelper appHelper("RealAppStarter");
+    appHelper.Install(node).Start(Seconds(6.5));
 
-  Simulator::Stop(Seconds(20.0));
+    Simulator::Stop(Seconds(20.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -56,5 +55,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

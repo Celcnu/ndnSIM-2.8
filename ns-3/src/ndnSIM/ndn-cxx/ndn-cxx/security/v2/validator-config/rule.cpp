@@ -40,127 +40,124 @@ Rule::Rule(const std::string& id, uint32_t pktType)
 void
 Rule::addFilter(unique_ptr<Filter> filter)
 {
-  m_filters.push_back(std::move(filter));
+    m_filters.push_back(std::move(filter));
 }
 
 void
 Rule::addChecker(unique_ptr<Checker> checker)
 {
-  m_checkers.push_back(std::move(checker));
+    m_checkers.push_back(std::move(checker));
 }
 
 bool
 Rule::match(uint32_t pktType, const Name& pktName) const
 {
-  NDN_LOG_TRACE("Trying to match " << pktName);
-  if (pktType != m_pktType) {
-    NDN_THROW(Error("Invalid packet type supplied (" + to_string(pktType) +
-                    " != " + to_string(m_pktType) + ")"));
-  }
-
-  if (m_filters.empty()) {
-    return true;
-  }
-
-  bool retval = false;
-  for (const auto& filter : m_filters) {
-    retval |= filter->match(pktType, pktName);
-    if (retval) {
-      break;
+    NDN_LOG_TRACE("Trying to match " << pktName);
+    if (pktType != m_pktType) {
+        NDN_THROW(Error("Invalid packet type supplied (" + to_string(pktType) + " != " + to_string(m_pktType) + ")"));
     }
-  }
-  return retval;
+
+    if (m_filters.empty()) {
+        return true;
+    }
+
+    bool retval = false;
+    for (const auto& filter : m_filters) {
+        retval |= filter->match(pktType, pktName);
+        if (retval) {
+            break;
+        }
+    }
+    return retval;
 }
 
 bool
-Rule::check(uint32_t pktType, const Name& pktName, const Name& klName,
-            const shared_ptr<ValidationState>& state) const
+Rule::check(uint32_t pktType, const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) const
 {
-  NDN_LOG_TRACE("Trying to check " << pktName << " with keyLocator " << klName);
+    NDN_LOG_TRACE("Trying to check " << pktName << " with keyLocator " << klName);
 
-  if (pktType != m_pktType) {
-    NDN_THROW(Error("Invalid packet type supplied (" + to_string(pktType) +
-                    " != " + to_string(m_pktType) + ")"));
-  }
-
-  bool hasPendingResult = false;
-  for (const auto& checker : m_checkers) {
-    bool result = checker->check(pktType, pktName, klName, state);
-    if (!result) {
-      return result;
+    if (pktType != m_pktType) {
+        NDN_THROW(Error("Invalid packet type supplied (" + to_string(pktType) + " != " + to_string(m_pktType) + ")"));
     }
-    hasPendingResult = true;
-  }
 
-  return hasPendingResult;
+    bool hasPendingResult = false;
+    for (const auto& checker : m_checkers) {
+        bool result = checker->check(pktType, pktName, klName, state);
+        if (!result) {
+            return result;
+        }
+        hasPendingResult = true;
+    }
+
+    return hasPendingResult;
 }
 
 unique_ptr<Rule>
 Rule::create(const ConfigSection& configSection, const std::string& configFilename)
 {
-  auto propertyIt = configSection.begin();
+    auto propertyIt = configSection.begin();
 
-  // Get rule.id
-  if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "id")) {
-    NDN_THROW(Error("Expecting <rule.id>"));
-  }
-
-  std::string ruleId = propertyIt->second.data();
-  propertyIt++;
-
-  // Get rule.for
-  if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "for")) {
-    NDN_THROW(Error("Expecting <rule.for> in rule: " + ruleId));
-  }
-
-  std::string usage = propertyIt->second.data();
-  propertyIt++;
-
-  bool isForData = false;
-  if (boost::iequals(usage, "data")) {
-    isForData = true;
-  }
-  else if (boost::iequals(usage, "interest")) {
-    isForData = false;
-  }
-  else {
-    NDN_THROW(Error("Unrecognized <rule.for>: " + usage + " in rule: " + ruleId));
-  }
-
-  auto rule = make_unique<Rule>(ruleId, isForData ? tlv::Data : tlv::Interest);
-
-  // Get rule.filter(s)
-  for (; propertyIt != configSection.end(); propertyIt++) {
-    if (!boost::iequals(propertyIt->first, "filter")) {
-      if (boost::iequals(propertyIt->first, "checker")) {
-        break;
-      }
-      NDN_THROW(Error("Expecting <rule.filter> in rule: " + ruleId));
+    // Get rule.id
+    if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "id")) {
+        NDN_THROW(Error("Expecting <rule.id>"));
     }
 
-    rule->addFilter(Filter::create(propertyIt->second, configFilename));
-  }
+    std::string ruleId = propertyIt->second.data();
+    propertyIt++;
 
-  // Get rule.checker(s)
-  bool hasCheckers = false;
-  for (; propertyIt != configSection.end(); propertyIt++) {
-    if (!boost::iequals(propertyIt->first, "checker")) {
-      NDN_THROW(Error("Expecting <rule.checker> in rule: " + ruleId));
+    // Get rule.for
+    if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "for")) {
+        NDN_THROW(Error("Expecting <rule.for> in rule: " + ruleId));
     }
 
-    rule->addChecker(Checker::create(propertyIt->second, configFilename));
-    hasCheckers = true;
-  }
+    std::string usage = propertyIt->second.data();
+    propertyIt++;
 
-  if (propertyIt != configSection.end()) {
-    NDN_THROW(Error("Expecting end of <rule>: " + ruleId));
-  }
+    bool isForData = false;
+    if (boost::iequals(usage, "data")) {
+        isForData = true;
+    }
+    else if (boost::iequals(usage, "interest")) {
+        isForData = false;
+    }
+    else {
+        NDN_THROW(Error("Unrecognized <rule.for>: " + usage + " in rule: " + ruleId));
+    }
 
-  if (!hasCheckers) {
-    NDN_THROW(Error("No <rule.checker> is specified in rule: " + ruleId));
-  }
+    auto rule = make_unique<Rule>(ruleId, isForData ? tlv::Data : tlv::Interest);
 
-  return rule;
+    // Get rule.filter(s)
+    for (; propertyIt != configSection.end(); propertyIt++) {
+        if (!boost::iequals(propertyIt->first, "filter")) {
+            if (boost::iequals(propertyIt->first, "checker")) {
+                break;
+            }
+            NDN_THROW(Error("Expecting <rule.filter> in rule: " + ruleId));
+        }
+
+        rule->addFilter(Filter::create(propertyIt->second, configFilename));
+    }
+
+    // Get rule.checker(s)
+    bool hasCheckers = false;
+    for (; propertyIt != configSection.end(); propertyIt++) {
+        if (!boost::iequals(propertyIt->first, "checker")) {
+            NDN_THROW(Error("Expecting <rule.checker> in rule: " + ruleId));
+        }
+
+        rule->addChecker(Checker::create(propertyIt->second, configFilename));
+        hasCheckers = true;
+    }
+
+    if (propertyIt != configSection.end()) {
+        NDN_THROW(Error("Expecting end of <rule>: " + ruleId));
+    }
+
+    if (!hasCheckers) {
+        NDN_THROW(Error("No <rule.checker> is specified in rule: " + ruleId));
+    }
+
+    return rule;
 }
 
 } // namespace validator_config

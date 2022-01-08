@@ -47,29 +47,28 @@ InterestFilter::InterestFilter(const Name& prefix, const std::string& regexFilte
 
 InterestFilter::operator const Name&() const
 {
-  if (hasRegexFilter()) {
-    NDN_THROW(Error("Please update InterestCallback to accept `const InterestFilter&'"
-                    " (non-trivial InterestFilter is being used)"));
-  }
-  return m_prefix;
+    if (hasRegexFilter()) {
+        NDN_THROW(Error("Please update InterestCallback to accept `const InterestFilter&'"
+                        " (non-trivial InterestFilter is being used)"));
+    }
+    return m_prefix;
 }
 
 bool
 InterestFilter::doesMatch(const Name& name) const
 {
-  return m_prefix.isPrefixOf(name) &&
-         (!hasRegexFilter() ||
-          m_regexFilter->match(name, m_prefix.size(), name.size() - m_prefix.size()));
+    return m_prefix.isPrefixOf(name)
+           && (!hasRegexFilter() || m_regexFilter->match(name, m_prefix.size(), name.size() - m_prefix.size()));
 }
 
 std::ostream&
 operator<<(std::ostream& os, const InterestFilter& filter)
 {
-  os << filter.getPrefix();
-  if (filter.hasRegexFilter()) {
-    os << "?regex=" << filter.getRegexFilter();
-  }
-  return os;
+    os << filter.getPrefix();
+    if (filter.hasRegexFilter()) {
+        os << "?regex=" << filter.getRegexFilter();
+    }
+    return os;
 }
 
 } // namespace ndn

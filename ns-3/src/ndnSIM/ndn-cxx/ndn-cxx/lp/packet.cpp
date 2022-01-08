@@ -31,76 +31,69 @@ namespace lp {
 
 namespace {
 
-template<typename TAG>
-int
-getLocationSortOrder() noexcept;
+template <typename TAG>
+int getLocationSortOrder() noexcept;
 
-template<>
+template <>
 constexpr int
 getLocationSortOrder<field_location_tags::Header>() noexcept
 {
-  return 1;
+    return 1;
 }
 
-template<>
+template <>
 constexpr int
 getLocationSortOrder<field_location_tags::Fragment>() noexcept
 {
-  return 2;
+    return 2;
 }
 
-class FieldInfo
-{
-public:
-  constexpr
-  FieldInfo() noexcept = default;
+class FieldInfo {
+  public:
+    constexpr FieldInfo() noexcept = default;
 
-  explicit
-  FieldInfo(uint64_t tlv) noexcept;
+    explicit FieldInfo(uint64_t tlv) noexcept;
 
-public:
-  uint64_t tlvType = 0;       ///< TLV-TYPE of the field; 0 if field does not exist
-  bool isRecognized = false;  ///< is this field known
-  bool canIgnore = false;     ///< can this unknown field be ignored
-  bool isRepeatable = false;  ///< is the field repeatable
-  int locationSortOrder = getLocationSortOrder<field_location_tags::Header>(); ///< sort order of field_location_tag
+  public:
+    uint64_t tlvType = 0;      ///< TLV-TYPE of the field; 0 if field does not exist
+    bool isRecognized = false; ///< is this field known
+    bool canIgnore = false;    ///< can this unknown field be ignored
+    bool isRepeatable = false; ///< is the field repeatable
+    int locationSortOrder = getLocationSortOrder<field_location_tags::Header>(); ///< sort order of field_location_tag
 };
 
-class ExtractFieldInfo
-{
-public:
-  using result_type = void;
+class ExtractFieldInfo {
+  public:
+    using result_type = void;
 
-  template<typename T>
-  constexpr void
-  operator()(FieldInfo* info, const T&) const noexcept
-  {
-    if (T::TlvType::value != info->tlvType) {
-      return;
+    template <typename T>
+    constexpr void
+    operator()(FieldInfo* info, const T&) const noexcept
+    {
+        if (T::TlvType::value != info->tlvType) {
+            return;
+        }
+        info->isRecognized = true;
+        info->canIgnore = false;
+        info->isRepeatable = T::IsRepeatable::value;
+        info->locationSortOrder = getLocationSortOrder<typename T::FieldLocation>();
     }
-    info->isRecognized = true;
-    info->canIgnore = false;
-    info->isRepeatable = T::IsRepeatable::value;
-    info->locationSortOrder = getLocationSortOrder<typename T::FieldLocation>();
-  }
 };
 
 FieldInfo::FieldInfo(uint64_t tlv) noexcept
   : tlvType(tlv)
 {
-  boost::mpl::for_each<FieldSet>(boost::bind(ExtractFieldInfo(), this, _1));
-  if (!isRecognized) {
-    canIgnore = tlv::HEADER3_MIN <= tlvType &&
-                tlvType <= tlv::HEADER3_MAX &&
-                (tlvType & 0x03) == 0x00;
-  }
+    boost::mpl::for_each<FieldSet>(boost::bind(ExtractFieldInfo(), this, _1));
+    if (!isRecognized) {
+        canIgnore = tlv::HEADER3_MIN <= tlvType && tlvType <= tlv::HEADER3_MAX && (tlvType & 0x03) == 0x00;
+    }
 }
 
 constexpr bool
 compareFieldSortOrder(const FieldInfo& first, const FieldInfo& second) noexcept
 {
-  return (first.locationSortOrder < second.locationSortOrder) ||
-         (first.locationSortOrder == second.locationSortOrder && first.tlvType < second.tlvType);
+    return (first.locationSortOrder < second.locationSortOrder)
+           || (first.locationSortOrder == second.locationSortOrder && first.tlvType < second.tlvType);
 }
 
 } // namespace
@@ -112,70 +105,70 @@ Packet::Packet()
 
 Packet::Packet(const Block& wire)
 {
-  wireDecode(wire);
+    wireDecode(wire);
 }
 
 Block
 Packet::wireEncode() const
 {
-  // If no header or trailer, return bare network packet
-  Block::element_container elements = m_wire.elements();
-  if (elements.size() == 1 && elements.front().type() == FragmentField::TlvType::value) {
-    elements.front().parse();
-    return elements.front().elements().front();
-  }
+    // If no header or trailer, return bare network packet
+    Block::element_container elements = m_wire.elements();
+    if (elements.size() == 1 && elements.front().type() == FragmentField::TlvType::value) {
+        elements.front().parse();
+        return elements.front().elements().front();
+    }
 
-  m_wire.encode();
-  return m_wire;
+    m_wire.encode();
+    return m_wire;
 }
 
 void
 Packet::wireDecode(const Block& wire)
 {
-  if (wire.type() == ndn::tlv::Interest || wire.type() == ndn::tlv::Data) {
-    m_wire = Block(tlv::LpPacket);
-    add<FragmentField>(make_pair(wire.begin(), wire.end()));
-    return;
-  }
-
-  if (wire.type() != tlv::LpPacket) {
-    NDN_THROW(Error("LpPacket", wire.type()));
-  }
-
-  wire.parse();
-
-  bool isFirst = true;
-  FieldInfo prev;
-  for (const Block& element : wire.elements()) {
-    FieldInfo info(element.type());
-
-    if (!info.isRecognized && !info.canIgnore) {
-      NDN_THROW(Error("unrecognized field " + to_string(element.type()) + " cannot be ignored"));
+    if (wire.type() == ndn::tlv::Interest || wire.type() == ndn::tlv::Data) {
+        m_wire = Block(tlv::LpPacket);
+        add<FragmentField>(make_pair(wire.begin(), wire.end()));
+        return;
     }
 
-    if (!isFirst) {
-      if (info.tlvType == prev.tlvType && !info.isRepeatable) {
-        NDN_THROW(Error("non-repeatable field " + to_string(element.type()) + " cannot be repeated"));
-      }
-
-      else if (info.tlvType != prev.tlvType && !compareFieldSortOrder(prev, info)) {
-        NDN_THROW(Error("fields are not in correct sort order"));
-      }
+    if (wire.type() != tlv::LpPacket) {
+        NDN_THROW(Error("LpPacket", wire.type()));
     }
 
-    isFirst = false;
-    prev = info;
-  }
+    wire.parse();
 
-  m_wire = wire;
+    bool isFirst = true;
+    FieldInfo prev;
+    for (const Block& element : wire.elements()) {
+        FieldInfo info(element.type());
+
+        if (!info.isRecognized && !info.canIgnore) {
+            NDN_THROW(Error("unrecognized field " + to_string(element.type()) + " cannot be ignored"));
+        }
+
+        if (!isFirst) {
+            if (info.tlvType == prev.tlvType && !info.isRepeatable) {
+                NDN_THROW(Error("non-repeatable field " + to_string(element.type()) + " cannot be repeated"));
+            }
+
+            else if (info.tlvType != prev.tlvType && !compareFieldSortOrder(prev, info)) {
+                NDN_THROW(Error("fields are not in correct sort order"));
+            }
+        }
+
+        isFirst = false;
+        prev = info;
+    }
+
+    m_wire = wire;
 }
 
 bool
 Packet::comparePos(uint64_t first, const Block& second) noexcept
 {
-  FieldInfo firstInfo(first);
-  FieldInfo secondInfo(second.type());
-  return compareFieldSortOrder(firstInfo, secondInfo);
+    FieldInfo firstInfo(first);
+    FieldInfo secondInfo(second.type());
+    return compareFieldSortOrder(firstInfo, secondInfo);
 }
 
 } // namespace lp

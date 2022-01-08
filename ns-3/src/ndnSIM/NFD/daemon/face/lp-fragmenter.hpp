@@ -36,49 +36,42 @@ namespace face {
 /** \brief fragments network-layer packets into NDNLPv2 link-layer packets
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/NDNLPv2
  */
-class LpFragmenter
-{
-public:
-  /** \brief Options that control the behavior of LpFragmenter
-   */
-  struct Options
-  {
-    /** \brief maximum number of fragments in a packet
+class LpFragmenter {
+  public:
+    /** \brief Options that control the behavior of LpFragmenter
      */
-    size_t nMaxFragments = 400;
-  };
+    struct Options {
+        /** \brief maximum number of fragments in a packet
+         */
+        size_t nMaxFragments = 400;
+    };
 
-  explicit
-  LpFragmenter(const Options& options, const LinkService* linkService = nullptr);
+    explicit LpFragmenter(const Options& options, const LinkService* linkService = nullptr);
 
-  /** \brief set options for fragmenter
-   */
-  void
-  setOptions(const Options& options);
+    /** \brief set options for fragmenter
+     */
+    void setOptions(const Options& options);
 
-  /** \return LinkService that owns this instance
-   *
-   *  This is only used for logging, and may be nullptr.
-   */
-  const LinkService*
-  getLinkService() const;
+    /** \return LinkService that owns this instance
+     *
+     *  This is only used for logging, and may be nullptr.
+     */
+    const LinkService* getLinkService() const;
 
-  /** \brief fragments a network-layer packet into link-layer packets
-   *  \param packet an LpPacket that contains a network-layer packet;
-   *                must have Fragment field, must not have FragIndex and FragCount fields
-   *  \param mtu maximum allowable LpPacket size after fragmentation and sequence number assignment
-   *  \return whether fragmentation succeeded, fragmented packets without sequence number
-   */
-  std::tuple<bool, std::vector<lp::Packet>>
-  fragmentPacket(const lp::Packet& packet, size_t mtu);
+    /** \brief fragments a network-layer packet into link-layer packets
+     *  \param packet an LpPacket that contains a network-layer packet;
+     *                must have Fragment field, must not have FragIndex and FragCount fields
+     *  \param mtu maximum allowable LpPacket size after fragmentation and sequence number assignment
+     *  \return whether fragmentation succeeded, fragmented packets without sequence number
+     */
+    std::tuple<bool, std::vector<lp::Packet>> fragmentPacket(const lp::Packet& packet, size_t mtu);
 
-private:
-  Options m_options;
-  const LinkService* m_linkService;
+  private:
+    Options m_options;
+    const LinkService* m_linkService;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const FaceLogHelper<LpFragmenter>& flh);
+std::ostream& operator<<(std::ostream& os, const FaceLogHelper<LpFragmenter>& flh);
 
 } // namespace face
 } // namespace nfd

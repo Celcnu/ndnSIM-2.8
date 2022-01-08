@@ -34,67 +34,57 @@ namespace asf {
 
 /** \brief ASF Probing Module
  */
-class ProbingModule
-{
-public:
-  explicit
-  ProbingModule(AsfMeasurements& measurements);
+class ProbingModule {
+  public:
+    explicit ProbingModule(AsfMeasurements& measurements);
 
-  void
-  scheduleProbe(const fib::Entry& fibEntry, time::milliseconds interval);
+    void scheduleProbe(const fib::Entry& fibEntry, time::milliseconds interval);
 
-  Face*
-  getFaceToProbe(const Face& inFace, const Interest& interest,
-                 const fib::Entry& fibEntry, const Face& faceUsed);
+    Face*
+    getFaceToProbe(const Face& inFace, const Interest& interest, const fib::Entry& fibEntry, const Face& faceUsed);
 
-  bool
-  isProbingNeeded(const fib::Entry& fibEntry, const Interest& interest);
+    bool isProbingNeeded(const fib::Entry& fibEntry, const Interest& interest);
 
-  void
-  afterForwardingProbe(const fib::Entry& fibEntry, const Interest& interest);
+    void afterForwardingProbe(const fib::Entry& fibEntry, const Interest& interest);
 
-  void
-  setProbingInterval(size_t probingInterval);
+    void setProbingInterval(size_t probingInterval);
 
-  time::milliseconds
-  getProbingInterval() const
-  {
-    return m_probingInterval;
-  }
-
-private:
-  // Used to associate FaceInfo with the face in a NextHop
-  using FaceInfoFacePair = std::pair<FaceInfo*, Face*>;
-
-  struct FaceInfoCompare
-  {
-    bool
-    operator()(const FaceInfoFacePair& leftPair, const FaceInfoFacePair& rightPair) const
+    time::milliseconds
+    getProbingInterval() const
     {
-      const FaceInfo& lhs = *leftPair.first;
-      const FaceInfo& rhs = *rightPair.first;
-
-      // Sort by RTT: if a face has timed-out, rank it behind non-timed-out faces
-      return (!lhs.hasTimeout() && rhs.hasTimeout()) ||
-             (lhs.hasTimeout() == rhs.hasTimeout() && lhs.getSrtt() < rhs.getSrtt());
+        return m_probingInterval;
     }
-  };
 
-  using FaceInfoFacePairSet = std::set<FaceInfoFacePair, FaceInfoCompare>;
+  private:
+    // Used to associate FaceInfo with the face in a NextHop
+    using FaceInfoFacePair = std::pair<FaceInfo*, Face*>;
 
-  static Face*
-  chooseFace(const FaceInfoFacePairSet& rankedFaces);
+    struct FaceInfoCompare {
+        bool
+        operator()(const FaceInfoFacePair& leftPair, const FaceInfoFacePair& rightPair) const
+        {
+            const FaceInfo& lhs = *leftPair.first;
+            const FaceInfo& rhs = *rightPair.first;
 
-  static double
-  getProbingProbability(uint64_t rank, uint64_t rankSum, uint64_t nFaces);
+            // Sort by RTT: if a face has timed-out, rank it behind non-timed-out faces
+            return (!lhs.hasTimeout() && rhs.hasTimeout())
+                   || (lhs.hasTimeout() == rhs.hasTimeout() && lhs.getSrtt() < rhs.getSrtt());
+        }
+    };
 
-public:
-  static constexpr time::milliseconds DEFAULT_PROBING_INTERVAL = 1_min;
-  static constexpr time::milliseconds MIN_PROBING_INTERVAL = 1_s;
+    using FaceInfoFacePairSet = std::set<FaceInfoFacePair, FaceInfoCompare>;
 
-private:
-  time::milliseconds m_probingInterval;
-  AsfMeasurements& m_measurements;
+    static Face* chooseFace(const FaceInfoFacePairSet& rankedFaces);
+
+    static double getProbingProbability(uint64_t rank, uint64_t rankSum, uint64_t nFaces);
+
+  public:
+    static constexpr time::milliseconds DEFAULT_PROBING_INTERVAL = 1_min;
+    static constexpr time::milliseconds MIN_PROBING_INTERVAL = 1_s;
+
+  private:
+    time::milliseconds m_probingInterval;
+    AsfMeasurements& m_measurements;
 };
 
 } // namespace asf

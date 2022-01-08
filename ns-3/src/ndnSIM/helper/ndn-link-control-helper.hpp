@@ -34,70 +34,65 @@ namespace ndn {
  *        nodes
  */
 class LinkControlHelper {
-public:
-  /**
-   * @brief Fail NDN link between two nodes
-   *
-   * The helper will attempt to find NDN link between node1 and
-   * node2 and set NDN face to DOWN state
-   *
-   * Note that only PointToPointChannels are supported by this helper method
-   *
-   * @param node1 one node
-   * @param node2 another node
-   */
-  static void
-  FailLink(Ptr<Node> node1, Ptr<Node> node2);
+  public:
+    /**
+     * @brief Fail NDN link between two nodes
+     *
+     * The helper will attempt to find NDN link between node1 and
+     * node2 and set NDN face to DOWN state
+     *
+     * Note that only PointToPointChannels are supported by this helper method
+     *
+     * @param node1 one node
+     * @param node2 another node
+     */
+    static void FailLink(Ptr<Node> node1, Ptr<Node> node2);
 
-  /**
-   * @brief Fail NDN link between two nodes
-   *
-   * The helper will attempt to find NDN link between node1 and
-   * node2 and set NDN face to DOWN state
-   *
-   * Note that only PointToPointChannels are supported by this helper method
-   *
-   * This variant uses node names registered by Names class
-   *
-   * @param node1 one node's name
-   * @param node2 another node's name
-   */
-  static void
-  FailLinkByName(const std::string& node1, const std::string& node2);
+    /**
+     * @brief Fail NDN link between two nodes
+     *
+     * The helper will attempt to find NDN link between node1 and
+     * node2 and set NDN face to DOWN state
+     *
+     * Note that only PointToPointChannels are supported by this helper method
+     *
+     * This variant uses node names registered by Names class
+     *
+     * @param node1 one node's name
+     * @param node2 another node's name
+     */
+    static void FailLinkByName(const std::string& node1, const std::string& node2);
 
-  /**
-   * @brief Re-enable NDN link between two nodes
-   *
-   * The helper will attempt to find NDN link between node1 and
-   * node2 and set NDN face to UP state
-   *
-   * Note that only PointToPointChannels are supported by this helper method
-   *
-   * @param node1 one node
-   * @param node2 another node
-   */
-  static void
-  UpLink(Ptr<Node> node1, Ptr<Node> node2);
+    /**
+     * @brief Re-enable NDN link between two nodes
+     *
+     * The helper will attempt to find NDN link between node1 and
+     * node2 and set NDN face to UP state
+     *
+     * Note that only PointToPointChannels are supported by this helper method
+     *
+     * @param node1 one node
+     * @param node2 another node
+     */
+    static void UpLink(Ptr<Node> node1, Ptr<Node> node2);
 
-  /**
-   * @brief Re-enable NDN link between two nodes
-   *
-   * The helper will attempt to find NDN link between node1 and
-   * node2 and set NDN face to UP state
-   *
-   * Note that only PointToPointChannels are supported by this helper method
-   *
-   * This variant uses node names registered by Names class
-   *
-   * @param node1 one node's name
-   * @param node2 another node's name
-   */
-  static void
-  UpLinkByName(const std::string& node1, const std::string& node2);
+    /**
+     * @brief Re-enable NDN link between two nodes
+     *
+     * The helper will attempt to find NDN link between node1 and
+     * node2 and set NDN face to UP state
+     *
+     * Note that only PointToPointChannels are supported by this helper method
+     *
+     * This variant uses node names registered by Names class
+     *
+     * @param node1 one node's name
+     * @param node2 another node's name
+     */
+    static void UpLinkByName(const std::string& node1, const std::string& node2);
 
-private:
-  static void
-  setErrorRate(Ptr<Node> node1, Ptr<Node> node2, double errorRate);
+  private:
+    static void setErrorRate(Ptr<Node> node1, Ptr<Node> node2, double errorRate);
 }; // LinkControlHelper
 
 } // ndn

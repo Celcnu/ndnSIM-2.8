@@ -38,14 +38,13 @@ NS_OBJECT_ENSURE_REGISTERED(OneInterestRequester);
 TypeId
 OneInterestRequester::GetTypeId()
 {
-  static TypeId tid =
-    TypeId("OneInterestRequester")
-      .SetParent<ndn::App>()
-      .AddConstructor<OneInterestRequester>()
+    static TypeId tid = TypeId("OneInterestRequester")
+                          .SetParent<ndn::App>()
+                          .AddConstructor<OneInterestRequester>()
 
-      .AddAttribute("Prefix", "Requested name", StringValue("/dumb-interest"),
-                    ndn::MakeNameAccessor(&OneInterestRequester::m_name), ndn::MakeNameChecker());
-  return tid;
+                          .AddAttribute("Prefix", "Requested name", StringValue("/dumb-interest"),
+                                        ndn::MakeNameAccessor(&OneInterestRequester::m_name), ndn::MakeNameChecker());
+    return tid;
 }
 
 OneInterestRequester::OneInterestRequester()
@@ -57,55 +56,55 @@ OneInterestRequester::OneInterestRequester()
 void
 OneInterestRequester::StartApplication()
 {
-  // initialize ndn::App
-  ndn::App::StartApplication();
+    // initialize ndn::App
+    ndn::App::StartApplication();
 
-  m_isRunning = true;
-  Simulator::ScheduleNow(&OneInterestRequester::SendInterest, this);
+    m_isRunning = true;
+    Simulator::ScheduleNow(&OneInterestRequester::SendInterest, this);
 }
 
 // Processing when application is stopped
 void
 OneInterestRequester::StopApplication()
 {
-  m_isRunning = false;
-  // cleanup ndn::App
-  ndn::App::StopApplication();
+    m_isRunning = false;
+    // cleanup ndn::App
+    ndn::App::StopApplication();
 }
 
 void
 OneInterestRequester::SendInterest()
 {
-  if (!m_isRunning)
-    return;
+    if (!m_isRunning)
+        return;
 
-  /////////////////////////////////////
-  // Sending one Interest packet out //
-  /////////////////////////////////////
+    /////////////////////////////////////
+    // Sending one Interest packet out //
+    /////////////////////////////////////
 
-  // Create and configure ndn::Interest
-  auto interest = std::make_shared<ndn::Interest>(m_name);
-  Ptr<UniformRandomVariable> rand = CreateObject<UniformRandomVariable>();
-  interest->setNonce(rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
-  interest->setInterestLifetime(ndn::time::seconds(1));
-  interest->setMustBeFresh(true);
+    // Create and configure ndn::Interest
+    auto interest = std::make_shared<ndn::Interest>(m_name);
+    Ptr<UniformRandomVariable> rand = CreateObject<UniformRandomVariable>();
+    interest->setNonce(rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
+    interest->setInterestLifetime(ndn::time::seconds(1));
+    interest->setMustBeFresh(true);
 
-  NS_LOG_DEBUG("Sending Interest packet for " << m_name);
+    NS_LOG_DEBUG("Sending Interest packet for " << m_name);
 
-  // Call trace (for logging purposes)
-  m_transmittedInterests(interest, this, m_face);
+    // Call trace (for logging purposes)
+    m_transmittedInterests(interest, this, m_face);
 
-  NS_LOG_DEBUG(">> I: " << m_name);
+    NS_LOG_DEBUG(">> I: " << m_name);
 
-  // Forward packet to lower (network) layer
-  m_appLink->onReceiveInterest(*interest);
+    // Forward packet to lower (network) layer
+    m_appLink->onReceiveInterest(*interest);
 }
 
 void
 OneInterestRequester::OnData(std::shared_ptr<const ndn::Data> data)
 {
-  App::OnData(data);
-  NS_LOG_DEBUG("<< D: " << data->getName());
+    App::OnData(data);
+    NS_LOG_DEBUG("<< D: " << data->getName());
 }
 
 } // namespace ns3

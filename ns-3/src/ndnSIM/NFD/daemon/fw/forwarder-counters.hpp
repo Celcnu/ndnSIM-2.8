@@ -32,20 +32,20 @@ namespace nfd {
 
 /** \brief counters provided by Forwarder
  */
-class ForwarderCounters
-{
-public:
-  PacketCounter nInInterests;
-  PacketCounter nOutInterests;
-  PacketCounter nInData;
-  PacketCounter nOutData;
-  PacketCounter nInNacks;
-  PacketCounter nOutNacks;
-  PacketCounter nSatisfiedInterests;
-  PacketCounter nUnsatisfiedInterests;
+class ForwarderCounters {
+  public:
+    PacketCounter nInInterests;
+    PacketCounter nOutInterests;
+    PacketCounter nInData;
+    PacketCounter nOutData;
+    PacketCounter nInNacks;
+    PacketCounter nOutNacks;
+    PacketCounter nSatisfiedInterests;
+    PacketCounter nUnsatisfiedInterests;
 
-  PacketCounter nCsHits;
-  PacketCounter nCsMisses;
+    // 这些值怎么拿出来?
+    PacketCounter nCsHits;
+    PacketCounter nCsMisses;
 };
 
 } // namespace nfd

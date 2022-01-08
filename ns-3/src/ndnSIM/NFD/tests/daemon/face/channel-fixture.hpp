@@ -40,72 +40,70 @@ namespace tests {
 
 using namespace nfd::tests;
 
-template<class ChannelT, class EndpointT>
-class ChannelFixture : public GlobalIoFixture
-{
-  static_assert(std::is_base_of<Channel, ChannelT>::value,
-                "ChannelFixture must be instantiated with a type derived from Channel");
+template <class ChannelT, class EndpointT>
+class ChannelFixture : public GlobalIoFixture {
+    static_assert(std::is_base_of<Channel, ChannelT>::value,
+                  "ChannelFixture must be instantiated with a type derived from Channel");
 
-public:
-  virtual
-  ~ChannelFixture() = default;
+  public:
+    virtual ~ChannelFixture() = default;
 
-  static void
-  unexpectedFailure(uint32_t status, const std::string& reason)
-  {
-    BOOST_FAIL("No error expected, but got: [" << status << ": " << reason << "]");
-  }
+    static void
+    unexpectedFailure(uint32_t status, const std::string& reason)
+    {
+        BOOST_FAIL("No error expected, but got: [" << status << ": " << reason << "]");
+    }
 
-protected:
-  uint16_t
-  getNextPort()
-  {
-    return m_nextPort++;
-  }
+  protected:
+    uint16_t
+    getNextPort()
+    {
+        return m_nextPort++;
+    }
 
-  virtual unique_ptr<ChannelT>
-  makeChannel()
-  {
-    BOOST_FAIL("Unimplemented");
-    return nullptr;
-  }
+    virtual unique_ptr<ChannelT>
+    makeChannel()
+    {
+        BOOST_FAIL("Unimplemented");
+        return nullptr;
+    }
 
-  virtual unique_ptr<ChannelT>
-  makeChannel(const boost::asio::ip::address&, uint16_t port = 0)
-  {
-    BOOST_FAIL("Unimplemented");
-    return nullptr;
-  }
+    virtual unique_ptr<ChannelT>
+    makeChannel(const boost::asio::ip::address&, uint16_t port = 0)
+    {
+        BOOST_FAIL("Unimplemented");
+        return nullptr;
+    }
 
-  void
-  listen(const boost::asio::ip::address& addr)
-  {
-    listenerEp = EndpointT{addr, 7030};
-    listenerChannel = makeChannel(addr, 7030);
-    listenerChannel->listen(
-      [this] (const shared_ptr<Face>& newFace) {
-        BOOST_REQUIRE(newFace != nullptr);
-        connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
-        listenerFaces.push_back(newFace);
-        limitedIo.afterOp();
-      },
-      ChannelFixture::unexpectedFailure);
-  }
+    void
+    listen(const boost::asio::ip::address& addr)
+    {
+        listenerEp = EndpointT{addr, 7030};
+        listenerChannel = makeChannel(addr, 7030);
+        listenerChannel->listen(
+          [this](const shared_ptr<Face>& newFace) {
+              BOOST_REQUIRE(newFace != nullptr);
+              connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
+              listenerFaces.push_back(newFace);
+              limitedIo.afterOp();
+          },
+          ChannelFixture::unexpectedFailure);
+    }
 
-  virtual void
-  connect(ChannelT&)
-  {
-    BOOST_FAIL("Unimplemented");
-  }
+    virtual void
+    connect(ChannelT&)
+    {
+        BOOST_FAIL("Unimplemented");
+    }
 
-protected:
-  LimitedIo limitedIo;
-  EndpointT listenerEp;
-  unique_ptr<ChannelT> listenerChannel;
-  std::vector<shared_ptr<Face>> listenerFaces;
+  protected:
+    LimitedIo limitedIo;
+    EndpointT listenerEp;
+    unique_ptr<ChannelT> listenerChannel;
+    std::vector<shared_ptr<Face>> listenerFaces;
 
-private:
-  uint16_t m_nextPort = 7050;
+  private:
+    uint16_t m_nextPort = 7050;
 };
 
 } // namespace tests

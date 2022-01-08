@@ -40,7 +40,7 @@ placeholdersTestFunction(int i)
 int
 placeholdersTestMain()
 {
-  auto f = std::bind(&placeholdersTestFunction, _1);
-  f(1);
-  return 0;
+    auto f = std::bind(&placeholdersTestFunction, _1);
+    f(1);
+    return 0;
 }

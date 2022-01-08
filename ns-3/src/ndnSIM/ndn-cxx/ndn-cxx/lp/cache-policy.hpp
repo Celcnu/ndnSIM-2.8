@@ -33,70 +33,58 @@ namespace lp {
 /**
  * \brief indicates the cache policy applied to a Data packet
  */
-enum class CachePolicyType {
-  NONE = 0,
-  NO_CACHE = 1
-};
+enum class CachePolicyType { NONE = 0, NO_CACHE = 1 };
 
-std::ostream&
-operator<<(std::ostream& os, CachePolicyType policy);
+std::ostream& operator<<(std::ostream& os, CachePolicyType policy);
 
 /**
  * \brief represents a CachePolicy header field
  */
-class CachePolicy
-{
-public:
-  class Error : public ndn::tlv::Error
-  {
+class CachePolicy {
   public:
-    using ndn::tlv::Error::Error;
-  };
+    class Error : public ndn::tlv::Error {
+      public:
+        using ndn::tlv::Error::Error;
+    };
 
-  CachePolicy();
+    CachePolicy();
 
-  explicit
-  CachePolicy(const Block& block);
+    explicit CachePolicy(const Block& block);
 
-  /**
-   * \brief prepend CachePolicy to encoder
-   * \pre getPolicy() != CachePolicyType::NONE
-   * \throw Error policy type is unset
-   */
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    /**
+     * \brief prepend CachePolicy to encoder
+     * \pre getPolicy() != CachePolicyType::NONE
+     * \throw Error policy type is unset
+     */
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  /**
-   * \brief encode CachePolicy into wire format
-   */
-  const Block&
-  wireEncode() const;
+    /**
+     * \brief encode CachePolicy into wire format
+     */
+    const Block& wireEncode() const;
 
-  /**
-   * \brief get CachePolicyType from wire format
-   */
-  void
-  wireDecode(const Block& wire);
+    /**
+     * \brief get CachePolicyType from wire format
+     */
+    void wireDecode(const Block& wire);
 
-public: // policy type
-  /**
-   * \return policy type code
-   * \retval CachePolicyType::NONE if policy type is unset or has an unknown code
-   */
-  CachePolicyType
-  getPolicy() const;
+  public: // policy type
+    /**
+     * \return policy type code
+     * \retval CachePolicyType::NONE if policy type is unset or has an unknown code
+     */
+    CachePolicyType getPolicy() const;
 
-  /**
-   * \brief set policy type code
-   * \param policy a policy type code; CachePolicyType::NONE clears the policy
-   */
-  CachePolicy&
-  setPolicy(CachePolicyType policy);
+    /**
+     * \brief set policy type code
+     * \param policy a policy type code; CachePolicyType::NONE clears the policy
+     */
+    CachePolicy& setPolicy(CachePolicyType policy);
 
-private:
-  CachePolicyType m_policy;
-  mutable Block m_wire;
+  private:
+    CachePolicyType m_policy;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(CachePolicy);

@@ -45,16 +45,14 @@ using ndn::net::NetworkMonitor;
  *  \note This function is blocking
  *  \note Signals are supported if caller keeps \p netmon running
  */
-std::vector<shared_ptr<const NetworkInterface>>
-enumerateNetworkInterfaces(NetworkMonitor& netmon);
+std::vector<shared_ptr<const NetworkInterface>> enumerateNetworkInterfaces(NetworkMonitor& netmon);
 
 /** \brief Collect information about network interfaces
  *  \param allowCached if true, previously collected information can be returned
  *  \note This function is blocking if \p allowCached is false or no previous information exists
  *  \warning Signals are not triggered on returned NetworkInterfaces because NetworkMonitor is not running
  */
-std::vector<shared_ptr<const NetworkInterface>>
-collectNetworkInterfaces(bool allowCached = true);
+std::vector<shared_ptr<const NetworkInterface>> collectNetworkInterfaces(bool allowCached = true);
 
 } // namespace tests
 } // namespace face

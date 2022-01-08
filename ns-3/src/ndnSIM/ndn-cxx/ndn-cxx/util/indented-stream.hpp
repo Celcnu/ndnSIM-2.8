@@ -51,29 +51,26 @@ namespace util {
  *
  * Based on http://stackoverflow.com/a/2212940/2150331
  */
-class IndentedStream : public std::ostream
-{
-public:
-  IndentedStream(std::ostream& os, const std::string& indent);
-
-  ~IndentedStream() override;
-
-private:
-  // Write a stream buffer that prefixes each line
-  class StreamBuf : public std::stringbuf
-  {
+class IndentedStream : public std::ostream {
   public:
-    StreamBuf(std::ostream& os, const std::string& indent);
+    IndentedStream(std::ostream& os, const std::string& indent);
 
-    int
-    sync() override;
+    ~IndentedStream() override;
 
   private:
-    std::ostream& m_output;
-    std::string m_indent;
-  };
+    // Write a stream buffer that prefixes each line
+    class StreamBuf : public std::stringbuf {
+      public:
+        StreamBuf(std::ostream& os, const std::string& indent);
 
-  StreamBuf m_buffer;
+        int sync() override;
+
+      private:
+        std::ostream& m_output;
+        std::string m_indent;
+    };
+
+    StreamBuf m_buffer;
 };
 
 } // namespace util

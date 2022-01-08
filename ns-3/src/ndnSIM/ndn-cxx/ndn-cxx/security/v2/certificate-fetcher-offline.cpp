@@ -30,8 +30,8 @@ CertificateFetcherOffline::doFetch(const shared_ptr<CertificateRequest>& certReq
                                    const shared_ptr<ValidationState>& state,
                                    const ValidationContinuation& continueValidation)
 {
-  state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT,
-               "Cannot fetch certificate " + certRequest->interest.getName().toUri() + " in offline mode"});
+    state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT,
+                 "Cannot fetch certificate " + certRequest->interest.getName().toUri() + " in offline mode"});
 }
 
 } // namespace v2

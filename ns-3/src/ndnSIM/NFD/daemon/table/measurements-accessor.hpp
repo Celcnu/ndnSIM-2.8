@@ -42,130 +42,113 @@ namespace measurements {
  *  All public methods have the same semantics as the same method on \p Measurements,
  *  but would return nullptr if the entry falls out of the strategy's authority.
  */
-class MeasurementsAccessor : noncopyable
-{
-public:
-  MeasurementsAccessor(Measurements& measurements, const StrategyChoice& strategyChoice,
-                       const fw::Strategy& strategy);
+class MeasurementsAccessor : noncopyable {
+  public:
+    MeasurementsAccessor(Measurements& measurements, const StrategyChoice& strategyChoice,
+                         const fw::Strategy& strategy);
 
-  ~MeasurementsAccessor();
+    ~MeasurementsAccessor();
 
-  /** \brief find or insert a Measurements entry for \p name
-   */
-  Entry*
-  get(const Name& name);
+    /** \brief find or insert a Measurements entry for \p name
+     */
+    Entry* get(const Name& name);
 
-  /** \brief find or insert a Measurements entry for \p fibEntry->getPrefix()
-   */
-  Entry*
-  get(const fib::Entry& fibEntry);
+    /** \brief find or insert a Measurements entry for \p fibEntry->getPrefix()
+     */
+    Entry* get(const fib::Entry& fibEntry);
 
-  /** \brief find or insert a Measurements entry for \p pitEntry->getName()
-   */
-  Entry*
-  get(const pit::Entry& pitEntry);
+    /** \brief find or insert a Measurements entry for \p pitEntry->getName()
+     */
+    Entry* get(const pit::Entry& pitEntry);
 
-  /** \brief find or insert a Measurements entry for child's parent
-   */
-  Entry*
-  getParent(const Entry& child);
+    /** \brief find or insert a Measurements entry for child's parent
+     */
+    Entry* getParent(const Entry& child);
 
-  /** \brief perform a longest prefix match for \p name
-   */
-  Entry*
-  findLongestPrefixMatch(const Name& name,
-                         const EntryPredicate& pred =
-                             AnyEntry()) const;
+    /** \brief perform a longest prefix match for \p name
+     */
+    Entry* findLongestPrefixMatch(const Name& name, const EntryPredicate& pred = AnyEntry()) const;
 
-  /** \brief perform a longest prefix match for \p pitEntry.getName()
-   */
-  Entry*
-  findLongestPrefixMatch(const pit::Entry& pitEntry,
-                         const EntryPredicate& pred =
-                             AnyEntry()) const;
+    /** \brief perform a longest prefix match for \p pitEntry.getName()
+     */
+    Entry* findLongestPrefixMatch(const pit::Entry& pitEntry, const EntryPredicate& pred = AnyEntry()) const;
 
-  /** \brief perform an exact match
-   */
-  Entry*
-  findExactMatch(const Name& name) const;
+    /** \brief perform an exact match
+     */
+    Entry* findExactMatch(const Name& name) const;
 
-  /** \brief extend lifetime of an entry
-   *
-   *  The entry will be kept until at least now()+lifetime.
-   */
-  void
-  extendLifetime(Entry& entry, const time::nanoseconds& lifetime);
+    /** \brief extend lifetime of an entry
+     *
+     *  The entry will be kept until at least now()+lifetime.
+     */
+    void extendLifetime(Entry& entry, const time::nanoseconds& lifetime);
 
-private:
-  /** \brief perform access control to Measurements entry
-   *  \return entry if strategy has access to namespace, otherwise nullptr
-   */
-  Entry*
-  filter(Entry* entry) const;
+  private:
+    /** \brief perform access control to Measurements entry
+     *  \return entry if strategy has access to namespace, otherwise nullptr
+     */
+    Entry* filter(Entry* entry) const;
 
-  Entry*
-  filter(Entry& entry) const;
+    Entry* filter(Entry& entry) const;
 
-private:
-  Measurements& m_measurements;
-  const StrategyChoice& m_strategyChoice;
-  const fw::Strategy* m_strategy;
+  private:
+    Measurements& m_measurements;
+    const StrategyChoice& m_strategyChoice;
+    const fw::Strategy* m_strategy;
 };
 
 inline Entry*
 MeasurementsAccessor::filter(Entry& entry) const
 {
-  return this->filter(&entry);
+    return this->filter(&entry);
 }
 
 inline Entry*
 MeasurementsAccessor::get(const Name& name)
 {
-  return this->filter(m_measurements.get(name));
+    return this->filter(m_measurements.get(name));
 }
 
 inline Entry*
 MeasurementsAccessor::get(const fib::Entry& fibEntry)
 {
-  return this->filter(m_measurements.get(fibEntry));
+    return this->filter(m_measurements.get(fibEntry));
 }
 
 inline Entry*
 MeasurementsAccessor::get(const pit::Entry& pitEntry)
 {
-  return this->filter(m_measurements.get(pitEntry));
+    return this->filter(m_measurements.get(pitEntry));
 }
 
 inline Entry*
 MeasurementsAccessor::getParent(const Entry& child)
 {
-  return this->filter(m_measurements.getParent(child));
+    return this->filter(m_measurements.getParent(child));
 }
 
 inline Entry*
-MeasurementsAccessor::findLongestPrefixMatch(const Name& name,
-                                             const EntryPredicate& pred) const
+MeasurementsAccessor::findLongestPrefixMatch(const Name& name, const EntryPredicate& pred) const
 {
-  return this->filter(m_measurements.findLongestPrefixMatch(name, pred));
+    return this->filter(m_measurements.findLongestPrefixMatch(name, pred));
 }
 
 inline Entry*
-MeasurementsAccessor::findLongestPrefixMatch(const pit::Entry& pitEntry,
-                                             const EntryPredicate& pred) const
+MeasurementsAccessor::findLongestPrefixMatch(const pit::Entry& pitEntry, const EntryPredicate& pred) const
 {
-  return this->filter(m_measurements.findLongestPrefixMatch(pitEntry, pred));
+    return this->filter(m_measurements.findLongestPrefixMatch(pitEntry, pred));
 }
 
 inline Entry*
 MeasurementsAccessor::findExactMatch(const Name& name) const
 {
-  return this->filter(m_measurements.findExactMatch(name));
+    return this->filter(m_measurements.findExactMatch(name));
 }
 
 inline void
 MeasurementsAccessor::extendLifetime(Entry& entry, const time::nanoseconds& lifetime)
 {
-  m_measurements.extendLifetime(entry, lifetime);
+    m_measurements.extendLifetime(entry, lifetime);
 }
 
 } // namespace measurements

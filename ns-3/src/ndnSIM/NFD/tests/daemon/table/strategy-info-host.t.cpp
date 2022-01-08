@@ -35,47 +35,44 @@ using fw::StrategyInfo;
 
 static int g_DummyStrategyInfo_count = 0;
 
-class DummyStrategyInfo : public StrategyInfo, noncopyable
-{
-public:
-  static constexpr int
-  getTypeId()
-  {
-    return 1;
-  }
+class DummyStrategyInfo : public StrategyInfo, noncopyable {
+  public:
+    static constexpr int
+    getTypeId()
+    {
+        return 1;
+    }
 
-  DummyStrategyInfo(int id)
-    : m_id(id)
-  {
-    ++g_DummyStrategyInfo_count;
-  }
+    DummyStrategyInfo(int id)
+      : m_id(id)
+    {
+        ++g_DummyStrategyInfo_count;
+    }
 
-  virtual
-  ~DummyStrategyInfo()
-  {
-    --g_DummyStrategyInfo_count;
-  }
+    virtual ~DummyStrategyInfo()
+    {
+        --g_DummyStrategyInfo_count;
+    }
 
-public:
-  int m_id;
+  public:
+    int m_id;
 };
 
-class DummyStrategyInfo2 : public StrategyInfo, noncopyable
-{
-public:
-  static constexpr int
-  getTypeId()
-  {
-    return 2;
-  }
+class DummyStrategyInfo2 : public StrategyInfo, noncopyable {
+  public:
+    static constexpr int
+    getTypeId()
+    {
+        return 2;
+    }
 
-  DummyStrategyInfo2(int id)
-    : m_id(id)
-  {
-  }
+    DummyStrategyInfo2(int id)
+      : m_id(id)
+    {
+    }
 
-public:
-  int m_id;
+  public:
+    int m_id;
 };
 
 BOOST_AUTO_TEST_SUITE(Table)
@@ -83,53 +80,53 @@ BOOST_FIXTURE_TEST_SUITE(TestStrategyInfoHost, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  StrategyInfoHost host;
-  g_DummyStrategyInfo_count = 0;
-  bool isNew = false;
+    StrategyInfoHost host;
+    g_DummyStrategyInfo_count = 0;
+    bool isNew = false;
 
-  DummyStrategyInfo* info = nullptr;
-  std::tie(info, isNew) = host.insertStrategyInfo<DummyStrategyInfo>(3503);
-  BOOST_CHECK_EQUAL(isNew, true);
-  BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 1);
-  BOOST_REQUIRE(info != nullptr);
-  BOOST_CHECK_EQUAL(info->m_id, 3503);
-  BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>(), info);
+    DummyStrategyInfo* info = nullptr;
+    std::tie(info, isNew) = host.insertStrategyInfo<DummyStrategyInfo>(3503);
+    BOOST_CHECK_EQUAL(isNew, true);
+    BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 1);
+    BOOST_REQUIRE(info != nullptr);
+    BOOST_CHECK_EQUAL(info->m_id, 3503);
+    BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>(), info);
 
-  DummyStrategyInfo* info2 = nullptr;
-  std::tie(info2, isNew) = host.insertStrategyInfo<DummyStrategyInfo>(1032);
-  BOOST_CHECK_EQUAL(isNew, false);
-  BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 1);
-  BOOST_CHECK_EQUAL(info2, info);
-  BOOST_CHECK_EQUAL(info->m_id, 3503);
-  BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>(), info);
+    DummyStrategyInfo* info2 = nullptr;
+    std::tie(info2, isNew) = host.insertStrategyInfo<DummyStrategyInfo>(1032);
+    BOOST_CHECK_EQUAL(isNew, false);
+    BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 1);
+    BOOST_CHECK_EQUAL(info2, info);
+    BOOST_CHECK_EQUAL(info->m_id, 3503);
+    BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>(), info);
 
-  host.clearStrategyInfo();
-  BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo>() == nullptr);
-  BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 0);
+    host.clearStrategyInfo();
+    BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo>() == nullptr);
+    BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 0);
 }
 
 BOOST_AUTO_TEST_CASE(Types)
 {
-  StrategyInfoHost host;
-  g_DummyStrategyInfo_count = 0;
+    StrategyInfoHost host;
+    g_DummyStrategyInfo_count = 0;
 
-  host.insertStrategyInfo<DummyStrategyInfo>(8063);
-  BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo>() != nullptr);
-  BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>()->m_id, 8063);
+    host.insertStrategyInfo<DummyStrategyInfo>(8063);
+    BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo>() != nullptr);
+    BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>()->m_id, 8063);
 
-  host.insertStrategyInfo<DummyStrategyInfo2>(2871);
-  BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo2>() != nullptr);
-  BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo2>()->m_id, 2871);
+    host.insertStrategyInfo<DummyStrategyInfo2>(2871);
+    BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo2>() != nullptr);
+    BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo2>()->m_id, 2871);
 
-  BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo>() != nullptr);
-  BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>()->m_id, 8063);
+    BOOST_REQUIRE(host.getStrategyInfo<DummyStrategyInfo>() != nullptr);
+    BOOST_CHECK_EQUAL(host.getStrategyInfo<DummyStrategyInfo>()->m_id, 8063);
 
-  BOOST_CHECK_EQUAL(host.eraseStrategyInfo<DummyStrategyInfo>(), 1);
-  BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo>() == nullptr);
-  BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 0);
-  BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo2>() != nullptr);
+    BOOST_CHECK_EQUAL(host.eraseStrategyInfo<DummyStrategyInfo>(), 1);
+    BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo>() == nullptr);
+    BOOST_CHECK_EQUAL(g_DummyStrategyInfo_count, 0);
+    BOOST_CHECK(host.getStrategyInfo<DummyStrategyInfo2>() != nullptr);
 
-  BOOST_CHECK_EQUAL(host.eraseStrategyInfo<DummyStrategyInfo>(), 0);
+    BOOST_CHECK_EQUAL(host.eraseStrategyInfo<DummyStrategyInfo>(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStrategyInfoHost

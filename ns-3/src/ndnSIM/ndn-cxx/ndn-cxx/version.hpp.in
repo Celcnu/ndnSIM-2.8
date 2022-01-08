@@ -32,7 +32,7 @@ namespace ndn {
  *
  *  MAJOR*1000000 + MINOR*1000 + PATCH
  */
-#define NDN_CXX_VERSION @VERSION@
+#define NDN_CXX_VERSION @VERSION @
 
 /** \brief ndn-cxx version represented as a string
  *
@@ -57,11 +57,11 @@ namespace ndn {
 #define NDN_CXX_VERSION_BUILD_STRING "@VERSION_BUILD@"
 
 /// MAJOR version
-#define NDN_CXX_VERSION_MAJOR @VERSION_MAJOR@
+#define NDN_CXX_VERSION_MAJOR @VERSION_MAJOR @
 /// MINOR version
-#define NDN_CXX_VERSION_MINOR @VERSION_MINOR@
+#define NDN_CXX_VERSION_MINOR @VERSION_MINOR @
 /// PATCH version
-#define NDN_CXX_VERSION_PATCH @VERSION_PATCH@
+#define NDN_CXX_VERSION_PATCH @VERSION_PATCH @
 
 } // namespace ndn
 

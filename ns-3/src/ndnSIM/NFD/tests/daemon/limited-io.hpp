@@ -37,74 +37,68 @@ namespace tests {
  *
  *  \warning LimitedIo is incompatible with RibIoFixture
  */
-class LimitedIo : noncopyable
-{
-public:
-  explicit
-  LimitedIo(GlobalIoTimeFixture* fixture = nullptr);
+class LimitedIo : noncopyable {
+  public:
+    explicit LimitedIo(GlobalIoTimeFixture* fixture = nullptr);
 
-  /// indicates why run() returns
-  enum StopReason {
-    /// g_io.run() returns normally because there's no work to do
-    NO_WORK,
-    /// .afterOp() has been invoked nOpsLimit times
-    EXCEED_OPS,
-    /// nTimeLimit has elapsed
-    EXCEED_TIME,
-    /// an exception is thrown
-    EXCEPTION
-  };
+    /// indicates why run() returns
+    enum StopReason {
+        /// g_io.run() returns normally because there's no work to do
+        NO_WORK,
+        /// .afterOp() has been invoked nOpsLimit times
+        EXCEED_OPS,
+        /// nTimeLimit has elapsed
+        EXCEED_TIME,
+        /// an exception is thrown
+        EXCEPTION
+    };
 
-  /** \brief g_io.run() with operation count and/or time limit
-   *  \param nOpsLimit operation count limit, pass UNLIMITED_OPS for no limit
-   *  \param timeLimit time limit, pass UNLIMITED_TIME for no limit
-   *  \param tick if this LimitedIo is constructed with GlobalIoTimeFixture,
-   *              this is passed to .advanceClocks(), otherwise ignored
-   */
-  StopReason
-  run(int nOpsLimit, time::nanoseconds timeLimit, time::nanoseconds tick = 1_ms);
+    /** \brief g_io.run() with operation count and/or time limit
+     *  \param nOpsLimit operation count limit, pass UNLIMITED_OPS for no limit
+     *  \param timeLimit time limit, pass UNLIMITED_TIME for no limit
+     *  \param tick if this LimitedIo is constructed with GlobalIoTimeFixture,
+     *              this is passed to .advanceClocks(), otherwise ignored
+     */
+    StopReason run(int nOpsLimit, time::nanoseconds timeLimit, time::nanoseconds tick = 1_ms);
 
-  /// count an operation
-  void
-  afterOp();
+    /// count an operation
+    void afterOp();
 
-  /** \brief defer for specified duration
-   *
-   *  equivalent to .run(UNLIMITED_OPS, d)
-   */
-  void
-  defer(time::nanoseconds d)
-  {
-    this->run(UNLIMITED_OPS, d);
-  }
+    /** \brief defer for specified duration
+     *
+     *  equivalent to .run(UNLIMITED_OPS, d)
+     */
+    void
+    defer(time::nanoseconds d)
+    {
+        this->run(UNLIMITED_OPS, d);
+    }
 
-  std::exception_ptr
-  getLastException() const
-  {
-    return m_lastException;
-  }
+    std::exception_ptr
+    getLastException() const
+    {
+        return m_lastException;
+    }
 
-private:
-  /** \brief an exception to stop IO operation
-   */
-  class StopException : public std::exception
-  {
-  };
+  private:
+    /** \brief an exception to stop IO operation
+     */
+    class StopException : public std::exception {
+    };
 
-  void
-  afterTimeout();
+    void afterTimeout();
 
-public:
-  static const int UNLIMITED_OPS;
-  static const time::nanoseconds UNLIMITED_TIME;
+  public:
+    static const int UNLIMITED_OPS;
+    static const time::nanoseconds UNLIMITED_TIME;
 
-private:
-  GlobalIoTimeFixture* m_fixture;
-  StopReason m_reason;
-  int m_nOpsRemaining = 0;
-  scheduler::EventId m_timeout;
-  std::exception_ptr m_lastException;
-  bool m_isRunning = false;
+  private:
+    GlobalIoTimeFixture* m_fixture;
+    StopReason m_reason;
+    int m_nOpsRemaining = 0;
+    scheduler::EventId m_timeout;
+    std::exception_ptr m_lastException;
+    bool m_isRunning = false;
 };
 
 } // namespace tests

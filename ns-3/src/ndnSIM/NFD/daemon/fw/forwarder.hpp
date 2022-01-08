@@ -191,12 +191,11 @@ class Forwarder {
     signal::Signal<Forwarder, Interest> afterCsMiss;
 
     // 管道(pipelines)
-    PUBLIC_WITH_TESTS_ELSE_PRIVATE
-      : // pipelines
-        /** \brief incoming Interest pipeline
-         */
-        VIRTUAL_WITH_TESTS void
-        onIncomingInterest(const FaceEndpoint& ingress, const Interest& interest);
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : // pipelines
+                                     /** \brief incoming Interest pipeline
+                                      */
+                                     VIRTUAL_WITH_TESTS void
+                                     onIncomingInterest(const FaceEndpoint& ingress, const Interest& interest);
 
     /** \brief Interest loop pipeline
      */
@@ -205,20 +204,17 @@ class Forwarder {
     /** \brief Content Store miss pipeline
      */
     VIRTUAL_WITH_TESTS void
-    onContentStoreMiss(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
-                       const Interest& interest);
+    onContentStoreMiss(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry, const Interest& interest);
 
     /** \brief Content Store hit pipeline
      */
-    VIRTUAL_WITH_TESTS void
-    onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
-                      const Interest& interest, const Data& data);
+    VIRTUAL_WITH_TESTS void onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
+                                              const Interest& interest, const Data& data);
 
     /** \brief outgoing Interest pipeline
      */
     VIRTUAL_WITH_TESTS void
-    onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress,
-                       const Interest& interest);
+    onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress, const Interest& interest);
 
     /** \brief Interest finalize pipeline
      */
@@ -242,8 +238,8 @@ class Forwarder {
 
     /** \brief outgoing Nack pipeline
      */
-    VIRTUAL_WITH_TESTS void onOutgoingNack(const shared_ptr<pit::Entry>& pitEntry,
-                                           const FaceEndpoint& egress, const lp::NackHeader& nack);
+    VIRTUAL_WITH_TESTS void
+    onOutgoingNack(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress, const lp::NackHeader& nack);
 
     VIRTUAL_WITH_TESTS void onDroppedInterest(const FaceEndpoint& egress, const Interest& interest);
 

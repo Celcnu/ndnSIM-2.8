@@ -36,19 +36,16 @@ SafeBag::SafeBag() = default;
 
 SafeBag::SafeBag(const Block& wire)
 {
-  this->wireDecode(wire);
+    this->wireDecode(wire);
 }
 
-SafeBag::SafeBag(const Data& certificate,
-                 const Buffer& encryptedKeyBag)
+SafeBag::SafeBag(const Data& certificate, const Buffer& encryptedKeyBag)
   : m_certificate(certificate)
   , m_encryptedKeyBag(encryptedKeyBag)
 {
 }
 
-SafeBag::SafeBag(const Data& certificate,
-                 const uint8_t* encryptedKey,
-                 size_t encryptedKeyLen)
+SafeBag::SafeBag(const Data& certificate, const uint8_t* encryptedKey, size_t encryptedKeyLen)
   : m_certificate(certificate)
   , m_encryptedKeyBag(encryptedKey, encryptedKeyLen)
 {
@@ -56,24 +53,23 @@ SafeBag::SafeBag(const Data& certificate,
 
 ///////////////////////////////////////////////////// encode & decode
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 SafeBag::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  // EncryptedKeyBag
-  totalLength += encoder.prependByteArrayBlock(tlv::security::EncryptedKeyBag,
-                                               m_encryptedKeyBag.data(),
-                                               m_encryptedKeyBag.size());
+    // EncryptedKeyBag
+    totalLength +=
+      encoder.prependByteArrayBlock(tlv::security::EncryptedKeyBag, m_encryptedKeyBag.data(), m_encryptedKeyBag.size());
 
-  // Certificate
-  totalLength += this->m_certificate.wireEncode(encoder);
+    // Certificate
+    totalLength += this->m_certificate.wireEncode(encoder);
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::security::SafeBag);
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::security::SafeBag);
 
-  return totalLength;
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(SafeBag);
@@ -81,49 +77,49 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(SafeBag);
 const Block&
 SafeBag::wireEncode() const
 {
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
 
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
 
-  m_wire = buffer.block();
-  return m_wire;
+    m_wire = buffer.block();
+    return m_wire;
 }
 
 void
 SafeBag::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::security::SafeBag) {
-    NDN_THROW(tlv::Error("SafeBag", wire.type()));
-  }
+    if (wire.type() != tlv::security::SafeBag) {
+        NDN_THROW(tlv::Error("SafeBag", wire.type()));
+    }
 
-  m_wire = wire;
-  m_wire.parse();
-  auto it = m_wire.elements_begin();
+    m_wire = wire;
+    m_wire.parse();
+    auto it = m_wire.elements_begin();
 
-  // Certificate must be the first part
-  if (it != m_wire.elements_end()) {
-    m_certificate.wireDecode(*it);
-    it++;
-  }
-  else {
-    NDN_THROW(tlv::Error("Unexpected TLV structure when decoding Certificate"));
-  }
+    // Certificate must be the first part
+    if (it != m_wire.elements_end()) {
+        m_certificate.wireDecode(*it);
+        it++;
+    }
+    else {
+        NDN_THROW(tlv::Error("Unexpected TLV structure when decoding Certificate"));
+    }
 
-  // EncryptedKeyBag
-  if (it != m_wire.elements_end() && it->type() == tlv::security::EncryptedKeyBag) {
-    m_encryptedKeyBag = Buffer(it->value(), it->value_size());
-    it++;
-  }
-  else {
-    NDN_THROW(tlv::Error("Unexpected TLV structure when decoding EncryptedKeyBag"));
-  }
+    // EncryptedKeyBag
+    if (it != m_wire.elements_end() && it->type() == tlv::security::EncryptedKeyBag) {
+        m_encryptedKeyBag = Buffer(it->value(), it->value_size());
+        it++;
+    }
+    else {
+        NDN_THROW(tlv::Error("Unexpected TLV structure when decoding EncryptedKeyBag"));
+    }
 
-  // Check if end
-  if (it != m_wire.elements_end()) {
-    NDN_THROW(tlv::Error("Unexpected TLV element at the end of SafeBag"));
-  }
+    // Check if end
+    if (it != m_wire.elements_end()) {
+        NDN_THROW(tlv::Error("Unexpected TLV element at the end of SafeBag"));
+    }
 }
 
 } // namespace security

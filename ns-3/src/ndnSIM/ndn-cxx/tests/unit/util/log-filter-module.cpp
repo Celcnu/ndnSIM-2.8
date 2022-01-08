@@ -30,15 +30,14 @@ namespace tests {
 void
 logFromFilterModule()
 {
-  NDN_LOG_TRACE("traceFM");
-  NDN_LOG_DEBUG("debugFM");
-  NDN_LOG_INFO("infoFM");
-  NDN_LOG_WARN("warnFM");
-  NDN_LOG_ERROR("errorFM");
-  NDN_LOG_FATAL("fatalFM");
+    NDN_LOG_TRACE("traceFM");
+    NDN_LOG_DEBUG("debugFM");
+    NDN_LOG_INFO("infoFM");
+    NDN_LOG_WARN("warnFM");
+    NDN_LOG_ERROR("errorFM");
+    NDN_LOG_FATAL("fatalFM");
 }
 
 } // namespace tests
 } // namespace util
 } // namespace ndn
-

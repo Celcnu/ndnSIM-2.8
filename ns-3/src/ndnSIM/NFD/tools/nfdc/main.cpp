@@ -36,46 +36,46 @@ namespace nfdc {
 static int
 main(int argc, char** argv)
 {
-  std::vector<std::string> args(argv + 1, argv + argc);
+    std::vector<std::string> args(argv + 1, argv + argc);
 
-  CommandParser parser;
-  registerCommands(parser);
+    CommandParser parser;
+    registerCommands(parser);
 
-  if (args.empty()) {
-    helpList(std::cout, parser);
-    return 0;
-  }
+    if (args.empty()) {
+        helpList(std::cout, parser);
+        return 0;
+    }
 
-  if (args[0] == "-V" || args[0] == "--version") {
-    std::cout << NFD_VERSION_BUILD_STRING << std::endl;
-    return 0;
-  }
+    if (args[0] == "-V" || args[0] == "--version") {
+        std::cout << NFD_VERSION_BUILD_STRING << std::endl;
+        return 0;
+    }
 
-  std::string noun, verb;
-  CommandArguments ca;
-  ExecuteCommand execute;
-  try {
-    std::tie(noun, verb, ca, execute) = parser.parse(args, ParseMode::ONE_SHOT);
-  }
-  catch (const std::invalid_argument& e) {
-    int ret = help(std::cout, parser, std::move(args));
-    if (ret == 2)
-      std::cerr << e.what() << std::endl;
-    return ret;
-  }
+    std::string noun, verb;
+    CommandArguments ca;
+    ExecuteCommand execute;
+    try {
+        std::tie(noun, verb, ca, execute) = parser.parse(args, ParseMode::ONE_SHOT);
+    }
+    catch (const std::invalid_argument& e) {
+        int ret = help(std::cout, parser, std::move(args));
+        if (ret == 2)
+            std::cerr << e.what() << std::endl;
+        return ret;
+    }
 
-  try {
-    Face face;
-    KeyChain keyChain;
-    Controller controller(face, keyChain);
-    ExecuteContext ctx{noun, verb, ca, 0, std::cout, std::cerr, face, keyChain, controller};
-    execute(ctx);
-    return ctx.exitCode;
-  }
-  catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    return 1;
-  }
+    try {
+        Face face;
+        KeyChain keyChain;
+        Controller controller(face, keyChain);
+        ExecuteContext ctx{noun, verb, ca, 0, std::cout, std::cerr, face, keyChain, controller};
+        execute(ctx);
+        return ctx.exitCode;
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
 }
 
 } // namespace nfdc
@@ -85,5 +85,5 @@ main(int argc, char** argv)
 int
 main(int argc, char** argv)
 {
-  return nfd::tools::nfdc::main(argc, argv);
+    return nfd::tools::nfdc::main(argc, argv);
 }

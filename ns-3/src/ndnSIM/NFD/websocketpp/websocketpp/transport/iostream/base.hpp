@@ -44,8 +44,7 @@ namespace transport {
 namespace iostream {
 
 /// The type and signature of the callback used by iostream transport to write
-typedef lib::function<lib::error_code(connection_hdl, char const *, size_t)>
-    write_handler;
+typedef lib::function<lib::error_code(connection_hdl, char const*, size_t)> write_handler;
 
 /// The type and signature of the callback used by iostream transport to perform
 /// vectored writes.
@@ -53,8 +52,7 @@ typedef lib::function<lib::error_code(connection_hdl, char const *, size_t)>
  * If a vectored write handler is not set the standard write handler will be
  * called multiple times.
  */
-typedef lib::function<lib::error_code(connection_hdl, std::vector<transport::buffer> const
-    & bufs)> vector_write_handler;
+typedef lib::function<lib::error_code(connection_hdl, std::vector<transport::buffer> const& bufs)> vector_write_handler;
 
 /// The type and signature of the callback used by iostream transport to signal
 /// a transport shutdown.
@@ -83,15 +81,21 @@ enum value {
 
 /// iostream transport error category
 class category : public lib::error_category {
-    public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.transport.iostream";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case general:
                 return "Generic iostream transport policy error";
             case invalid_num_bytes:
@@ -109,13 +113,17 @@ class category : public lib::error_category {
 };
 
 /// Get a reference to a static copy of the iostream transport error category
-inline lib::error_category const & get_category() {
+inline lib::error_category const&
+get_category()
+{
     static category instance;
     return instance;
 }
 
 /// Get an error code with the given value and the iostream transport category
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -124,8 +132,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace transport
 } // namespace websocketpp
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum<websocketpp::transport::iostream::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::transport::iostream::error::value> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_

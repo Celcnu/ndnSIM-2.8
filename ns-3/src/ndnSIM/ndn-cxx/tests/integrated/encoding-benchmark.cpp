@@ -19,7 +19,7 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  */
 
-#define BOOST_TEST_MODULE ndn-cxx Encoding Benchmark
+#define BOOST_TEST_MODULE ndn - cxx Encoding Benchmark
 #include "tests/boost-test.hpp"
 
 #include "ndn-cxx/encoding/tlv.hpp"
@@ -36,66 +36,50 @@ namespace tests {
 
 using namespace ndn::tests;
 
-template<size_t WIRE_SIZE>
+template <size_t WIRE_SIZE>
 struct ReadVarNumberTest;
 
-template<>
-struct ReadVarNumberTest<1>
-{
-  static const uint8_t WIRE[];
-  static const uint64_t VALUE = 252;
+template <>
+struct ReadVarNumberTest<1> {
+    static const uint8_t WIRE[];
+    static const uint64_t VALUE = 252;
 };
 const uint8_t ReadVarNumberTest<1>::WIRE[] = {0xfc};
 
-template<>
-struct ReadVarNumberTest<3>
-{
-  static const uint8_t WIRE[];
-  static const uint64_t VALUE = 253;
+template <>
+struct ReadVarNumberTest<3> {
+    static const uint8_t WIRE[];
+    static const uint64_t VALUE = 253;
 };
 const uint8_t ReadVarNumberTest<3>::WIRE[] = {0xfd, 0x00, 0xfd};
 
-template<>
-struct ReadVarNumberTest<5>
-{
-  static const uint8_t WIRE[];
-  static const uint64_t VALUE = 65536;
+template <>
+struct ReadVarNumberTest<5> {
+    static const uint8_t WIRE[];
+    static const uint64_t VALUE = 65536;
 };
 const uint8_t ReadVarNumberTest<5>::WIRE[] = {0xfe, 0x00, 0x01, 0x00, 0x00};
 
-template<>
-struct ReadVarNumberTest<9>
-{
-  static const uint8_t WIRE[];
-  static const uint64_t VALUE = 4294967296;
+template <>
+struct ReadVarNumberTest<9> {
+    static const uint8_t WIRE[];
+    static const uint64_t VALUE = 4294967296;
 };
 const uint8_t ReadVarNumberTest<9>::WIRE[] = {0xff, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
 
-template<size_t WIRE_SIZE, size_t ALIGNMENT_OFFSET>
-struct ReadVarNumberAlignTest : public ReadVarNumberTest<WIRE_SIZE>
-{
-  using AlignmentOffset = std::integral_constant<size_t, ALIGNMENT_OFFSET>;
+template <size_t WIRE_SIZE, size_t ALIGNMENT_OFFSET>
+struct ReadVarNumberAlignTest : public ReadVarNumberTest<WIRE_SIZE> {
+    using AlignmentOffset = std::integral_constant<size_t, ALIGNMENT_OFFSET>;
 
-  static_assert(sizeof(ReadVarNumberTest<WIRE_SIZE>::WIRE) == WIRE_SIZE, "");
+    static_assert(sizeof(ReadVarNumberTest<WIRE_SIZE>::WIRE) == WIRE_SIZE, "");
 };
 
-using ReadVarNumberTests = boost::mpl::vector<
-  ReadVarNumberAlignTest<1, 0>,
-  ReadVarNumberAlignTest<3, 0>,
-  ReadVarNumberAlignTest<3, 1>,
-  ReadVarNumberAlignTest<5, 0>,
-  ReadVarNumberAlignTest<5, 1>,
-  ReadVarNumberAlignTest<5, 2>,
-  ReadVarNumberAlignTest<5, 3>,
-  ReadVarNumberAlignTest<9, 0>,
-  ReadVarNumberAlignTest<9, 1>,
-  ReadVarNumberAlignTest<9, 2>,
-  ReadVarNumberAlignTest<9, 3>,
-  ReadVarNumberAlignTest<9, 4>,
-  ReadVarNumberAlignTest<9, 5>,
-  ReadVarNumberAlignTest<9, 6>,
-  ReadVarNumberAlignTest<9, 7>
->;
+using ReadVarNumberTests =
+  boost::mpl::vector<ReadVarNumberAlignTest<1, 0>, ReadVarNumberAlignTest<3, 0>, ReadVarNumberAlignTest<3, 1>,
+                     ReadVarNumberAlignTest<5, 0>, ReadVarNumberAlignTest<5, 1>, ReadVarNumberAlignTest<5, 2>,
+                     ReadVarNumberAlignTest<5, 3>, ReadVarNumberAlignTest<9, 0>, ReadVarNumberAlignTest<9, 1>,
+                     ReadVarNumberAlignTest<9, 2>, ReadVarNumberAlignTest<9, 3>, ReadVarNumberAlignTest<9, 4>,
+                     ReadVarNumberAlignTest<9, 5>, ReadVarNumberAlignTest<9, 6>, ReadVarNumberAlignTest<9, 7>>;
 
 // Benchmark of ndn::tlv::readVarNumber with different number lengths and alignments.
 // Run this benchmark with:
@@ -104,30 +88,28 @@ using ReadVarNumberTests = boost::mpl::vector<
 // It is recommended to run the benchmark multiple times and take the average.
 BOOST_AUTO_TEST_CASE_TEMPLATE(ReadVarNumber, Test, ReadVarNumberTests)
 {
-  const int N_ITERATIONS = 100000000;
+    const int N_ITERATIONS = 100000000;
 
-  alignas(8) uint8_t buffer[16];
-  static_assert(Test::AlignmentOffset::value + sizeof(Test::WIRE) <= sizeof(buffer), "");
-  uint8_t* const begin = buffer + Test::AlignmentOffset::value;
-  std::memcpy(begin, Test::WIRE, sizeof(Test::WIRE));
-  const uint8_t* const end = begin + sizeof(Test::WIRE);
+    alignas(8) uint8_t buffer[16];
+    static_assert(Test::AlignmentOffset::value + sizeof(Test::WIRE) <= sizeof(buffer), "");
+    uint8_t* const begin = buffer + Test::AlignmentOffset::value;
+    std::memcpy(begin, Test::WIRE, sizeof(Test::WIRE));
+    const uint8_t* const end = begin + sizeof(Test::WIRE);
 
-  int nOks = 0;
-  int nCorrects = 0;
-  auto d = timedExecute([&] {
-    uint64_t number = 0;
-    for (int i = 0; i < N_ITERATIONS; ++i) {
-      const uint8_t* begin2 = begin; // make a copy because readVarNumber increments the pointer
-      nOks += readVarNumber(begin2, end, number);
-      nCorrects += number == Test::VALUE;
-      // use the number and the return value, so compiler won't optimize out their computation
-    }
-  });
-  BOOST_CHECK_EQUAL(nOks, N_ITERATIONS);
-  BOOST_CHECK_EQUAL(nCorrects, N_ITERATIONS);
-  std::cout << "size=" << sizeof(Test::WIRE)
-            << " offset=" << Test::AlignmentOffset::value
-            << " " << d << std::endl;
+    int nOks = 0;
+    int nCorrects = 0;
+    auto d = timedExecute([&] {
+        uint64_t number = 0;
+        for (int i = 0; i < N_ITERATIONS; ++i) {
+            const uint8_t* begin2 = begin; // make a copy because readVarNumber increments the pointer
+            nOks += readVarNumber(begin2, end, number);
+            nCorrects += number == Test::VALUE;
+            // use the number and the return value, so compiler won't optimize out their computation
+        }
+    });
+    BOOST_CHECK_EQUAL(nOks, N_ITERATIONS);
+    BOOST_CHECK_EQUAL(nCorrects, N_ITERATIONS);
+    std::cout << "size=" << sizeof(Test::WIRE) << " offset=" << Test::AlignmentOffset::value << " " << d << std::endl;
 }
 
 } // namespace tests

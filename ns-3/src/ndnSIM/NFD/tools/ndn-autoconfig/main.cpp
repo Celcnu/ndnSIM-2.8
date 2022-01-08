@@ -56,137 +56,154 @@ const time::nanoseconds DAEMON_UNCONDITIONAL_INTERVAL = 1_h;
 const time::nanoseconds NETMON_DAMPEN_PERIOD = 5_s;
 
 static void
-usage(std::ostream& os,
-      const po::options_description& opts,
-      const char* programName)
+usage(std::ostream& os, const po::options_description& opts, const char* programName)
 {
-  os << "Usage: " << programName << " [options]\n"
-     << "\n"
-     << opts;
+    os << "Usage: " << programName << " [options]\n"
+       << "\n"
+       << opts;
 }
 
 static void
 runDaemon(Procedure& proc)
 {
-  boost::asio::signal_set terminateSignals(proc.getIoService());
-  terminateSignals.add(SIGINT);
-  terminateSignals.add(SIGTERM);
-  terminateSignals.async_wait([&] (const boost::system::error_code& error, int signalNo) {
-    if (error) {
-      return;
-    }
-    const char* signalName = ::strsignal(signalNo);
-    std::cerr << "Exiting on signal ";
-    if (signalName == nullptr) {
-      std::cerr << signalNo;
-    }
-    else {
-      std::cerr << signalName;
-    }
-    std::cerr << std::endl;
-    proc.getIoService().stop();
-  });
+    boost::asio::signal_set terminateSignals(proc.getIoService());
+    terminateSignals.add(SIGINT);
+    terminateSignals.add(SIGTERM);
+    terminateSignals.async_wait([&](const boost::system::error_code& error, int signalNo) {
+        if (error) {
+            return;
+        }
+        const char* signalName = ::strsignal(signalNo);
+        std::cerr << "Exiting on signal ";
+        if (signalName == nullptr) {
+            std::cerr << signalNo;
+        }
+        else {
+            std::cerr << signalName;
+        }
+        std::cerr << std::endl;
+        proc.getIoService().stop();
+    });
 
-  Scheduler sched(proc.getIoService());
-  scheduler::ScopedEventId runEvt;
-  auto scheduleRerun = [&] (time::nanoseconds delay) {
-    runEvt = sched.schedule(delay, [&] { proc.runOnce(); });
-  };
+    Scheduler sched(proc.getIoService());
+    scheduler::ScopedEventId runEvt;
+    auto scheduleRerun = [&](time::nanoseconds delay) { runEvt = sched.schedule(delay, [&] { proc.runOnce(); }); };
 
-  proc.onComplete.connect([&] (bool isSuccess) {
-    scheduleRerun(DAEMON_UNCONDITIONAL_INTERVAL);
-  });
+    proc.onComplete.connect([&](bool isSuccess) { scheduleRerun(DAEMON_UNCONDITIONAL_INTERVAL); });
 
-  net::NetworkMonitor netmon(proc.getIoService());
-  netmon.onNetworkStateChanged.connect([&] { scheduleRerun(NETMON_DAMPEN_PERIOD); });
+    net::NetworkMonitor netmon(proc.getIoService());
+    netmon.onNetworkStateChanged.connect([&] { scheduleRerun(NETMON_DAMPEN_PERIOD); });
 
-  scheduleRerun(DAEMON_INITIAL_DELAY);
-  proc.getIoService().run();
+    scheduleRerun(DAEMON_INITIAL_DELAY);
+    proc.getIoService().run();
 }
 
 static int
 main(int argc, char** argv)
 {
-  Options options;
-  bool isDaemon = false;
-  std::string configFile;
+    Options options;
+    bool isDaemon = false;
+    std::string configFile;
 
-  po::options_description optionsDescription("Options");
-  optionsDescription.add_options()
-    ("help,h", "print this message and exit")
-    ("version,V", "show version information and exit")
-    ("daemon,d", po::bool_switch(&isDaemon)->default_value(isDaemon),
-     "Run in daemon mode, detecting network change events and re-running the auto-discovery procedure. "
-     "In addition, the auto-discovery procedure is unconditionally re-run every hour.\n"
-     "NOTE: if the connection to NFD fails, the daemon will exit.")
-    ("ndn-fch-url", po::value<std::string>(&options.ndnFchUrl)->default_value(options.ndnFchUrl),
-     "URL for NDN-FCH (Find Closest Hub) service")
-    ("config,c", po::value<std::string>(&configFile),
-     "Configuration file. Exit immediately unless 'enabled = true' is specified in the config file.")
-    ;
+    po::options_description optionsDescription("Options");
+    optionsDescription
+      .add_options()(
+        "help,h",
+        "print this message and exit")("version,V",
+                                       "show version information and exit")("daemon,d",
+                                                                            po::bool_switch(&isDaemon)->default_value(
+                                                                              isDaemon),
+                                                                            "Run in daemon mode, detecting network "
+                                                                            "change events and re-running the "
+                                                                            "auto-discovery procedure. "
+                                                                            "In addition, the auto-discovery procedure "
+                                                                            "is unconditionally re-run every hour.\n"
+                                                                            "NOTE: if the connection to NFD fails, the "
+                                                                            "daemon will exit.")("ndn-fch-url",
+                                                                                                 po::value<std::string>(
+                                                                                                   &options.ndnFchUrl)
+                                                                                                   ->default_value(
+                                                                                                     options.ndnFchUrl),
+                                                                                                 "URL for NDN-FCH "
+                                                                                                 "(Find Closest Hub) "
+                                                                                                 "service")("config,c",
+                                                                                                            po::value<
+                                                                                                              std::
+                                                                                                                string>(
+                                                                                                              &configFile),
+                                                                                                            "Configurat"
+                                                                                                            "ion file. "
+                                                                                                            "Exit "
+                                                                                                            "immediatel"
+                                                                                                            "y unless "
+                                                                                                            "'enabled "
+                                                                                                            "= true' "
+                                                                                                            "is "
+                                                                                                            "specified "
+                                                                                                            "in the "
+                                                                                                            "config "
+                                                                                                            "file.");
 
-  po::variables_map vm;
-  try {
-    po::store(po::parse_command_line(argc, argv, optionsDescription), vm);
-    po::notify(vm);
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n\n";
-    usage(std::cerr, optionsDescription, argv[0]);
-    return 2;
-  }
-
-  if (vm.count("help")) {
-    usage(std::cout, optionsDescription, argv[0]);
-    return 0;
-  }
-
-  if (vm.count("version")) {
-    std::cout << NFD_VERSION_BUILD_STRING << std::endl;
-    return 0;
-  }
-
-  if (vm.count("config")) {
-    po::options_description configFileOptions;
-    configFileOptions.add_options()
-      ("enabled", po::value<bool>()->default_value(false))
-      ;
+    po::variables_map vm;
     try {
-      po::store(po::parse_config_file<char>(configFile.data(), configFileOptions), vm);
-      po::notify(vm);
+        po::store(po::parse_command_line(argc, argv, optionsDescription), vm);
+        po::notify(vm);
     }
     catch (const std::exception& e) {
-      std::cerr << "ERROR in config: " << e.what() << "\n\n";
-      return 2;
+        std::cerr << "ERROR: " << e.what() << "\n\n";
+        usage(std::cerr, optionsDescription, argv[0]);
+        return 2;
     }
-    if (!vm["enabled"].as<bool>()) {
-      // not enabled in config
-      return 0;
-    }
-  }
 
-  int exitCode = 0;
-  try {
-    Face face;
-    KeyChain keyChain;
-    Procedure proc(face, keyChain);
-    proc.initialize(options);
-
-    if (isDaemon) {
-      runDaemon(proc);
+    if (vm.count("help")) {
+        usage(std::cout, optionsDescription, argv[0]);
+        return 0;
     }
-    else {
-      proc.onComplete.connect([&exitCode] (bool isSuccess) { exitCode = isSuccess ? 0 : 1; });
-      proc.runOnce();
-      face.processEvents();
-    }
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << boost::diagnostic_information(e);
-    return 1;
-  }
 
-  return exitCode;
+    if (vm.count("version")) {
+        std::cout << NFD_VERSION_BUILD_STRING << std::endl;
+        return 0;
+    }
+
+    if (vm.count("config")) {
+        po::options_description configFileOptions;
+        configFileOptions.add_options()("enabled", po::value<bool>()->default_value(false));
+        try {
+            po::store(po::parse_config_file<char>(configFile.data(), configFileOptions), vm);
+            po::notify(vm);
+        }
+        catch (const std::exception& e) {
+            std::cerr << "ERROR in config: " << e.what() << "\n\n";
+            return 2;
+        }
+        if (!vm["enabled"].as<bool>()) {
+            // not enabled in config
+            return 0;
+        }
+    }
+
+    int exitCode = 0;
+    try {
+        Face face;
+        KeyChain keyChain;
+        Procedure proc(face, keyChain);
+        proc.initialize(options);
+
+        if (isDaemon) {
+            runDaemon(proc);
+        }
+        else {
+            proc.onComplete.connect([&exitCode](bool isSuccess) { exitCode = isSuccess ? 0 : 1; });
+            proc.runOnce();
+            face.processEvents();
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << boost::diagnostic_information(e);
+        return 1;
+    }
+
+    return exitCode;
 }
 
 } // namespace autoconfig
@@ -196,5 +213,5 @@ main(int argc, char** argv)
 int
 main(int argc, char** argv)
 {
-  return ndn::tools::autoconfig::main(argc, argv);
+    return ndn::tools::autoconfig::main(argc, argv);
 }

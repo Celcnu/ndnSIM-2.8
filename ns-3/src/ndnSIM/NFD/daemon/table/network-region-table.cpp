@@ -30,14 +30,14 @@ namespace nfd {
 bool
 NetworkRegionTable::isInProducerRegion(const DelegationList& forwardingHint) const
 {
-  for (const Name& regionName : *this) {
-    for (const Delegation& delegation : forwardingHint) {
-      if (delegation.name.isPrefixOf(regionName)) {
-        return true;
-      }
+    for (const Name& regionName : *this) {
+        for (const Delegation& delegation : forwardingHint) {
+            if (delegation.name.isPrefixOf(regionName)) {
+                return true;
+            }
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 } // namespace nfd

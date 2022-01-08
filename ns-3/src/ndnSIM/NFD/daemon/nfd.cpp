@@ -79,8 +79,7 @@ Nfd::initialize()
 
     m_faceTable = make_unique<FaceTable>();
     m_faceTable->addReserved(face::makeNullFace(), face::FACEID_NULL);
-    m_faceTable->addReserved(face::makeNullFace(FaceUri("contentstore://")),
-                             face::FACEID_CONTENT_STORE);
+    m_faceTable->addReserved(face::makeNullFace(FaceUri("contentstore://")), face::FACEID_CONTENT_STORE);
 
     m_faceSystem = make_unique<face::FaceSystem>(*m_faceTable, m_netmon);
     m_forwarder = make_unique<Forwarder>(*m_faceTable);
@@ -116,8 +115,8 @@ Nfd::configureLogging()
 }
 
 static inline void
-ignoreRibAndLogSections(const std::string& filename, const std::string& sectionName,
-                        const ConfigSection& section, bool isDryRun)
+ignoreRibAndLogSections(const std::string& filename, const std::string& sectionName, const ConfigSection& section,
+                        bool isDryRun)
 {
     // Ignore "log" and "rib" sections, but raise an error if we're missing a
     // handler for an NFD section.
@@ -141,12 +140,11 @@ Nfd::initializeManagement()
 
     m_forwarderStatusManager = make_unique<ForwarderStatusManager>(*m_forwarder, *m_dispatcher);
     m_faceManager = make_unique<FaceManager>(*m_faceSystem, *m_dispatcher, *m_authenticator);
-    m_fibManager =
-      make_unique<FibManager>(m_forwarder->getFib(), *m_faceTable, *m_dispatcher, *m_authenticator);
-    m_csManager = make_unique<CsManager>(m_forwarder->getCs(), m_forwarder->getCounters(),
-                                         *m_dispatcher, *m_authenticator);
-    m_strategyChoiceManager = make_unique<StrategyChoiceManager>(m_forwarder->getStrategyChoice(),
-                                                                 *m_dispatcher, *m_authenticator);
+    m_fibManager = make_unique<FibManager>(m_forwarder->getFib(), *m_faceTable, *m_dispatcher, *m_authenticator);
+    m_csManager =
+      make_unique<CsManager>(m_forwarder->getCs(), m_forwarder->getCounters(), *m_dispatcher, *m_authenticator);
+    m_strategyChoiceManager =
+      make_unique<StrategyChoiceManager>(m_forwarder->getStrategyChoice(), *m_dispatcher, *m_authenticator);
 
     ConfigFile config(&ignoreRibAndLogSections);
     general::setConfigFile(config);

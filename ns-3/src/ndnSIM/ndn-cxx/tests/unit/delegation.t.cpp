@@ -31,31 +31,31 @@ BOOST_AUTO_TEST_SUITE(TestDelegation)
 
 BOOST_AUTO_TEST_CASE(Compare)
 {
-  BOOST_CHECK_EQUAL((Delegation{1, "/A"}), (Delegation{1, "/A"}));
-  BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{1, "/A"}));
-  BOOST_CHECK_GE((Delegation{1, "/A"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_EQUAL((Delegation{1, "/A"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_GE((Delegation{1, "/A"}), (Delegation{1, "/A"}));
 
-  BOOST_CHECK_NE((Delegation{1, "/A"}), (Delegation{2, "/A"}));
-  BOOST_CHECK_NE((Delegation{1, "/A"}), (Delegation{1, "/B"}));
+    BOOST_CHECK_NE((Delegation{1, "/A"}), (Delegation{2, "/A"}));
+    BOOST_CHECK_NE((Delegation{1, "/A"}), (Delegation{1, "/B"}));
 
-  BOOST_CHECK_LT((Delegation{1, "/A"}), (Delegation{1, "/B"}));
-  BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{1, "/B"}));
-  BOOST_CHECK_LT((Delegation{1, "/B"}), (Delegation{2, "/A"}));
-  BOOST_CHECK_LE((Delegation{1, "/B"}), (Delegation{2, "/A"}));
-  BOOST_CHECK_LT((Delegation{1, "/A"}), (Delegation{2, "/A"}));
-  BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{2, "/A"}));
+    BOOST_CHECK_LT((Delegation{1, "/A"}), (Delegation{1, "/B"}));
+    BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{1, "/B"}));
+    BOOST_CHECK_LT((Delegation{1, "/B"}), (Delegation{2, "/A"}));
+    BOOST_CHECK_LE((Delegation{1, "/B"}), (Delegation{2, "/A"}));
+    BOOST_CHECK_LT((Delegation{1, "/A"}), (Delegation{2, "/A"}));
+    BOOST_CHECK_LE((Delegation{1, "/A"}), (Delegation{2, "/A"}));
 
-  BOOST_CHECK_GT((Delegation{1, "/B"}), (Delegation{1, "/A"}));
-  BOOST_CHECK_GE((Delegation{1, "/B"}), (Delegation{1, "/A"}));
-  BOOST_CHECK_GT((Delegation{2, "/A"}), (Delegation{1, "/B"}));
-  BOOST_CHECK_GE((Delegation{2, "/A"}), (Delegation{1, "/B"}));
-  BOOST_CHECK_GT((Delegation{2, "/A"}), (Delegation{1, "/A"}));
-  BOOST_CHECK_GE((Delegation{2, "/A"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_GT((Delegation{1, "/B"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_GE((Delegation{1, "/B"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_GT((Delegation{2, "/A"}), (Delegation{1, "/B"}));
+    BOOST_CHECK_GE((Delegation{2, "/A"}), (Delegation{1, "/B"}));
+    BOOST_CHECK_GT((Delegation{2, "/A"}), (Delegation{1, "/A"}));
+    BOOST_CHECK_GE((Delegation{2, "/A"}), (Delegation{1, "/A"}));
 }
 
 BOOST_AUTO_TEST_CASE(Print)
 {
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(Delegation{1, "/B"}), "/B(1)");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(Delegation{1, "/B"}), "/B(1)");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestDelegation

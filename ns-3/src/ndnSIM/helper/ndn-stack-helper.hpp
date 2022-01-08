@@ -53,217 +53,190 @@ class L3Protocol;
  * @brief Helper class to install NDN stack and configure its parameters
  */
 class StackHelper : boost::noncopyable {
-public:
-  /**
-   * \brief Create a new NdnStackHelper with a default NDN_FLOODING forwarding stategy
-   */
-  StackHelper();
+  public:
+    /**
+     * \brief Create a new NdnStackHelper with a default NDN_FLOODING forwarding stategy
+     */
+    StackHelper();
 
-  /**
-   * \brief Destroy the NdnStackHelper
-   */
-  virtual ~StackHelper();
+    /**
+     * \brief Destroy the NdnStackHelper
+     */
+    virtual ~StackHelper();
 
-  /**
-   * @brief Set parameters of NdnL3Protocol
-   */
-  void
-  SetStackAttributes(const std::string& attr1 = "", const std::string& value1 = "",
-                     const std::string& attr2 = "", const std::string& value2 = "",
-                     const std::string& attr3 = "", const std::string& value3 = "",
-                     const std::string& attr4 = "", const std::string& value4 = "");
+    /**
+     * @brief Set parameters of NdnL3Protocol
+     */
+    void
+    SetStackAttributes(const std::string& attr1 = "", const std::string& value1 = "", const std::string& attr2 = "",
+                       const std::string& value2 = "", const std::string& attr3 = "", const std::string& value3 = "",
+                       const std::string& attr4 = "", const std::string& value4 = "");
 
-  /**
-   * @brief Set maximum size for NFD's Content Store (in number of packets)
-   */
-  void
-  setCsSize(size_t maxSize);
+    /**
+     * @brief Set maximum size for NFD's Content Store (in number of packets)
+     */
+    void setCsSize(size_t maxSize);
 
-  /**
-   * @brief Set the cache replacement policy for NFD's Content Store
-   */
-  void
-  setPolicy(const std::string& policy);
+    /**
+     * @brief Set the cache replacement policy for NFD's Content Store
+     */
+    void setPolicy(const std::string& policy);
 
-  typedef Callback<shared_ptr<Face>, Ptr<Node>, Ptr<L3Protocol>, Ptr<NetDevice>>
-    FaceCreateCallback;
+    typedef Callback<shared_ptr<Face>, Ptr<Node>, Ptr<L3Protocol>, Ptr<NetDevice>> FaceCreateCallback;
 
-  /**
-   * @brief Add callback to create and configure instance of the face, based on supplied Ptr<Node>
-   *and Ptr<NetDevice>
-   *
-   * It is possible to set up several callbacks for different NetDevice types.
-   *
-   * If none of the callbacks fit the TypeId of NetDevice, a default callback is used
-   *(DefaultNetDeviceCallback)
-   */
-  void
-  AddFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
+    /**
+     * @brief Add callback to create and configure instance of the face, based on supplied Ptr<Node>
+     *and Ptr<NetDevice>
+     *
+     * It is possible to set up several callbacks for different NetDevice types.
+     *
+     * If none of the callbacks fit the TypeId of NetDevice, a default callback is used
+     *(DefaultNetDeviceCallback)
+     */
+    void AddFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
 
-  /**
-   * @brief Update callback to create and configure instance of the face, based on supplied
-   *Ptr<Node> and Ptr<NetDevice>
-   *
-   * It is possible to set up several callbacks for different NetDevice types.
-   *
-   * Using this method, it is possible to override Face creation for PointToPointNetDevices
-   */
-  void
-  UpdateFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
+    /**
+     * @brief Update callback to create and configure instance of the face, based on supplied
+     *Ptr<Node> and Ptr<NetDevice>
+     *
+     * It is possible to set up several callbacks for different NetDevice types.
+     *
+     * Using this method, it is possible to override Face creation for PointToPointNetDevices
+     */
+    void UpdateFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
 
-  /**
-   * @brief Remove callback to create and configure instance of the face, based on supplied
-   * Ptr<Node> and Ptr<NetDevice>
-   */
-  void
-  RemoveFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
+    /**
+     * @brief Remove callback to create and configure instance of the face, based on supplied
+     * Ptr<Node> and Ptr<NetDevice>
+     */
+    void RemoveFaceCreateCallback(TypeId netDeviceType, FaceCreateCallback callback);
 
-  /**
-  * \brief Install Ndn stack on the node
-  *
-  * This method will assert if called on a node that already has Ndn object
-  * installed on it
-  *
-  * \param nodeName The name of the node on which to install the stack.
-  *
-  * \returns list of installed faces in the form of a smart pointer
-  * to NdnFaceContainer object
-  */
-  void
-  Install(const std::string& nodeName) const;
+    /**
+     * \brief Install Ndn stack on the node
+     *
+     * This method will assert if called on a node that already has Ndn object
+     * installed on it
+     *
+     * \param nodeName The name of the node on which to install the stack.
+     *
+     * \returns list of installed faces in the form of a smart pointer
+     * to NdnFaceContainer object
+     */
+    void Install(const std::string& nodeName) const;
 
-  /**
-   * \brief Install Ndn stack on the node
-   *
-   * This method will assert if called on a node that already has Ndn object
-   * installed on it
-   *
-   * \param node The node on which to install the stack.
-   *
-   * \returns list of installed faces in the form of a smart pointer
-   * to FaceContainer object
-   */
-  void
-  Install(Ptr<Node> node) const;
+    /**
+     * \brief Install Ndn stack on the node
+     *
+     * This method will assert if called on a node that already has Ndn object
+     * installed on it
+     *
+     * \param node The node on which to install the stack.
+     *
+     * \returns list of installed faces in the form of a smart pointer
+     * to FaceContainer object
+     */
+    void Install(Ptr<Node> node) const;
 
-  /**
-   * \brief Install Ndn stack on each node in the input container
-   *
-   * The program will assert if this method is called on a container with a node
-   * that already has an ndn object aggregated to it.
-   *
-   * \param c NodeContainer that holds the set of nodes on which to install the
-   * new stacks.
-   *
-   * \returns list of installed faces in the form of a smart pointer
-   * to FaceContainer object
-   */
-  void
-  Install(const NodeContainer& c) const;
+    /**
+     * \brief Install Ndn stack on each node in the input container
+     *
+     * The program will assert if this method is called on a container with a node
+     * that already has an ndn object aggregated to it.
+     *
+     * \param c NodeContainer that holds the set of nodes on which to install the
+     * new stacks.
+     *
+     * \returns list of installed faces in the form of a smart pointer
+     * to FaceContainer object
+     */
+    void Install(const NodeContainer& c) const;
 
-  /**
-   * \brief Install Ndn stack on all nodes in the simulation
-   *
-   * \returns list of installed faces in the form of a smart pointer
-   * to FaceContainer object
-   */
-  void
-  InstallAll() const;
+    /**
+     * \brief Install Ndn stack on all nodes in the simulation
+     *
+     * \returns list of installed faces in the form of a smart pointer
+     * to FaceContainer object
+     */
+    void InstallAll() const;
 
-  /**
-   * \brief Set flag indicating necessity to install default routes in FIB
-   */
-  void
-  SetDefaultRoutes(bool needSet);
+    /**
+     * \brief Set flag indicating necessity to install default routes in FIB
+     */
+    void SetDefaultRoutes(bool needSet);
 
-  static KeyChain&
-  getKeyChain();
+    static KeyChain& getKeyChain();
 
-   /**
-   * \brief Update Ndn stack on a given node (Add faces for new devices)
-   *
-   * \param node The node on which to update the stack.
-   */
-  void
-  Update(Ptr<Node> node);
+    /**
+     * \brief Update Ndn stack on a given node (Add faces for new devices)
+     *
+     * \param node The node on which to update the stack.
+     */
+    void Update(Ptr<Node> node);
 
-  /**
-   *\brief Update Ndn stack on given nodes (Add faces for new devices)
-   *
-   * \param c The nodes on which to update the stack.
-   */
-  void
-  Update(const NodeContainer& c);
+    /**
+     *\brief Update Ndn stack on given nodes (Add faces for new devices)
+     *
+     * \param c The nodes on which to update the stack.
+     */
+    void Update(const NodeContainer& c);
 
-  /**
-   *\brief Update Ndn stack on a given node name (Add faces for new devices)
-   *
-   * \param nodeName The name of the node on which to update the stack.
-   */
-  void
-  Update(const std::string& nodeName);
+    /**
+     *\brief Update Ndn stack on a given node name (Add faces for new devices)
+     *
+     * \param nodeName The name of the node on which to update the stack.
+     */
+    void Update(const std::string& nodeName);
 
-  /**
-   *\brief Update Ndn stack on all the nodes (Add faces for new devices)
-   */
-  void
-  UpdateAll();
+    /**
+     *\brief Update Ndn stack on all the nodes (Add faces for new devices)
+     */
+    void UpdateAll();
 
-  /**
-   * \brief Disable Strategy Choice Manager
-   */
-  void
-  disableStrategyChoiceManager();
+    /**
+     * \brief Disable Strategy Choice Manager
+     */
+    void disableStrategyChoiceManager();
 
-  /**
-   * \brief Disable Forwarder Status Manager
-   */
-  void
-  disableForwarderStatusManager();
+    /**
+     * \brief Disable Forwarder Status Manager
+     */
+    void disableForwarderStatusManager();
 
-  /**
-   * @brief Set face metric of all faces connected through PointToPoint channel to channel latency
-   */
-  static void
-  SetLinkDelayAsFaceMetric();
+    /**
+     * @brief Set face metric of all faces connected through PointToPoint channel to channel latency
+     */
+    static void SetLinkDelayAsFaceMetric();
 
-  static void
-  ProcessWarmupEvents();
+    static void ProcessWarmupEvents();
 
-private:
-  void
-  doInstall(Ptr<Node> node) const;
+  private:
+    void doInstall(Ptr<Node> node) const;
 
-private:
-  shared_ptr<Face>
-  DefaultNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn, Ptr<NetDevice> netDevice) const;
+  private:
+    shared_ptr<Face> DefaultNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn, Ptr<NetDevice> netDevice) const;
 
-  shared_ptr<Face>
-  PointToPointNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn,
-                                Ptr<NetDevice> netDevice) const;
-  shared_ptr<Face>
-  createAndRegisterFace(Ptr<Node> node, Ptr<L3Protocol> ndn, Ptr<NetDevice> device) const;
+    shared_ptr<Face> PointToPointNetDeviceCallback(Ptr<Node> node, Ptr<L3Protocol> ndn, Ptr<NetDevice> netDevice) const;
+    shared_ptr<Face> createAndRegisterFace(Ptr<Node> node, Ptr<L3Protocol> ndn, Ptr<NetDevice> device) const;
 
-  bool m_isForwarderStatusManagerDisabled;
-  bool m_isStrategyChoiceManagerDisabled;
+    bool m_isForwarderStatusManagerDisabled;
+    bool m_isStrategyChoiceManagerDisabled;
 
-public:
-  void
-  setCustomNdnCxxClocks();
+  public:
+    void setCustomNdnCxxClocks();
 
-private:
-  ObjectFactory m_ndnFactory;
+  private:
+    ObjectFactory m_ndnFactory;
 
-  bool m_needSetDefaultRoutes;
-  size_t m_maxCsSize = 100;
+    bool m_needSetDefaultRoutes;
+    size_t m_maxCsSize = 100;
 
-  typedef std::function<std::unique_ptr<nfd::cs::Policy>()> PolicyCreationCallback;
-  PolicyCreationCallback m_csPolicyCreationFunc;
+    typedef std::function<std::unique_ptr<nfd::cs::Policy>()> PolicyCreationCallback;
+    PolicyCreationCallback m_csPolicyCreationFunc;
 
-  std::map<std::string, PolicyCreationCallback> m_csPolicies;
+    std::map<std::string, PolicyCreationCallback> m_csPolicies;
 
-  typedef std::list<std::pair<TypeId, FaceCreateCallback>> NetDeviceCallbackList;
-  NetDeviceCallbackList m_netDeviceCallbacks;
+    typedef std::list<std::pair<TypeId, FaceCreateCallback>> NetDeviceCallbackList;
+    NetDeviceCallbackList m_netDeviceCallbacks;
 };
 
 } // namespace ndn

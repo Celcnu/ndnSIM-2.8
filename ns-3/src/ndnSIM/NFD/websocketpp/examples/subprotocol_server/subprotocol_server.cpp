@@ -6,18 +6,19 @@
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 using websocketpp::connection_hdl;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 using websocketpp::lib::ref;
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
 
-
-bool validate(server & s, connection_hdl hdl) {
+bool
+validate(server& s, connection_hdl hdl)
+{
     server::connection_ptr con = s.get_con_from_hdl(hdl);
 
     std::cout << "Cache-Control: " << con->get_request_header("Cache-Control") << std::endl;
 
-    const std::vector<std::string> & subp_requests = con->get_requested_subprotocols();
+    const std::vector<std::string>& subp_requests = con->get_requested_subprotocols();
     std::vector<std::string>::const_iterator it;
 
     for (it = subp_requests.begin(); it != subp_requests.end(); ++it) {
@@ -31,18 +32,21 @@ bool validate(server & s, connection_hdl hdl) {
     return true;
 }
 
-int main() {
+int
+main()
+{
     try {
         server s;
 
-        s.set_validate_handler(bind(&validate,ref(s),::_1));
+        s.set_validate_handler(bind(&validate, ref(s), ::_1));
 
         s.init_asio();
         s.listen(9005);
         s.start_accept();
 
         s.run();
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
     }
 }

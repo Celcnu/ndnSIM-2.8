@@ -31,21 +31,21 @@ InMemoryStorageEntry::InMemoryStorageEntry()
 void
 InMemoryStorageEntry::release()
 {
-  m_dataPacket.reset();
-  m_markStaleEventId.cancel();
+    m_dataPacket.reset();
+    m_markStaleEventId.cancel();
 }
 
 void
 InMemoryStorageEntry::setData(const Data& data)
 {
-  m_dataPacket = data.shared_from_this();
-  m_isFresh = true;
+    m_dataPacket = data.shared_from_this();
+    m_isFresh = true;
 }
 
 void
 InMemoryStorageEntry::scheduleMarkStale(Scheduler& sched, time::nanoseconds after)
 {
-  m_markStaleEventId = sched.schedule(after, [this] { m_isFresh = false; });
+    m_markStaleEventId = sched.schedule(after, [this] { m_isFresh = false; });
 }
 
 } // namespace ndn

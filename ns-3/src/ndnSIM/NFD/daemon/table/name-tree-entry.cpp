@@ -33,110 +33,108 @@ Entry::Entry(const Name& name, Node* node)
   : m_name(name)
   , m_node(node)
 {
-  BOOST_ASSERT(node != nullptr);
-  BOOST_ASSERT(name.size() <= NameTree::getMaxDepth());
+    BOOST_ASSERT(node != nullptr);
+    BOOST_ASSERT(name.size() <= NameTree::getMaxDepth());
 }
 
 void
 Entry::setParent(Entry& entry)
 {
-  BOOST_ASSERT(this->getParent() == nullptr);
-  BOOST_ASSERT(!this->getName().empty());
-  BOOST_ASSERT(entry.getName() == this->getName().getPrefix(-1));
+    BOOST_ASSERT(this->getParent() == nullptr);
+    BOOST_ASSERT(!this->getName().empty());
+    BOOST_ASSERT(entry.getName() == this->getName().getPrefix(-1));
 
-  m_parent = &entry;
-  m_parent->m_children.push_back(this);
+    m_parent = &entry;
+    m_parent->m_children.push_back(this);
 }
 
 void
 Entry::unsetParent()
 {
-  BOOST_ASSERT(this->getParent() != nullptr);
+    BOOST_ASSERT(this->getParent() != nullptr);
 
-  auto i = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this);
-  BOOST_ASSERT(i != m_parent->m_children.end());
-  m_parent->m_children.erase(i);
+    auto i = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this);
+    BOOST_ASSERT(i != m_parent->m_children.end());
+    m_parent->m_children.erase(i);
 
-  m_parent = nullptr;
+    m_parent = nullptr;
 }
 
 bool
 Entry::hasTableEntries() const
 {
-  return m_fibEntry != nullptr ||
-         !m_pitEntries.empty() ||
-         m_measurementsEntry != nullptr ||
-         m_strategyChoiceEntry != nullptr;
+    return m_fibEntry != nullptr || !m_pitEntries.empty() || m_measurementsEntry != nullptr
+           || m_strategyChoiceEntry != nullptr;
 }
 
 void
 Entry::setFibEntry(unique_ptr<fib::Entry> fibEntry)
 {
-  BOOST_ASSERT(fibEntry == nullptr || fibEntry->m_nameTreeEntry == nullptr);
+    BOOST_ASSERT(fibEntry == nullptr || fibEntry->m_nameTreeEntry == nullptr);
 
-  if (m_fibEntry != nullptr) {
-    m_fibEntry->m_nameTreeEntry = nullptr;
-  }
-  m_fibEntry = std::move(fibEntry);
+    if (m_fibEntry != nullptr) {
+        m_fibEntry->m_nameTreeEntry = nullptr;
+    }
+    m_fibEntry = std::move(fibEntry);
 
-  if (m_fibEntry != nullptr) {
-    m_fibEntry->m_nameTreeEntry = this;
-  }
+    if (m_fibEntry != nullptr) {
+        m_fibEntry->m_nameTreeEntry = this;
+    }
 }
 
 void
 Entry::insertPitEntry(shared_ptr<pit::Entry> pitEntry)
 {
-  BOOST_ASSERT(pitEntry != nullptr);
-  BOOST_ASSERT(pitEntry->m_nameTreeEntry == nullptr);
+    BOOST_ASSERT(pitEntry != nullptr);
+    BOOST_ASSERT(pitEntry->m_nameTreeEntry == nullptr);
 
-  m_pitEntries.push_back(pitEntry);
-  pitEntry->m_nameTreeEntry = this;
+    m_pitEntries.push_back(pitEntry);
+    pitEntry->m_nameTreeEntry = this;
 }
 
 void
 Entry::erasePitEntry(pit::Entry* pitEntry)
 {
-  BOOST_ASSERT(pitEntry != nullptr);
-  BOOST_ASSERT(pitEntry->m_nameTreeEntry == this);
+    BOOST_ASSERT(pitEntry != nullptr);
+    BOOST_ASSERT(pitEntry->m_nameTreeEntry == this);
 
-  auto it = std::find_if(m_pitEntries.begin(), m_pitEntries.end(),
-                         [pitEntry] (const auto& pitEntry2) { return pitEntry2.get() == pitEntry; });
-  BOOST_ASSERT(it != m_pitEntries.end());
+    auto it = std::find_if(m_pitEntries.begin(), m_pitEntries.end(),
+                           [pitEntry](const auto& pitEntry2) { return pitEntry2.get() == pitEntry; });
+    BOOST_ASSERT(it != m_pitEntries.end());
 
-  pitEntry->m_nameTreeEntry = nullptr; // must be done before pitEntry is deallocated
-  *it = m_pitEntries.back(); // may deallocate pitEntry
-  m_pitEntries.pop_back();
+    pitEntry->m_nameTreeEntry = nullptr; // must be done before pitEntry is deallocated
+    *it = m_pitEntries.back();           // may deallocate pitEntry
+    m_pitEntries.pop_back();
 }
 
 void
 Entry::setMeasurementsEntry(unique_ptr<measurements::Entry> measurementsEntry)
 {
-  BOOST_ASSERT(measurementsEntry == nullptr || measurementsEntry->m_nameTreeEntry == nullptr);
+    BOOST_ASSERT(measurementsEntry == nullptr || measurementsEntry->m_nameTreeEntry == nullptr);
 
-  if (m_measurementsEntry != nullptr) {
-    m_measurementsEntry->m_nameTreeEntry = nullptr;
-  }
-  m_measurementsEntry = std::move(measurementsEntry);
+    if (m_measurementsEntry != nullptr) {
+        m_measurementsEntry->m_nameTreeEntry = nullptr;
+    }
+    m_measurementsEntry = std::move(measurementsEntry);
 
-  if (m_measurementsEntry != nullptr) {
-    m_measurementsEntry->m_nameTreeEntry = this;
-  }
+    if (m_measurementsEntry != nullptr) {
+        m_measurementsEntry->m_nameTreeEntry = this;
+    }
 }
 
 void
 Entry::setStrategyChoiceEntry(unique_ptr<strategy_choice::Entry> strategyChoiceEntry)
 {
-  BOOST_ASSERT(strategyChoiceEntry == nullptr || strategyChoiceEntry->m_nameTreeEntry == nullptr);
+    BOOST_ASSERT(strategyChoiceEntry == nullptr || strategyChoiceEntry->m_nameTreeEntry == nullptr);
 
-  if (m_strategyChoiceEntry != nullptr) {
-    m_strategyChoiceEntry->m_nameTreeEntry = nullptr;
-  }
-  m_strategyChoiceEntry = std::move(strategyChoiceEntry);
+    if (m_strategyChoiceEntry != nullptr) {
+        m_strategyChoiceEntry->m_nameTreeEntry = nullptr;
+    }
+    m_strategyChoiceEntry = std::move(strategyChoiceEntry);
 
-  if (m_strategyChoiceEntry != nullptr) {
-    m_strategyChoiceEntry->m_nameTreeEntry = this;
-  }
+    if (m_strategyChoiceEntry != nullptr) {
+        m_strategyChoiceEntry->m_nameTreeEntry = this;
+    }
 }
 
 } // namespace name_tree

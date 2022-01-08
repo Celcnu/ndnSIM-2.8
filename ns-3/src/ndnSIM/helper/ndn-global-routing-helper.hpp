@@ -37,96 +37,85 @@ namespace ndn {
  * @brief Helper for GlobalRouter interface
  */
 class GlobalRoutingHelper {
-public:
-  /**
-   * @brief Install GlobalRouter interface on a node
-   *
-   * Note that GlobalRouter will also be installed on all connected nodes and channels
-   *
-   * @param node Node to install GlobalRouter interface
-   */
-  void
-  Install(Ptr<Node> node);
+  public:
+    /**
+     * @brief Install GlobalRouter interface on a node
+     *
+     * Note that GlobalRouter will also be installed on all connected nodes and channels
+     *
+     * @param node Node to install GlobalRouter interface
+     */
+    void Install(Ptr<Node> node);
 
-  /**
-   * @brief Install GlobalRouter interface on nodes
-   *
-   * Note that GlobalRouter will also be installed on all connected nodes and channels
-   *
-   * @param nodes NodeContainer to install GlobalRouter interface
-   */
-  void
-  Install(const NodeContainer& nodes);
+    /**
+     * @brief Install GlobalRouter interface on nodes
+     *
+     * Note that GlobalRouter will also be installed on all connected nodes and channels
+     *
+     * @param nodes NodeContainer to install GlobalRouter interface
+     */
+    void Install(const NodeContainer& nodes);
 
-  /**
-   * @brief Install GlobalRouter interface on all nodes
-   */
-  void
-  InstallAll();
+    /**
+     * @brief Install GlobalRouter interface on all nodes
+     */
+    void InstallAll();
 
-  /**
-   * @brief Add `prefix' as origin on `node'
-   * @param prefix Prefix that is originated by node, e.g., node is a producer for this prefix
-   * @param node   Pointer to a node
-   */
-  void
-  AddOrigin(const std::string& prefix, Ptr<Node> node);
+    /**
+     * @brief Add `prefix' as origin on `node'
+     * @param prefix Prefix that is originated by node, e.g., node is a producer for this prefix
+     * @param node   Pointer to a node
+     */
+    void AddOrigin(const std::string& prefix, Ptr<Node> node);
 
-  /**
-   * @brief Add `prefix' as origin on all `nodes'
-   * @param prefix Prefix that is originated by nodes
-   * @param nodes NodeContainer
-   */
-  void
-  AddOrigins(const std::string& prefix, const NodeContainer& nodes);
+    /**
+     * @brief Add `prefix' as origin on all `nodes'
+     * @param prefix Prefix that is originated by nodes
+     * @param nodes NodeContainer
+     */
+    void AddOrigins(const std::string& prefix, const NodeContainer& nodes);
 
-  /**
-   * @brief Add `prefix' as origin on node `nodeName'
-   * @param prefix     Prefix that is originated by node, e.g., node is a producer for this prefix
-   * @param nodeName   Name of the node that is associated with Ptr<Node> using ns3::Names
-   */
-  void
-  AddOrigin(const std::string& prefix, const std::string& nodeName);
+    /**
+     * @brief Add `prefix' as origin on node `nodeName'
+     * @param prefix     Prefix that is originated by node, e.g., node is a producer for this prefix
+     * @param nodeName   Name of the node that is associated with Ptr<Node> using ns3::Names
+     */
+    void AddOrigin(const std::string& prefix, const std::string& nodeName);
 
-  /**
-   * @brief Add origin to each node based on the node's name (using Names class)
-   */
-  void
-  AddOriginsForAll();
+    /**
+     * @brief Add origin to each node based on the node's name (using Names class)
+     */
+    void AddOriginsForAll();
 
-  /**
-   * @brief Calculate for every node shortest path trees and install routes to all prefix origins
-   */
-  static void
-  CalculateRoutes();
+    /**
+     * @brief Calculate for every node shortest path trees and install routes to all prefix origins
+     */
+    static void CalculateRoutes();
 
-  /**
-   * @brief Calculates a set of loop-free multipath routes.
-   *
-   * For full description please see tech tech report "Hop-by-Hop Multipath Routing:
-   * Choosing the Right Nexthop Set" and the associated Github repository:
-   *
-   * https://github.com/schneiderklaus/ndnSIM-routing
-   *
-   * @sa https://named-data.net/publications/techreports/mp_routing_tech_report/
-   */
-  static void
-  CalculateLfidRoutes();
+    /**
+     * @brief Calculates a set of loop-free multipath routes.
+     *
+     * For full description please see tech tech report "Hop-by-Hop Multipath Routing:
+     * Choosing the Right Nexthop Set" and the associated Github repository:
+     *
+     * https://github.com/schneiderklaus/ndnSIM-routing
+     *
+     * @sa https://named-data.net/publications/techreports/mp_routing_tech_report/
+     */
+    static void CalculateLfidRoutes();
 
-  /**
-   * @brief Calculate all possible next-hop independent alternative routes
-   *
-   * Refer to the implementation for more details.
-   *
-   * Note that this method is highly experimental and should be used with caution (very time
-   *consuming).
-   */
-  static void
-  CalculateAllPossibleRoutes();
+    /**
+     * @brief Calculate all possible next-hop independent alternative routes
+     *
+     * Refer to the implementation for more details.
+     *
+     * Note that this method is highly experimental and should be used with caution (very time
+     *consuming).
+     */
+    static void CalculateAllPossibleRoutes();
 
-private:
-  void
-  Install(Ptr<Channel> channel);
+  private:
+    void Install(Ptr<Channel> channel);
 };
 
 } // namespace ndn

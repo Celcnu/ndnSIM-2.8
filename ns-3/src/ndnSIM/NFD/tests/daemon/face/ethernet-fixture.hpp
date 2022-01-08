@@ -40,73 +40,72 @@ using namespace nfd::tests;
 
 /** \brief Fixture providing a list of EthernetTransport-capable network interfaces.
  */
-class EthernetFixture : public virtual GlobalIoFixture
-{
-protected:
-  EthernetFixture()
-  {
-    for (const auto& netif : collectNetworkInterfaces()) {
-      if (!netif->isLoopback() && netif->isUp()) {
-        try {
-          MulticastEthernetTransport transport(*netif, ethernet::getBroadcastAddress(),
-                                               ndn::nfd::LINK_TYPE_MULTI_ACCESS);
-          netifs.push_back(netif);
+class EthernetFixture : public virtual GlobalIoFixture {
+  protected:
+    EthernetFixture()
+    {
+        for (const auto& netif : collectNetworkInterfaces()) {
+            if (!netif->isLoopback() && netif->isUp()) {
+                try {
+                    MulticastEthernetTransport transport(*netif, ethernet::getBroadcastAddress(),
+                                                         ndn::nfd::LINK_TYPE_MULTI_ACCESS);
+                    netifs.push_back(netif);
+                }
+                catch (const EthernetTransport::Error&) {
+                    // ignore
+                }
+            }
         }
-        catch (const EthernetTransport::Error&) {
-          // ignore
+        if (!netifs.empty()) {
+            netif = const_pointer_cast<ndn::net::NetworkInterface>(netifs.front());
         }
-      }
     }
-    if (!netifs.empty()) {
-      netif = const_pointer_cast<ndn::net::NetworkInterface>(netifs.front());
+
+    /** \brief create a UnicastEthernetTransport
+     */
+    void
+    initializeUnicast(ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
+                      ethernet::Address remoteAddr = {0x00, 0x00, 0x5e, 0x00, 0x53, 0x5e})
+    {
+        BOOST_ASSERT(netif != nullptr);
+        localEp = netif->getName();
+        remoteEp = remoteAddr;
+        transport = make_unique<UnicastEthernetTransport>(*netif, remoteEp, persistency, 2_s);
     }
-  }
 
-  /** \brief create a UnicastEthernetTransport
-   */
-  void
-  initializeUnicast(ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
-                    ethernet::Address remoteAddr = {0x00, 0x00, 0x5e, 0x00, 0x53, 0x5e})
-  {
-    BOOST_ASSERT(netif != nullptr);
-    localEp = netif->getName();
-    remoteEp = remoteAddr;
-    transport = make_unique<UnicastEthernetTransport>(*netif, remoteEp, persistency, 2_s);
-  }
+    /** \brief create a MulticastEthernetTransport
+     */
+    void
+    initializeMulticast(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS,
+                        ethernet::Address mcastGroup = {0x01, 0x00, 0x5e, 0x90, 0x10, 0x5e})
+    {
+        BOOST_ASSERT(netif != nullptr);
+        localEp = netif->getName();
+        remoteEp = mcastGroup;
+        transport = make_unique<MulticastEthernetTransport>(*netif, remoteEp, linkType);
+    }
 
-  /** \brief create a MulticastEthernetTransport
-   */
-  void
-  initializeMulticast(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS,
-                      ethernet::Address mcastGroup = {0x01, 0x00, 0x5e, 0x90, 0x10, 0x5e})
-  {
-    BOOST_ASSERT(netif != nullptr);
-    localEp = netif->getName();
-    remoteEp = mcastGroup;
-    transport = make_unique<MulticastEthernetTransport>(*netif, remoteEp, linkType);
-  }
+  protected:
+    LimitedIo limitedIo;
 
-protected:
-  LimitedIo limitedIo;
+    /** \brief EthernetTransport-capable network interfaces
+     */
+    std::vector<shared_ptr<const ndn::net::NetworkInterface>> netifs;
 
-  /** \brief EthernetTransport-capable network interfaces
-   */
-  std::vector<shared_ptr<const ndn::net::NetworkInterface>> netifs;
-
-  shared_ptr<ndn::net::NetworkInterface> netif;
-  unique_ptr<EthernetTransport> transport;
-  std::string localEp;
-  ethernet::Address remoteEp;
+    shared_ptr<ndn::net::NetworkInterface> netif;
+    unique_ptr<EthernetTransport> transport;
+    std::string localEp;
+    ethernet::Address remoteEp;
 };
 
-#define SKIP_IF_ETHERNET_NETIF_COUNT_LT(n) \
-  do { \
-    if (this->netifs.size() < (n)) { \
-      BOOST_WARN_MESSAGE(false, "skipping assertions that require " #n \
-                                " or more EthernetTransport-capable network interfaces"); \
-      return; \
-    } \
-  } while (false)
+#define SKIP_IF_ETHERNET_NETIF_COUNT_LT(n)                                                                             \
+    do {                                                                                                               \
+        if (this->netifs.size() < (n)) {                                                                               \
+            BOOST_WARN_MESSAGE(false, "skipping assertions that require " #n                                           \
+                                      " or more EthernetTransport-capable network interfaces");                        \
+            return;                                                                                                    \
+        }                                                                                                              \
+    } while (false)
 
 } // namespace tests
 } // namespace face

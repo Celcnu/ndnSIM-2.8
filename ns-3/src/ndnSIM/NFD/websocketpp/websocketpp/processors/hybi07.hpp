@@ -42,14 +42,16 @@ namespace processor {
  */
 template <typename config>
 class hybi07 : public hybi08<config> {
-public:
+  public:
     typedef typename config::request_type request_type;
 
     typedef typename config::con_msg_manager_type::ptr msg_manager_ptr;
     typedef typename config::rng_type rng_type;
 
     explicit hybi07(bool secure, bool p_is_server, msg_manager_ptr manager, rng_type& rng)
-      : hybi08<config>(secure, p_is_server, manager, rng) {}
+      : hybi08<config>(secure, p_is_server, manager, rng)
+    {
+    }
 
     /// Fill in a set of request headers for a client connection request
     /**
@@ -60,19 +62,22 @@ public:
      * @param [in] uri The uri being connected to
      * @param [in] subprotocols The list of subprotocols to request
      */
-    lib::error_code client_handshake_request(request_type &, uri_ptr,
-        std::vector<std::string> const &) const
+    lib::error_code
+    client_handshake_request(request_type&, uri_ptr, std::vector<std::string> const&) const
     {
         return error::make_error_code(error::no_protocol_support);
     }
 
-    int get_version() const {
+    int
+    get_version() const
+    {
         return 7;
     }
-private:
+
+  private:
 };
 
 } // namespace processor
 } // namespace websocketpp
 
-#endif //WEBSOCKETPP_PROCESSOR_HYBI07_HPP
+#endif // WEBSOCKETPP_PROCESSOR_HYBI07_HPP

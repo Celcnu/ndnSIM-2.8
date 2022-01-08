@@ -42,176 +42,173 @@ namespace ip = boost::asio::ip;
 
 /** \brief a fixture that accepts a single WebSocket connection from a client
  */
-class WebSocketTransportFixture : public GlobalIoFixture
-{
-protected:
-  WebSocketTransportFixture()
-    : transport(nullptr)
-    , serverReceivedPackets(nullptr)
-    , clientShouldPong(true)
-  {
-  }
-
-  /** \brief initialize server and start listening
-   */
-  void
-  serverListen(const ip::tcp::endpoint& ep,
-               const time::milliseconds& pongTimeout = 1_s)
-  {
-    server.clear_access_channels(websocketpp::log::alevel::all);
-    server.clear_error_channels(websocketpp::log::elevel::all);
-
-    server.init_asio(&g_io);
-    server.set_open_handler(bind(&WebSocketTransportFixture::serverHandleOpen, this, _1));
-    server.set_close_handler(bind(&WebSocketTransportFixture::serverHandleClose, this));
-    server.set_message_handler(bind(&WebSocketTransportFixture::serverHandleMessage, this, _2));
-    server.set_pong_handler(bind(&WebSocketTransportFixture::serverHandlePong, this));
-    server.set_pong_timeout_handler(bind(&WebSocketTransportFixture::serverHandlePongTimeout, this));
-    server.set_pong_timeout(pongTimeout.count());
-
-    server.set_reuse_addr(true);
-
-    server.listen(ep);
-    server.start_accept();
-  }
-
-  /** \brief initialize client and connect to server
-   */
-  void
-  clientConnect(const std::string& uri)
-  {
-    client.clear_access_channels(websocketpp::log::alevel::all);
-    client.clear_error_channels(websocketpp::log::elevel::all);
-
-    client.init_asio(&g_io);
-    client.set_open_handler(bind(&WebSocketTransportFixture::clientHandleOpen, this, _1));
-    client.set_message_handler(bind(&WebSocketTransportFixture::clientHandleMessage, this, _2));
-    client.set_ping_handler(bind(&WebSocketTransportFixture::clientHandlePing, this));
-
-    websocketpp::lib::error_code ec;
-    auto con = client.get_connection(uri, ec);
-    BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
-
-    client.connect(con);
-  }
-
-  /** \brief initialize both server and client, and have each other connected, create Transport
-   */
-  void
-  initialize(ip::address address,
-             time::milliseconds pingInterval = 10_s,
-             time::milliseconds pongTimeout = 1_s)
-  {
-    ip::tcp::endpoint ep(address, 20070);
-    serverListen(ep, pongTimeout);
-    clientConnect(FaceUri(ep, "ws").toString());
-
-    BOOST_REQUIRE_EQUAL(limitedIo.run(2, // serverHandleOpen, clientHandleOpen
-                                      1_s), LimitedIo::EXCEED_OPS);
-
-    face = make_unique<Face>(make_unique<DummyLinkService>(),
-                             make_unique<WebSocketTransport>(serverHdl, server, pingInterval));
-    transport = static_cast<WebSocketTransport*>(face->getTransport());
-    serverReceivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
-
-    BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
-  }
-
-private:
-  void
-  serverHandleOpen(websocketpp::connection_hdl hdl)
-  {
-    websocketpp::lib::error_code ec;
-    auto con = server.get_con_from_hdl(hdl, ec);
-    BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
-    BOOST_REQUIRE(con);
-    remoteEp = con->get_socket().remote_endpoint();
-
-    serverHdl = hdl;
-    limitedIo.afterOp();
-  }
-
-  void
-  serverHandleClose()
-  {
-    if (transport == nullptr) {
-      return;
+class WebSocketTransportFixture : public GlobalIoFixture {
+  protected:
+    WebSocketTransportFixture()
+      : transport(nullptr)
+      , serverReceivedPackets(nullptr)
+      , clientShouldPong(true)
+    {
     }
 
-    transport->close();
-    limitedIo.afterOp();
-  }
+    /** \brief initialize server and start listening
+     */
+    void
+    serverListen(const ip::tcp::endpoint& ep, const time::milliseconds& pongTimeout = 1_s)
+    {
+        server.clear_access_channels(websocketpp::log::alevel::all);
+        server.clear_error_channels(websocketpp::log::elevel::all);
 
-  void
-  serverHandleMessage(websocket::Server::message_ptr msg)
-  {
-    if (transport == nullptr) {
-      return;
+        server.init_asio(&g_io);
+        server.set_open_handler(bind(&WebSocketTransportFixture::serverHandleOpen, this, _1));
+        server.set_close_handler(bind(&WebSocketTransportFixture::serverHandleClose, this));
+        server.set_message_handler(bind(&WebSocketTransportFixture::serverHandleMessage, this, _2));
+        server.set_pong_handler(bind(&WebSocketTransportFixture::serverHandlePong, this));
+        server.set_pong_timeout_handler(bind(&WebSocketTransportFixture::serverHandlePongTimeout, this));
+        server.set_pong_timeout(pongTimeout.count());
+
+        server.set_reuse_addr(true);
+
+        server.listen(ep);
+        server.start_accept();
     }
 
-    transport->receiveMessage(msg->get_payload());
-    limitedIo.afterOp();
-  }
+    /** \brief initialize client and connect to server
+     */
+    void
+    clientConnect(const std::string& uri)
+    {
+        client.clear_access_channels(websocketpp::log::alevel::all);
+        client.clear_error_channels(websocketpp::log::elevel::all);
 
-  void
-  serverHandlePong()
-  {
-    if (transport == nullptr) {
-      return;
+        client.init_asio(&g_io);
+        client.set_open_handler(bind(&WebSocketTransportFixture::clientHandleOpen, this, _1));
+        client.set_message_handler(bind(&WebSocketTransportFixture::clientHandleMessage, this, _2));
+        client.set_ping_handler(bind(&WebSocketTransportFixture::clientHandlePing, this));
+
+        websocketpp::lib::error_code ec;
+        auto con = client.get_connection(uri, ec);
+        BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
+
+        client.connect(con);
     }
 
-    transport->handlePong();
-    limitedIo.afterOp();
-  }
+    /** \brief initialize both server and client, and have each other connected, create Transport
+     */
+    void
+    initialize(ip::address address, time::milliseconds pingInterval = 10_s, time::milliseconds pongTimeout = 1_s)
+    {
+        ip::tcp::endpoint ep(address, 20070);
+        serverListen(ep, pongTimeout);
+        clientConnect(FaceUri(ep, "ws").toString());
 
-  void
-  serverHandlePongTimeout()
-  {
-    if (transport == nullptr) {
-      return;
+        BOOST_REQUIRE_EQUAL(limitedIo.run(2, // serverHandleOpen, clientHandleOpen
+                                          1_s),
+                            LimitedIo::EXCEED_OPS);
+
+        face = make_unique<Face>(make_unique<DummyLinkService>(),
+                                 make_unique<WebSocketTransport>(serverHdl, server, pingInterval));
+        transport = static_cast<WebSocketTransport*>(face->getTransport());
+        serverReceivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+
+        BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
     }
 
-    transport->handlePongTimeout();
-    limitedIo.afterOp();
-  }
+  private:
+    void
+    serverHandleOpen(websocketpp::connection_hdl hdl)
+    {
+        websocketpp::lib::error_code ec;
+        auto con = server.get_con_from_hdl(hdl, ec);
+        BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
+        BOOST_REQUIRE(con);
+        remoteEp = con->get_socket().remote_endpoint();
 
-  void
-  clientHandleOpen(websocketpp::connection_hdl hdl)
-  {
-    clientHdl = hdl;
-    limitedIo.afterOp();
-  }
+        serverHdl = hdl;
+        limitedIo.afterOp();
+    }
 
-  void
-  clientHandleMessage(websocket::Client::message_ptr msg)
-  {
-    clientReceivedMessages.push_back(msg->get_payload());
-    limitedIo.afterOp();
-  }
+    void
+    serverHandleClose()
+    {
+        if (transport == nullptr) {
+            return;
+        }
 
-  bool
-  clientHandlePing()
-  {
-    limitedIo.afterOp();
-    return clientShouldPong;
-  }
+        transport->close();
+        limitedIo.afterOp();
+    }
 
-protected:
-  LimitedIo limitedIo;
+    void
+    serverHandleMessage(websocket::Server::message_ptr msg)
+    {
+        if (transport == nullptr) {
+            return;
+        }
 
-  websocket::Server server;
-  websocketpp::connection_hdl serverHdl;
-  ip::tcp::endpoint remoteEp;
-  WebSocketTransport* transport;
-  std::vector<RxPacket>* serverReceivedPackets;
+        transport->receiveMessage(msg->get_payload());
+        limitedIo.afterOp();
+    }
 
-  websocket::Client client;
-  websocketpp::connection_hdl clientHdl;
-  bool clientShouldPong;
-  std::vector<std::string> clientReceivedMessages;
+    void
+    serverHandlePong()
+    {
+        if (transport == nullptr) {
+            return;
+        }
 
-private:
-  unique_ptr<Face> face;
+        transport->handlePong();
+        limitedIo.afterOp();
+    }
+
+    void
+    serverHandlePongTimeout()
+    {
+        if (transport == nullptr) {
+            return;
+        }
+
+        transport->handlePongTimeout();
+        limitedIo.afterOp();
+    }
+
+    void
+    clientHandleOpen(websocketpp::connection_hdl hdl)
+    {
+        clientHdl = hdl;
+        limitedIo.afterOp();
+    }
+
+    void
+    clientHandleMessage(websocket::Client::message_ptr msg)
+    {
+        clientReceivedMessages.push_back(msg->get_payload());
+        limitedIo.afterOp();
+    }
+
+    bool
+    clientHandlePing()
+    {
+        limitedIo.afterOp();
+        return clientShouldPong;
+    }
+
+  protected:
+    LimitedIo limitedIo;
+
+    websocket::Server server;
+    websocketpp::connection_hdl serverHdl;
+    ip::tcp::endpoint remoteEp;
+    WebSocketTransport* transport;
+    std::vector<RxPacket>* serverReceivedPackets;
+
+    websocket::Client client;
+    websocketpp::connection_hdl clientHdl;
+    bool clientShouldPong;
+    std::vector<std::string> clientReceivedMessages;
+
+  private:
+    unique_ptr<Face> face;
 };
 
 } // namespace tests

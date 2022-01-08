@@ -98,8 +98,7 @@ Strategy::create(const Name& instanceName, Forwarder& forwarder)
     }
 
     unique_ptr<Strategy> instance = found->second(forwarder, instanceName);
-    NFD_LOG_DEBUG("create " << instanceName << " found=" << found->first
-                            << " created=" << instance->getInstanceName());
+    NFD_LOG_DEBUG("create " << instanceName << " found=" << found->first << " created=" << instance->getInstanceName());
     BOOST_ASSERT(!instance->getInstanceName().empty());
     return instance;
 }
@@ -114,8 +113,7 @@ std::set<Name>
 Strategy::listRegistered()
 {
     std::set<Name> strategyNames;
-    boost::copy(getRegistry() | boost::adaptors::map_keys,
-                std::inserter(strategyNames, strategyNames.end()));
+    boost::copy(getRegistry() | boost::adaptors::map_keys, std::inserter(strategyNames, strategyNames.end()));
     return strategyNames;
 }
 
@@ -135,8 +133,8 @@ Strategy::makeInstanceName(const Name& input, const Name& strategyName)
 {
     BOOST_ASSERT(strategyName.at(-1).isVersion());
 
-    bool hasVersion = std::any_of(input.rbegin(), input.rend(),
-                                  [](const name::Component& comp) { return comp.isVersion(); });
+    bool hasVersion =
+      std::any_of(input.rbegin(), input.rend(), [](const name::Component& comp) { return comp.isVersion(); });
     return hasVersion ? input : Name(input).append(strategyName.at(-1));
 }
 
@@ -151,24 +149,20 @@ Strategy::Strategy(Forwarder& forwarder)
 Strategy::~Strategy() = default;
 
 void
-Strategy::afterReceiveLoopedInterest(const FaceEndpoint& ingress, const Interest& interest,
-                                     pit::Entry& pitEntry)
+Strategy::afterReceiveLoopedInterest(const FaceEndpoint& ingress, const Interest& interest, pit::Entry& pitEntry)
 {
-    NFD_LOG_DEBUG("afterReceiveLoopedInterest pitEntry=" << pitEntry.getName()
-                                                         << " in=" << ingress);
+    NFD_LOG_DEBUG("afterReceiveLoopedInterest pitEntry=" << pitEntry.getName() << " in=" << ingress);
 }
 
 void
-Strategy::beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
-                                const Data& data)
+Strategy::beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data)
 {
     NFD_LOG_DEBUG("beforeSatisfyInterest pitEntry=" << pitEntry->getName() << " in=" << ingress
                                                     << " data=" << data.getName());
 }
 
 void
-Strategy::afterContentStoreHit(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
-                               const Data& data)
+Strategy::afterContentStoreHit(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data)
 {
     NFD_LOG_DEBUG("afterContentStoreHit pitEntry=" << pitEntry->getName() << " in=" << ingress
                                                    << " data=" << data.getName());
@@ -177,8 +171,7 @@ Strategy::afterContentStoreHit(const shared_ptr<pit::Entry>& pitEntry, const Fac
 }
 
 void
-Strategy::afterReceiveData(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
-                           const Data& data)
+Strategy::afterReceiveData(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data)
 {
     NFD_LOG_DEBUG("afterReceiveData pitEntry=" << pitEntry->getName() << " in=" << ingress
                                                << " data=" << data.getName());
@@ -189,8 +182,7 @@ Strategy::afterReceiveData(const shared_ptr<pit::Entry>& pitEntry, const FaceEnd
 }
 
 void
-Strategy::afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                           const shared_ptr<pit::Entry>& pitEntry)
+Strategy::afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack, const shared_ptr<pit::Entry>& pitEntry)
 {
     NFD_LOG_DEBUG("afterReceiveNack in=" << ingress << " pitEntry=" << pitEntry->getName());
 }
@@ -202,8 +194,7 @@ Strategy::onDroppedInterest(const FaceEndpoint& egress, const Interest& interest
 }
 
 void
-Strategy::sendInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress,
-                       const Interest& interest)
+Strategy::sendInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress, const Interest& interest)
 {
     if (interest.getTag<lp::PitToken>() != nullptr) {
         Interest interest2 = interest; // make a copy to preserve tag on original packet
@@ -217,13 +208,11 @@ Strategy::sendInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoin
 void
 Strategy::afterNewNextHop(const fib::NextHop& nextHop, const shared_ptr<pit::Entry>& pitEntry)
 {
-    NFD_LOG_DEBUG("afterNewNextHop pitEntry=" << pitEntry->getName()
-                                              << " nexthop=" << nextHop.getFace().getId());
+    NFD_LOG_DEBUG("afterNewNextHop pitEntry=" << pitEntry->getName() << " nexthop=" << nextHop.getFace().getId());
 }
 
 void
-Strategy::sendData(const shared_ptr<pit::Entry>& pitEntry, const Data& data,
-                   const FaceEndpoint& egress)
+Strategy::sendData(const shared_ptr<pit::Entry>& pitEntry, const Data& data, const FaceEndpoint& egress)
 {
     BOOST_ASSERT(pitEntry->getInterest().matchesData(data));
 
@@ -247,8 +236,7 @@ Strategy::sendData(const shared_ptr<pit::Entry>& pitEntry, const Data& data,
 }
 
 void
-Strategy::sendDataToAll(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
-                        const Data& data)
+Strategy::sendDataToAll(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data)
 {
     std::set<Face*> pendingDownstreams;
     auto now = time::steady_clock::now();
@@ -275,8 +263,7 @@ Strategy::sendNacks(const shared_ptr<pit::Entry>& pitEntry, const lp::NackHeader
 {
     // populate downstreams with all downstreams faces
     std::set<Face*> downstreams;
-    std::transform(pitEntry->in_begin(), pitEntry->in_end(),
-                   std::inserter(downstreams, downstreams.end()),
+    std::transform(pitEntry->in_begin(), pitEntry->in_end(), std::inserter(downstreams, downstreams.end()),
                    [](const pit::InRecord& inR) { return &inR.getFace(); });
 
     // delete excluded faces
@@ -321,13 +308,11 @@ Strategy::lookupFib(const pit::Entry& pitEntry) const
             }
             else {
                 // in default-free zone, use the first delegation that finds a FIB entry
-                NFD_LOG_TRACE("lookupFib delegation=" << del.name
-                                                      << " found=" << fibEntry->getPrefix());
+                NFD_LOG_TRACE("lookupFib delegation=" << del.name << " found=" << fibEntry->getPrefix());
             }
             return *fibEntry;
         }
-        BOOST_ASSERT(fibEntry->getPrefix().size()
-                     == 0); // only ndn:/ FIB entry can have zero nexthop
+        BOOST_ASSERT(fibEntry->getPrefix().size() == 0); // only ndn:/ FIB entry can have zero nexthop
     }
     BOOST_ASSERT(fibEntry != nullptr && fibEntry->getPrefix().size() == 0);
     return *fibEntry; // only occurs if no delegation finds a FIB nexthop

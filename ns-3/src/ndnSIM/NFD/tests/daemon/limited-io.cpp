@@ -43,71 +43,71 @@ LimitedIo::LimitedIo(GlobalIoTimeFixture* fixture)
 LimitedIo::StopReason
 LimitedIo::run(int nOpsLimit, time::nanoseconds timeLimit, time::nanoseconds tick)
 {
-  BOOST_ASSERT(!m_isRunning);
+    BOOST_ASSERT(!m_isRunning);
 
-  if (nOpsLimit <= 0) {
-    return EXCEED_OPS;
-  }
-
-  m_isRunning = true;
-
-  m_reason = NO_WORK;
-  m_nOpsRemaining = nOpsLimit;
-  if (timeLimit >= 0_ns) {
-    m_timeout = getScheduler().schedule(timeLimit, [this] { afterTimeout(); });
-  }
-
-  try {
-    if (m_fixture == nullptr) {
-      getGlobalIoService().run();
+    if (nOpsLimit <= 0) {
+        return EXCEED_OPS;
     }
-    else {
-      // timeLimit is enforced by afterTimeout
-      m_fixture->advanceClocks(tick, time::nanoseconds::max());
+
+    m_isRunning = true;
+
+    m_reason = NO_WORK;
+    m_nOpsRemaining = nOpsLimit;
+    if (timeLimit >= 0_ns) {
+        m_timeout = getScheduler().schedule(timeLimit, [this] { afterTimeout(); });
     }
-  }
-  catch (const StopException&) {
-  }
-  catch (...) {
-    BOOST_WARN_MESSAGE(false, boost::current_exception_diagnostic_information());
-    m_reason = EXCEPTION;
-    m_lastException = std::current_exception();
-  }
 
-  getGlobalIoService().reset();
-  m_timeout.cancel();
-  m_isRunning = false;
+    try {
+        if (m_fixture == nullptr) {
+            getGlobalIoService().run();
+        }
+        else {
+            // timeLimit is enforced by afterTimeout
+            m_fixture->advanceClocks(tick, time::nanoseconds::max());
+        }
+    }
+    catch (const StopException&) {
+    }
+    catch (...) {
+        BOOST_WARN_MESSAGE(false, boost::current_exception_diagnostic_information());
+        m_reason = EXCEPTION;
+        m_lastException = std::current_exception();
+    }
 
-  return m_reason;
+    getGlobalIoService().reset();
+    m_timeout.cancel();
+    m_isRunning = false;
+
+    return m_reason;
 }
 
 void
 LimitedIo::afterOp()
 {
-  if (!m_isRunning) {
-    // Do not proceed further if .afterOp() is invoked out of .run(),
-    return;
-  }
-
-  --m_nOpsRemaining;
-
-  if (m_nOpsRemaining <= 0) {
-    m_reason = EXCEED_OPS;
-    getGlobalIoService().stop();
-    if (m_fixture != nullptr) {
-      NDN_THROW(StopException());
+    if (!m_isRunning) {
+        // Do not proceed further if .afterOp() is invoked out of .run(),
+        return;
     }
-  }
+
+    --m_nOpsRemaining;
+
+    if (m_nOpsRemaining <= 0) {
+        m_reason = EXCEED_OPS;
+        getGlobalIoService().stop();
+        if (m_fixture != nullptr) {
+            NDN_THROW(StopException());
+        }
+    }
 }
 
 void
 LimitedIo::afterTimeout()
 {
-  m_reason = EXCEED_TIME;
-  getGlobalIoService().stop();
-  if (m_fixture != nullptr) {
-    NDN_THROW(StopException());
-  }
+    m_reason = EXCEED_TIME;
+    getGlobalIoService().stop();
+    if (m_fixture != nullptr) {
+        NDN_THROW(StopException());
+    }
 }
 
 } // namespace tests

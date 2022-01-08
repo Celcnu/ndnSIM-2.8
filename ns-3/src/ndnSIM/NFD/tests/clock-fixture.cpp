@@ -33,36 +33,36 @@ ClockFixture::ClockFixture(boost::asio::io_service& io)
   , m_systemClock(make_shared<time::UnitTestSystemClock>())
   , m_io(io)
 {
-  time::setCustomClocks(m_steadyClock, m_systemClock);
+    time::setCustomClocks(m_steadyClock, m_systemClock);
 }
 
 ClockFixture::~ClockFixture()
 {
-  time::setCustomClocks(nullptr, nullptr);
+    time::setCustomClocks(nullptr, nullptr);
 }
 
 void
 ClockFixture::advanceClocks(time::nanoseconds tick, time::nanoseconds total)
 {
-  BOOST_ASSERT(tick > time::nanoseconds::zero());
-  BOOST_ASSERT(total >= time::nanoseconds::zero());
+    BOOST_ASSERT(tick > time::nanoseconds::zero());
+    BOOST_ASSERT(total >= time::nanoseconds::zero());
 
-  while (total > time::nanoseconds::zero()) {
-    auto t = std::min(tick, total);
-    m_steadyClock->advance(t);
-    m_systemClock->advance(t);
-    total -= t;
+    while (total > time::nanoseconds::zero()) {
+        auto t = std::min(tick, total);
+        m_steadyClock->advance(t);
+        m_systemClock->advance(t);
+        total -= t;
 
-    pollAfterClockTick();
-  }
+        pollAfterClockTick();
+    }
 }
 
 void
 ClockFixture::pollAfterClockTick()
 {
-  if (m_io.stopped())
-    m_io.reset();
-  m_io.poll();
+    if (m_io.stopped())
+        m_io.reset();
+    m_io.poll();
 }
 
 } // namespace tests

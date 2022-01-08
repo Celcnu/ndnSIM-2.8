@@ -33,55 +33,43 @@
 namespace nfd {
 namespace face {
 
-class NetworkPredicateBase
-{
-public:
-  NetworkPredicateBase();
+class NetworkPredicateBase {
+  public:
+    NetworkPredicateBase();
 
-  virtual
-  ~NetworkPredicateBase();
+    virtual ~NetworkPredicateBase();
 
-  /**
-   * \brief Set the whitelist to "*" and clear the blacklist
-   */
-  void
-  clear();
+    /**
+     * \brief Set the whitelist to "*" and clear the blacklist
+     */
+    void clear();
 
-  void
-  parseWhitelist(const boost::property_tree::ptree& list);
+    void parseWhitelist(const boost::property_tree::ptree& list);
 
-  void
-  parseBlacklist(const boost::property_tree::ptree& list);
+    void parseBlacklist(const boost::property_tree::ptree& list);
 
-  void
-  assign(std::initializer_list<std::pair<std::string, std::string>> whitelist,
-         std::initializer_list<std::pair<std::string, std::string>> blacklist);
+    void assign(std::initializer_list<std::pair<std::string, std::string>> whitelist,
+                std::initializer_list<std::pair<std::string, std::string>> blacklist);
 
-  bool
-  operator==(const NetworkPredicateBase& other) const;
+    bool operator==(const NetworkPredicateBase& other) const;
 
-  bool
-  operator!=(const NetworkPredicateBase& other) const
-  {
-    return !this->operator==(other);
-  }
+    bool
+    operator!=(const NetworkPredicateBase& other) const
+    {
+        return !this->operator==(other);
+    }
 
-private:
-  virtual bool
-  isRuleSupported(const std::string& key) = 0;
+  private:
+    virtual bool isRuleSupported(const std::string& key) = 0;
 
-  virtual bool
-  isRuleValid(const std::string& key, const std::string& value) = 0;
+    virtual bool isRuleValid(const std::string& key, const std::string& value) = 0;
 
-  void
-  parseList(std::set<std::string>& set, const boost::property_tree::ptree& list, const std::string& section);
+    void parseList(std::set<std::string>& set, const boost::property_tree::ptree& list, const std::string& section);
 
-  void
-  parseList(std::set<std::string>& set, std::initializer_list<std::pair<std::string, std::string>> list);
+    void parseList(std::set<std::string>& set, std::initializer_list<std::pair<std::string, std::string>> list);
 
-PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  std::set<std::string> m_whitelist;
-  std::set<std::string> m_blacklist;
+    PUBLIC_WITH_TESTS_ELSE_PROTECTED : std::set<std::string> m_whitelist;
+    std::set<std::string> m_blacklist;
 };
 
 /**
@@ -94,18 +82,14 @@ PUBLIC_WITH_TESTS_ELSE_PROTECTED:
  * ndn::net::NetworkInterface is accepted if it matches any entry in the whitelist and none of
  * the entries in the blacklist.
  */
-class NetworkInterfacePredicate : public NetworkPredicateBase
-{
-public:
-  bool
-  operator()(const ndn::net::NetworkInterface& netif) const;
+class NetworkInterfacePredicate : public NetworkPredicateBase {
+  public:
+    bool operator()(const ndn::net::NetworkInterface& netif) const;
 
-private:
-  bool
-  isRuleSupported(const std::string& key) final;
+  private:
+    bool isRuleSupported(const std::string& key) final;
 
-  bool
-  isRuleValid(const std::string& key, const std::string& value) final;
+    bool isRuleValid(const std::string& key, const std::string& value) final;
 };
 
 /**
@@ -116,18 +100,14 @@ private:
  * 2001:db8:2::/64`) or a wildcard (`*`) that matches all IP addresses. An IP address is
  * accepted if it matches any entry in the whitelist and none of the entries in the blacklist.
  */
-class IpAddressPredicate : public NetworkPredicateBase
-{
-public:
-  bool
-  operator()(const boost::asio::ip::address& address) const;
+class IpAddressPredicate : public NetworkPredicateBase {
+  public:
+    bool operator()(const boost::asio::ip::address& address) const;
 
-private:
-  bool
-  isRuleSupported(const std::string& key) final;
+  private:
+    bool isRuleSupported(const std::string& key) final;
 
-  bool
-  isRuleValid(const std::string& key, const std::string& value) final;
+    bool isRuleValid(const std::string& key, const std::string& value) final;
 };
 
 } // namespace face

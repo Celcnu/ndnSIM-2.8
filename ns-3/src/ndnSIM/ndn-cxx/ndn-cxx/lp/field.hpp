@@ -34,22 +34,19 @@ namespace lp {
  */
 namespace field_location_tags {
 
-class Base
-{
+class Base {
 };
 
 /**
  * \brief a header field
  */
-class Header : public Base
-{
+class Header : public Base {
 };
 
 /**
  * \brief the Fragment field
  */
-class Fragment : public Base
-{
+class Fragment : public Base {
 };
 
 } // namespace field_location_tags
@@ -57,22 +54,21 @@ class Fragment : public Base
 /**
  * \brief concept check for fields
  */
-template<class X>
-struct Field
-{
-  static_assert(std::is_base_of<field_location_tags::Base, typename X::FieldLocation>::value, "");
-  static_assert(std::is_same<typename X::TlvType::value_type, uint64_t>::value, "");
-  static_assert(std::is_same<typename X::IsRepeatable::value_type, bool>::value, "");
-  NDN_CXX_ASSERT_DEFAULT_CONSTRUCTIBLE(typename X::ValueType);
-  BOOST_CONCEPT_ASSERT((boost::CopyConstructible<typename X::ValueType>));
-  BOOST_CONCEPT_USAGE(Field)
-  {
-    Block wire;
-    X j;
-    typename X::ValueType decoded = j.decode(wire);
-    EncodingBuffer enc;
-    j.encode(enc, decoded);
-  }
+template <class X>
+struct Field {
+    static_assert(std::is_base_of<field_location_tags::Base, typename X::FieldLocation>::value, "");
+    static_assert(std::is_same<typename X::TlvType::value_type, uint64_t>::value, "");
+    static_assert(std::is_same<typename X::IsRepeatable::value_type, bool>::value, "");
+    NDN_CXX_ASSERT_DEFAULT_CONSTRUCTIBLE(typename X::ValueType);
+    BOOST_CONCEPT_ASSERT((boost::CopyConstructible<typename X::ValueType>));
+    BOOST_CONCEPT_USAGE(Field)
+    {
+        Block wire;
+        X j;
+        typename X::ValueType decoded = j.decode(wire);
+        EncodingBuffer enc;
+        j.encode(enc, decoded);
+    }
 };
 
 } // namespace lp

@@ -31,7 +31,9 @@
 #include <iostream>
 #include <string>
 
-int main() {
+int
+main()
+{
     bool done = false;
     std::string input;
 
@@ -41,13 +43,14 @@ int main() {
 
         if (input == "quit") {
             done = true;
-        } else if (input == "help") {
-            std::cout 
-                << "\nCommand List:\n"
-                << "help: Display this help text\n"
-                << "quit: Exit the program\n"
-                << std::endl;
-        } else {
+        }
+        else if (input == "help") {
+            std::cout << "\nCommand List:\n"
+                      << "help: Display this help text\n"
+                      << "quit: Exit the program\n"
+                      << std::endl;
+        }
+        else {
             std::cout << "Unrecognized Command" << std::endl;
         }
     }

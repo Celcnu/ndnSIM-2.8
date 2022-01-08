@@ -35,97 +35,84 @@ class ValidationState;
 
 namespace validator_config {
 
-class Checker : noncopyable
-{
-public:
-  virtual
-  ~Checker() = default;
+class Checker : noncopyable {
+  public:
+    virtual ~Checker() = default;
 
-  /**
-   * @brief Check if packet name ane KeyLocator satisfy the checker's conditions
-   *
-   * @param pktType tlv::Interest or tlv::Data
-   * @param pktName packet's name
-   * @param klName  KeyLocator's name
-   * @param state Validation state
-   *
-   * @retval false data is immediately invalid. Will call state::fail() with proper code and message.
-   * @retval true  further signature verification is needed.
-   */
-  bool
-  check(uint32_t pktType, const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state);
+    /**
+     * @brief Check if packet name ane KeyLocator satisfy the checker's conditions
+     *
+     * @param pktType tlv::Interest or tlv::Data
+     * @param pktName packet's name
+     * @param klName  KeyLocator's name
+     * @param state Validation state
+     *
+     * @retval false data is immediately invalid. Will call state::fail() with proper code and message.
+     * @retval true  further signature verification is needed.
+     */
+    bool check(uint32_t pktType, const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state);
 
-  /**
-   * @brief create a checker from configuration section
-   *
-   * @param configSection The section containing the definition of checker.
-   * @param configFilename The configuration file name.
-   * @return a checker created from configuration
-   */
-  static unique_ptr<Checker>
-  create(const ConfigSection& configSection, const std::string& configFilename);
+    /**
+     * @brief create a checker from configuration section
+     *
+     * @param configSection The section containing the definition of checker.
+     * @param configFilename The configuration file name.
+     * @return a checker created from configuration
+     */
+    static unique_ptr<Checker> create(const ConfigSection& configSection, const std::string& configFilename);
 
-private:
-  static unique_ptr<Checker>
-  createCustomizedChecker(const ConfigSection& configSection, const std::string& configFilename);
+  private:
+    static unique_ptr<Checker>
+    createCustomizedChecker(const ConfigSection& configSection, const std::string& configFilename);
 
-  static unique_ptr<Checker>
-  createHierarchicalChecker(const ConfigSection& configSection, const std::string& configFilename);
+    static unique_ptr<Checker>
+    createHierarchicalChecker(const ConfigSection& configSection, const std::string& configFilename);
 
-  static unique_ptr<Checker>
-  createKeyLocatorChecker(const ConfigSection& configSection, const std::string& configFilename);
+    static unique_ptr<Checker>
+    createKeyLocatorChecker(const ConfigSection& configSection, const std::string& configFilename);
 
-  static unique_ptr<Checker>
-  createKeyLocatorNameChecker(const ConfigSection& configSection, const std::string& configFilename);
+    static unique_ptr<Checker>
+    createKeyLocatorNameChecker(const ConfigSection& configSection, const std::string& configFilename);
 
-protected:
-  virtual bool
-  checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) = 0;
+  protected:
+    virtual bool checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) = 0;
 };
 
-class NameRelationChecker : public Checker
-{
-public:
-  NameRelationChecker(const Name& name, const NameRelation& relation);
+class NameRelationChecker : public Checker {
+  public:
+    NameRelationChecker(const Name& name, const NameRelation& relation);
 
-protected:
-  bool
-  checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
+  protected:
+    bool checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
 
-private:
-  Name m_name;
-  NameRelation m_relation;
+  private:
+    Name m_name;
+    NameRelation m_relation;
 };
 
-class RegexChecker : public Checker
-{
-public:
-  explicit
-  RegexChecker(const Regex& regex);
+class RegexChecker : public Checker {
+  public:
+    explicit RegexChecker(const Regex& regex);
 
-protected:
-  bool
-  checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
+  protected:
+    bool checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
 
-private:
-  Regex m_regex;
+  private:
+    Regex m_regex;
 };
 
-class HyperRelationChecker : public Checker
-{
-public:
-  HyperRelationChecker(const std::string& pktNameExpr, const std::string pktNameExpand,
-                       const std::string& klNameExpr, const std::string klNameExpand,
-                       const NameRelation& hyperRelation);
+class HyperRelationChecker : public Checker {
+  public:
+    HyperRelationChecker(const std::string& pktNameExpr, const std::string pktNameExpand, const std::string& klNameExpr,
+                         const std::string klNameExpand, const NameRelation& hyperRelation);
 
-protected:
-  bool
-  checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
+  protected:
+    bool checkNames(const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) override;
 
-private:
-  Regex m_hyperPRegex;
-  Regex m_hyperKRegex;
-  NameRelation m_hyperRelation;
+  private:
+    Regex m_hyperPRegex;
+    Regex m_hyperKRegex;
+    NameRelation m_hyperRelation;
 };
 
 } // namespace validator_config

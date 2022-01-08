@@ -36,28 +36,22 @@ namespace tpm {
 /**
  * @brief A TPM key handle that keeps the private key in memory
  */
-class KeyHandleMem : public KeyHandle
-{
-public:
-  explicit
-  KeyHandleMem(shared_ptr<transform::PrivateKey> key);
+class KeyHandleMem : public KeyHandle {
+  public:
+    explicit KeyHandleMem(shared_ptr<transform::PrivateKey> key);
 
-private:
-  ConstBufferPtr
-  doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const final;
+  private:
+    ConstBufferPtr doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const final;
 
-  bool
-  doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size,
-           const uint8_t* sig, size_t sigLen) const final;
+    bool doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size, const uint8_t* sig,
+                  size_t sigLen) const final;
 
-  ConstBufferPtr
-  doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const final;
+    ConstBufferPtr doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const final;
 
-  ConstBufferPtr
-  doDerivePublicKey() const final;
+    ConstBufferPtr doDerivePublicKey() const final;
 
-private:
-  shared_ptr<transform::PrivateKey> m_key;
+  private:
+    shared_ptr<transform::PrivateKey> m_key;
 };
 
 } // namespace tpm

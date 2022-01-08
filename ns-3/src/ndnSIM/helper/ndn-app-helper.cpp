@@ -36,71 +36,73 @@ namespace ndn {
 
 AppHelper::AppHelper(const std::string& app)
 {
-  // 将参数字符串作为TypeID, 例如"ns3::ndn::ConsumerCbr"
-  m_factory.SetTypeId(app);
+    // 将参数字符串作为TypeID, 例如"ns3::ndn::ConsumerCbr"
+    m_factory.SetTypeId(app);
 }
 
 void
 AppHelper::SetPrefix(const std::string& prefix)
 {
-  m_factory.Set("Prefix", StringValue(prefix));
+    m_factory.Set("Prefix", StringValue(prefix));
 }
 
 void
 AppHelper::SetAttribute(std::string name, const AttributeValue& value)
 {
-  m_factory.Set(name, value);
+    m_factory.Set(name, value);
 }
 
 ApplicationContainer
 AppHelper::Install(Ptr<Node> node)
 {
-  ApplicationContainer apps;
-  Ptr<Application> app = InstallPriv(node);
-  if (app != 0)
-    apps.Add(app);
+    ApplicationContainer apps;
+    Ptr<Application> app = InstallPriv(node);
+    if (app != 0)
+        apps.Add(app);
 
-  return apps;
+    return apps;
 }
 
 ApplicationContainer
 AppHelper::Install(std::string nodeName)
 {
-  Ptr<Node> node = Names::Find<Node>(nodeName);
-  return Install(node);
+    Ptr<Node> node = Names::Find<Node>(nodeName);
+    return Install(node);
 }
 
 ApplicationContainer
 AppHelper::Install(NodeContainer c)
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
-    Ptr<Application> app = InstallPriv(*i);
-    if (app != 0)
-      apps.Add(app);
-  }
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
+        Ptr<Application> app = InstallPriv(*i);
+        if (app != 0)
+            apps.Add(app);
+    }
 
-  return apps;
+    return apps;
 }
 
 Ptr<Application>
 AppHelper::InstallPriv(Ptr<Node> node)
 {
-  Ptr<Application> app;
-  Simulator::ScheduleWithContext(node->GetId(), Seconds(0), MakeEvent([=, &app] {
+    Ptr<Application> app;
+    Simulator::ScheduleWithContext(node->GetId(), Seconds(0), MakeEvent([=, &app] {
 #ifdef NS3_MPI
-        if (MpiInterface::IsEnabled() && node->GetSystemId() != MpiInterface::GetSystemId()) {
-          // don't create an app if MPI is enabled and node is not in the correct partition
-          return 0;
-        }
+                                       if (MpiInterface::IsEnabled()
+                                           && node->GetSystemId() != MpiInterface::GetSystemId()) {
+                                           // don't create an app if MPI is enabled and node is not in the correct
+                                           // partition
+                                           return 0;
+                                       }
 #endif
 
-        app = m_factory.Create<Application>();
-        node->AddApplication(app);
-      }));
-  StackHelper::ProcessWarmupEvents();
+                                       app = m_factory.Create<Application>();
+                                       node->AddApplication(app);
+                                   }));
+    StackHelper::ProcessWarmupEvents();
 
-  return app;
+    return app;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -113,25 +115,24 @@ FactoryCallbackApp::FactoryCallbackApp(const FactoryCallback& factory)
 ApplicationContainer
 FactoryCallbackApp::Install(Ptr<Node> node, const FactoryCallback& factory)
 {
-  ApplicationContainer apps;
-  auto app = CreateObject<FactoryCallbackApp>(factory);
-  node->AddApplication(app);
-  apps.Add(app);
-  return apps;
+    ApplicationContainer apps;
+    auto app = CreateObject<FactoryCallbackApp>(factory);
+    node->AddApplication(app);
+    apps.Add(app);
+    return apps;
 }
 
 void
 FactoryCallbackApp::StartApplication()
 {
-  m_impl = m_factory();
+    m_impl = m_factory();
 }
 
 void
 FactoryCallbackApp::StopApplication()
 {
-  m_impl.reset();
+    m_impl.reset();
 }
-
 
 } // namespace ndn
 } // namespace ns3

@@ -36,54 +36,52 @@ static_assert(sizeof(const InterestFilterId*) == sizeof(RecordId), "");
 /**
  * @brief associates an InterestFilter with Interest callback
  */
-class InterestFilterRecord : public RecordBase<InterestFilterRecord>
-{
-public:
-  /**
-   * @brief Construct an Interest filter record
-   *
-   * @param filter an InterestFilter that represents what Interest should invoke the callback
-   * @param interestCallback invoked when matching Interest is received
-   */
-  InterestFilterRecord(const InterestFilter& filter,
-                       const InterestCallback& interestCallback)
-    : m_filter(filter)
-    , m_interestCallback(interestCallback)
-  {
-  }
-
-  const InterestFilter&
-  getFilter() const
-  {
-    return m_filter;
-  }
-
-  /**
-   * @brief Check if Interest name matches the filter
-   * @param name Interest Name
-   */
-  bool
-  doesMatch(const PendingInterest& entry) const
-  {
-    return (entry.getOrigin() == PendingInterestOrigin::FORWARDER || m_filter.allowsLoopback()) &&
-            m_filter.doesMatch(entry.getInterest()->getName());
-  }
-
-  /**
-   * @brief invokes the InterestCallback
-   * @note This method does nothing if the Interest callback is empty
-   */
-  void
-  invokeInterestCallback(const Interest& interest) const
-  {
-    if (m_interestCallback != nullptr) {
-      m_interestCallback(m_filter, interest);
+class InterestFilterRecord : public RecordBase<InterestFilterRecord> {
+  public:
+    /**
+     * @brief Construct an Interest filter record
+     *
+     * @param filter an InterestFilter that represents what Interest should invoke the callback
+     * @param interestCallback invoked when matching Interest is received
+     */
+    InterestFilterRecord(const InterestFilter& filter, const InterestCallback& interestCallback)
+      : m_filter(filter)
+      , m_interestCallback(interestCallback)
+    {
     }
-  }
 
-private:
-  InterestFilter m_filter;
-  InterestCallback m_interestCallback;
+    const InterestFilter&
+    getFilter() const
+    {
+        return m_filter;
+    }
+
+    /**
+     * @brief Check if Interest name matches the filter
+     * @param name Interest Name
+     */
+    bool
+    doesMatch(const PendingInterest& entry) const
+    {
+        return (entry.getOrigin() == PendingInterestOrigin::FORWARDER || m_filter.allowsLoopback())
+               && m_filter.doesMatch(entry.getInterest()->getName());
+    }
+
+    /**
+     * @brief invokes the InterestCallback
+     * @note This method does nothing if the Interest callback is empty
+     */
+    void
+    invokeInterestCallback(const Interest& interest) const
+    {
+        if (m_interestCallback != nullptr) {
+            m_interestCallback(m_filter, interest);
+        }
+    }
+
+  private:
+    InterestFilter m_filter;
+    InterestCallback m_interestCallback;
 };
 
 } // namespace ndn

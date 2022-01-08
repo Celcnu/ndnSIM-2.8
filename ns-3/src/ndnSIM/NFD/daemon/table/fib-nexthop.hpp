@@ -34,36 +34,34 @@ namespace fib {
 
 /** \brief Represents a nexthop record in a FIB entry
  */
-class NextHop
-{
-public:
-  explicit
-  NextHop(Face& face)
-    : m_face(&face)
-  {
-  }
+class NextHop {
+  public:
+    explicit NextHop(Face& face)
+      : m_face(&face)
+    {
+    }
 
-  Face&
-  getFace() const
-  {
-    return *m_face;
-  }
+    Face&
+    getFace() const
+    {
+        return *m_face;
+    }
 
-  uint64_t
-  getCost() const
-  {
-    return m_cost;
-  }
+    uint64_t
+    getCost() const
+    {
+        return m_cost;
+    }
 
-  void
-  setCost(uint64_t cost)
-  {
-    m_cost = cost;
-  }
+    void
+    setCost(uint64_t cost)
+    {
+        m_cost = cost;
+    }
 
-private:
-  Face* m_face; // pointer instead of reference so that NextHop is movable
-  uint64_t m_cost = 0;
+  private:
+    Face* m_face; // pointer instead of reference so that NextHop is movable
+    uint64_t m_cost = 0;
 };
 
 } // namespace fib

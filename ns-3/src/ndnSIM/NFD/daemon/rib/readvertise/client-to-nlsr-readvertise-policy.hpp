@@ -33,19 +33,16 @@ namespace rib {
 
 /** \brief a policy to readvertise routes registered by end hosts into NLSR
  */
-class ClientToNlsrReadvertisePolicy : public ReadvertisePolicy
-{
-public:
-  /** \brief advertise if the route's origin is client
-   *
-   *  If the route origin is "client" (typically from auto prefix propagation), readvertise it
-   *  using the default signing identity.
-   */
-  optional<ReadvertiseAction>
-  handleNewRoute(const RibRouteRef& ribRoute) const override;
+class ClientToNlsrReadvertisePolicy : public ReadvertisePolicy {
+  public:
+    /** \brief advertise if the route's origin is client
+     *
+     *  If the route origin is "client" (typically from auto prefix propagation), readvertise it
+     *  using the default signing identity.
+     */
+    optional<ReadvertiseAction> handleNewRoute(const RibRouteRef& ribRoute) const override;
 
-  time::milliseconds
-  getRefreshInterval() const override;
+    time::milliseconds getRefreshInterval() const override;
 };
 
 } // namespace rib

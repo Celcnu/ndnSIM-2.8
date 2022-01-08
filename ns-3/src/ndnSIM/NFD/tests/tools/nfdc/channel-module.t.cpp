@@ -50,20 +50,21 @@ const std::string STATUS_TEXT = std::string(R"TEXT(
 Channels:
   tcp4://192.0.2.1:6363
   ws://[::]:9696/NFD
-)TEXT").substr(1);
+)TEXT")
+                                  .substr(1);
 
 BOOST_AUTO_TEST_CASE(Status)
 {
-  this->fetchStatus();
-  ChannelStatus payload1;
-  payload1.setLocalUri("tcp4://192.0.2.1:6363");
-  ChannelStatus payload2;
-  payload2.setLocalUri("ws://[::]:9696/NFD");
-  this->sendDataset("/localhost/nfd/faces/channels", payload1, payload2);
-  this->prepareStatusOutput();
+    this->fetchStatus();
+    ChannelStatus payload1;
+    payload1.setLocalUri("tcp4://192.0.2.1:6363");
+    ChannelStatus payload2;
+    payload2.setLocalUri("ws://[::]:9696/NFD");
+    this->sendDataset("/localhost/nfd/faces/channels", payload1, payload2);
+    this->prepareStatusOutput();
 
-  BOOST_CHECK(statusXml.is_equal(STATUS_XML));
-  BOOST_CHECK(statusText.is_equal(STATUS_TEXT));
+    BOOST_CHECK(statusXml.is_equal(STATUS_XML));
+    BOOST_CHECK(statusText.is_equal(STATUS_TEXT));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestChannelModule

@@ -31,26 +31,26 @@ namespace rib {
 FibUpdate
 FibUpdate::createAddUpdate(const Name& name, const uint64_t faceId, const uint64_t cost)
 {
-  FibUpdate update;
+    FibUpdate update;
 
-  update.name = name;
-  update.faceId = faceId;
-  update.cost = cost;
-  update.action = ADD_NEXTHOP;
+    update.name = name;
+    update.faceId = faceId;
+    update.cost = cost;
+    update.action = ADD_NEXTHOP;
 
-  return update;
+    return update;
 }
 
 FibUpdate
 FibUpdate::createRemoveUpdate(const Name& name, const uint64_t faceId)
 {
-  FibUpdate update;
+    FibUpdate update;
 
-  update.name = name;
-  update.faceId = faceId;
-  update.action = REMOVE_NEXTHOP;
+    update.name = name;
+    update.faceId = faceId;
+    update.action = REMOVE_NEXTHOP;
 
-  return update;
+    return update;
 }
 
 } // namespace rib

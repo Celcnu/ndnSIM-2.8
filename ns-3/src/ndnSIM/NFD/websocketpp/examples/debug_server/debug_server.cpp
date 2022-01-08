@@ -72,13 +72,11 @@ struct debug_custom : public websocketpp::config::debug_asio {
         typedef type::elog_type elog_type;
         typedef type::request_type request_type;
         typedef type::response_type response_type;
-        typedef websocketpp::transport::asio::basic_socket::endpoint
-            socket_type;
+        typedef websocketpp::transport::asio::basic_socket::endpoint socket_type;
     };
 
-    typedef websocketpp::transport::asio::endpoint<transport_config>
-        transport_type;
-    
+    typedef websocketpp::transport::asio::endpoint<transport_config> transport_type;
+
     static const long timeout_open_handshake = 0;
 };
 
@@ -86,19 +84,23 @@ struct debug_custom : public websocketpp::config::debug_asio {
 
 typedef websocketpp::server<debug_custom> server;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
-bool validate(server *, websocketpp::connection_hdl) {
-    //sleep(6);
+bool
+validate(server*, websocketpp::connection_hdl)
+{
+    // sleep(6);
     return true;
 }
 
-void on_http(server* s, websocketpp::connection_hdl hdl) {
+void
+on_http(server* s, websocketpp::connection_hdl hdl)
+{
     server::connection_ptr con = s->get_con_from_hdl(hdl);
 
     std::string res = con->get_request_body();
@@ -110,31 +112,38 @@ void on_http(server* s, websocketpp::connection_hdl hdl) {
     con->set_status(websocketpp::http::status_code::ok);
 }
 
-void on_fail(server* s, websocketpp::connection_hdl hdl) {
+void
+on_fail(server* s, websocketpp::connection_hdl hdl)
+{
     server::connection_ptr con = s->get_con_from_hdl(hdl);
-    
-    std::cout << "Fail handler: " << con->get_ec() << " " << con->get_ec().message()  << std::endl;
+
+    std::cout << "Fail handler: " << con->get_ec() << " " << con->get_ec().message() << std::endl;
 }
 
-void on_close(websocketpp::connection_hdl) {
+void on_close(websocketpp::connection_hdl)
+{
     std::cout << "Close handler" << std::endl;
 }
 
 // Define a callback to handle incoming messages
-void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
-    std::cout << "on_message called with hdl: " << hdl.lock().get()
-              << " and message: " << msg->get_payload()
+void
+on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg)
+{
+    std::cout << "on_message called with hdl: " << hdl.lock().get() << " and message: " << msg->get_payload()
               << std::endl;
 
     try {
         s->send(hdl, msg->get_payload(), msg->get_opcode());
-    } catch (websocketpp::exception const & e) {
-        std::cout << "Echo failed because: " 
+    }
+    catch (websocketpp::exception const& e) {
+        std::cout << "Echo failed because: "
                   << "(" << e.what() << ")" << std::endl;
     }
 }
 
-int main() {
+int
+main()
+{
     // Create a server endpoint
     server echo_server;
 
@@ -148,13 +157,13 @@ int main() {
         echo_server.set_reuse_addr(true);
 
         // Register our message handler
-        echo_server.set_message_handler(bind(&on_message,&echo_server,::_1,::_2));
+        echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2));
 
-        echo_server.set_http_handler(bind(&on_http,&echo_server,::_1));
-        echo_server.set_fail_handler(bind(&on_fail,&echo_server,::_1));
+        echo_server.set_http_handler(bind(&on_http, &echo_server, ::_1));
+        echo_server.set_fail_handler(bind(&on_fail, &echo_server, ::_1));
         echo_server.set_close_handler(&on_close);
 
-        echo_server.set_validate_handler(bind(&validate,&echo_server,::_1));
+        echo_server.set_validate_handler(bind(&validate, &echo_server, ::_1));
 
         // Listen on port 9012
         echo_server.listen(9012);
@@ -164,11 +173,14 @@ int main() {
 
         // Start the ASIO io_service run loop
         echo_server.run();
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
-    } catch (const std::exception & e) {
+    }
+    catch (const std::exception& e) {
         std::cout << e.what() << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
         std::cout << "other exception" << std::endl;
     }
 }

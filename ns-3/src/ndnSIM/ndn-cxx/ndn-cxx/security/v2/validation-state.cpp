@@ -40,107 +40,106 @@ ValidationState::ValidationState()
 
 ValidationState::~ValidationState()
 {
-  NDN_LOG_TRACE(__func__);
-  BOOST_ASSERT(!boost::logic::indeterminate(m_outcome));
+    NDN_LOG_TRACE(__func__);
+    BOOST_ASSERT(!boost::logic::indeterminate(m_outcome));
 }
 
 size_t
 ValidationState::getDepth() const
 {
-  return m_certificateChain.size();
+    return m_certificateChain.size();
 }
 
 bool
 ValidationState::hasSeenCertificateName(const Name& certName)
 {
-  return !m_seenCertificateNames.insert(certName).second;
+    return !m_seenCertificateNames.insert(certName).second;
 }
 
 void
 ValidationState::addCertificate(const Certificate& cert)
 {
-  m_certificateChain.push_front(cert);
+    m_certificateChain.push_front(cert);
 }
 
 const Certificate*
 ValidationState::verifyCertificateChain(const Certificate& trustedCert)
 {
-  const Certificate* validatedCert = &trustedCert;
-  for (auto it = m_certificateChain.begin(); it != m_certificateChain.end(); ++it) {
-    const auto& certToValidate = *it;
+    const Certificate* validatedCert = &trustedCert;
+    for (auto it = m_certificateChain.begin(); it != m_certificateChain.end(); ++it) {
+        const auto& certToValidate = *it;
 
-    if (!verifySignature(certToValidate, *validatedCert)) {
-      this->fail({ValidationError::Code::INVALID_SIGNATURE, "Invalid signature of certificate `" +
-                  certToValidate.getName().toUri() + "`"});
-      m_certificateChain.erase(it, m_certificateChain.end());
-      return nullptr;
+        if (!verifySignature(certToValidate, *validatedCert)) {
+            this->fail({ValidationError::Code::INVALID_SIGNATURE,
+                        "Invalid signature of certificate `" + certToValidate.getName().toUri() + "`"});
+            m_certificateChain.erase(it, m_certificateChain.end());
+            return nullptr;
+        }
+        else {
+            NDN_LOG_TRACE_DEPTH("OK signature for certificate `" << certToValidate.getName() << "`");
+            validatedCert = &certToValidate;
+        }
     }
-    else {
-      NDN_LOG_TRACE_DEPTH("OK signature for certificate `" << certToValidate.getName() << "`");
-      validatedCert = &certToValidate;
-    }
-  }
-  return validatedCert;
+    return validatedCert;
 }
 
 /////// DataValidationState
 
-DataValidationState::DataValidationState(const Data& data,
-                                         const DataValidationSuccessCallback& successCb,
+DataValidationState::DataValidationState(const Data& data, const DataValidationSuccessCallback& successCb,
                                          const DataValidationFailureCallback& failureCb)
   : m_data(data)
   , m_successCb(successCb)
   , m_failureCb(failureCb)
 {
-  BOOST_ASSERT(m_successCb != nullptr);
-  BOOST_ASSERT(m_failureCb != nullptr);
+    BOOST_ASSERT(m_successCb != nullptr);
+    BOOST_ASSERT(m_failureCb != nullptr);
 }
 
 DataValidationState::~DataValidationState()
 {
-  if (boost::logic::indeterminate(m_outcome)) {
-    this->fail({ValidationError::Code::IMPLEMENTATION_ERROR,
-                "Validator/policy did not invoke success or failure callback"});
-  }
+    if (boost::logic::indeterminate(m_outcome)) {
+        this->fail(
+          {ValidationError::Code::IMPLEMENTATION_ERROR, "Validator/policy did not invoke success or failure callback"});
+    }
 }
 
 void
 DataValidationState::verifyOriginalPacket(const Certificate& trustedCert)
 {
-  if (verifySignature(m_data, trustedCert)) {
-    NDN_LOG_TRACE_DEPTH("OK signature for data `" << m_data.getName() << "`");
-    m_successCb(m_data);
-    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-    m_outcome = true;
-  }
-  else {
-    this->fail({ValidationError::Code::INVALID_SIGNATURE, "Invalid signature of data `" +
-                m_data.getName().toUri() + "`"});
-  }
+    if (verifySignature(m_data, trustedCert)) {
+        NDN_LOG_TRACE_DEPTH("OK signature for data `" << m_data.getName() << "`");
+        m_successCb(m_data);
+        BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+        m_outcome = true;
+    }
+    else {
+        this->fail(
+          {ValidationError::Code::INVALID_SIGNATURE, "Invalid signature of data `" + m_data.getName().toUri() + "`"});
+    }
 }
 
 void
 DataValidationState::bypassValidation()
 {
-  NDN_LOG_TRACE_DEPTH("Signature verification bypassed for data `" << m_data.getName() << "`");
-  m_successCb(m_data);
-  BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-  m_outcome = true;
+    NDN_LOG_TRACE_DEPTH("Signature verification bypassed for data `" << m_data.getName() << "`");
+    m_successCb(m_data);
+    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+    m_outcome = true;
 }
 
 void
 DataValidationState::fail(const ValidationError& error)
 {
-  NDN_LOG_DEBUG_DEPTH(error);
-  m_failureCb(m_data, error);
-  BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-  m_outcome = false;
+    NDN_LOG_DEBUG_DEPTH(error);
+    m_failureCb(m_data, error);
+    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+    m_outcome = false;
 }
 
 const Data&
 DataValidationState::getOriginalData() const
 {
-  return m_data;
+    return m_data;
 }
 
 /////// InterestValidationState
@@ -151,56 +150,56 @@ InterestValidationState::InterestValidationState(const Interest& interest,
   : m_interest(interest)
   , m_failureCb(failureCb)
 {
-  afterSuccess.connect(successCb);
-  BOOST_ASSERT(successCb != nullptr);
-  BOOST_ASSERT(m_failureCb != nullptr);
+    afterSuccess.connect(successCb);
+    BOOST_ASSERT(successCb != nullptr);
+    BOOST_ASSERT(m_failureCb != nullptr);
 }
 
 InterestValidationState::~InterestValidationState()
 {
-  if (boost::logic::indeterminate(m_outcome)) {
-    this->fail({ValidationError::Code::IMPLEMENTATION_ERROR,
-                "Validator/policy did not invoke success or failure callback"});
-  }
+    if (boost::logic::indeterminate(m_outcome)) {
+        this->fail(
+          {ValidationError::Code::IMPLEMENTATION_ERROR, "Validator/policy did not invoke success or failure callback"});
+    }
 }
 
 void
 InterestValidationState::verifyOriginalPacket(const Certificate& trustedCert)
 {
-  if (verifySignature(m_interest, trustedCert)) {
-    NDN_LOG_TRACE_DEPTH("OK signature for interest `" << m_interest.getName() << "`");
-    this->afterSuccess(m_interest);
-    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-    m_outcome = true;
-  }
-  else {
-    this->fail({ValidationError::Code::INVALID_SIGNATURE, "Invalid signature of interest `" +
-                m_interest.getName().toUri() + "`"});
-  }
+    if (verifySignature(m_interest, trustedCert)) {
+        NDN_LOG_TRACE_DEPTH("OK signature for interest `" << m_interest.getName() << "`");
+        this->afterSuccess(m_interest);
+        BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+        m_outcome = true;
+    }
+    else {
+        this->fail({ValidationError::Code::INVALID_SIGNATURE,
+                    "Invalid signature of interest `" + m_interest.getName().toUri() + "`"});
+    }
 }
 
 void
 InterestValidationState::bypassValidation()
 {
-  NDN_LOG_TRACE_DEPTH("Signature verification bypassed for interest `" << m_interest.getName() << "`");
-  this->afterSuccess(m_interest);
-  BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-  m_outcome = true;
+    NDN_LOG_TRACE_DEPTH("Signature verification bypassed for interest `" << m_interest.getName() << "`");
+    this->afterSuccess(m_interest);
+    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+    m_outcome = true;
 }
 
 void
 InterestValidationState::fail(const ValidationError& error)
 {
-  NDN_LOG_DEBUG_DEPTH(error);
-  m_failureCb(m_interest, error);
-  BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
-  m_outcome = false;
+    NDN_LOG_DEBUG_DEPTH(error);
+    m_failureCb(m_interest, error);
+    BOOST_ASSERT(boost::logic::indeterminate(m_outcome));
+    m_outcome = false;
 }
 
 const Interest&
 InterestValidationState::getOriginalInterest() const
 {
-  return m_interest;
+    return m_interest;
 }
 
 } // namespace v2

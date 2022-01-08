@@ -47,43 +47,43 @@ BOOST_AUTO_TEST_SUITE(Xml)
 
 BOOST_AUTO_TEST_CASE(TextEscaping)
 {
-  output_test_stream os;
-  os << xml::Text{"\"less than\" & 'greater than' surround XML <element> tag name"};
+    output_test_stream os;
+    os << xml::Text{"\"less than\" & 'greater than' surround XML <element> tag name"};
 
-  BOOST_CHECK(os.is_equal("&quot;less than&quot; &amp; &apos;greater than&apos;"
-                          " surround XML &lt;element&gt; tag name"));
+    BOOST_CHECK(os.is_equal("&quot;less than&quot; &amp; &apos;greater than&apos;"
+                            " surround XML &lt;element&gt; tag name"));
 }
 
 BOOST_AUTO_TEST_CASE(Flag)
 {
-  output_test_stream os;
-  os << "<A>" << xml::Flag{"B", true} << "</A><C>" << xml::Flag{"D", false} << "</C>";
+    output_test_stream os;
+    os << "<A>" << xml::Flag{"B", true} << "</A><C>" << xml::Flag{"D", false} << "</C>";
 
-  BOOST_CHECK(os.is_equal("<A><B/></A><C></C>"));
+    BOOST_CHECK(os.is_equal("<A><B/></A><C></C>"));
 }
 
 BOOST_AUTO_TEST_CASE(DurationFormatting)
 {
-  time::nanoseconds d1 = 53000_s + 87_ms + 3_us;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d1), "PT53000.087S");
+    time::nanoseconds d1 = 53000_s + 87_ms + 3_us;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d1), "PT53000.087S");
 
-  time::nanoseconds d2 = 56_s;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d2), "PT56S");
+    time::nanoseconds d2 = 56_s;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d2), "PT56S");
 
-  time::nanoseconds d3 = 3_min;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d3), "PT180S");
+    time::nanoseconds d3 = 3_min;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d3), "PT180S");
 
-  time::nanoseconds d4 = 0_ns;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d4), "PT0S");
+    time::nanoseconds d4 = 0_ns;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d4), "PT0S");
 
-  time::nanoseconds d5 = 1_ms;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d5), "PT0.001S");
+    time::nanoseconds d5 = 1_ms;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d5), "PT0.001S");
 
-  time::nanoseconds d6 = -53_s - 250_ms;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d6), "-PT53.250S");
+    time::nanoseconds d6 = -53_s - 250_ms;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d6), "-PT53.250S");
 
-  time::nanoseconds d7 = 1_us;
-  BOOST_CHECK_EQUAL(xml::formatDuration(d7), "PT0S");
+    time::nanoseconds d7 = 1_us;
+    BOOST_CHECK_EQUAL(xml::formatDuration(d7), "PT0S");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Xml
@@ -92,52 +92,50 @@ BOOST_AUTO_TEST_SUITE(Text)
 
 BOOST_AUTO_TEST_CASE(Space)
 {
-  output_test_stream os;
-  os << 'A' << text::Spaces{-1} << 'B' << text::Spaces{0} << 'C' << text::Spaces{5} << 'D';
+    output_test_stream os;
+    os << 'A' << text::Spaces{-1} << 'B' << text::Spaces{0} << 'C' << text::Spaces{5} << 'D';
 
-  BOOST_CHECK(os.is_equal("ABC     D"));
+    BOOST_CHECK(os.is_equal("ABC     D"));
 }
 
 BOOST_AUTO_TEST_CASE(Sep)
 {
-  output_test_stream os;
-  text::Separator sep(",");
-  for (int i = 1; i <= 3; ++i) {
-    os << sep << i;
-  }
+    output_test_stream os;
+    text::Separator sep(",");
+    for (int i = 1; i <= 3; ++i) {
+        os << sep << i;
+    }
 
-  BOOST_CHECK(os.is_equal("1,2,3"));
+    BOOST_CHECK(os.is_equal("1,2,3"));
 }
 
 static void
 printItemAttributes(std::ostream& os, bool wantMultiLine)
 {
-  text::ItemAttributes ia(wantMultiLine, 3);
-  os << ia("id") << 500
-     << ia("uri") << "udp4://192.0.2.1:6363"
-     << ia.end();
+    text::ItemAttributes ia(wantMultiLine, 3);
+    os << ia("id") << 500 << ia("uri") << "udp4://192.0.2.1:6363" << ia.end();
 }
 
 BOOST_AUTO_TEST_CASE(ItemAttributesSingleLine)
 {
-  output_test_stream os;
-  printItemAttributes(os, false);
-  BOOST_CHECK(os.is_equal("id=500 uri=udp4://192.0.2.1:6363"));
+    output_test_stream os;
+    printItemAttributes(os, false);
+    BOOST_CHECK(os.is_equal("id=500 uri=udp4://192.0.2.1:6363"));
 }
 
 BOOST_AUTO_TEST_CASE(ItemAttributesMultiLine)
 {
-  output_test_stream os;
-  printItemAttributes(os, true);
-  BOOST_CHECK(os.is_equal(" id=500\nuri=udp4://192.0.2.1:6363\n"));
+    output_test_stream os;
+    printItemAttributes(os, true);
+    BOOST_CHECK(os.is_equal(" id=500\nuri=udp4://192.0.2.1:6363\n"));
 }
 
 BOOST_AUTO_TEST_CASE(OnOff)
 {
-  output_test_stream os;
-  os << 'A' << text::OnOff{true} << 'B' << text::OnOff{false} << 'C';
+    output_test_stream os;
+    os << 'A' << text::OnOff{true} << 'B' << text::OnOff{false} << 'C';
 
-  BOOST_CHECK(os.is_equal("AonBoffC"));
+    BOOST_CHECK(os.is_equal("AonBoffC"));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Text

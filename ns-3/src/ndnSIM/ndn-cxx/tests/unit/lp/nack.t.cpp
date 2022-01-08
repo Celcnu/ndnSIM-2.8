@@ -34,27 +34,27 @@ BOOST_AUTO_TEST_SUITE(TestNack)
 
 BOOST_AUTO_TEST_CASE(Members)
 {
-  Name name("ndn:/test");
-  Interest interest(name);
-  Nack nack(interest);
+    Name name("ndn:/test");
+    Interest interest(name);
+    Nack nack(interest);
 
-  BOOST_CHECK_EQUAL(nack.getInterest().getName(), name);
+    BOOST_CHECK_EQUAL(nack.getInterest().getName(), name);
 
-  NackHeader header;
-  header.setReason(NackReason::CONGESTION);
-  nack.setHeader(header);
-  BOOST_CHECK_EQUAL(nack.getHeader().getReason(), header.getReason());
+    NackHeader header;
+    header.setReason(NackReason::CONGESTION);
+    nack.setHeader(header);
+    BOOST_CHECK_EQUAL(nack.getHeader().getReason(), header.getReason());
 
-  BOOST_CHECK_EQUAL(nack.getHeader().getReason(), nack.getReason());
+    BOOST_CHECK_EQUAL(nack.getHeader().getReason(), nack.getReason());
 
-  nack.setReason(NackReason::DUPLICATE);
-  BOOST_CHECK_EQUAL(nack.getReason(), NackReason::DUPLICATE);
+    nack.setReason(NackReason::DUPLICATE);
+    BOOST_CHECK_EQUAL(nack.getReason(), NackReason::DUPLICATE);
 
-  nack.setReason(NackReason::NO_ROUTE);
-  BOOST_CHECK_EQUAL(nack.getReason(), NackReason::NO_ROUTE);
+    nack.setReason(NackReason::NO_ROUTE);
+    BOOST_CHECK_EQUAL(nack.getReason(), NackReason::NO_ROUTE);
 
-  Nack nack2(interest);
-  BOOST_CHECK_EQUAL(nack2.getReason(), NackReason::NONE);
+    Nack nack2(interest);
+    BOOST_CHECK_EQUAL(nack2.getReason(), NackReason::NONE);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNack

@@ -23,15 +23,13 @@
 
 namespace ndn {
 
-static_assert(std::is_base_of<tlv::Error, Signature::Error>::value,
-              "Signature::Error must inherit from tlv::Error");
+static_assert(std::is_base_of<tlv::Error, Signature::Error>::value, "Signature::Error must inherit from tlv::Error");
 
 Signature::Signature(const Block& info, const Block& value)
   : m_info(info)
   , m_value(value)
 {
 }
-
 
 Signature::Signature(const SignatureInfo& info, const Block& value)
   : m_info(info)
@@ -42,25 +40,25 @@ Signature::Signature(const SignatureInfo& info, const Block& value)
 tlv::SignatureTypeValue
 Signature::getType() const
 {
-  if (!*this) {
-    NDN_THROW(Error("Signature is invalid"));
-  }
-  return static_cast<tlv::SignatureTypeValue>(m_info.getSignatureType());
+    if (!*this) {
+        NDN_THROW(Error("Signature is invalid"));
+    }
+    return static_cast<tlv::SignatureTypeValue>(m_info.getSignatureType());
 }
 
 void
 Signature::setInfo(const Block& info)
 {
-  m_info = SignatureInfo(info);
+    m_info = SignatureInfo(info);
 }
 
 void
 Signature::setValue(const Block& value)
 {
-  if (value.type() != tlv::SignatureValue) {
-    NDN_THROW(Error("SignatureValue", value.type()));
-  }
-  m_value = value;
+    if (value.type() != tlv::SignatureValue) {
+        NDN_THROW(Error("SignatureValue", value.type()));
+    }
+    m_value = value;
 }
 
 } // namespace ndn

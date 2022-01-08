@@ -40,33 +40,27 @@ namespace validator_config {
  * The Filter class is a part of a rule and is used to match packet.
  * Matched packets will be checked against the checkers defined in the rule.
  */
-class Filter : noncopyable
-{
-public:
-  virtual
-  ~Filter() = default;
+class Filter : noncopyable {
+  public:
+    virtual ~Filter() = default;
 
-  bool
-  match(uint32_t pktType, const Name& pktName);
+    bool match(uint32_t pktType, const Name& pktName);
 
-public:
-  /**
-   * @brief Create a filter from the configuration section
-   *
-   * @param configSection The section containing the definition of filter.
-   * @param configFilename The configuration file name.
-   * @return a filter created from configuration
-   */
-  static unique_ptr<Filter>
-  create(const ConfigSection& configSection, const std::string& configFilename);
+  public:
+    /**
+     * @brief Create a filter from the configuration section
+     *
+     * @param configSection The section containing the definition of filter.
+     * @param configFilename The configuration file name.
+     * @return a filter created from configuration
+     */
+    static unique_ptr<Filter> create(const ConfigSection& configSection, const std::string& configFilename);
 
-private:
-  static unique_ptr<Filter>
-  createNameFilter(const ConfigSection& configSection, const std::string& configFilename);
+  private:
+    static unique_ptr<Filter> createNameFilter(const ConfigSection& configSection, const std::string& configFilename);
 
-private:
-  virtual bool
-  matchName(const Name& pktName) = 0;
+  private:
+    virtual bool matchName(const Name& pktName) = 0;
 };
 
 /**
@@ -87,18 +81,16 @@ private:
  * RelationNameFilter("/example", RelationNameFilter::RELATION_IS_PREFIX_OF);
  * @endcode
  */
-class RelationNameFilter : public Filter
-{
-public:
-  RelationNameFilter(const Name& name, NameRelation relation);
+class RelationNameFilter : public Filter {
+  public:
+    RelationNameFilter(const Name& name, NameRelation relation);
 
-private:
-  bool
-  matchName(const Name& pktName) override;
+  private:
+    bool matchName(const Name& pktName) override;
 
-private:
-  Name m_name;
-  NameRelation m_relation;
+  private:
+    Name m_name;
+    NameRelation m_relation;
 };
 
 /**
@@ -120,18 +112,15 @@ private:
  *
  * @sa Regex
  */
-class RegexNameFilter : public Filter
-{
-public:
-  explicit
-  RegexNameFilter(const Regex& regex);
+class RegexNameFilter : public Filter {
+  public:
+    explicit RegexNameFilter(const Regex& regex);
 
-private:
-  bool
-  matchName(const Name& pktName) override;
+  private:
+    bool matchName(const Name& pktName) override;
 
-private:
-  Regex m_regex;
+  private:
+    Regex m_regex;
 };
 
 } // namespace validator_config

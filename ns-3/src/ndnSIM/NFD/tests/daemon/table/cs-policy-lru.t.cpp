@@ -36,49 +36,49 @@ BOOST_AUTO_TEST_SUITE(TestCsLru)
 
 BOOST_AUTO_TEST_CASE(Registration)
 {
-  std::set<std::string> policyNames = Policy::getPolicyNames();
-  BOOST_CHECK_EQUAL(policyNames.count("lru"), 1);
+    std::set<std::string> policyNames = Policy::getPolicyNames();
+    BOOST_CHECK_EQUAL(policyNames.count("lru"), 1);
 }
 
 BOOST_FIXTURE_TEST_CASE(EvictOne, CsFixture)
 {
-  cs.setPolicy(make_unique<LruPolicy>());
-  cs.setLimit(3);
+    cs.setPolicy(make_unique<LruPolicy>());
+    cs.setLimit(3);
 
-  insert(1, "/A");
-  insert(2, "/B");
-  insert(3, "/C");
-  BOOST_CHECK_EQUAL(cs.size(), 3);
+    insert(1, "/A");
+    insert(2, "/B");
+    insert(3, "/C");
+    BOOST_CHECK_EQUAL(cs.size(), 3);
 
-  // evict A
-  insert(4, "/D");
-  BOOST_CHECK_EQUAL(cs.size(), 3);
-  startInterest("/A");
-  CHECK_CS_FIND(0);
+    // evict A
+    insert(4, "/D");
+    BOOST_CHECK_EQUAL(cs.size(), 3);
+    startInterest("/A");
+    CHECK_CS_FIND(0);
 
-  // use C then B
-  startInterest("/C");
-  CHECK_CS_FIND(3);
-  startInterest("/B");
-  CHECK_CS_FIND(2);
+    // use C then B
+    startInterest("/C");
+    CHECK_CS_FIND(3);
+    startInterest("/B");
+    CHECK_CS_FIND(2);
 
-  // evict D then C
-  insert(5, "/E");
-  BOOST_CHECK_EQUAL(cs.size(), 3);
-  startInterest("/D");
-  CHECK_CS_FIND(0);
-  insert(6, "/F");
-  BOOST_CHECK_EQUAL(cs.size(), 3);
-  startInterest("/C");
-  CHECK_CS_FIND(0);
+    // evict D then C
+    insert(5, "/E");
+    BOOST_CHECK_EQUAL(cs.size(), 3);
+    startInterest("/D");
+    CHECK_CS_FIND(0);
+    insert(6, "/F");
+    BOOST_CHECK_EQUAL(cs.size(), 3);
+    startInterest("/C");
+    CHECK_CS_FIND(0);
 
-  // refresh B
-  insert(12, "/B");
-  // evict E
-  insert(7, "/G");
-  BOOST_CHECK_EQUAL(cs.size(), 3);
-  startInterest("/E");
-  CHECK_CS_FIND(0);
+    // refresh B
+    insert(12, "/B");
+    // evict E
+    insert(7, "/G");
+    BOOST_CHECK_EQUAL(cs.size(), 3);
+    startInterest("/E");
+    CHECK_CS_FIND(0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCsLru

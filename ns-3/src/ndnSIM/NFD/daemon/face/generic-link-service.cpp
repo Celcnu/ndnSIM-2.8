@@ -48,488 +48,481 @@ GenericLinkService::GenericLinkService(const GenericLinkService::Options& option
   , m_nextMarkTime(time::steady_clock::TimePoint::max())
   , m_nMarkedSinceInMarkingState(0)
 {
-  m_reassembler.beforeTimeout.connect([this] (auto...) { ++this->nReassemblyTimeouts; });
-  m_reliability.onDroppedInterest.connect([this] (const auto& i) { this->notifyDroppedInterest(i); });
-  nReassembling.observe(&m_reassembler);
+    m_reassembler.beforeTimeout.connect([this](auto...) { ++this->nReassemblyTimeouts; });
+    m_reliability.onDroppedInterest.connect([this](const auto& i) { this->notifyDroppedInterest(i); });
+    nReassembling.observe(&m_reassembler);
 }
 
 void
 GenericLinkService::setOptions(const GenericLinkService::Options& options)
 {
-  m_options = options;
-  m_fragmenter.setOptions(m_options.fragmenterOptions);
-  m_reassembler.setOptions(m_options.reassemblerOptions);
-  m_reliability.setOptions(m_options.reliabilityOptions);
+    m_options = options;
+    m_fragmenter.setOptions(m_options.fragmenterOptions);
+    m_reassembler.setOptions(m_options.reassemblerOptions);
+    m_reliability.setOptions(m_options.reliabilityOptions);
 }
 
 void
 GenericLinkService::requestIdlePacket(const EndpointId& endpointId)
 {
-  // No need to request Acks to attach to this packet from LpReliability, as they are already
-  // attached in sendLpPacket
-  this->sendLpPacket({}, endpointId);
+    // No need to request Acks to attach to this packet from LpReliability, as they are already
+    // attached in sendLpPacket
+    this->sendLpPacket({}, endpointId);
 }
 
 // 把packet类型的包wireEncode成block类型,准备移交给transport层 ---> 传输层? 这个传输层怎么感觉像链路层
 void
 GenericLinkService::sendLpPacket(lp::Packet&& pkt, const EndpointId& endpointId)
 {
-  const ssize_t mtu = this->getTransport()->getMtu();
+    const ssize_t mtu = this->getTransport()->getMtu();
 
-  if (m_options.reliabilityOptions.isEnabled) {
-    m_reliability.piggyback(pkt, mtu);
-  }
+    if (m_options.reliabilityOptions.isEnabled) {
+        m_reliability.piggyback(pkt, mtu);
+    }
 
-  if (m_options.allowCongestionMarking) {
-    checkCongestionLevel(pkt);
-  }
+    if (m_options.allowCongestionMarking) {
+        checkCongestionLevel(pkt);
+    }
 
-  auto block = pkt.wireEncode();
-  if (mtu != MTU_UNLIMITED && block.size() > static_cast<size_t>(mtu)) {
-    ++this->nOutOverMtu;
-    NFD_LOG_FACE_WARN("attempted to send packet over MTU limit");
-    return;
-  }
-  this->sendPacket(block, endpointId);
+    auto block = pkt.wireEncode();
+    if (mtu != MTU_UNLIMITED && block.size() > static_cast<size_t>(mtu)) {
+        ++this->nOutOverMtu;
+        NFD_LOG_FACE_WARN("attempted to send packet over MTU limit");
+        return;
+    }
+    this->sendPacket(block, endpointId);
 }
 
 // 把interest转换为packet
 void
 GenericLinkService::doSendInterest(const Interest& interest, const EndpointId& endpointId)
 {
-  lp::Packet lpPacket(interest.wireEncode());
+    lp::Packet lpPacket(interest.wireEncode());
 
-  // 给包打上链路层标签
-  encodeLpFields(interest, lpPacket);
+    // 给包打上链路层标签
+    encodeLpFields(interest, lpPacket);
 
-  this->sendNetPacket(std::move(lpPacket), endpointId, true);
+    this->sendNetPacket(std::move(lpPacket), endpointId, true);
 }
 
 // 把data转化为packet,执行encodeLpFields给包打上链路层标签
 void
 GenericLinkService::doSendData(const Data& data, const EndpointId& endpointId)
 {
-  lp::Packet lpPacket(data.wireEncode());
+    lp::Packet lpPacket(data.wireEncode());
 
-  encodeLpFields(data, lpPacket);
+    encodeLpFields(data, lpPacket);
 
-  this->sendNetPacket(std::move(lpPacket), endpointId, false);
+    this->sendNetPacket(std::move(lpPacket), endpointId, false);
 }
 
 void
 GenericLinkService::doSendNack(const lp::Nack& nack, const EndpointId& endpointId)
 {
-  lp::Packet lpPacket(nack.getInterest().wireEncode());
-  lpPacket.add<lp::NackField>(nack.getHeader());
+    lp::Packet lpPacket(nack.getInterest().wireEncode());
+    lpPacket.add<lp::NackField>(nack.getHeader());
 
-  encodeLpFields(nack, lpPacket);
+    encodeLpFields(nack, lpPacket);
 
-  this->sendNetPacket(std::move(lpPacket), endpointId, false);
+    this->sendNetPacket(std::move(lpPacket), endpointId, false);
 }
 
 void
 GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lpPacket)
 {
-  if (m_options.allowLocalFields) {
-    auto incomingFaceIdTag = netPkt.getTag<lp::IncomingFaceIdTag>();
-    if (incomingFaceIdTag != nullptr) {
-      lpPacket.add<lp::IncomingFaceIdField>(*incomingFaceIdTag);
-    }
-  }
-
-  auto congestionMarkTag = netPkt.getTag<lp::CongestionMarkTag>();
-  if (congestionMarkTag != nullptr) {
-    lpPacket.add<lp::CongestionMarkField>(*congestionMarkTag);
-  }
-
-  if (m_options.allowSelfLearning) {
-    auto nonDiscoveryTag = netPkt.getTag<lp::NonDiscoveryTag>();
-    if (nonDiscoveryTag != nullptr) {
-      lpPacket.add<lp::NonDiscoveryField>(*nonDiscoveryTag);
+    if (m_options.allowLocalFields) {
+        auto incomingFaceIdTag = netPkt.getTag<lp::IncomingFaceIdTag>();
+        if (incomingFaceIdTag != nullptr) {
+            lpPacket.add<lp::IncomingFaceIdField>(*incomingFaceIdTag);
+        }
     }
 
-    auto prefixAnnouncementTag = netPkt.getTag<lp::PrefixAnnouncementTag>();
-    if (prefixAnnouncementTag != nullptr) {
-      lpPacket.add<lp::PrefixAnnouncementField>(*prefixAnnouncementTag);
+    auto congestionMarkTag = netPkt.getTag<lp::CongestionMarkTag>();
+    if (congestionMarkTag != nullptr) {
+        lpPacket.add<lp::CongestionMarkField>(*congestionMarkTag);
     }
-  }
 
-  auto pitToken = netPkt.getTag<lp::PitToken>();
-  if (pitToken != nullptr) {
-    lpPacket.add<lp::PitTokenField>(*pitToken);
-  }
+    if (m_options.allowSelfLearning) {
+        auto nonDiscoveryTag = netPkt.getTag<lp::NonDiscoveryTag>();
+        if (nonDiscoveryTag != nullptr) {
+            lpPacket.add<lp::NonDiscoveryField>(*nonDiscoveryTag);
+        }
 
-  shared_ptr<lp::HopCountTag> hopCountTag = netPkt.getTag<lp::HopCountTag>();
-  if (hopCountTag != nullptr) {
-    lpPacket.add<lp::HopCountTagField>(*hopCountTag);
-  }
-  else {
-    lpPacket.add<lp::HopCountTagField>(0);
-  }
-
-  if (m_options.enableGeoTags) {
-    auto geoTag = m_options.enableGeoTags();
-    if (geoTag != nullptr) {
-      lpPacket.add<lp::GeoTagField>(*geoTag);
+        auto prefixAnnouncementTag = netPkt.getTag<lp::PrefixAnnouncementTag>();
+        if (prefixAnnouncementTag != nullptr) {
+            lpPacket.add<lp::PrefixAnnouncementField>(*prefixAnnouncementTag);
+        }
     }
-  }
+
+    auto pitToken = netPkt.getTag<lp::PitToken>();
+    if (pitToken != nullptr) {
+        lpPacket.add<lp::PitTokenField>(*pitToken);
+    }
+
+    shared_ptr<lp::HopCountTag> hopCountTag = netPkt.getTag<lp::HopCountTag>();
+    if (hopCountTag != nullptr) {
+        lpPacket.add<lp::HopCountTagField>(*hopCountTag);
+    }
+    else {
+        lpPacket.add<lp::HopCountTagField>(0);
+    }
+
+    if (m_options.enableGeoTags) {
+        auto geoTag = m_options.enableGeoTags();
+        if (geoTag != nullptr) {
+            lpPacket.add<lp::GeoTagField>(*geoTag);
+        }
+    }
 }
 
 // 这里会执行frag分片操作 ---> 后面的操作对于Interest和Data来说都是一样的!!!
 void
 GenericLinkService::sendNetPacket(lp::Packet&& pkt, const EndpointId& endpointId, bool isInterest)
 {
-  std::vector<lp::Packet> frags;
-  ssize_t mtu = this->getTransport()->getMtu();
+    std::vector<lp::Packet> frags;
+    ssize_t mtu = this->getTransport()->getMtu();
 
-  // Make space for feature fields in fragments
-  if (m_options.reliabilityOptions.isEnabled && mtu != MTU_UNLIMITED) {
-    mtu -= LpReliability::RESERVED_HEADER_SPACE;
-  }
-
-  if (m_options.allowCongestionMarking && mtu != MTU_UNLIMITED) {
-    mtu -= CONGESTION_MARK_SIZE;
-  }
-
-  BOOST_ASSERT(mtu == MTU_UNLIMITED || mtu > 0);
-
-  if (m_options.allowFragmentation && mtu != MTU_UNLIMITED) {
-    bool isOk = false;
-    std::tie(isOk, frags) = m_fragmenter.fragmentPacket(pkt, mtu);
-    if (!isOk) {
-      // fragmentation failed (warning is logged by LpFragmenter)
-      ++this->nFragmentationErrors;
-      return;
+    // Make space for feature fields in fragments
+    if (m_options.reliabilityOptions.isEnabled && mtu != MTU_UNLIMITED) {
+        mtu -= LpReliability::RESERVED_HEADER_SPACE;
     }
-  }
-  else {
-    if (m_options.reliabilityOptions.isEnabled) {
-      frags.push_back(pkt);
+
+    if (m_options.allowCongestionMarking && mtu != MTU_UNLIMITED) {
+        mtu -= CONGESTION_MARK_SIZE;
+    }
+
+    BOOST_ASSERT(mtu == MTU_UNLIMITED || mtu > 0);
+
+    if (m_options.allowFragmentation && mtu != MTU_UNLIMITED) {
+        bool isOk = false;
+        std::tie(isOk, frags) = m_fragmenter.fragmentPacket(pkt, mtu);
+        if (!isOk) {
+            // fragmentation failed (warning is logged by LpFragmenter)
+            ++this->nFragmentationErrors;
+            return;
+        }
     }
     else {
-      frags.push_back(std::move(pkt));
+        if (m_options.reliabilityOptions.isEnabled) {
+            frags.push_back(pkt);
+        }
+        else {
+            frags.push_back(std::move(pkt));
+        }
     }
-  }
 
-  if (frags.size() == 1) {
-    // even if indexed fragmentation is enabled, the fragmenter should not
-    // fragment the packet if it can fit in MTU
-    BOOST_ASSERT(!frags.front().has<lp::FragIndexField>());
-    BOOST_ASSERT(!frags.front().has<lp::FragCountField>());
-  }
+    if (frags.size() == 1) {
+        // even if indexed fragmentation is enabled, the fragmenter should not
+        // fragment the packet if it can fit in MTU
+        BOOST_ASSERT(!frags.front().has<lp::FragIndexField>());
+        BOOST_ASSERT(!frags.front().has<lp::FragCountField>());
+    }
 
-  // Only assign sequences to fragments if packet contains more than 1 fragment
-  if (frags.size() > 1) {
-    // Assign sequences to all fragments
-    this->assignSequences(frags);
-  }
+    // Only assign sequences to fragments if packet contains more than 1 fragment
+    if (frags.size() > 1) {
+        // Assign sequences to all fragments
+        this->assignSequences(frags);
+    }
 
-  if (m_options.reliabilityOptions.isEnabled && frags.front().has<lp::FragmentField>()) {
-    m_reliability.handleOutgoing(frags, std::move(pkt), isInterest);
-  }
+    if (m_options.reliabilityOptions.isEnabled && frags.front().has<lp::FragmentField>()) {
+        m_reliability.handleOutgoing(frags, std::move(pkt), isInterest);
+    }
 
-  for (lp::Packet& frag : frags) {
-    this->sendLpPacket(std::move(frag), endpointId);
-  }
+    for (lp::Packet& frag : frags) {
+        this->sendLpPacket(std::move(frag), endpointId);
+    }
 }
 
 void
 GenericLinkService::assignSequence(lp::Packet& pkt)
 {
-  pkt.set<lp::SequenceField>(++m_lastSeqNo);
+    pkt.set<lp::SequenceField>(++m_lastSeqNo);
 }
 
 void
 GenericLinkService::assignSequences(std::vector<lp::Packet>& pkts)
 {
-  std::for_each(pkts.begin(), pkts.end(), [this] (auto& pkt) { this->assignSequence(pkt); });
+    std::for_each(pkts.begin(), pkts.end(), [this](auto& pkt) { this->assignSequence(pkt); });
 }
 
 void
 GenericLinkService::checkCongestionLevel(lp::Packet& pkt)
 {
-  ssize_t sendQueueLength = getTransport()->getSendQueueLength();
-  // The transport must support retrieving the current send queue length
-  if (sendQueueLength < 0) {
-    return;
-  }
-
-  if (sendQueueLength > 0) {
-    NFD_LOG_FACE_TRACE("txqlen=" << sendQueueLength << " threshold=" <<
-                       m_options.defaultCongestionThreshold << " capacity=" <<
-                       getTransport()->getSendQueueCapacity());
-  }
-
-  // sendQueue is above target
-  if (static_cast<size_t>(sendQueueLength) > m_options.defaultCongestionThreshold) {
-    const auto now = time::steady_clock::now();
-
-    if (m_nextMarkTime == time::steady_clock::TimePoint::max()) {
-      m_nextMarkTime = now + m_options.baseCongestionMarkingInterval;
+    ssize_t sendQueueLength = getTransport()->getSendQueueLength();
+    // The transport must support retrieving the current send queue length
+    if (sendQueueLength < 0) {
+        return;
     }
-    // Mark packet if sendQueue stays above target for one interval
-    else if (now >= m_nextMarkTime) {
-      pkt.set<lp::CongestionMarkField>(1);
-      ++nCongestionMarked;
-      NFD_LOG_FACE_DEBUG("LpPacket was marked as congested");
 
-      ++m_nMarkedSinceInMarkingState;
-      // Decrease the marking interval by the inverse of the square root of the number of packets
-      // marked in this incident of congestion
-      time::nanoseconds interval(static_cast<time::nanoseconds::rep>(
-                                   m_options.baseCongestionMarkingInterval.count() /
-                                   std::sqrt(m_nMarkedSinceInMarkingState + 1)));
-      m_nextMarkTime += interval;
+    if (sendQueueLength > 0) {
+        NFD_LOG_FACE_TRACE("txqlen=" << sendQueueLength << " threshold=" << m_options.defaultCongestionThreshold
+                                     << " capacity=" << getTransport()->getSendQueueCapacity());
     }
-  }
-  else if (m_nextMarkTime != time::steady_clock::TimePoint::max()) {
-    // Congestion incident has ended, so reset
-    NFD_LOG_FACE_DEBUG("Send queue length dropped below congestion threshold");
-    m_nextMarkTime = time::steady_clock::TimePoint::max();
-    m_nMarkedSinceInMarkingState = 0;
-  }
+
+    // sendQueue is above target
+    if (static_cast<size_t>(sendQueueLength) > m_options.defaultCongestionThreshold) {
+        const auto now = time::steady_clock::now();
+
+        if (m_nextMarkTime == time::steady_clock::TimePoint::max()) {
+            m_nextMarkTime = now + m_options.baseCongestionMarkingInterval;
+        }
+        // Mark packet if sendQueue stays above target for one interval
+        else if (now >= m_nextMarkTime) {
+            pkt.set<lp::CongestionMarkField>(1);
+            ++nCongestionMarked;
+            NFD_LOG_FACE_DEBUG("LpPacket was marked as congested");
+
+            ++m_nMarkedSinceInMarkingState;
+            // Decrease the marking interval by the inverse of the square root of the number of packets
+            // marked in this incident of congestion
+            time::nanoseconds interval(static_cast<time::nanoseconds::rep>(
+              m_options.baseCongestionMarkingInterval.count() / std::sqrt(m_nMarkedSinceInMarkingState + 1)));
+            m_nextMarkTime += interval;
+        }
+    }
+    else if (m_nextMarkTime != time::steady_clock::TimePoint::max()) {
+        // Congestion incident has ended, so reset
+        NFD_LOG_FACE_DEBUG("Send queue length dropped below congestion threshold");
+        m_nextMarkTime = time::steady_clock::TimePoint::max();
+        m_nMarkedSinceInMarkingState = 0;
+    }
 }
 
 // 链路层收包
 void
 GenericLinkService::doReceivePacket(const Block& packet, const EndpointId& endpoint)
 {
-  try {
-    lp::Packet pkt(packet);
+    try {
+        lp::Packet pkt(packet);
 
-    if (m_options.reliabilityOptions.isEnabled) {
-      m_reliability.processIncomingPacket(pkt);
-    }
+        if (m_options.reliabilityOptions.isEnabled) {
+            m_reliability.processIncomingPacket(pkt);
+        }
 
-    if (!pkt.has<lp::FragmentField>()) {
-      NFD_LOG_FACE_TRACE("received IDLE packet: DROP");
-      return;
-    }
+        if (!pkt.has<lp::FragmentField>()) {
+            NFD_LOG_FACE_TRACE("received IDLE packet: DROP");
+            return;
+        }
 
-    if ((pkt.has<lp::FragIndexField>() || pkt.has<lp::FragCountField>()) &&
-        !m_options.allowReassembly) {
-      NFD_LOG_FACE_WARN("received fragment, but reassembly disabled: DROP");
-      return;
-    }
+        if ((pkt.has<lp::FragIndexField>() || pkt.has<lp::FragCountField>()) && !m_options.allowReassembly) {
+            NFD_LOG_FACE_WARN("received fragment, but reassembly disabled: DROP");
+            return;
+        }
 
-    // 合并fragment为netPkt,并检查fragment的完整性
-    // TODO: 什么叫Fragment???
-    bool isReassembled = false;
-    Block netPkt;
-    lp::Packet firstPkt;
-    std::tie(isReassembled, netPkt, firstPkt) = m_reassembler.receiveFragment(endpoint, pkt);
-    if (isReassembled) {
-      this->decodeNetPacket(netPkt, firstPkt, endpoint);
+        // 合并fragment为netPkt,并检查fragment的完整性
+        // TODO: 什么叫Fragment???
+        bool isReassembled = false;
+        Block netPkt;
+        lp::Packet firstPkt;
+        std::tie(isReassembled, netPkt, firstPkt) = m_reassembler.receiveFragment(endpoint, pkt);
+        if (isReassembled) {
+            this->decodeNetPacket(netPkt, firstPkt, endpoint);
+        }
     }
-  }
-  catch (const tlv::Error& e) {
-    ++this->nInLpInvalid;
-    NFD_LOG_FACE_WARN("packet parse error (" << e.what() << "): DROP");
-  }
+    catch (const tlv::Error& e) {
+        ++this->nInLpInvalid;
+        NFD_LOG_FACE_WARN("packet parse error (" << e.what() << "): DROP");
+    }
 }
 
 void
-GenericLinkService::decodeNetPacket(const Block& netPkt, const lp::Packet& firstPkt,
-                                    const EndpointId& endpointId)
+GenericLinkService::decodeNetPacket(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
 {
-  // 判block的类型
-  try {
-    switch (netPkt.type()) {
-      case tlv::Interest: // 兴趣包
-        if (firstPkt.has<lp::NackField>()) {
-          this->decodeNack(netPkt, firstPkt, endpointId);
+    // 判block的类型
+    try {
+        switch (netPkt.type()) {
+            case tlv::Interest: // 兴趣包
+                if (firstPkt.has<lp::NackField>()) {
+                    this->decodeNack(netPkt, firstPkt, endpointId);
+                }
+                else {
+                    this->decodeInterest(netPkt, firstPkt, endpointId);
+                }
+                break;
+            case tlv::Data: // 数据包
+                this->decodeData(netPkt, firstPkt, endpointId);
+                break;
+            default:
+                ++this->nInNetInvalid;
+                NFD_LOG_FACE_WARN("unrecognized network-layer packet TLV-TYPE " << netPkt.type() << ": DROP");
+                return;
         }
-        else { 
-          this->decodeInterest(netPkt, firstPkt, endpointId);
-        }
-        break;
-      case tlv::Data: // 数据包
-        this->decodeData(netPkt, firstPkt, endpointId);
-        break;
-      default:
-        ++this->nInNetInvalid;
-        NFD_LOG_FACE_WARN("unrecognized network-layer packet TLV-TYPE " << netPkt.type() << ": DROP");
-        return;
     }
-  }
-  catch (const tlv::Error& e) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("packet parse error (" << e.what() << "): DROP");
-  }
+    catch (const tlv::Error& e) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("packet parse error (" << e.what() << "): DROP");
+    }
 }
 
 // 将Block类型转为interest,并打上各种tag,按照 lp::Packet& firstPkt
 void
-GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstPkt,
-                                   const EndpointId& endpointId)
+GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
 {
-  BOOST_ASSERT(netPkt.type() == tlv::Interest);
-  BOOST_ASSERT(!firstPkt.has<lp::NackField>());
+    BOOST_ASSERT(netPkt.type() == tlv::Interest);
+    BOOST_ASSERT(!firstPkt.has<lp::NackField>());
 
-  // forwarding expects Interest to be created with make_shared
-  auto interest = make_shared<Interest>(netPkt);
+    // forwarding expects Interest to be created with make_shared
+    auto interest = make_shared<Interest>(netPkt);
 
-  // Increment HopCount
-  if (firstPkt.has<lp::HopCountTagField>()) {
-    interest->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
-  }
-
-  if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {
-    interest->setTag(make_shared<lp::GeoTag>(firstPkt.get<lp::GeoTagField>()));
-  }
-
-  if (firstPkt.has<lp::NextHopFaceIdField>()) {
-    if (m_options.allowLocalFields) {
-      interest->setTag(make_shared<lp::NextHopFaceIdTag>(firstPkt.get<lp::NextHopFaceIdField>()));
+    // Increment HopCount
+    if (firstPkt.has<lp::HopCountTagField>()) {
+        interest->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
     }
-    else {
-      NFD_LOG_FACE_WARN("received NextHopFaceId, but local fields disabled: DROP");
-      return;
+
+    if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {
+        interest->setTag(make_shared<lp::GeoTag>(firstPkt.get<lp::GeoTagField>()));
     }
-  }
 
-  if (firstPkt.has<lp::CachePolicyField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received CachePolicy with Interest: DROP");
-    return;
-  }
-
-  if (firstPkt.has<lp::IncomingFaceIdField>()) {
-    NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
-  }
-
-  if (firstPkt.has<lp::CongestionMarkField>()) {
-    interest->setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
-  }
-
-  if (firstPkt.has<lp::NonDiscoveryField>()) {
-    if (m_options.allowSelfLearning) {
-      interest->setTag(make_shared<lp::NonDiscoveryTag>(firstPkt.get<lp::NonDiscoveryField>()));
+    if (firstPkt.has<lp::NextHopFaceIdField>()) {
+        if (m_options.allowLocalFields) {
+            interest->setTag(make_shared<lp::NextHopFaceIdTag>(firstPkt.get<lp::NextHopFaceIdField>()));
+        }
+        else {
+            NFD_LOG_FACE_WARN("received NextHopFaceId, but local fields disabled: DROP");
+            return;
+        }
     }
-    else {
-      NFD_LOG_FACE_WARN("received NonDiscovery, but self-learning disabled: IGNORE");
+
+    if (firstPkt.has<lp::CachePolicyField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received CachePolicy with Interest: DROP");
+        return;
     }
-  }
 
-  if (firstPkt.has<lp::PrefixAnnouncementField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received PrefixAnnouncement with Interest: DROP");
-    return;
-  }
+    if (firstPkt.has<lp::IncomingFaceIdField>()) {
+        NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
+    }
 
-  if (firstPkt.has<lp::PitTokenField>()) {
-    interest->setTag(make_shared<lp::PitToken>(firstPkt.get<lp::PitTokenField>()));
-  }
+    if (firstPkt.has<lp::CongestionMarkField>()) {
+        interest->setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
+    }
 
-  this->receiveInterest(*interest, endpointId);
+    if (firstPkt.has<lp::NonDiscoveryField>()) {
+        if (m_options.allowSelfLearning) {
+            interest->setTag(make_shared<lp::NonDiscoveryTag>(firstPkt.get<lp::NonDiscoveryField>()));
+        }
+        else {
+            NFD_LOG_FACE_WARN("received NonDiscovery, but self-learning disabled: IGNORE");
+        }
+    }
+
+    if (firstPkt.has<lp::PrefixAnnouncementField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received PrefixAnnouncement with Interest: DROP");
+        return;
+    }
+
+    if (firstPkt.has<lp::PitTokenField>()) {
+        interest->setTag(make_shared<lp::PitToken>(firstPkt.get<lp::PitTokenField>()));
+    }
+
+    this->receiveInterest(*interest, endpointId);
 }
 
 // 类似Interest,将Block类型转码为Data,并打上各种tag
 void
-GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt,
-                               const EndpointId& endpointId)
+GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
 {
-  BOOST_ASSERT(netPkt.type() == tlv::Data);
+    BOOST_ASSERT(netPkt.type() == tlv::Data);
 
-  // forwarding expects Data to be created with make_shared
-  auto data = make_shared<Data>(netPkt);
+    // forwarding expects Data to be created with make_shared
+    auto data = make_shared<Data>(netPkt);
 
-  if (firstPkt.has<lp::HopCountTagField>()) {
-    data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
-  }
-
-  if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {
-    data->setTag(make_shared<lp::GeoTag>(firstPkt.get<lp::GeoTagField>()));
-  }
-
-  if (firstPkt.has<lp::NackField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received Nack with Data: DROP");
-    return;
-  }
-
-  if (firstPkt.has<lp::NextHopFaceIdField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received NextHopFaceId with Data: DROP");
-    return;
-  }
-
-  if (firstPkt.has<lp::CachePolicyField>()) {
-    // CachePolicy is unprivileged and does not require allowLocalFields option.
-    // In case of an invalid CachePolicyType, get<lp::CachePolicyField> will throw,
-    // so it's unnecessary to check here.
-    data->setTag(make_shared<lp::CachePolicyTag>(firstPkt.get<lp::CachePolicyField>()));
-  }
-
-  if (firstPkt.has<lp::IncomingFaceIdField>()) {
-    NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
-  }
-
-  if (firstPkt.has<lp::CongestionMarkField>()) {
-    data->setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
-  }
-
-  if (firstPkt.has<lp::NonDiscoveryField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received NonDiscovery with Data: DROP");
-    return;
-  }
-
-  if (firstPkt.has<lp::PrefixAnnouncementField>()) {
-    if (m_options.allowSelfLearning) {
-      data->setTag(make_shared<lp::PrefixAnnouncementTag>(firstPkt.get<lp::PrefixAnnouncementField>()));
+    if (firstPkt.has<lp::HopCountTagField>()) {
+        data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
     }
-    else {
-      NFD_LOG_FACE_WARN("received PrefixAnnouncement, but self-learning disabled: IGNORE");
-    }
-  }
 
-  this->receiveData(*data, endpointId);
+    if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {
+        data->setTag(make_shared<lp::GeoTag>(firstPkt.get<lp::GeoTagField>()));
+    }
+
+    if (firstPkt.has<lp::NackField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received Nack with Data: DROP");
+        return;
+    }
+
+    if (firstPkt.has<lp::NextHopFaceIdField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received NextHopFaceId with Data: DROP");
+        return;
+    }
+
+    if (firstPkt.has<lp::CachePolicyField>()) {
+        // CachePolicy is unprivileged and does not require allowLocalFields option.
+        // In case of an invalid CachePolicyType, get<lp::CachePolicyField> will throw,
+        // so it's unnecessary to check here.
+        data->setTag(make_shared<lp::CachePolicyTag>(firstPkt.get<lp::CachePolicyField>()));
+    }
+
+    if (firstPkt.has<lp::IncomingFaceIdField>()) {
+        NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
+    }
+
+    if (firstPkt.has<lp::CongestionMarkField>()) {
+        data->setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
+    }
+
+    if (firstPkt.has<lp::NonDiscoveryField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received NonDiscovery with Data: DROP");
+        return;
+    }
+
+    if (firstPkt.has<lp::PrefixAnnouncementField>()) {
+        if (m_options.allowSelfLearning) {
+            data->setTag(make_shared<lp::PrefixAnnouncementTag>(firstPkt.get<lp::PrefixAnnouncementField>()));
+        }
+        else {
+            NFD_LOG_FACE_WARN("received PrefixAnnouncement, but self-learning disabled: IGNORE");
+        }
+    }
+
+    this->receiveData(*data, endpointId);
 }
 
 void
-GenericLinkService::decodeNack(const Block& netPkt, const lp::Packet& firstPkt,
-                               const EndpointId& endpointId)
+GenericLinkService::decodeNack(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
 {
-  BOOST_ASSERT(netPkt.type() == tlv::Interest);
-  BOOST_ASSERT(firstPkt.has<lp::NackField>());
+    BOOST_ASSERT(netPkt.type() == tlv::Interest);
+    BOOST_ASSERT(firstPkt.has<lp::NackField>());
 
-  lp::Nack nack((Interest(netPkt)));
-  nack.setHeader(firstPkt.get<lp::NackField>());
+    lp::Nack nack((Interest(netPkt)));
+    nack.setHeader(firstPkt.get<lp::NackField>());
 
-  if (firstPkt.has<lp::NextHopFaceIdField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received NextHopFaceId with Nack: DROP");
-    return;
-  }
+    if (firstPkt.has<lp::NextHopFaceIdField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received NextHopFaceId with Nack: DROP");
+        return;
+    }
 
-  if (firstPkt.has<lp::CachePolicyField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received CachePolicy with Nack: DROP");
-    return;
-  }
+    if (firstPkt.has<lp::CachePolicyField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received CachePolicy with Nack: DROP");
+        return;
+    }
 
-  if (firstPkt.has<lp::IncomingFaceIdField>()) {
-    NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
-  }
+    if (firstPkt.has<lp::IncomingFaceIdField>()) {
+        NFD_LOG_FACE_WARN("received IncomingFaceId: IGNORE");
+    }
 
-  if (firstPkt.has<lp::CongestionMarkField>()) {
-    nack.setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
-  }
+    if (firstPkt.has<lp::CongestionMarkField>()) {
+        nack.setTag(make_shared<lp::CongestionMarkTag>(firstPkt.get<lp::CongestionMarkField>()));
+    }
 
-  if (firstPkt.has<lp::NonDiscoveryField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received NonDiscovery with Nack: DROP");
-    return;
-  }
+    if (firstPkt.has<lp::NonDiscoveryField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received NonDiscovery with Nack: DROP");
+        return;
+    }
 
-  if (firstPkt.has<lp::PrefixAnnouncementField>()) {
-    ++this->nInNetInvalid;
-    NFD_LOG_FACE_WARN("received PrefixAnnouncement with Nack: DROP");
-    return;
-  }
+    if (firstPkt.has<lp::PrefixAnnouncementField>()) {
+        ++this->nInNetInvalid;
+        NFD_LOG_FACE_WARN("received PrefixAnnouncement with Nack: DROP");
+        return;
+    }
 
-  this->receiveNack(nack, endpointId);
+    this->receiveNack(nack, endpointId);
 }
 
 } // namespace face

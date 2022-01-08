@@ -39,130 +39,127 @@ TablesConfigSection::TablesConfigSection(Forwarder& forwarder)
 void
 TablesConfigSection::setConfigFile(ConfigFile& configFile)
 {
-  configFile.addSectionHandler("tables",
-                               bind(&TablesConfigSection::processConfig, this, _1, _2));
+    configFile.addSectionHandler("tables", bind(&TablesConfigSection::processConfig, this, _1, _2));
 }
 
 void
 TablesConfigSection::ensureConfigured()
 {
-  if (m_isConfigured) {
-    return;
-  }
+    if (m_isConfigured) {
+        return;
+    }
 
-  m_forwarder.getCs().setLimit(DEFAULT_CS_MAX_PACKETS);
-  // Don't set default cs_policy because it's already created by CS itself.
-  m_forwarder.setUnsolicitedDataPolicy(make_unique<fw::DefaultUnsolicitedDataPolicy>());
+    m_forwarder.getCs().setLimit(DEFAULT_CS_MAX_PACKETS);
+    // Don't set default cs_policy because it's already created by CS itself.
+    m_forwarder.setUnsolicitedDataPolicy(make_unique<fw::DefaultUnsolicitedDataPolicy>());
 
-  m_isConfigured = true;
+    m_isConfigured = true;
 }
 
 void
 TablesConfigSection::processConfig(const ConfigSection& section, bool isDryRun)
 {
-  size_t nCsMaxPackets = DEFAULT_CS_MAX_PACKETS;
-  OptionalConfigSection csMaxPacketsNode = section.get_child_optional("cs_max_packets");
-  if (csMaxPacketsNode) {
-    nCsMaxPackets = ConfigFile::parseNumber<size_t>(*csMaxPacketsNode, "cs_max_packets", "tables");
-  }
-
-  unique_ptr<cs::Policy> csPolicy;
-  OptionalConfigSection csPolicyNode = section.get_child_optional("cs_policy");
-  if (csPolicyNode) {
-    std::string policyName = csPolicyNode->get_value<std::string>();
-    csPolicy = cs::Policy::create(policyName);
-    if (csPolicy == nullptr) {
-      NDN_THROW(ConfigFile::Error("Unknown cs_policy '" + policyName + "' in section 'tables'"));
+    size_t nCsMaxPackets = DEFAULT_CS_MAX_PACKETS;
+    OptionalConfigSection csMaxPacketsNode = section.get_child_optional("cs_max_packets");
+    if (csMaxPacketsNode) {
+        nCsMaxPackets = ConfigFile::parseNumber<size_t>(*csMaxPacketsNode, "cs_max_packets", "tables");
     }
-  }
 
-  unique_ptr<fw::UnsolicitedDataPolicy> unsolicitedDataPolicy;
-  OptionalConfigSection unsolicitedDataPolicyNode = section.get_child_optional("cs_unsolicited_policy");
-  if (unsolicitedDataPolicyNode) {
-    std::string policyName = unsolicitedDataPolicyNode->get_value<std::string>();
-    unsolicitedDataPolicy = fw::UnsolicitedDataPolicy::create(policyName);
-    if (unsolicitedDataPolicy == nullptr) {
-      NDN_THROW(ConfigFile::Error("Unknown cs_unsolicited_policy '" + policyName + "' in section 'tables'"));
+    unique_ptr<cs::Policy> csPolicy;
+    OptionalConfigSection csPolicyNode = section.get_child_optional("cs_policy");
+    if (csPolicyNode) {
+        std::string policyName = csPolicyNode->get_value<std::string>();
+        csPolicy = cs::Policy::create(policyName);
+        if (csPolicy == nullptr) {
+            NDN_THROW(ConfigFile::Error("Unknown cs_policy '" + policyName + "' in section 'tables'"));
+        }
     }
-  }
-  else {
-    unsolicitedDataPolicy = make_unique<fw::DefaultUnsolicitedDataPolicy>();
-  }
 
-  OptionalConfigSection strategyChoiceSection = section.get_child_optional("strategy_choice");
-  if (strategyChoiceSection) {
-    processStrategyChoiceSection(*strategyChoiceSection, isDryRun);
-  }
+    unique_ptr<fw::UnsolicitedDataPolicy> unsolicitedDataPolicy;
+    OptionalConfigSection unsolicitedDataPolicyNode = section.get_child_optional("cs_unsolicited_policy");
+    if (unsolicitedDataPolicyNode) {
+        std::string policyName = unsolicitedDataPolicyNode->get_value<std::string>();
+        unsolicitedDataPolicy = fw::UnsolicitedDataPolicy::create(policyName);
+        if (unsolicitedDataPolicy == nullptr) {
+            NDN_THROW(ConfigFile::Error("Unknown cs_unsolicited_policy '" + policyName + "' in section 'tables'"));
+        }
+    }
+    else {
+        unsolicitedDataPolicy = make_unique<fw::DefaultUnsolicitedDataPolicy>();
+    }
 
-  OptionalConfigSection networkRegionSection = section.get_child_optional("network_region");
-  if (networkRegionSection) {
-    processNetworkRegionSection(*networkRegionSection, isDryRun);
-  }
+    OptionalConfigSection strategyChoiceSection = section.get_child_optional("strategy_choice");
+    if (strategyChoiceSection) {
+        processStrategyChoiceSection(*strategyChoiceSection, isDryRun);
+    }
 
-  if (isDryRun) {
-    return;
-  }
+    OptionalConfigSection networkRegionSection = section.get_child_optional("network_region");
+    if (networkRegionSection) {
+        processNetworkRegionSection(*networkRegionSection, isDryRun);
+    }
 
-  Cs& cs = m_forwarder.getCs();
-  cs.setLimit(nCsMaxPackets);
-  if (cs.size() == 0 && csPolicy != nullptr) {
-    cs.setPolicy(std::move(csPolicy));
-  }
+    if (isDryRun) {
+        return;
+    }
 
-  m_forwarder.setUnsolicitedDataPolicy(std::move(unsolicitedDataPolicy));
+    Cs& cs = m_forwarder.getCs();
+    cs.setLimit(nCsMaxPackets);
+    if (cs.size() == 0 && csPolicy != nullptr) {
+        cs.setPolicy(std::move(csPolicy));
+    }
 
-  m_isConfigured = true;
+    m_forwarder.setUnsolicitedDataPolicy(std::move(unsolicitedDataPolicy));
+
+    m_isConfigured = true;
 }
 
 void
 TablesConfigSection::processStrategyChoiceSection(const ConfigSection& section, bool isDryRun)
 {
-  using fw::Strategy;
+    using fw::Strategy;
 
-  std::map<Name, Name> choices;
-  for (const auto& prefixAndStrategy : section) {
-    Name prefix(prefixAndStrategy.first);
-    Name strategy(prefixAndStrategy.second.get_value<std::string>());
+    std::map<Name, Name> choices;
+    for (const auto& prefixAndStrategy : section) {
+        Name prefix(prefixAndStrategy.first);
+        Name strategy(prefixAndStrategy.second.get_value<std::string>());
 
-    if (!Strategy::canCreate(strategy)) {
-      NDN_THROW(ConfigFile::Error(
-        "Unknown strategy '" + prefixAndStrategy.second.get_value<std::string>() +
-        "' for prefix '" + prefix.toUri() + "' in section 'strategy_choice'"));
+        if (!Strategy::canCreate(strategy)) {
+            NDN_THROW(ConfigFile::Error("Unknown strategy '" + prefixAndStrategy.second.get_value<std::string>()
+                                        + "' for prefix '" + prefix.toUri() + "' in section 'strategy_choice'"));
+        }
+
+        if (!choices.emplace(prefix, strategy).second) {
+            NDN_THROW(ConfigFile::Error("Duplicate strategy choice for prefix '" + prefix.toUri()
+                                        + "' in section 'strategy_choice'"));
+        }
     }
 
-    if (!choices.emplace(prefix, strategy).second) {
-      NDN_THROW(ConfigFile::Error(
-        "Duplicate strategy choice for prefix '" + prefix.toUri() + "' in section 'strategy_choice'"));
+    if (isDryRun) {
+        return;
     }
-  }
 
-  if (isDryRun) {
-    return;
-  }
-
-  StrategyChoice& sc = m_forwarder.getStrategyChoice();
-  for (const auto& prefixAndStrategy : choices) {
-    if (!sc.insert(prefixAndStrategy.first, prefixAndStrategy.second)) {
-      NDN_THROW(ConfigFile::Error(
-        "Failed to set strategy '" + prefixAndStrategy.second.toUri() + "' for prefix '" +
-        prefixAndStrategy.first.toUri() + "' in section 'strategy_choice'"));
+    StrategyChoice& sc = m_forwarder.getStrategyChoice();
+    for (const auto& prefixAndStrategy : choices) {
+        if (!sc.insert(prefixAndStrategy.first, prefixAndStrategy.second)) {
+            NDN_THROW(ConfigFile::Error("Failed to set strategy '" + prefixAndStrategy.second.toUri() + "' for prefix '"
+                                        + prefixAndStrategy.first.toUri() + "' in section 'strategy_choice'"));
+        }
     }
-  }
-  ///\todo redesign so that strategy parameter errors can be catched during dry-run
+    ///\todo redesign so that strategy parameter errors can be catched during dry-run
 }
 
 void
 TablesConfigSection::processNetworkRegionSection(const ConfigSection& section, bool isDryRun)
 {
-  if (isDryRun) {
-    return;
-  }
+    if (isDryRun) {
+        return;
+    }
 
-  auto& nrt = m_forwarder.getNetworkRegionTable();
-  nrt.clear();
-  for (const auto& pair : section) {
-    nrt.insert(Name(pair.first));
-  }
+    auto& nrt = m_forwarder.getNetworkRegionTable();
+    nrt.clear();
+    for (const auto& pair : section) {
+        nrt.insert(Name(pair.first));
+    }
 }
 
 } // namespace nfd

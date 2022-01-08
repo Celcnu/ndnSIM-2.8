@@ -33,16 +33,16 @@ namespace net {
 namespace linux_if {
 
 const uint32_t FLAG_LOWER_UP = IFF_LOWER_UP;
-const uint32_t FLAG_DORMANT  = IFF_DORMANT;
-const uint32_t FLAG_ECHO     = IFF_ECHO;
+const uint32_t FLAG_DORMANT = IFF_DORMANT;
+const uint32_t FLAG_ECHO = IFF_ECHO;
 
-const uint8_t OPER_STATE_UNKNOWN        = IF_OPER_UNKNOWN;
-const uint8_t OPER_STATE_NOTPRESENT     = IF_OPER_NOTPRESENT;
-const uint8_t OPER_STATE_DOWN           = IF_OPER_DOWN;
+const uint8_t OPER_STATE_UNKNOWN = IF_OPER_UNKNOWN;
+const uint8_t OPER_STATE_NOTPRESENT = IF_OPER_NOTPRESENT;
+const uint8_t OPER_STATE_DOWN = IF_OPER_DOWN;
 const uint8_t OPER_STATE_LOWERLAYERDOWN = IF_OPER_LOWERLAYERDOWN;
-const uint8_t OPER_STATE_TESTING        = IF_OPER_TESTING;
-const uint8_t OPER_STATE_DORMANT        = IF_OPER_DORMANT;
-const uint8_t OPER_STATE_UP             = IF_OPER_UP;
+const uint8_t OPER_STATE_TESTING = IF_OPER_TESTING;
+const uint8_t OPER_STATE_DORMANT = IF_OPER_DORMANT;
+const uint8_t OPER_STATE_UP = IF_OPER_UP;
 
 } // namespace linux_if
 } // namespace net

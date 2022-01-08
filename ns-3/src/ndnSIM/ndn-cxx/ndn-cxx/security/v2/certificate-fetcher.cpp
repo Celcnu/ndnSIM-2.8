@@ -40,26 +40,25 @@ CertificateFetcher::~CertificateFetcher() = default;
 void
 CertificateFetcher::setCertificateStorage(CertificateStorage& certStorage)
 {
-  m_certStorage = &certStorage;
+    m_certStorage = &certStorage;
 }
 
 void
-CertificateFetcher::fetch(const shared_ptr<CertificateRequest>& certRequest,
-                          const shared_ptr<ValidationState>& state,
+CertificateFetcher::fetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
                           const ValidationContinuation& continueValidation)
 {
-  BOOST_ASSERT(m_certStorage != nullptr);
-  auto cert = m_certStorage->getUnverifiedCertCache().find(certRequest->interest);
-  if (cert != nullptr) {
-    NDN_LOG_DEBUG_DEPTH("Found certificate in **un**verified key cache " << cert->getName());
-    continueValidation(*cert, state);
-    return;
-  }
-  doFetch(certRequest, state,
-          [continueValidation, this] (const Certificate& cert, const shared_ptr<ValidationState>& state) {
-            m_certStorage->cacheUnverifiedCert(Certificate(cert));
-            continueValidation(cert, state);
-          });
+    BOOST_ASSERT(m_certStorage != nullptr);
+    auto cert = m_certStorage->getUnverifiedCertCache().find(certRequest->interest);
+    if (cert != nullptr) {
+        NDN_LOG_DEBUG_DEPTH("Found certificate in **un**verified key cache " << cert->getName());
+        continueValidation(*cert, state);
+        return;
+    }
+    doFetch(certRequest, state,
+            [continueValidation, this](const Certificate& cert, const shared_ptr<ValidationState>& state) {
+                m_certStorage->cacheUnverifiedCert(Certificate(cert));
+                continueValidation(cert, state);
+            });
 }
 
 } // namespace v2

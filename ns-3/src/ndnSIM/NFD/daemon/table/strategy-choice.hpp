@@ -48,156 +48,139 @@ namespace strategy_choice {
  *  A Name prefix is owned by a strategy if a longest prefix match on the
  *  Strategy Choice table returns that strategy.
  */
-class StrategyChoice : noncopyable
-{
-public:
-  explicit
-  StrategyChoice(Forwarder& forwarder);
-
-  size_t
-  size() const
-  {
-    return m_nItems;
-  }
-
-  /** \brief Set the default strategy
-   *
-   *  This must be called by forwarder constructor.
-   */
-  void
-  setDefaultStrategy(const Name& strategyName);
-
-public: // Strategy Choice table
-  class InsertResult
-  {
+class StrategyChoice : noncopyable {
   public:
-    explicit
-    operator bool() const
+    explicit StrategyChoice(Forwarder& forwarder);
+
+    size_t
+    size() const
     {
-      return m_status == OK;
+        return m_nItems;
     }
 
-    bool
-    isRegistered() const
-    {
-      return m_status == OK || m_status == EXCEPTION;
-    }
-
-    /** \brief Get a status code for use in management command response
+    /** \brief Set the default strategy
+     *
+     *  This must be called by forwarder constructor.
      */
-    int
-    getStatusCode() const
-    {
-      return static_cast<int>(m_status);
-    }
+    void setDefaultStrategy(const Name& strategyName);
 
-  private:
-    enum Status {
-      OK             = 200,
-      NOT_REGISTERED = 404,
-      EXCEPTION      = 409,
-      DEPTH_EXCEEDED = 414,
+  public: // Strategy Choice table
+    class InsertResult {
+      public:
+        explicit operator bool() const
+        {
+            return m_status == OK;
+        }
+
+        bool
+        isRegistered() const
+        {
+            return m_status == OK || m_status == EXCEPTION;
+        }
+
+        /** \brief Get a status code for use in management command response
+         */
+        int
+        getStatusCode() const
+        {
+            return static_cast<int>(m_status);
+        }
+
+      private:
+        enum Status {
+            OK = 200,
+            NOT_REGISTERED = 404,
+            EXCEPTION = 409,
+            DEPTH_EXCEEDED = 414,
+        };
+
+        // implicitly constructible from Status
+        InsertResult(Status status, const std::string& exceptionMessage = "");
+
+      private:
+        Status m_status;
+        std::string m_exceptionMessage;
+
+        friend class StrategyChoice;
+        friend std::ostream& operator<<(std::ostream&, const InsertResult&);
     };
 
-    // implicitly constructible from Status
-    InsertResult(Status status, const std::string& exceptionMessage = "");
+    /** \brief Set strategy of \p prefix to be \p strategyName
+     *  \param prefix the name prefix to change strategy
+     *  \param strategyName strategy instance name, may contain version and parameters;
+     *                      strategy must have been registered
+     *  \return convertible to true on success; convertible to false on failure
+     */
+    InsertResult insert(const Name& prefix, const Name& strategyName);
+
+    /** \brief Make prefix to inherit strategy from its parent
+     *  \note Not allowed for root prefix (ndn:/)
+     */
+    void erase(const Name& prefix);
+
+    /** \brief Get strategy Name of prefix
+     *  \return true and strategyName at exact match, or false
+     */
+    std::pair<bool, Name> get(const Name& prefix) const;
+
+  public: // effective strategy
+    /** \brief Get effective strategy for \p prefix
+     */
+    fw::Strategy& findEffectiveStrategy(const Name& prefix) const;
+
+    /** \brief Get effective strategy for \p pitEntry
+     *
+     *  This is equivalent to `findEffectiveStrategy(pitEntry.getName())`
+     */
+    fw::Strategy& findEffectiveStrategy(const pit::Entry& pitEntry) const;
+
+    /** \brief Get effective strategy for \p measurementsEntry
+     *
+     *  This is equivalent to `findEffectiveStrategy(measurementsEntry.getName())`
+     */
+    fw::Strategy& findEffectiveStrategy(const measurements::Entry& measurementsEntry) const;
+
+  public: // enumeration
+    typedef boost::transformed_range<name_tree::GetTableEntry<Entry>, const name_tree::Range> Range;
+    typedef boost::range_iterator<Range>::type const_iterator;
+
+    /** \return an iterator to the beginning
+     *  \note Iteration order is implementation-defined.
+     *  \warning Undefined behavior may occur if a FIB/PIT/Measurements/StrategyChoice entry
+     *           is inserted or erased during enumeration.
+     */
+    const_iterator
+    begin() const
+    {
+        return this->getRange().begin();
+    }
+
+    /** \return an iterator to the end
+     *  \sa begin()
+     */
+    const_iterator
+    end() const
+    {
+        return this->getRange().end();
+    }
 
   private:
-    Status m_status;
-    std::string m_exceptionMessage;
+    void changeStrategy(Entry& entry, fw::Strategy& oldStrategy, fw::Strategy& newStrategy);
 
-    friend class StrategyChoice;
-    friend std::ostream& operator<<(std::ostream&, const InsertResult&);
-  };
+    /** \tparam K a parameter acceptable to NameTree::findLongestPrefixMatch
+     */
+    template <typename K>
+    fw::Strategy& findEffectiveStrategyImpl(const K& key) const;
 
-  /** \brief Set strategy of \p prefix to be \p strategyName
-   *  \param prefix the name prefix to change strategy
-   *  \param strategyName strategy instance name, may contain version and parameters;
-   *                      strategy must have been registered
-   *  \return convertible to true on success; convertible to false on failure
-   */
-  InsertResult
-  insert(const Name& prefix, const Name& strategyName);
+    Range getRange() const;
 
-  /** \brief Make prefix to inherit strategy from its parent
-   *  \note Not allowed for root prefix (ndn:/)
-   */
-  void
-  erase(const Name& prefix);
-
-  /** \brief Get strategy Name of prefix
-   *  \return true and strategyName at exact match, or false
-   */
-  std::pair<bool, Name>
-  get(const Name& prefix) const;
-
-public: // effective strategy
-  /** \brief Get effective strategy for \p prefix
-   */
-  fw::Strategy&
-  findEffectiveStrategy(const Name& prefix) const;
-
-  /** \brief Get effective strategy for \p pitEntry
-   *
-   *  This is equivalent to `findEffectiveStrategy(pitEntry.getName())`
-   */
-  fw::Strategy&
-  findEffectiveStrategy(const pit::Entry& pitEntry) const;
-
-  /** \brief Get effective strategy for \p measurementsEntry
-   *
-   *  This is equivalent to `findEffectiveStrategy(measurementsEntry.getName())`
-   */
-  fw::Strategy&
-  findEffectiveStrategy(const measurements::Entry& measurementsEntry) const;
-
-public: // enumeration
-  typedef boost::transformed_range<name_tree::GetTableEntry<Entry>, const name_tree::Range> Range;
-  typedef boost::range_iterator<Range>::type const_iterator;
-
-  /** \return an iterator to the beginning
-   *  \note Iteration order is implementation-defined.
-   *  \warning Undefined behavior may occur if a FIB/PIT/Measurements/StrategyChoice entry
-   *           is inserted or erased during enumeration.
-   */
-  const_iterator
-  begin() const
-  {
-    return this->getRange().begin();
-  }
-
-  /** \return an iterator to the end
-   *  \sa begin()
-   */
-  const_iterator
-  end() const
-  {
-    return this->getRange().end();
-  }
-
-private:
-  void
-  changeStrategy(Entry& entry,
-                 fw::Strategy& oldStrategy,
-                 fw::Strategy& newStrategy);
-
-  /** \tparam K a parameter acceptable to NameTree::findLongestPrefixMatch
-   */
-  template<typename K>
-  fw::Strategy&
-  findEffectiveStrategyImpl(const K& key) const;
-
-  Range
-  getRange() const;
-
-private:
-  Forwarder& m_forwarder;
-  NameTree& m_nameTree;
-  size_t m_nItems = 0;
+  private:
+    Forwarder& m_forwarder;
+    NameTree& m_nameTree;
+    size_t m_nItems = 0;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const StrategyChoice::InsertResult& res);
+std::ostream& operator<<(std::ostream& os, const StrategyChoice::InsertResult& res);
 
 } // namespace strategy_choice
 

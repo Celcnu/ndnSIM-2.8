@@ -37,73 +37,56 @@ namespace tpm {
 /**
  * @brief The back-end implementation of TPM based on macOS Keychain Services.
  */
-class BackEndOsx final : public BackEnd
-{
-public:
-  /**
-   * @brief Create TPM backed based on macOS Keychain Services.
-   *
-   * @param location Not used (required by the TPM registration interface).
-   */
-  explicit
-  BackEndOsx(const std::string& location = "");
+class BackEndOsx final : public BackEnd {
+  public:
+    /**
+     * @brief Create TPM backed based on macOS Keychain Services.
+     *
+     * @param location Not used (required by the TPM registration interface).
+     */
+    explicit BackEndOsx(const std::string& location = "");
 
-  ~BackEndOsx() final;
+    ~BackEndOsx() final;
 
-  static const std::string&
-  getScheme();
+    static const std::string& getScheme();
 
-public: // management
-  bool
-  isTerminalMode() const final;
+  public: // management
+    bool isTerminalMode() const final;
 
-  void
-  setTerminalMode(bool isTerminal) const final;
+    void setTerminalMode(bool isTerminal) const final;
 
-  bool
-  isTpmLocked() const final;
+    bool isTpmLocked() const final;
 
-  bool
-  unlockTpm(const char* pw, size_t pwLen) const final;
+    bool unlockTpm(const char* pw, size_t pwLen) const final;
 
-public: // crypto transformation
-  /**
-   * @brief Sign @p buf with @p key using @p digestAlgorithm.
-   */
-  static ConstBufferPtr
-  sign(const KeyRefOsx& key, DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size);
+  public: // crypto transformation
+    /**
+     * @brief Sign @p buf with @p key using @p digestAlgorithm.
+     */
+    static ConstBufferPtr sign(const KeyRefOsx& key, DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size);
 
-  static ConstBufferPtr
-  decrypt(const KeyRefOsx& key, const uint8_t* cipherText, size_t cipherSize);
+    static ConstBufferPtr decrypt(const KeyRefOsx& key, const uint8_t* cipherText, size_t cipherSize);
 
-  static ConstBufferPtr
-  derivePublicKey(const KeyRefOsx& key);
+    static ConstBufferPtr derivePublicKey(const KeyRefOsx& key);
 
-private: // inherited from tpm::BackEnd
-  bool
-  doHasKey(const Name& keyName) const final;
+  private: // inherited from tpm::BackEnd
+    bool doHasKey(const Name& keyName) const final;
 
-  unique_ptr<KeyHandle>
-  doGetKeyHandle(const Name& keyName) const final;
+    unique_ptr<KeyHandle> doGetKeyHandle(const Name& keyName) const final;
 
-  unique_ptr<KeyHandle>
-  doCreateKey(const Name& identityName, const KeyParams& params) final;
+    unique_ptr<KeyHandle> doCreateKey(const Name& identityName, const KeyParams& params) final;
 
-  void
-  doDeleteKey(const Name& keyName) final;
+    void doDeleteKey(const Name& keyName) final;
 
-  ConstBufferPtr
-  doExportKey(const Name& keyName, const char* pw, size_t pwLen) final;
+    ConstBufferPtr doExportKey(const Name& keyName, const char* pw, size_t pwLen) final;
 
-  void
-  doImportKey(const Name& keyName, const uint8_t* buf, size_t size, const char* pw, size_t pwLen) final;
+    void doImportKey(const Name& keyName, const uint8_t* buf, size_t size, const char* pw, size_t pwLen) final;
 
-  void
-  doImportKey(const Name& keyName, shared_ptr<transform::PrivateKey> key) final;
+    void doImportKey(const Name& keyName, shared_ptr<transform::PrivateKey> key) final;
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
 } // namespace tpm

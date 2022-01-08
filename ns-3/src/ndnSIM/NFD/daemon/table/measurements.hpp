@@ -47,27 +47,25 @@ using EntryPredicate = std::function<bool(const Entry&)>;
 
 /** \brief An \c EntryPredicate that accepts any entry
  */
-class AnyEntry
-{
-public:
-  bool
-  operator()(const Entry&) const
-  {
-    return true;
-  }
+class AnyEntry {
+  public:
+    bool
+    operator()(const Entry&) const
+    {
+        return true;
+    }
 };
 
 /** \brief An \c EntryPredicate that accepts an entry if it has StrategyInfo of type T
  */
-template<typename T>
-class EntryWithStrategyInfo
-{
-public:
-  bool
-  operator()(const Entry& entry) const
-  {
-    return entry.getStrategyInfo<T>() != nullptr;
-  }
+template <typename T>
+class EntryWithStrategyInfo {
+  public:
+    bool
+    operator()(const Entry& entry) const
+    {
+        return entry.getStrategyInfo<T>() != nullptr;
+    }
 };
 
 /** \brief The Measurements table
@@ -76,97 +74,82 @@ public:
  *  measurements. A strategy can access this table via \c Strategy::getMeasurements(), and then
  *  place any object that derive from \c StrategyInfo type onto Measurements entries.
  */
-class Measurements : noncopyable
-{
-public:
-  explicit
-  Measurements(NameTree& nameTree);
+class Measurements : noncopyable {
+  public:
+    explicit Measurements(NameTree& nameTree);
 
-  /** \brief maximum depth of a Measurements entry
-   */
-  static constexpr size_t
-  getMaxDepth()
-  {
-    return NameTree::getMaxDepth();
-  }
+    /** \brief maximum depth of a Measurements entry
+     */
+    static constexpr size_t
+    getMaxDepth()
+    {
+        return NameTree::getMaxDepth();
+    }
 
-  /** \brief Find or insert an entry by name
-   *
-   *  An entry name can have at most \c getMaxDepth() components. If \p name exceeds this limit,
-   *  it is truncated to the first \c getMaxDepth() components.
-   */
-  Entry&
-  get(const Name& name);
+    /** \brief Find or insert an entry by name
+     *
+     *  An entry name can have at most \c getMaxDepth() components. If \p name exceeds this limit,
+     *  it is truncated to the first \c getMaxDepth() components.
+     */
+    Entry& get(const Name& name);
 
-  /** \brief Equivalent to `get(fibEntry.getPrefix())`
-   */
-  Entry&
-  get(const fib::Entry& fibEntry);
+    /** \brief Equivalent to `get(fibEntry.getPrefix())`
+     */
+    Entry& get(const fib::Entry& fibEntry);
 
-  /** \brief Equivalent to `get(pitEntry.getName(), std::min(pitEntry.getName().size(), getMaxDepth()))`
-   */
-  Entry&
-  get(const pit::Entry& pitEntry);
+    /** \brief Equivalent to `get(pitEntry.getName(), std::min(pitEntry.getName().size(), getMaxDepth()))`
+     */
+    Entry& get(const pit::Entry& pitEntry);
 
-  /** \brief Find or insert a parent entry
-   *  \retval nullptr child is the root entry
-   *  \return get(child.getName().getPrefix(-1))
-   */
-  Entry*
-  getParent(const Entry& child);
+    /** \brief Find or insert a parent entry
+     *  \retval nullptr child is the root entry
+     *  \return get(child.getName().getPrefix(-1))
+     */
+    Entry* getParent(const Entry& child);
 
-  /** \brief Perform a longest prefix match for \p name
-   */
-  Entry*
-  findLongestPrefixMatch(const Name& name,
-                         const EntryPredicate& pred = AnyEntry()) const;
+    /** \brief Perform a longest prefix match for \p name
+     */
+    Entry* findLongestPrefixMatch(const Name& name, const EntryPredicate& pred = AnyEntry()) const;
 
-  /** \brief Perform a longest prefix match for `pitEntry.getName()`
-   */
-  Entry*
-  findLongestPrefixMatch(const pit::Entry& pitEntry,
-                         const EntryPredicate& pred = AnyEntry()) const;
+    /** \brief Perform a longest prefix match for `pitEntry.getName()`
+     */
+    Entry* findLongestPrefixMatch(const pit::Entry& pitEntry, const EntryPredicate& pred = AnyEntry()) const;
 
-  /** \brief Perform an exact match
-   */
-  Entry*
-  findExactMatch(const Name& name) const;
+    /** \brief Perform an exact match
+     */
+    Entry* findExactMatch(const Name& name) const;
 
-  static time::nanoseconds
-  getInitialLifetime()
-  {
-    return 4_s;
-  }
+    static time::nanoseconds
+    getInitialLifetime()
+    {
+        return 4_s;
+    }
 
-  /** \brief Extend lifetime of an entry
-   *
-   *  The entry will be kept until at least now()+lifetime.
-   */
-  void
-  extendLifetime(Entry& entry, const time::nanoseconds& lifetime);
+    /** \brief Extend lifetime of an entry
+     *
+     *  The entry will be kept until at least now()+lifetime.
+     */
+    void extendLifetime(Entry& entry, const time::nanoseconds& lifetime);
 
-  size_t
-  size() const
-  {
-    return m_nItems;
-  }
+    size_t
+    size() const
+    {
+        return m_nItems;
+    }
 
-private:
-  void
-  cleanup(Entry& entry);
+  private:
+    void cleanup(Entry& entry);
 
-  Entry&
-  get(name_tree::Entry& nte);
+    Entry& get(name_tree::Entry& nte);
 
-  /** \tparam K a parameter acceptable to \c NameTree::findLongestPrefixMatch
-   */
-  template<typename K>
-  Entry*
-  findLongestPrefixMatchImpl(const K& key, const EntryPredicate& pred) const;
+    /** \tparam K a parameter acceptable to \c NameTree::findLongestPrefixMatch
+     */
+    template <typename K>
+    Entry* findLongestPrefixMatchImpl(const K& key, const EntryPredicate& pred) const;
 
-private:
-  NameTree& m_nameTree;
-  size_t m_nItems = 0;
+  private:
+    NameTree& m_nameTree;
+    size_t m_nItems = 0;
 };
 
 } // namespace measurements

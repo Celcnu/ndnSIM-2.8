@@ -40,8 +40,7 @@ namespace tests {
  *  \param allowCached if true, previously collected information can be returned
  *  \note This function is blocking if \p allowCached is false or no previous information exists
  */
-std::vector<shared_ptr<const NetworkInterface>>
-collectNetworkInterfaces(bool allowCached = true);
+std::vector<shared_ptr<const NetworkInterface>> collectNetworkInterfaces(bool allowCached = true);
 
 } // namespace tests
 } // namespace net

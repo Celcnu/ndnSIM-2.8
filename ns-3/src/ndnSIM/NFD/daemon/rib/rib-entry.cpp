@@ -36,254 +36,250 @@ NFD_LOG_INIT(RibEntry);
 RibEntry::RouteList::iterator
 RibEntry::findRoute(const Route& route)
 {
-  return std::find_if(begin(), end(), bind(&compareFaceIdAndOrigin, _1, route));
+    return std::find_if(begin(), end(), bind(&compareFaceIdAndOrigin, _1, route));
 }
 
 RibEntry::RouteList::const_iterator
 RibEntry::findRoute(const Route& route) const
 {
-  return std::find_if(begin(), end(), bind(&compareFaceIdAndOrigin, _1, route));
+    return std::find_if(begin(), end(), bind(&compareFaceIdAndOrigin, _1, route));
 }
 
 std::pair<RibEntry::iterator, bool>
 RibEntry::insertRoute(const Route& route)
 {
-  iterator it = findRoute(route);
+    iterator it = findRoute(route);
 
-  if (it == end()) {
-    if (route.flags & ndn::nfd::ROUTE_FLAG_CAPTURE) {
-      m_nRoutesWithCaptureSet++;
+    if (it == end()) {
+        if (route.flags & ndn::nfd::ROUTE_FLAG_CAPTURE) {
+            m_nRoutesWithCaptureSet++;
+        }
+
+        m_routes.push_back(route);
+        return {std::prev(m_routes.end()), true};
     }
 
-    m_routes.push_back(route);
-    return {std::prev(m_routes.end()), true};
-  }
-
-  return {it, false};
+    return {it, false};
 }
 
 void
 RibEntry::eraseRoute(const Route& route)
 {
-  RibEntry::iterator it = findRoute(route);
-  eraseRoute(it);
+    RibEntry::iterator it = findRoute(route);
+    eraseRoute(it);
 }
 
 bool
 RibEntry::hasRoute(const Route& route)
 {
-  RibEntry::const_iterator it = findRoute(route);
+    RibEntry::const_iterator it = findRoute(route);
 
-  return it != end();
+    return it != end();
 }
 
 bool
 RibEntry::hasFaceId(const uint64_t faceId) const
 {
-  RibEntry::const_iterator it = std::find_if(begin(), end(), bind(&compareFaceId, _1, faceId));
+    RibEntry::const_iterator it = std::find_if(begin(), end(), bind(&compareFaceId, _1, faceId));
 
-  return it != end();
+    return it != end();
 }
 
 size_t
 RibEntry::getNRoutes() const
 {
-  return m_routes.size();
+    return m_routes.size();
 }
 
 void
 RibEntry::addChild(shared_ptr<RibEntry> child)
 {
-  BOOST_ASSERT(!child->getParent());
-  child->setParent(this->shared_from_this());
-  m_children.push_back(std::move(child));
+    BOOST_ASSERT(!child->getParent());
+    child->setParent(this->shared_from_this());
+    m_children.push_back(std::move(child));
 }
 
 void
 RibEntry::removeChild(shared_ptr<RibEntry> child)
 {
-  BOOST_ASSERT(child->getParent().get() == this);
-  child->setParent(nullptr);
-  m_children.remove(child);
+    BOOST_ASSERT(child->getParent().get() == this);
+    child->setParent(nullptr);
+    m_children.remove(child);
 }
 
 RibEntry::RouteList::iterator
 RibEntry::eraseRoute(RouteList::iterator route)
 {
-  if (route != m_routes.end()) {
-    if (route->flags & ndn::nfd::ROUTE_FLAG_CAPTURE) {
-      m_nRoutesWithCaptureSet--;
+    if (route != m_routes.end()) {
+        if (route->flags & ndn::nfd::ROUTE_FLAG_CAPTURE) {
+            m_nRoutesWithCaptureSet--;
+        }
+
+        // Cancel any scheduled event
+        NFD_LOG_TRACE("Cancelling expiration event: " << route->getExpirationEvent());
+        route->cancelExpirationEvent();
+
+        return m_routes.erase(route);
     }
 
-    // Cancel any scheduled event
-    NFD_LOG_TRACE("Cancelling expiration event: " << route->getExpirationEvent());
-    route->cancelExpirationEvent();
-
-    return m_routes.erase(route);
-  }
-
-  return m_routes.end();
+    return m_routes.end();
 }
 
 void
 RibEntry::addInheritedRoute(const Route& route)
 {
-  m_inheritedRoutes.push_back(route);
+    m_inheritedRoutes.push_back(route);
 }
 
 void
 RibEntry::removeInheritedRoute(const Route& route)
 {
-  m_inheritedRoutes.remove_if(bind(&compareFaceId, _1, route.faceId));
+    m_inheritedRoutes.remove_if(bind(&compareFaceId, _1, route.faceId));
 }
 
 RibEntry::RouteList::const_iterator
 RibEntry::findInheritedRoute(const Route& route) const
 {
-  return std::find_if(m_inheritedRoutes.begin(), m_inheritedRoutes.end(),
-                      bind(&compareFaceId, _1, route.faceId));
+    return std::find_if(m_inheritedRoutes.begin(), m_inheritedRoutes.end(), bind(&compareFaceId, _1, route.faceId));
 }
 
 bool
 RibEntry::hasInheritedRoute(const Route& route) const
 {
-  return findInheritedRoute(route) != m_inheritedRoutes.end();
+    return findInheritedRoute(route) != m_inheritedRoutes.end();
 }
 
 bool
 RibEntry::hasCapture() const
 {
-  return m_nRoutesWithCaptureSet > 0;
+    return m_nRoutesWithCaptureSet > 0;
 }
 
 bool
 RibEntry::hasChildInheritOnFaceId(uint64_t faceId) const
 {
-  for (const Route& route : m_routes) {
-    if (route.faceId == faceId && (route.flags & ndn::nfd::ROUTE_FLAG_CHILD_INHERIT)) {
-      return true;
+    for (const Route& route : m_routes) {
+        if (route.faceId == faceId && (route.flags & ndn::nfd::ROUTE_FLAG_CHILD_INHERIT)) {
+            return true;
+        }
     }
-  }
 
-  return false;
+    return false;
 }
 
 const Route*
 RibEntry::getRouteWithLowestCostByFaceId(uint64_t faceId) const
 {
-  const Route* candidate = nullptr;
+    const Route* candidate = nullptr;
 
-  for (const Route& route : m_routes) {
-    // Matching face ID
-    if (route.faceId == faceId) {
-      // If this is the first route with this Face ID found
-      if (candidate == nullptr) {
-        candidate = &route;
-      }
-      else if (route.cost < candidate->cost) {
-        // Found a route with a lower cost
-        candidate = &route;
-      }
+    for (const Route& route : m_routes) {
+        // Matching face ID
+        if (route.faceId == faceId) {
+            // If this is the first route with this Face ID found
+            if (candidate == nullptr) {
+                candidate = &route;
+            }
+            else if (route.cost < candidate->cost) {
+                // Found a route with a lower cost
+                candidate = &route;
+            }
+        }
     }
-  }
 
-  return candidate;
+    return candidate;
 }
 
 const Route*
 RibEntry::getRouteWithSecondLowestCostByFaceId(uint64_t faceId) const
 {
-  std::vector<const Route*> matches;
+    std::vector<const Route*> matches;
 
-  // Copy routes which have faceId
-  for (const Route& route : m_routes) {
-    if (route.faceId == faceId) {
-      matches.push_back(&route);
+    // Copy routes which have faceId
+    for (const Route& route : m_routes) {
+        if (route.faceId == faceId) {
+            matches.push_back(&route);
+        }
     }
-  }
 
-  // If there are less than 2 routes, there is no second lowest
-  if (matches.size() < 2) {
-    return nullptr;
-  }
+    // If there are less than 2 routes, there is no second lowest
+    if (matches.size() < 2) {
+        return nullptr;
+    }
 
-  // Get second lowest cost
-  std::nth_element(matches.begin(), matches.begin() + 1, matches.end(),
-    [] (const Route* lhs, const Route* rhs) { return lhs->cost < rhs->cost; });
+    // Get second lowest cost
+    std::nth_element(matches.begin(), matches.begin() + 1, matches.end(),
+                     [](const Route* lhs, const Route* rhs) { return lhs->cost < rhs->cost; });
 
-  return matches.at(1);
+    return matches.at(1);
 }
 
 const Route*
 RibEntry::getRouteWithLowestCostAndChildInheritByFaceId(uint64_t faceId) const
 {
-  const Route* candidate = nullptr;
+    const Route* candidate = nullptr;
 
-  for (const Route& route : m_routes) {
-    // Correct face ID and Child Inherit flag set
-    if (route.faceId == faceId &&
-        (route.flags & ndn::nfd::ROUTE_FLAG_CHILD_INHERIT) == ndn::nfd::ROUTE_FLAG_CHILD_INHERIT)
-    {
-      // If this is the first route with this Face ID found
-      if (candidate == nullptr) {
-        candidate = &route;
-      }
-      else if (route.cost < candidate->cost) {
-        // Found a route with a lower cost
-        candidate = &route;
-      }
+    for (const Route& route : m_routes) {
+        // Correct face ID and Child Inherit flag set
+        if (route.faceId == faceId
+            && (route.flags & ndn::nfd::ROUTE_FLAG_CHILD_INHERIT) == ndn::nfd::ROUTE_FLAG_CHILD_INHERIT) {
+            // If this is the first route with this Face ID found
+            if (candidate == nullptr) {
+                candidate = &route;
+            }
+            else if (route.cost < candidate->cost) {
+                // Found a route with a lower cost
+                candidate = &route;
+            }
+        }
     }
-  }
 
-  return candidate;
+    return candidate;
 }
 
 ndn::PrefixAnnouncement
-RibEntry::getPrefixAnnouncement(time::milliseconds minExpiration,
-                                time::milliseconds maxExpiration) const
+RibEntry::getPrefixAnnouncement(time::milliseconds minExpiration, time::milliseconds maxExpiration) const
 {
-  const Route* bestAnnRoute = nullptr;
-  auto entryExpiry = time::steady_clock::TimePoint::min();
+    const Route* bestAnnRoute = nullptr;
+    auto entryExpiry = time::steady_clock::TimePoint::min();
 
-  for (const Route& route : *this) {
-    if (route.expires) {
-      entryExpiry = std::max(entryExpiry, *route.expires);
-      if (route.announcement) {
-        if (bestAnnRoute == nullptr || *route.expires > *bestAnnRoute->expires) {
-          bestAnnRoute = &route;
+    for (const Route& route : *this) {
+        if (route.expires) {
+            entryExpiry = std::max(entryExpiry, *route.expires);
+            if (route.announcement) {
+                if (bestAnnRoute == nullptr || *route.expires > *bestAnnRoute->expires) {
+                    bestAnnRoute = &route;
+                }
+            }
         }
-      }
+        else {
+            entryExpiry = time::steady_clock::TimePoint::max();
+        }
     }
-    else {
-      entryExpiry = time::steady_clock::TimePoint::max();
+
+    if (bestAnnRoute != nullptr) {
+        return *bestAnnRoute->announcement;
     }
-  }
 
-  if (bestAnnRoute != nullptr) {
-    return *bestAnnRoute->announcement;
-  }
-
-  ndn::PrefixAnnouncement ann;
-  ann.setAnnouncedName(m_name);
-  ann.setExpiration(ndn::clamp(
-    time::duration_cast<time::milliseconds>(entryExpiry - time::steady_clock::now()),
-    minExpiration, maxExpiration));
-  return ann;
+    ndn::PrefixAnnouncement ann;
+    ann.setAnnouncedName(m_name);
+    ann.setExpiration(ndn::clamp(time::duration_cast<time::milliseconds>(entryExpiry - time::steady_clock::now()),
+                                 minExpiration, maxExpiration));
+    return ann;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const RibEntry& entry)
 {
-  os << "RibEntry {\n";
-  os << "  Name: " << entry.getName() << "\n";
+    os << "RibEntry {\n";
+    os << "  Name: " << entry.getName() << "\n";
 
-  for (const Route& route : entry) {
-    os << "  " << route << "\n";
-  }
+    for (const Route& route : entry) {
+        os << "  " << route << "\n";
+    }
 
-  os << "}";
+    os << "}";
 
-  return os;
+    return os;
 }
 
 } // namespace rib

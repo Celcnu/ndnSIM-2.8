@@ -31,31 +31,28 @@ namespace v2 {
 /**
  * @brief Request for a certificate, associated with the number of attempts
  */
-class CertificateRequest : noncopyable
-{
-public:
-  CertificateRequest() = default;
+class CertificateRequest : noncopyable {
+  public:
+    CertificateRequest() = default;
 
-  explicit
-  CertificateRequest(const Interest& interest)
-    : interest(interest)
-    , nRetriesLeft(3)
-  {
-  }
+    explicit CertificateRequest(const Interest& interest)
+      : interest(interest)
+      , nRetriesLeft(3)
+    {
+    }
 
-  explicit
-  CertificateRequest(const Name& name)
-    : CertificateRequest(Interest(name).setCanBePrefix(true))
-  {
-  }
+    explicit CertificateRequest(const Name& name)
+      : CertificateRequest(Interest(name).setCanBePrefix(true))
+    {
+    }
 
-public:
-  /// @brief the name for the requested data/certificate.
-  Interest interest;
-  /// @brief the number of remaining retries after timeout or NACK.
-  int nRetriesLeft = 0;
-  /// @brief the amount of time to wait before sending the next interest after a NACK.
-  time::milliseconds waitAfterNack = 500_ms;
+  public:
+    /// @brief the name for the requested data/certificate.
+    Interest interest;
+    /// @brief the number of remaining retries after timeout or NACK.
+    int nRetriesLeft = 0;
+    /// @brief the amount of time to wait before sending the next interest after a NACK.
+    time::milliseconds waitAfterNack = 500_ms;
 };
 
 } // namespace v2

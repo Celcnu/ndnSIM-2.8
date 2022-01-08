@@ -31,81 +31,77 @@ namespace tests {
 
 /** \brief A validation policy for unit testing
  */
-class DummyValidationPolicy : public security::v2::ValidationPolicy
-{
-public:
-  /** \brief constructor
-   *  \param shouldAccept whether to accept or reject all validation requests
-   */
-  explicit
-  DummyValidationPolicy(bool shouldAccept = true)
-  {
-    this->setResult(shouldAccept);
-  }
-
-  /** \brief change the validation result
-   *  \param shouldAccept whether to accept or reject all validation requests
-   */
-  void
-  setResult(bool shouldAccept)
-  {
-    m_decide = [shouldAccept] (const Name&) { return shouldAccept; };
-  }
-
-  /** \brief set a callback for validation
-   *  \param cb a callback which receives the Interest/Data name for each validation request;
-   *            its return value determines the validation result
-   */
-  void
-  setResultCallback(const function<bool(const Name&)>& cb)
-  {
-    m_decide = cb;
-  }
-
-protected:
-  void
-  checkPolicy(const Data& data, const shared_ptr<security::v2::ValidationState>& state,
-              const ValidationContinuation& continueValidation) override
-  {
-    if (m_decide(data.getName())) {
-      continueValidation(nullptr, state);
+class DummyValidationPolicy : public security::v2::ValidationPolicy {
+  public:
+    /** \brief constructor
+     *  \param shouldAccept whether to accept or reject all validation requests
+     */
+    explicit DummyValidationPolicy(bool shouldAccept = true)
+    {
+        this->setResult(shouldAccept);
     }
-    else {
-      state->fail(security::v2::ValidationError::NO_ERROR);
-    }
-  }
 
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<security::v2::ValidationState>& state,
-              const ValidationContinuation& continueValidation) override
-  {
-    if (m_decide(interest.getName())) {
-      continueValidation(nullptr, state);
+    /** \brief change the validation result
+     *  \param shouldAccept whether to accept or reject all validation requests
+     */
+    void
+    setResult(bool shouldAccept)
+    {
+        m_decide = [shouldAccept](const Name&) { return shouldAccept; };
     }
-    else {
-      state->fail(security::v2::ValidationError::NO_ERROR);
-    }
-  }
 
-private:
-  function<bool(const Name&)> m_decide;
+    /** \brief set a callback for validation
+     *  \param cb a callback which receives the Interest/Data name for each validation request;
+     *            its return value determines the validation result
+     */
+    void
+    setResultCallback(const function<bool(const Name&)>& cb)
+    {
+        m_decide = cb;
+    }
+
+  protected:
+    void
+    checkPolicy(const Data& data, const shared_ptr<security::v2::ValidationState>& state,
+                const ValidationContinuation& continueValidation) override
+    {
+        if (m_decide(data.getName())) {
+            continueValidation(nullptr, state);
+        }
+        else {
+            state->fail(security::v2::ValidationError::NO_ERROR);
+        }
+    }
+
+    void
+    checkPolicy(const Interest& interest, const shared_ptr<security::v2::ValidationState>& state,
+                const ValidationContinuation& continueValidation) override
+    {
+        if (m_decide(interest.getName())) {
+            continueValidation(nullptr, state);
+        }
+        else {
+            state->fail(security::v2::ValidationError::NO_ERROR);
+        }
+    }
+
+  private:
+    function<bool(const Name&)> m_decide;
 };
 
-class DummyValidator : public security::v2::Validator
-{
-public:
-  explicit
-  DummyValidator(bool shouldAccept = true)
-    : security::v2::Validator(make_unique<DummyValidationPolicy>(shouldAccept),
-                              make_unique<security::v2::CertificateFetcherOffline>())
-  {
-  }
+class DummyValidator : public security::v2::Validator {
+  public:
+    explicit DummyValidator(bool shouldAccept = true)
+      : security::v2::Validator(make_unique<DummyValidationPolicy>(shouldAccept),
+                                make_unique<security::v2::CertificateFetcherOffline>())
+    {
+    }
 
-  DummyValidationPolicy&
-  getPolicy()
-  {
-    return static_cast<DummyValidationPolicy&>(security::v2::Validator::getPolicy());
-  }
+    DummyValidationPolicy&
+    getPolicy()
+    {
+        return static_cast<DummyValidationPolicy&>(security::v2::Validator::getPolicy());
+    }
 };
 
 } // namespace tests

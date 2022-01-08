@@ -33,7 +33,7 @@ namespace detail {
 ndn::nfd::LinkType
 getLinkType(const std::string& ifName)
 {
-  return nfd::LINK_TYPE_NONE;
+    return nfd::LINK_TYPE_NONE;
 }
 
 } // namespace detail

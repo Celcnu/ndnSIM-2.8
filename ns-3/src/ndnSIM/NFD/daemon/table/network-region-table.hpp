@@ -37,20 +37,18 @@ namespace nfd {
  *  NetworkRegionTable exposes a set-like API, including methods `insert`, `clear`,
  *  `find`, `size`, `begin`, and `end`.
  */
-class NetworkRegionTable : public std::set<Name>
-{
-public:
-  /** \brief determines whether an Interest has reached a producer region
-   *  \param forwardingHint forwarding hint of an Interest
-   *  \retval true the Interest has reached a producer region
-   *  \retval false the Interest has not reached a producer region
-   *
-   *  If any delegation name in the forwarding hint is a prefix of any region name,
-   *  the Interest has reached the producer region and should be forwarded according to ‎its Name;
-   *  otherwise, the Interest should be forwarded according to the forwarding hint.
-   */
-  bool
-  isInProducerRegion(const DelegationList& forwardingHint) const;
+class NetworkRegionTable : public std::set<Name> {
+  public:
+    /** \brief determines whether an Interest has reached a producer region
+     *  \param forwardingHint forwarding hint of an Interest
+     *  \retval true the Interest has reached a producer region
+     *  \retval false the Interest has not reached a producer region
+     *
+     *  If any delegation name in the forwarding hint is a prefix of any region name,
+     *  the Interest has reached the producer region and should be forwarded according to ‎its Name;
+     *  otherwise, the Interest should be forwarded according to the forwarding hint.
+     */
+    bool isInProducerRegion(const DelegationList& forwardingHint) const;
 };
 
 } // namespace nfd

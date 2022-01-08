@@ -32,42 +32,38 @@ namespace transform {
 /**
  * @brief A source taking a memory buffer as input
  */
-class BufferSource : public Source
-{
-public:
-  /**
-   * @brief Take a buffer @p buf with size of @p size as input.
-   *
-   * Caller must not destroy the buffer before transformation is done
-   */
-  BufferSource(const uint8_t* buf, size_t size);
+class BufferSource : public Source {
+  public:
+    /**
+     * @brief Take a buffer @p buf with size of @p size as input.
+     *
+     * Caller must not destroy the buffer before transformation is done
+     */
+    BufferSource(const uint8_t* buf, size_t size);
 
-  /**
-   * @brief Take @p string as input.
-   *
-   * Caller must not destroy the string before transformation is done
-   */
-  explicit
-  BufferSource(const std::string& string);
+    /**
+     * @brief Take @p string as input.
+     *
+     * Caller must not destroy the string before transformation is done
+     */
+    explicit BufferSource(const std::string& string);
 
-  /**
-   * @brief Take @p buffer as input.
-   *
-   * Caller must not destroy the buffer before transformation is done
-   */
-  explicit
-  BufferSource(const Buffer& buffer);
+    /**
+     * @brief Take @p buffer as input.
+     *
+     * Caller must not destroy the buffer before transformation is done
+     */
+    explicit BufferSource(const Buffer& buffer);
 
-private:
-  /**
-   * @brief Write the whole buffer into the next module.
-   */
-  void
-  doPump() final;
+  private:
+    /**
+     * @brief Write the whole buffer into the next module.
+     */
+    void doPump() final;
 
-private:
-  const uint8_t* m_buf;
-  size_t m_size;
+  private:
+    const uint8_t* m_buf;
+    size_t m_size;
 };
 
 typedef BufferSource bufferSource;

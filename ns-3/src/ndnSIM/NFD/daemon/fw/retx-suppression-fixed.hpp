@@ -35,23 +35,20 @@ namespace fw {
 /** \brief a retransmission suppression decision algorithm that
  *         suppresses retransmissions within a fixed duration
  */
-class RetxSuppressionFixed
-{
-public:
-  explicit
-  RetxSuppressionFixed(const time::milliseconds& minRetxInterval = DEFAULT_MIN_RETX_INTERVAL);
+class RetxSuppressionFixed {
+  public:
+    explicit RetxSuppressionFixed(const time::milliseconds& minRetxInterval = DEFAULT_MIN_RETX_INTERVAL);
 
-  /** \brief determines whether Interest is a retransmission,
-   *         and if so, whether it shall be forwarded or suppressed
-   */
-  RetxSuppressionResult
-  decidePerPitEntry(pit::Entry& pitEntry) const;
+    /** \brief determines whether Interest is a retransmission,
+     *         and if so, whether it shall be forwarded or suppressed
+     */
+    RetxSuppressionResult decidePerPitEntry(pit::Entry& pitEntry) const;
 
-public:
-  static const time::milliseconds DEFAULT_MIN_RETX_INTERVAL;
+  public:
+    static const time::milliseconds DEFAULT_MIN_RETX_INTERVAL;
 
-private:
-  const time::milliseconds m_minRetxInterval;
+  private:
+    const time::milliseconds m_minRetxInterval;
 };
 
 } // namespace fw

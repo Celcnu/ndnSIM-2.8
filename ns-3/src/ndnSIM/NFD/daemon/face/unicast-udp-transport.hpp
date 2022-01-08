@@ -36,28 +36,22 @@ NFD_LOG_MEMBER_DECL_SPECIALIZED((DatagramTransport<boost::asio::ip::udp, Unicast
 /**
  * \brief A Transport that communicates on a unicast UDP socket
  */
-class UnicastUdpTransport final : public DatagramTransport<boost::asio::ip::udp, Unicast>
-{
-public:
-  UnicastUdpTransport(protocol::socket&& socket,
-                      ndn::nfd::FacePersistency persistency,
-                      time::nanoseconds idleTimeout,
-                      optional<ssize_t> overrideMtu = {});
+class UnicastUdpTransport final : public DatagramTransport<boost::asio::ip::udp, Unicast> {
+  public:
+    UnicastUdpTransport(protocol::socket&& socket, ndn::nfd::FacePersistency persistency, time::nanoseconds idleTimeout,
+                        optional<ssize_t> overrideMtu = {});
 
-protected:
-  bool
-  canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
+  protected:
+    bool canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
 
-  void
-  afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
+    void afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
 
-private:
-  void
-  scheduleClosureWhenIdle();
+  private:
+    void scheduleClosureWhenIdle();
 
-private:
-  const time::nanoseconds m_idleTimeout;
-  scheduler::ScopedEventId m_closeIfIdleEvent;
+  private:
+    const time::nanoseconds m_idleTimeout;
+    scheduler::ScopedEventId m_closeIfIdleEvent;
 };
 
 } // namespace face

@@ -30,102 +30,101 @@ namespace v2 {
 void
 TrustAnchorContainer::AnchorContainer::add(Certificate&& cert)
 {
-  AnchorContainerBase::insert(std::move(cert));
+    AnchorContainerBase::insert(std::move(cert));
 }
 
 void
 TrustAnchorContainer::AnchorContainer::remove(const Name& certName)
 {
-  AnchorContainerBase::erase(certName);
+    AnchorContainerBase::erase(certName);
 }
 
 void
 TrustAnchorContainer::AnchorContainer::clear()
 {
-  AnchorContainerBase::clear();
+    AnchorContainerBase::clear();
 }
 
 void
 TrustAnchorContainer::insert(const std::string& groupId, Certificate&& cert)
 {
-  auto group = m_groups.find(groupId);
-  if (group == m_groups.end()) {
-    std::tie(group, std::ignore) = m_groups.insert(make_shared<StaticTrustAnchorGroup>(m_anchors, groupId));
-  }
-  auto* staticGroup = dynamic_cast<StaticTrustAnchorGroup*>(&**group);
-  if (staticGroup == nullptr) {
-    NDN_THROW(Error("Cannot add static anchor to a non-static anchor group " + groupId));
-  }
-  staticGroup->add(std::move(cert));
+    auto group = m_groups.find(groupId);
+    if (group == m_groups.end()) {
+        std::tie(group, std::ignore) = m_groups.insert(make_shared<StaticTrustAnchorGroup>(m_anchors, groupId));
+    }
+    auto* staticGroup = dynamic_cast<StaticTrustAnchorGroup*>(&**group);
+    if (staticGroup == nullptr) {
+        NDN_THROW(Error("Cannot add static anchor to a non-static anchor group " + groupId));
+    }
+    staticGroup->add(std::move(cert));
 }
 
 void
 TrustAnchorContainer::insert(const std::string& groupId, const boost::filesystem::path& path,
                              time::nanoseconds refreshPeriod, bool isDir)
 {
-  if (m_groups.count(groupId) != 0) {
-    NDN_THROW(Error("Cannot create dynamic group, because group " + groupId + " already exists"));
-  }
+    if (m_groups.count(groupId) != 0) {
+        NDN_THROW(Error("Cannot create dynamic group, because group " + groupId + " already exists"));
+    }
 
-  m_groups.insert(make_shared<DynamicTrustAnchorGroup>(m_anchors, groupId, path, refreshPeriod, isDir));
+    m_groups.insert(make_shared<DynamicTrustAnchorGroup>(m_anchors, groupId, path, refreshPeriod, isDir));
 }
 
 void
 TrustAnchorContainer::clear()
 {
-  m_groups.clear();
-  m_anchors.clear();
+    m_groups.clear();
+    m_anchors.clear();
 }
 
 const Certificate*
 TrustAnchorContainer::find(const Name& keyName) const
 {
-  const_cast<TrustAnchorContainer*>(this)->refresh();
+    const_cast<TrustAnchorContainer*>(this)->refresh();
 
-  auto cert = m_anchors.lower_bound(keyName);
-  if (cert == m_anchors.end() || !keyName.isPrefixOf(cert->getName()))
-    return nullptr;
+    auto cert = m_anchors.lower_bound(keyName);
+    if (cert == m_anchors.end() || !keyName.isPrefixOf(cert->getName()))
+        return nullptr;
 
-  return &*cert;
+    return &*cert;
 }
 
 const Certificate*
 TrustAnchorContainer::find(const Interest& interest) const
 {
-  const_cast<TrustAnchorContainer*>(this)->refresh();
+    const_cast<TrustAnchorContainer*>(this)->refresh();
 
-  for (auto cert = m_anchors.lower_bound(interest.getName());
-       cert != m_anchors.end() && interest.getName().isPrefixOf(cert->getName());
-       ++cert) {
-    if (interest.matchesData(*cert)) {
-      return &*cert;
+    for (auto cert = m_anchors.lower_bound(interest.getName());
+         cert != m_anchors.end() && interest.getName().isPrefixOf(cert->getName()); ++cert) {
+        if (interest.matchesData(*cert)) {
+            return &*cert;
+        }
     }
-  }
-  return nullptr;
+    return nullptr;
 }
 
 TrustAnchorGroup&
 TrustAnchorContainer::getGroup(const std::string& groupId) const
 {
-  auto group = m_groups.find(groupId);
-  if (group == m_groups.end()) {
-    NDN_THROW(Error("Trust anchor group " + groupId + " does not exist"));
-  }
-  return **group;
+    auto group = m_groups.find(groupId);
+    if (group == m_groups.end()) {
+        NDN_THROW(Error("Trust anchor group " + groupId + " does not exist"));
+    }
+    return **group;
 }
 
 size_t
 TrustAnchorContainer::size() const
 {
-  return m_anchors.size();
+    return m_anchors.size();
 }
 
 void
 TrustAnchorContainer::refresh()
 {
-  for (auto it = m_groups.begin(); it != m_groups.end(); ++it) {
-    m_groups.modify(it, [] (const auto& group) { group->refresh(); });
-  }
+    for (auto it = m_groups.begin(); it != m_groups.end(); ++it) {
+        m_groups.modify(it, [](const auto& group) { group->refresh(); });
+    }
 }
 
 } // namespace v2

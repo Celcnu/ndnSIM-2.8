@@ -37,37 +37,29 @@ using ndn::nfd::ForwarderStatus;
 /** \brief provides access to NFD forwarder general status
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/ForwarderStatus
  */
-class ForwarderGeneralModule : public Module, noncopyable
-{
-public:
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+class ForwarderGeneralModule : public Module, noncopyable {
+  public:
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  static void
-  formatItemXml(std::ostream& os, const ForwarderStatus& item);
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    static void formatItemXml(std::ostream& os, const ForwarderStatus& item);
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  /** \brief format a single status item as text
-   *  \param os output stream
-   *  \param item status item
-   */
-  static void
-  formatItemText(std::ostream& os, const ForwarderStatus& item);
+    /** \brief format a single status item as text
+     *  \param os output stream
+     *  \param item status item
+     */
+    static void formatItemText(std::ostream& os, const ForwarderStatus& item);
 
-private:
-  ForwarderStatus m_status;
+  private:
+    ForwarderStatus m_status;
 };
 
 } // namespace nfdc

@@ -41,12 +41,12 @@ typedef uint32_t level;
  * Used by the library to signal to the logging class a hint that it can use to
  * set itself up. For example, the `access` hint indicates that it is an access
  * log that might be suitable for being printed to an access log file or to cout
- * whereas `error` might be suitable for an error log file or cerr. 
+ * whereas `error` might be suitable for an error log file or cerr.
  */
 struct channel_type_hint {
     /// Type of a channel type hint value
     typedef uint32_t value;
-    
+
     /// No information
     static value const none = 0;
     /// Access log
@@ -88,8 +88,10 @@ struct elevel {
      *
      * @return The name of the specified channel.
      */
-    static char const * channel_name(level channel) {
-        switch(channel) {
+    static char const*
+    channel_name(level channel)
+    {
+        switch (channel) {
             case devel:
                 return "devel";
             case library:
@@ -161,8 +163,10 @@ struct alevel {
      *
      * @return The name of the specified channel.
      */
-    static char const * channel_name(level channel) {
-        switch(channel) {
+    static char const*
+    channel_name(level channel)
+    {
+        switch (channel) {
             case connect:
                 return "connect";
             case disconnect:
@@ -200,4 +204,4 @@ struct alevel {
 } // logger
 } // websocketpp
 
-#endif //WEBSOCKETPP_LOGGER_LEVELS_HPP
+#endif // WEBSOCKETPP_LOGGER_LEVELS_HPP

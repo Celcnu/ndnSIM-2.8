@@ -31,55 +31,48 @@ class NetworkMonitorImplStub;
 
 /** \brief a stub NetworkMonitor for unit testing
  */
-class NetworkMonitorStub : public NetworkMonitor
-{
-public:
-  /** \brief constructor
-   *  \param capabilities capabilities reported by \p getCapabilities
-   */
-  explicit
-  NetworkMonitorStub(uint32_t capabilities);
+class NetworkMonitorStub : public NetworkMonitor {
+  public:
+    /** \brief constructor
+     *  \param capabilities capabilities reported by \p getCapabilities
+     */
+    explicit NetworkMonitorStub(uint32_t capabilities);
 
-  /** \brief create a NetworkInterface instance
-   */
-  static shared_ptr<NetworkInterface>
-  makeNetworkInterface();
+    /** \brief create a NetworkInterface instance
+     */
+    static shared_ptr<NetworkInterface> makeNetworkInterface();
 
-  /** \brief emit the \p onInterfaceAdded signal and add \p netif internally
-   *  \param netif new network interface
-   *  \post getNetworkInterface(netif->getName()) == netif
-   *  \post listNetworkInterface() contains netif
-   *  \throw std::invalid_argument a network interface with same name already exists
-   */
-  void
-  addInterface(shared_ptr<NetworkInterface> netif);
+    /** \brief emit the \p onInterfaceAdded signal and add \p netif internally
+     *  \param netif new network interface
+     *  \post getNetworkInterface(netif->getName()) == netif
+     *  \post listNetworkInterface() contains netif
+     *  \throw std::invalid_argument a network interface with same name already exists
+     */
+    void addInterface(shared_ptr<NetworkInterface> netif);
 
-  /** \brief emit the \p onInterfaceRemoved signal and remove \p netif internally
-   *  \param ifname network interface name
-   *  \post getNetworkInterface(ifname) == nullptr
-   *  \post listNetworkInterface() does not contains an interface with specified name
-   *  \note If specified interface name does not exist, this operation has no effect.
-   */
-  void
-  removeInterface(const std::string& ifname);
+    /** \brief emit the \p onInterfaceRemoved signal and remove \p netif internally
+     *  \param ifname network interface name
+     *  \post getNetworkInterface(ifname) == nullptr
+     *  \post listNetworkInterface() does not contains an interface with specified name
+     *  \note If specified interface name does not exist, this operation has no effect.
+     */
+    void removeInterface(const std::string& ifname);
 
-  /** \brief emit the \p onEnumerationCompleted signal
-   *
-   *  A real NetworkMonitor starts with an "enumerating" state, during which the initial
-   *  information about network interfaces is collected from the OS. Upon discovering a network
-   *  interface, it emits the \p onInterfaceAdded signal. When the initial enumerating completes,
-   *  it emits the onEnumerationCompleted signal.
-   *
-   *  To simulate this procedure on a newly constructed MockNetworkMonitor, the caller should
-   *  invoke \p addInterface once for each network interface that already exists, and then invoke
-   *  \p signalEnumerationCompleted .
-   */
-  void
-  emitEnumerationCompleted();
+    /** \brief emit the \p onEnumerationCompleted signal
+     *
+     *  A real NetworkMonitor starts with an "enumerating" state, during which the initial
+     *  information about network interfaces is collected from the OS. Upon discovering a network
+     *  interface, it emits the \p onInterfaceAdded signal. When the initial enumerating completes,
+     *  it emits the onEnumerationCompleted signal.
+     *
+     *  To simulate this procedure on a newly constructed MockNetworkMonitor, the caller should
+     *  invoke \p addInterface once for each network interface that already exists, and then invoke
+     *  \p signalEnumerationCompleted .
+     */
+    void emitEnumerationCompleted();
 
-private:
-  NetworkMonitorImplStub&
-  getImpl();
+  private:
+    NetworkMonitorImplStub& getImpl();
 };
 
 } // namespace net

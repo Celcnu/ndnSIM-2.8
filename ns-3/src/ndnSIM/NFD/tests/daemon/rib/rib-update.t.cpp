@@ -40,44 +40,40 @@ BOOST_FIXTURE_TEST_SUITE(TestRibUpdate, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(BatchBasic)
 {
-  const uint64_t faceId = 1;
+    const uint64_t faceId = 1;
 
-  RibUpdateBatch batch(faceId);
+    RibUpdateBatch batch(faceId);
 
-  Route routeRegister = createRoute(faceId, 128, 10, ndn::nfd::ROUTE_FLAG_CHILD_INHERIT);
+    Route routeRegister = createRoute(faceId, 128, 10, ndn::nfd::ROUTE_FLAG_CHILD_INHERIT);
 
-  RibUpdate registerUpdate;
-  registerUpdate.setAction(RibUpdate::REGISTER)
-                .setName("/a")
-                .setRoute(routeRegister);
+    RibUpdate registerUpdate;
+    registerUpdate.setAction(RibUpdate::REGISTER).setName("/a").setRoute(routeRegister);
 
-  batch.add(registerUpdate);
+    batch.add(registerUpdate);
 
-  BOOST_CHECK_EQUAL(batch.getFaceId(), faceId);
+    BOOST_CHECK_EQUAL(batch.getFaceId(), faceId);
 
-  Route routeUnregister = createRoute(faceId, 0, 0, ndn::nfd::ROUTE_FLAG_CAPTURE);
+    Route routeUnregister = createRoute(faceId, 0, 0, ndn::nfd::ROUTE_FLAG_CAPTURE);
 
-  RibUpdate unregisterUpdate;
-  unregisterUpdate.setAction(RibUpdate::UNREGISTER)
-                  .setName("/a/b")
-                  .setRoute(routeUnregister);
+    RibUpdate unregisterUpdate;
+    unregisterUpdate.setAction(RibUpdate::UNREGISTER).setName("/a/b").setRoute(routeUnregister);
 
-  batch.add(unregisterUpdate);
+    batch.add(unregisterUpdate);
 
-  BOOST_REQUIRE_EQUAL(batch.size(), 2);
-  RibUpdateBatch::const_iterator it = batch.begin();
+    BOOST_REQUIRE_EQUAL(batch.size(), 2);
+    RibUpdateBatch::const_iterator it = batch.begin();
 
-  BOOST_CHECK_EQUAL(it->getAction(), RibUpdate::REGISTER);
-  BOOST_CHECK_EQUAL(it->getName(), "/a");
-  BOOST_CHECK_EQUAL(it->getRoute(), routeRegister);
+    BOOST_CHECK_EQUAL(it->getAction(), RibUpdate::REGISTER);
+    BOOST_CHECK_EQUAL(it->getName(), "/a");
+    BOOST_CHECK_EQUAL(it->getRoute(), routeRegister);
 
-  ++it;
-  BOOST_CHECK_EQUAL(it->getAction(), RibUpdate::UNREGISTER);
-  BOOST_CHECK_EQUAL(it->getName(), "/a/b");
-  BOOST_CHECK_EQUAL(it->getRoute(), routeUnregister);
+    ++it;
+    BOOST_CHECK_EQUAL(it->getAction(), RibUpdate::UNREGISTER);
+    BOOST_CHECK_EQUAL(it->getName(), "/a/b");
+    BOOST_CHECK_EQUAL(it->getRoute(), routeUnregister);
 
-  ++it;
-  BOOST_CHECK(it == batch.end());
+    ++it;
+    BOOST_CHECK(it == batch.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestRibUpdate

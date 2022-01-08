@@ -40,127 +40,121 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class DummyReadvertisePolicy : public ReadvertisePolicy
-{
-public:
-  optional<ReadvertiseAction>
-  handleNewRoute(const RibRouteRef&) const override
-  {
-    return this->decision;
-  }
+class DummyReadvertisePolicy : public ReadvertisePolicy {
+  public:
+    optional<ReadvertiseAction>
+    handleNewRoute(const RibRouteRef&) const override
+    {
+        return this->decision;
+    }
 
-  time::milliseconds
-  getRefreshInterval() const override
-  {
-    return 1_min;
-  }
+    time::milliseconds
+    getRefreshInterval() const override
+    {
+        return 1_min;
+    }
 
-public:
-  optional<ReadvertiseAction> decision;
+  public:
+    optional<ReadvertiseAction> decision;
 };
 
-class DummyReadvertiseDestination : public ReadvertiseDestination
-{
-public:
-  DummyReadvertiseDestination()
-  {
-    this->setAvailability(true);
-  }
-
-  void
-  advertise(const ReadvertisedRoute& rr,
-            std::function<void()> successCb,
-            std::function<void(const std::string&)> failureCb) override
-  {
-    advertiseHistory.push_back({time::steady_clock::now(), rr.prefix});
-    if (shouldSucceed) {
-      successCb();
+class DummyReadvertiseDestination : public ReadvertiseDestination {
+  public:
+    DummyReadvertiseDestination()
+    {
+        this->setAvailability(true);
     }
-    else {
-      failureCb("FAKE-FAILURE");
+
+    void
+    advertise(const ReadvertisedRoute& rr, std::function<void()> successCb,
+              std::function<void(const std::string&)> failureCb) override
+    {
+        advertiseHistory.push_back({time::steady_clock::now(), rr.prefix});
+        if (shouldSucceed) {
+            successCb();
+        }
+        else {
+            failureCb("FAKE-FAILURE");
+        }
     }
-  }
 
-  void
-  withdraw(const ReadvertisedRoute& rr,
-           std::function<void()> successCb,
-           std::function<void(const std::string&)> failureCb) override
-  {
-    withdrawHistory.push_back({time::steady_clock::now(), rr.prefix});
-    if (shouldSucceed) {
-      successCb();
+    void
+    withdraw(const ReadvertisedRoute& rr, std::function<void()> successCb,
+             std::function<void(const std::string&)> failureCb) override
+    {
+        withdrawHistory.push_back({time::steady_clock::now(), rr.prefix});
+        if (shouldSucceed) {
+            successCb();
+        }
+        else {
+            failureCb("FAKE-FAILURE");
+        }
     }
-    else {
-      failureCb("FAKE-FAILURE");
+
+    void
+    setAvailability(bool isAvailable)
+    {
+        this->ReadvertiseDestination::setAvailability(isAvailable);
     }
-  }
 
-  void
-  setAvailability(bool isAvailable)
-  {
-    this->ReadvertiseDestination::setAvailability(isAvailable);
-  }
+  public:
+    struct HistoryEntry {
+        time::steady_clock::TimePoint timestamp;
+        Name prefix;
+    };
 
-public:
-  struct HistoryEntry
-  {
-    time::steady_clock::TimePoint timestamp;
-    Name prefix;
-  };
-
-  bool shouldSucceed = true;
-  std::vector<HistoryEntry> advertiseHistory;
-  std::vector<HistoryEntry> withdrawHistory;
+    bool shouldSucceed = true;
+    std::vector<HistoryEntry> advertiseHistory;
+    std::vector<HistoryEntry> withdrawHistory;
 };
 
-class ReadvertiseFixture : public GlobalIoTimeFixture, public KeyChainFixture
-{
-public:
-  ReadvertiseFixture()
-    : m_face(g_io, m_keyChain, {false, false})
-  {
-    auto policyPtr = make_unique<DummyReadvertisePolicy>();
-    policy = policyPtr.get();
-    auto destinationPtr = make_unique<DummyReadvertiseDestination>();
-    destination = destinationPtr.get();
-    readvertise = make_unique<Readvertise>(m_rib, std::move(policyPtr), std::move(destinationPtr));
-  }
+class ReadvertiseFixture : public GlobalIoTimeFixture, public KeyChainFixture {
+  public:
+    ReadvertiseFixture()
+      : m_face(g_io, m_keyChain, {false, false})
+    {
+        auto policyPtr = make_unique<DummyReadvertisePolicy>();
+        policy = policyPtr.get();
+        auto destinationPtr = make_unique<DummyReadvertiseDestination>();
+        destination = destinationPtr.get();
+        readvertise = make_unique<Readvertise>(m_rib, std::move(policyPtr), std::move(destinationPtr));
+    }
 
-  void
-  insertRoute(const Name& prefix, uint64_t faceId, ndn::nfd::RouteOrigin origin)
-  {
-    Route route;
-    route.faceId = faceId;
-    route.origin = origin;
-    m_rib.insert(prefix, route);
-    this->advanceClocks(6_ms);
-  }
+    void
+    insertRoute(const Name& prefix, uint64_t faceId, ndn::nfd::RouteOrigin origin)
+    {
+        Route route;
+        route.faceId = faceId;
+        route.origin = origin;
+        m_rib.insert(prefix, route);
+        this->advanceClocks(6_ms);
+    }
 
-  void
-  eraseRoute(const Name& prefix, uint64_t faceId, ndn::nfd::RouteOrigin origin)
-  {
-    Route route;
-    route.faceId = faceId;
-    route.origin = origin;
-    m_rib.erase(prefix, route);
-    this->advanceClocks(6_ms);
-  }
+    void
+    eraseRoute(const Name& prefix, uint64_t faceId, ndn::nfd::RouteOrigin origin)
+    {
+        Route route;
+        route.faceId = faceId;
+        route.origin = origin;
+        m_rib.erase(prefix, route);
+        this->advanceClocks(6_ms);
+    }
 
-  void
-  setDestinationAvailability(bool isAvailable)
-  {
-    destination->setAvailability(isAvailable);
-    this->advanceClocks(6_ms);
-  }
+    void
+    setDestinationAvailability(bool isAvailable)
+    {
+        destination->setAvailability(isAvailable);
+        this->advanceClocks(6_ms);
+    }
 
-protected:
-  DummyReadvertisePolicy* policy;
-  DummyReadvertiseDestination* destination;
-  unique_ptr<Readvertise> readvertise;
+  protected:
+    DummyReadvertisePolicy* policy;
+    DummyReadvertiseDestination* destination;
+    unique_ptr<Readvertise> readvertise;
 
-private:
-  ndn::util::DummyClientFace m_face;
-  Rib m_rib;
+  private:
+    ndn::util::DummyClientFace m_face;
+    Rib m_rib;
 };
 
 BOOST_AUTO_TEST_SUITE(Readvertise)
@@ -168,134 +162,135 @@ BOOST_FIXTURE_TEST_SUITE(TestReadvertise, ReadvertiseFixture)
 
 BOOST_AUTO_TEST_CASE(AddRemoveRoute)
 {
-  policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
+    policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
 
-  // advertising /A
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.at(0).prefix, "/A");
+    // advertising /A
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.at(0).prefix, "/A");
 
-  // /A is already advertised
-  this->insertRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
+    // /A is already advertised
+    this->insertRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
 
-  // refresh every 60 seconds
-  destination->advertiseHistory.clear();
-  this->advanceClocks(61_s, 5);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 5);
+    // refresh every 60 seconds
+    destination->advertiseHistory.clear();
+    this->advanceClocks(61_s, 5);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 5);
 
-  // /A is still needed by /A/2 route
-  this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
+    // /A is still needed by /A/2 route
+    this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
 
-  // withdrawing /A
-  this->eraseRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 1);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.at(0).prefix, "/A");
+    // withdrawing /A
+    this->eraseRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 1);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.at(0).prefix, "/A");
 }
 
 BOOST_AUTO_TEST_CASE(NoAdvertise)
 {
-  policy->decision = nullopt;
+    policy->decision = nullopt;
 
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->insertRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->eraseRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->insertRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->eraseRoute("/A/2", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
 
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(DestinationAvailability)
 {
-  this->setDestinationAvailability(false);
+    this->setDestinationAvailability(false);
 
-  policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  policy->decision = ReadvertiseAction{"/B", ndn::security::SigningInfo()};
-  this->insertRoute("/B/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0);
+    policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    policy->decision = ReadvertiseAction{"/B", ndn::security::SigningInfo()};
+    this->insertRoute("/B/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0);
 
-  this->setDestinationAvailability(true);
-  std::set<Name> advertisedPrefixes;
-  boost::copy(destination->advertiseHistory | boost::adaptors::transformed(
-                [] (const DummyReadvertiseDestination::HistoryEntry& he) { return he.prefix; }),
-              std::inserter(advertisedPrefixes, advertisedPrefixes.end()));
-  std::set<Name> expectedPrefixes{"/A", "/B"};
-  BOOST_CHECK_EQUAL_COLLECTIONS(advertisedPrefixes.begin(), advertisedPrefixes.end(),
-                                expectedPrefixes.begin(), expectedPrefixes.end());
-  destination->advertiseHistory.clear();
+    this->setDestinationAvailability(true);
+    std::set<Name> advertisedPrefixes;
+    boost::copy(destination->advertiseHistory
+                  | boost::adaptors::transformed(
+                    [](const DummyReadvertiseDestination::HistoryEntry& he) { return he.prefix; }),
+                std::inserter(advertisedPrefixes, advertisedPrefixes.end()));
+    std::set<Name> expectedPrefixes{"/A", "/B"};
+    BOOST_CHECK_EQUAL_COLLECTIONS(advertisedPrefixes.begin(), advertisedPrefixes.end(), expectedPrefixes.begin(),
+                                  expectedPrefixes.end());
+    destination->advertiseHistory.clear();
 
-  this->setDestinationAvailability(false);
-  this->eraseRoute("/B/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
+    this->setDestinationAvailability(false);
+    this->eraseRoute("/B/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
 
-  this->setDestinationAvailability(true);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.at(0).prefix, "/A");
+    this->setDestinationAvailability(true);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 1);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.at(0).prefix, "/A");
 }
 
 BOOST_AUTO_TEST_CASE(AdvertiseRetryInterval)
 {
-  destination->shouldSucceed = false;
+    destination->shouldSucceed = false;
 
-  policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
 
-  this->advanceClocks(10_s, 1_h);
-  BOOST_REQUIRE_GT(destination->advertiseHistory.size(), 2);
+    this->advanceClocks(10_s, 1_h);
+    BOOST_REQUIRE_GT(destination->advertiseHistory.size(), 2);
 
-  // destination->advertise keeps failing, so interval should increase
-  using FloatInterval = time::duration<float, time::steady_clock::Duration::period>;
-  FloatInterval initialInterval = destination->advertiseHistory[1].timestamp -
-                                  destination->advertiseHistory[0].timestamp;
-  FloatInterval lastInterval = initialInterval;
-  for (size_t i = 2; i < destination->advertiseHistory.size(); ++i) {
-    FloatInterval interval = destination->advertiseHistory[i].timestamp -
-                             destination->advertiseHistory[i - 1].timestamp;
-    BOOST_CHECK_CLOSE(interval.count(), (lastInterval * 2.0).count(), 10.0);
-    lastInterval = interval;
-  }
+    // destination->advertise keeps failing, so interval should increase
+    using FloatInterval = time::duration<float, time::steady_clock::Duration::period>;
+    FloatInterval initialInterval =
+      destination->advertiseHistory[1].timestamp - destination->advertiseHistory[0].timestamp;
+    FloatInterval lastInterval = initialInterval;
+    for (size_t i = 2; i < destination->advertiseHistory.size(); ++i) {
+        FloatInterval interval =
+          destination->advertiseHistory[i].timestamp - destination->advertiseHistory[i - 1].timestamp;
+        BOOST_CHECK_CLOSE(interval.count(), (lastInterval * 2.0).count(), 10.0);
+        lastInterval = interval;
+    }
 
-  destination->shouldSucceed = true;
-  this->advanceClocks(1_h);
-  destination->advertiseHistory.clear();
+    destination->shouldSucceed = true;
+    this->advanceClocks(1_h);
+    destination->advertiseHistory.clear();
 
-  // destination->advertise has succeeded, retry interval should reset to initial
-  destination->shouldSucceed = false;
-  this->advanceClocks(10_s, 300_s);
-  BOOST_REQUIRE_GE(destination->advertiseHistory.size(), 2);
-  FloatInterval restartInterval = destination->advertiseHistory[1].timestamp -
-                                  destination->advertiseHistory[0].timestamp;
-  BOOST_CHECK_CLOSE(restartInterval.count(), initialInterval.count(), 10.0);
+    // destination->advertise has succeeded, retry interval should reset to initial
+    destination->shouldSucceed = false;
+    this->advanceClocks(10_s, 300_s);
+    BOOST_REQUIRE_GE(destination->advertiseHistory.size(), 2);
+    FloatInterval restartInterval =
+      destination->advertiseHistory[1].timestamp - destination->advertiseHistory[0].timestamp;
+    BOOST_CHECK_CLOSE(restartInterval.count(), initialInterval.count(), 10.0);
 }
 
 BOOST_AUTO_TEST_CASE(ChangeDuringRetry)
 {
-  destination->shouldSucceed = false;
-  policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->advanceClocks(10_s, 300_s);
-  BOOST_CHECK_GT(destination->advertiseHistory.size(), 0);
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
+    destination->shouldSucceed = false;
+    policy->decision = ReadvertiseAction{"/A", ndn::security::SigningInfo()};
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->advanceClocks(10_s, 300_s);
+    BOOST_CHECK_GT(destination->advertiseHistory.size(), 0);
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0);
 
-  // destination->advertise has been failing, but we want to withdraw
-  destination->advertiseHistory.clear();
-  destination->withdrawHistory.clear();
-  this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->advanceClocks(10_s, 300_s);
-  BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0); // don't try to advertise
-  BOOST_CHECK_GT(destination->withdrawHistory.size(), 0); // try to withdraw
+    // destination->advertise has been failing, but we want to withdraw
+    destination->advertiseHistory.clear();
+    destination->withdrawHistory.clear();
+    this->eraseRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->advanceClocks(10_s, 300_s);
+    BOOST_CHECK_EQUAL(destination->advertiseHistory.size(), 0); // don't try to advertise
+    BOOST_CHECK_GT(destination->withdrawHistory.size(), 0);     // try to withdraw
 
-  // destination->withdraw has been failing, but we want to advertise
-  destination->advertiseHistory.clear();
-  destination->withdrawHistory.clear();
-  this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  this->advanceClocks(10_s, 300_s);
-  BOOST_CHECK_GT(destination->advertiseHistory.size(), 0); // try to advertise
-  BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0); // don't try to withdraw
+    // destination->withdraw has been failing, but we want to advertise
+    destination->advertiseHistory.clear();
+    destination->withdrawHistory.clear();
+    this->insertRoute("/A/1", 1, ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    this->advanceClocks(10_s, 300_s);
+    BOOST_CHECK_GT(destination->advertiseHistory.size(), 0);   // try to advertise
+    BOOST_CHECK_EQUAL(destination->withdrawHistory.size(), 0); // don't try to withdraw
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestReadvertise

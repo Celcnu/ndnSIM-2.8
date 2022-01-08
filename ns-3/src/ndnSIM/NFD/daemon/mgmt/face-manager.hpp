@@ -36,58 +36,42 @@ namespace nfd {
  * @brief Implements the Face Management of NFD Management Protocol.
  * @sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt
  */
-class FaceManager : public ManagerBase
-{
-public:
-  FaceManager(FaceSystem& faceSystem,
-              Dispatcher& dispatcher, CommandAuthenticator& authenticator);
+class FaceManager : public ManagerBase {
+  public:
+    FaceManager(FaceSystem& faceSystem, Dispatcher& dispatcher, CommandAuthenticator& authenticator);
 
-private: // ControlCommand
-  void
-  createFace(const ControlParameters& parameters,
-             const ndn::mgmt::CommandContinuation& done);
+  private: // ControlCommand
+    void createFace(const ControlParameters& parameters, const ndn::mgmt::CommandContinuation& done);
 
-  void
-  updateFace(const Interest& interest,
-             const ControlParameters& parameters,
-             const ndn::mgmt::CommandContinuation& done);
+    void updateFace(const Interest& interest, const ControlParameters& parameters,
+                    const ndn::mgmt::CommandContinuation& done);
 
-  void
-  destroyFace(const ControlParameters& parameters,
-              const ndn::mgmt::CommandContinuation& done);
+    void destroyFace(const ControlParameters& parameters, const ndn::mgmt::CommandContinuation& done);
 
-private: // helpers for ControlCommand
-  void
-  afterCreateFaceSuccess(const shared_ptr<Face>& face,
-                         const ControlParameters& parameters,
-                         const ndn::mgmt::CommandContinuation& done);
+  private: // helpers for ControlCommand
+    void afterCreateFaceSuccess(const shared_ptr<Face>& face, const ControlParameters& parameters,
+                                const ndn::mgmt::CommandContinuation& done);
 
-private: // StatusDataset
-  void
-  listFaces(ndn::mgmt::StatusDatasetContext& context);
+  private: // StatusDataset
+    void listFaces(ndn::mgmt::StatusDatasetContext& context);
 
-  void
-  listChannels(ndn::mgmt::StatusDatasetContext& context);
+    void listChannels(ndn::mgmt::StatusDatasetContext& context);
 
-  void
-  queryFaces(const Interest& interest, ndn::mgmt::StatusDatasetContext& context);
+    void queryFaces(const Interest& interest, ndn::mgmt::StatusDatasetContext& context);
 
-private: // NotificationStream
-  void
-  notifyFaceEvent(const Face& face, ndn::nfd::FaceEventKind kind);
+  private: // NotificationStream
+    void notifyFaceEvent(const Face& face, ndn::nfd::FaceEventKind kind);
 
-  void
-  connectFaceStateChangeSignal(const Face& face);
+    void connectFaceStateChangeSignal(const Face& face);
 
-private:
-  FaceSystem& m_faceSystem;
-  FaceTable& m_faceTable;
-  ndn::mgmt::PostNotification m_postNotification;
-  signal::ScopedConnection m_faceAddConn;
-  signal::ScopedConnection m_faceRemoveConn;
+  private:
+    FaceSystem& m_faceSystem;
+    FaceTable& m_faceTable;
+    ndn::mgmt::PostNotification m_postNotification;
+    signal::ScopedConnection m_faceAddConn;
+    signal::ScopedConnection m_faceRemoveConn;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  std::map<FaceId, signal::ScopedConnection> m_faceStateChangeConn;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : std::map<FaceId, signal::ScopedConnection> m_faceStateChangeConn;
 };
 
 } // namespace nfd

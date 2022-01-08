@@ -45,14 +45,14 @@ namespace net {
 static unique_ptr<NetworkMonitorImpl>
 makeNetworkMonitorImpl(boost::asio::io_service& io)
 {
-  try {
-    return make_unique<NETWORK_MONITOR_IMPL_TYPE>(io);
-  }
-  catch (const std::runtime_error& e) {
-    NDN_LOG_WARN("failed to initialize " BOOST_STRINGIZE(NETWORK_MONITOR_IMPL_TYPE) ": " << e.what());
-    // fallback to dummy implementation
-    return make_unique<NetworkMonitorImplNoop>(io);
-  }
+    try {
+        return make_unique<NETWORK_MONITOR_IMPL_TYPE>(io);
+    }
+    catch (const std::runtime_error& e) {
+        NDN_LOG_WARN("failed to initialize " BOOST_STRINGIZE(NETWORK_MONITOR_IMPL_TYPE) ": " << e.what());
+        // fallback to dummy implementation
+        return make_unique<NetworkMonitorImplNoop>(io);
+    }
 }
 
 NetworkMonitor::NetworkMonitor(boost::asio::io_service& io)
@@ -72,26 +72,26 @@ NetworkMonitor::NetworkMonitor(unique_ptr<NetworkMonitorImpl> impl)
 uint32_t
 NetworkMonitor::getCapabilities() const
 {
-  return m_impl->getCapabilities();
+    return m_impl->getCapabilities();
 }
 
 shared_ptr<const NetworkInterface>
 NetworkMonitor::getNetworkInterface(const std::string& ifname) const
 {
-  return m_impl->getNetworkInterface(ifname);
+    return m_impl->getNetworkInterface(ifname);
 }
 
 std::vector<shared_ptr<const NetworkInterface>>
 NetworkMonitor::listNetworkInterfaces() const
 {
-  return m_impl->listNetworkInterfaces();
+    return m_impl->listNetworkInterfaces();
 }
 
 shared_ptr<NetworkInterface>
 NetworkMonitorImpl::makeNetworkInterface()
 {
-  // cannot use make_shared because NetworkInterface constructor is private
-  return shared_ptr<NetworkInterface>(new NetworkInterface);
+    // cannot use make_shared because NetworkInterface constructor is private
+    return shared_ptr<NetworkInterface>(new NetworkInterface);
 }
 
 } // namespace net

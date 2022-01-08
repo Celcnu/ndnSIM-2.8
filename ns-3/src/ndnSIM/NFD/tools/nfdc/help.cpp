@@ -43,59 +43,59 @@ const int LIST_COMMAND_NAME_COLUMN_WIDTH = 16;
 void
 helpList(std::ostream& os, const CommandParser& parser, ParseMode mode, const std::string& noun)
 {
-  os << "nfdc [-h|--help] [-V|--version] <command> [<args>]\n\n";
-  if (noun.empty()) {
-    os << "All subcommands:\n";
-  }
-  else {
-    os << "Subcommands starting with " << noun << ":\n";
-  }
+    os << "nfdc [-h|--help] [-V|--version] <command> [<args>]\n\n";
+    if (noun.empty()) {
+        os << "All subcommands:\n";
+    }
+    else {
+        os << "Subcommands starting with " << noun << ":\n";
+    }
 
-  std::vector<const CommandDefinition*> commands = parser.listCommands(noun, mode);
-  if (commands.empty()) {
-    os << "  (none)\n";
-    return;
-  }
+    std::vector<const CommandDefinition*> commands = parser.listCommands(noun, mode);
+    if (commands.empty()) {
+        os << "  (none)\n";
+        return;
+    }
 
-  for (auto def : commands) {
-    os << "  " << def->getNoun() << ' ' << def->getVerb() << ' '
-       << text::Spaces{static_cast<int>(LIST_COMMAND_NAME_COLUMN_WIDTH -
-                       def->getNoun().size() - def->getVerb().size() - 2)}
-       << def->getTitle() << '\n';
-  }
+    for (auto def : commands) {
+        os << "  " << def->getNoun() << ' ' << def->getVerb() << ' '
+           << text::Spaces{static_cast<int>(LIST_COMMAND_NAME_COLUMN_WIDTH - def->getNoun().size()
+                                            - def->getVerb().size() - 2)}
+           << def->getTitle() << '\n';
+    }
 
-  os << "\nSee 'nfdc help <command>' to read about a specific subcommand.\n";
+    os << "\nSee 'nfdc help <command>' to read about a specific subcommand.\n";
 }
 
 static void
 helpCommand(const std::string& noun, const std::string& verb)
 {
-  std::string manpage = "nfdc-" + noun;
+    std::string manpage = "nfdc-" + noun;
 
-  ::execlp("man", "man", manpage.data(), nullptr);
-  NDN_LOG_FATAL("Error opening man page for " << manpage << ": " << std::strerror(errno));
+    ::execlp("man", "man", manpage.data(), nullptr);
+    NDN_LOG_FATAL("Error opening man page for " << manpage << ": " << std::strerror(errno));
 }
 
 int
 help(std::ostream& os, const CommandParser& parser, std::vector<std::string> args)
 {
-  const auto helpOpts = {"help", "--help", "-h"};
-  auto it = std::find_first_of(args.begin(), args.end(), helpOpts.begin(), helpOpts.end());
-  if (it == args.end())
-    return 2;
+    const auto helpOpts = {"help", "--help", "-h"};
+    auto it = std::find_first_of(args.begin(), args.end(), helpOpts.begin(), helpOpts.end());
+    if (it == args.end())
+        return 2;
 
-  args.erase(it);
-  auto noun = args.size() > 0 ? args[0] : "";
-  auto verb = args.size() > 1 ? args[1] : "";
+    args.erase(it);
+    auto noun = args.size() > 0 ? args[0] : "";
+    auto verb = args.size() > 1 ? args[1] : "";
 
-  if (noun.empty()) {
-    helpList(os, parser);
-    return 0;
-  }
-  else {
-    helpCommand(noun, verb); // should not return
-    return 1;
-  }
+    if (noun.empty()) {
+        helpList(os, parser);
+        return 0;
+    }
+    else {
+        helpCommand(noun, verb); // should not return
+        return 1;
+    }
 }
 
 } // namespace nfdc

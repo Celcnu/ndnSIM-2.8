@@ -36,30 +36,27 @@ namespace tests {
  *  Every daemon fixture or test case should inherit from this fixture,
  *  to have per test case io_service initialization and cleanup.
  */
-class GlobalIoFixture
-{
-protected:
-  GlobalIoFixture();
+class GlobalIoFixture {
+  protected:
+    GlobalIoFixture();
 
-  ~GlobalIoFixture();
+    ~GlobalIoFixture();
 
-  /** \brief Poll the global io_service.
-   */
-  size_t
-  pollIo();
+    /** \brief Poll the global io_service.
+     */
+    size_t pollIo();
 
-protected:
-  /** \brief Reference to the global io_service instance.
-   */
-  boost::asio::io_service& g_io;
+  protected:
+    /** \brief Reference to the global io_service instance.
+     */
+    boost::asio::io_service& g_io;
 };
 
 /** \brief GlobalIoFixture that also overrides steady clock and system clock.
  */
-class GlobalIoTimeFixture : public GlobalIoFixture, public ClockFixture
-{
-protected:
-  GlobalIoTimeFixture();
+class GlobalIoTimeFixture : public GlobalIoFixture, public ClockFixture {
+  protected:
+    GlobalIoTimeFixture();
 };
 
 } // namespace tests

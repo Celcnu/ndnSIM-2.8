@@ -31,8 +31,8 @@ namespace pit {
 void
 InRecord::update(const Interest& interest)
 {
-  FaceRecord::update(interest);
-  m_interest = interest.shared_from_this();
+    FaceRecord::update(interest);
+    m_interest = interest.shared_from_this();
 }
 
 } // namespace pit

@@ -35,36 +35,36 @@ StreamSource::StreamSource(std::istream& is, size_t bufferSize)
   , m_is(is)
   , m_bufferSize(bufferSize)
 {
-  BOOST_ASSERT(bufferSize > 0);
+    BOOST_ASSERT(bufferSize > 0);
 }
 
 void
 StreamSource::doPump()
 {
-  BOOST_ASSERT(m_next != nullptr);
+    BOOST_ASSERT(m_next != nullptr);
 
-  std::vector<uint8_t> buffer(m_bufferSize);
-  size_t dataOffset = 0;
-  size_t dataLen = 0;
+    std::vector<uint8_t> buffer(m_bufferSize);
+    size_t dataOffset = 0;
+    size_t dataLen = 0;
 
-  while (dataLen > 0 || !m_is.eof()) {
-    if (dataLen > 0) {
-      // we have some leftover, handle them first
-      size_t nBytesWritten = m_next->write(&buffer[dataOffset], dataLen);
+    while (dataLen > 0 || !m_is.eof()) {
+        if (dataLen > 0) {
+            // we have some leftover, handle them first
+            size_t nBytesWritten = m_next->write(&buffer[dataOffset], dataLen);
 
-      dataOffset += nBytesWritten;
-      dataLen -= nBytesWritten;
+            dataOffset += nBytesWritten;
+            dataLen -= nBytesWritten;
+        }
+        else if (!m_is) {
+            NDN_THROW(Error(getIndex(), "Input stream in bad state"));
+        }
+        else if (m_is.good()) {
+            m_is.read(reinterpret_cast<char*>(&buffer.front()), buffer.size());
+            dataOffset = 0;
+            dataLen = m_is.gcount();
+        }
     }
-    else if (!m_is) {
-      NDN_THROW(Error(getIndex(), "Input stream in bad state"));
-    }
-    else if (m_is.good()) {
-      m_is.read(reinterpret_cast<char*>(&buffer.front()), buffer.size());
-      dataOffset = 0;
-      dataLen = m_is.gcount();
-    }
-  }
-  m_next->end();
+    m_next->end();
 }
 
 } // namespace transform

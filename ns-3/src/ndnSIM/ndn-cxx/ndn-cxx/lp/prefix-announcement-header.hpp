@@ -29,46 +29,40 @@ namespace lp {
 
 /** \brief represents a PrefixAnnouncement header field in NDNLP
  */
-class PrefixAnnouncementHeader
-{
-public:
-  class Error : public ndn::tlv::Error
-  {
+class PrefixAnnouncementHeader {
   public:
-    using ndn::tlv::Error::Error;
-  };
+    class Error : public ndn::tlv::Error {
+      public:
+        using ndn::tlv::Error::Error;
+    };
 
-  PrefixAnnouncementHeader();
+    PrefixAnnouncementHeader();
 
-  explicit
-  PrefixAnnouncementHeader(const Block& block);
+    explicit PrefixAnnouncementHeader(const Block& block);
 
-  /** \brief constructs PrefixAnnouncementHeader using PrefixAnnouncement
-   *
-   *  \throw Error PrefixAnnouncement does not contain Data.
-   */
-  explicit
-  PrefixAnnouncementHeader(PrefixAnnouncement prefixAnn);
+    /** \brief constructs PrefixAnnouncementHeader using PrefixAnnouncement
+     *
+     *  \throw Error PrefixAnnouncement does not contain Data.
+     */
+    explicit PrefixAnnouncementHeader(PrefixAnnouncement prefixAnn);
 
-  /** \brief encodes the prefix announcement header to the wire format
-   *
-   *  \throw Error this instance does not contain a PrefixAnnouncement.
-   */
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    /** \brief encodes the prefix announcement header to the wire format
+     *
+     *  \throw Error this instance does not contain a PrefixAnnouncement.
+     */
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  void
-  wireDecode(const Block& wire);
+    void wireDecode(const Block& wire);
 
-  const optional<PrefixAnnouncement>&
-  getPrefixAnn() const
-  {
-    return m_prefixAnn;
-  }
+    const optional<PrefixAnnouncement>&
+    getPrefixAnn() const
+    {
+        return m_prefixAnn;
+    }
 
-private:
-  optional<PrefixAnnouncement> m_prefixAnn;
+  private:
+    optional<PrefixAnnouncement> m_prefixAnn;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(PrefixAnnouncementHeader);

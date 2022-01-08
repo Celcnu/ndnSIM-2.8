@@ -33,17 +33,15 @@ namespace rib {
 namespace tests {
 
 inline Route
-createRoute(uint64_t faceId,
-            std::underlying_type_t<ndn::nfd::RouteOrigin> origin,
-            uint64_t cost = 0,
+createRoute(uint64_t faceId, std::underlying_type_t<ndn::nfd::RouteOrigin> origin, uint64_t cost = 0,
             std::underlying_type_t<ndn::nfd::RouteFlags> flags = ndn::nfd::ROUTE_FLAGS_NONE)
 {
-  Route r;
-  r.faceId = faceId;
-  r.origin = static_cast<ndn::nfd::RouteOrigin>(origin);
-  r.cost = cost;
-  r.flags = flags;
-  return r;
+    Route r;
+    r.faceId = faceId;
+    r.origin = static_cast<ndn::nfd::RouteOrigin>(origin);
+    r.cost = cost;
+    r.flags = flags;
+    return r;
 }
 
 } // namespace tests

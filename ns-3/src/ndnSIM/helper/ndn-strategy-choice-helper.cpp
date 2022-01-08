@@ -32,47 +32,46 @@ NS_LOG_COMPONENT_DEFINE("ndn.StrategyChoiceHelper");
 void
 StrategyChoiceHelper::sendCommand(const ControlParameters& parameters, Ptr<Node> node)
 {
-  NS_LOG_DEBUG("Strategy choice command was initialized");
-  Block encodedParameters(parameters.wireEncode());
+    NS_LOG_DEBUG("Strategy choice command was initialized");
+    Block encodedParameters(parameters.wireEncode());
 
-  Name commandName("/localhost/nfd/strategy-choice");
-  commandName.append("set");
-  commandName.append(encodedParameters);
+    Name commandName("/localhost/nfd/strategy-choice");
+    commandName.append("set");
+    commandName.append(encodedParameters);
 
-  shared_ptr<Interest> command(make_shared<Interest>(commandName));
-  command->setCanBePrefix(false);
-  StackHelper::getKeyChain().sign(*command);
+    shared_ptr<Interest> command(make_shared<Interest>(commandName));
+    command->setCanBePrefix(false);
+    StackHelper::getKeyChain().sign(*command);
 
-  Ptr<L3Protocol> l3protocol = node->GetObject<L3Protocol>();
-  l3protocol->injectInterest(*command);
+    Ptr<L3Protocol> l3protocol = node->GetObject<L3Protocol>();
+    l3protocol->injectInterest(*command);
 }
 
 void
 StrategyChoiceHelper::Install(const NodeContainer& c, const Name& namePrefix, const Name& strategy)
 {
-  for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
-    Install(*i, namePrefix, strategy);
-  }
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
+        Install(*i, namePrefix, strategy);
+    }
 }
 
 void
 StrategyChoiceHelper::Install(Ptr<Node> node, const Name& namePrefix, const Name& strategy)
 {
-  ControlParameters parameters;
-  parameters.setName(namePrefix);
-  NS_LOG_DEBUG("Node ID: " << node->GetId() << " with forwarding strategy " << strategy);
-  parameters.setStrategy(strategy);
+    ControlParameters parameters;
+    parameters.setName(namePrefix);
+    NS_LOG_DEBUG("Node ID: " << node->GetId() << " with forwarding strategy " << strategy);
+    parameters.setStrategy(strategy);
 
-  // 通过ScheduleWithContext为每个node在Simulator里添加了一个StrategyChoiceHelper::sendCommand事件
-  Simulator::ScheduleWithContext(node->GetId(), Seconds(0),
-                                 &StrategyChoiceHelper::sendCommand, parameters, node);
-  StackHelper::ProcessWarmupEvents();
+    // 通过ScheduleWithContext为每个node在Simulator里添加了一个StrategyChoiceHelper::sendCommand事件
+    Simulator::ScheduleWithContext(node->GetId(), Seconds(0), &StrategyChoiceHelper::sendCommand, parameters, node);
+    StackHelper::ProcessWarmupEvents();
 }
 
 void
 StrategyChoiceHelper::InstallAll(const Name& namePrefix, const Name& strategy)
 {
-  Install(NodeContainer::GetGlobal(), namePrefix, strategy);
+    Install(NodeContainer::GetGlobal(), namePrefix, strategy);
 }
 
 } // namespace ndn

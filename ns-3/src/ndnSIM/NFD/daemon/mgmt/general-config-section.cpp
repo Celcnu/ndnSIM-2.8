@@ -32,47 +32,47 @@ namespace general {
 static void
 onConfig(const ConfigSection& section, bool isDryRun, const std::string&)
 {
-  // general
-  // {
-  //   user "ndn-user"
-  //   group "ndn-user"
-  // }
+    // general
+    // {
+    //   user "ndn-user"
+    //   group "ndn-user"
+    // }
 
-  std::string user;
-  std::string group;
+    std::string user;
+    std::string group;
 
-  for (const auto& i : section) {
-    if (i.first == "user") {
-      try {
-        user = i.second.get_value<std::string>("user");
-        if (user.empty()) {
-          NDN_THROW(ConfigFile::Error("Invalid value for 'user' in section 'general'"));
+    for (const auto& i : section) {
+        if (i.first == "user") {
+            try {
+                user = i.second.get_value<std::string>("user");
+                if (user.empty()) {
+                    NDN_THROW(ConfigFile::Error("Invalid value for 'user' in section 'general'"));
+                }
+            }
+            catch (const boost::property_tree::ptree_error&) {
+                NDN_THROW(ConfigFile::Error("Invalid value for 'user' in section 'general'"));
+            }
         }
-      }
-      catch (const boost::property_tree::ptree_error&) {
-        NDN_THROW(ConfigFile::Error("Invalid value for 'user' in section 'general'"));
-      }
-    }
-    else if (i.first == "group") {
-      try {
-        group = i.second.get_value<std::string>("group");
-        if (group.empty()) {
-          NDN_THROW(ConfigFile::Error("Invalid value for 'group' in section 'general'"));
+        else if (i.first == "group") {
+            try {
+                group = i.second.get_value<std::string>("group");
+                if (group.empty()) {
+                    NDN_THROW(ConfigFile::Error("Invalid value for 'group' in section 'general'"));
+                }
+            }
+            catch (const boost::property_tree::ptree_error&) {
+                NDN_THROW(ConfigFile::Error("Invalid value for 'group' in section 'general'"));
+            }
         }
-      }
-      catch (const boost::property_tree::ptree_error&) {
-        NDN_THROW(ConfigFile::Error("Invalid value for 'group' in section 'general'"));
-      }
     }
-  }
 
-  PrivilegeHelper::initialize(user, group);
+    PrivilegeHelper::initialize(user, group);
 }
 
 void
 setConfigFile(ConfigFile& config)
 {
-  config.addSectionHandler("general", &onConfig);
+    config.addSectionHandler("general", &onConfig);
 }
 
 } // namespace general

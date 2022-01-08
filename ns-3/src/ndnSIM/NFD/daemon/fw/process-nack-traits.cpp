@@ -32,54 +32,50 @@ namespace fw {
 NFD_LOG_INIT(ProcessNackTraits);
 
 void
-ProcessNackTraitsBase::processNack(const Face& inFace, const lp::Nack& nack,
-                                   const shared_ptr<pit::Entry>& pitEntry)
+ProcessNackTraitsBase::processNack(const Face& inFace, const lp::Nack& nack, const shared_ptr<pit::Entry>& pitEntry)
 {
-  int nOutRecordsNotNacked = 0;
-  Face* lastFaceNotNacked = nullptr;
-  lp::NackReason leastSevereReason = lp::NackReason::NONE;
-  for (const pit::OutRecord& outR : pitEntry->getOutRecords()) {
-    const lp::NackHeader* inNack = outR.getIncomingNack();
-    if (inNack == nullptr) {
-      ++nOutRecordsNotNacked;
-      lastFaceNotNacked = &outR.getFace();
-      continue;
+    int nOutRecordsNotNacked = 0;
+    Face* lastFaceNotNacked = nullptr;
+    lp::NackReason leastSevereReason = lp::NackReason::NONE;
+    for (const pit::OutRecord& outR : pitEntry->getOutRecords()) {
+        const lp::NackHeader* inNack = outR.getIncomingNack();
+        if (inNack == nullptr) {
+            ++nOutRecordsNotNacked;
+            lastFaceNotNacked = &outR.getFace();
+            continue;
+        }
+
+        if (isLessSevere(inNack->getReason(), leastSevereReason)) {
+            leastSevereReason = inNack->getReason();
+        }
     }
 
-    if (isLessSevere(inNack->getReason(), leastSevereReason)) {
-      leastSevereReason = inNack->getReason();
+    lp::NackHeader outNack;
+    outNack.setReason(leastSevereReason);
+
+    if (nOutRecordsNotNacked == 1) {
+        BOOST_ASSERT(lastFaceNotNacked != nullptr);
+        pit::InRecordCollection::iterator inR = pitEntry->getInRecord(*lastFaceNotNacked);
+        if (inR != pitEntry->in_end()) {
+            // one out-record not Nacked, which is also a downstream
+            NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() << " nack=" << nack.getReason()
+                                             << " nack-to(bidirectional)=" << lastFaceNotNacked->getId()
+                                             << " out-nack=" << outNack.getReason());
+            this->sendNackForProcessNackTraits(pitEntry, *lastFaceNotNacked, outNack);
+            return;
+        }
     }
-  }
 
-  lp::NackHeader outNack;
-  outNack.setReason(leastSevereReason);
-
-  if (nOutRecordsNotNacked == 1) {
-    BOOST_ASSERT(lastFaceNotNacked != nullptr);
-    pit::InRecordCollection::iterator inR = pitEntry->getInRecord(*lastFaceNotNacked);
-    if (inR != pitEntry->in_end()) {
-      // one out-record not Nacked, which is also a downstream
-      NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() <<
-                    " nack=" << nack.getReason() <<
-                    " nack-to(bidirectional)=" << lastFaceNotNacked->getId() <<
-                    " out-nack=" << outNack.getReason());
-      this->sendNackForProcessNackTraits(pitEntry, *lastFaceNotNacked, outNack);
-      return;
+    if (nOutRecordsNotNacked > 0) {
+        NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() << " nack=" << nack.getReason()
+                                         << " waiting=" << nOutRecordsNotNacked);
+        // continue waiting
+        return;
     }
-  }
 
-  if (nOutRecordsNotNacked > 0) {
-    NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() <<
-                  " nack=" << nack.getReason() <<
-                  " waiting=" << nOutRecordsNotNacked);
-    // continue waiting
-    return;
-  }
-
-  NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() <<
-                " nack=" << nack.getReason() <<
-                " nack-to=all out-nack=" << outNack.getReason());
-  this->sendNacksForProcessNackTraits(pitEntry, outNack);
+    NFD_LOG_DEBUG(nack.getInterest() << " nack-from=" << inFace.getId() << " nack=" << nack.getReason()
+                                     << " nack-to=all out-nack=" << outNack.getReason());
+    this->sendNacksForProcessNackTraits(pitEntry, outNack);
 }
 
 } // namespace fw

@@ -40,22 +40,22 @@ Downstream::Downstream()
 size_t
 Downstream::write(const uint8_t* buf, size_t size)
 {
-  if (m_isEnd)
-    NDN_THROW(Error(getIndex(), "Module is closed, no more input"));
+    if (m_isEnd)
+        NDN_THROW(Error(getIndex(), "Module is closed, no more input"));
 
-  size_t nBytesWritten = doWrite(buf, size);
-  BOOST_ASSERT(nBytesWritten <= size);
-  return nBytesWritten;
+    size_t nBytesWritten = doWrite(buf, size);
+    BOOST_ASSERT(nBytesWritten <= size);
+    return nBytesWritten;
 }
 
 void
 Downstream::end()
 {
-  if (m_isEnd)
-    return;
+    if (m_isEnd)
+        return;
 
-  m_isEnd = true;
-  return doEnd();
+    m_isEnd = true;
+    return doEnd();
 }
 
 Upstream::Upstream()
@@ -66,13 +66,13 @@ Upstream::Upstream()
 void
 Upstream::appendChain(unique_ptr<Downstream> tail)
 {
-  if (m_next == nullptr) {
-    m_next = std::move(tail);
-  }
-  else {
-    BOOST_ASSERT(dynamic_cast<Transform*>(m_next.get()) != nullptr);
-    static_cast<Transform*>(m_next.get())->appendChain(std::move(tail));
-  }
+    if (m_next == nullptr) {
+        m_next = std::move(tail);
+    }
+    else {
+        BOOST_ASSERT(dynamic_cast<Transform*>(m_next.get()) != nullptr);
+        static_cast<Transform*>(m_next.get())->appendChain(std::move(tail));
+    }
 }
 
 Transform::Transform()
@@ -84,60 +84,59 @@ Transform::Transform()
 void
 Transform::flushOutputBuffer()
 {
-  if (isOutputBufferEmpty())
-    return;
+    if (isOutputBufferEmpty())
+        return;
 
-  size_t nWritten = m_next->write(&(*m_oBuffer)[m_outputOffset],
-                                  m_oBuffer->size() - m_outputOffset);
-  m_outputOffset += nWritten;
+    size_t nWritten = m_next->write(&(*m_oBuffer)[m_outputOffset], m_oBuffer->size() - m_outputOffset);
+    m_outputOffset += nWritten;
 }
 
 void
 Transform::flushAllOutput()
 {
-  while (!isOutputBufferEmpty()) {
-    flushOutputBuffer();
-  }
+    while (!isOutputBufferEmpty()) {
+        flushOutputBuffer();
+    }
 }
 
 void
 Transform::setOutputBuffer(unique_ptr<OBuffer> buffer)
 {
-  BOOST_ASSERT(isOutputBufferEmpty());
-  m_oBuffer = std::move(buffer);
-  m_outputOffset = 0;
+    BOOST_ASSERT(isOutputBufferEmpty());
+    m_oBuffer = std::move(buffer);
+    m_outputOffset = 0;
 }
 
 bool
 Transform::isOutputBufferEmpty() const
 {
-  return (m_oBuffer == nullptr || m_oBuffer->size() == m_outputOffset);
+    return (m_oBuffer == nullptr || m_oBuffer->size() == m_outputOffset);
 }
 
 size_t
 Transform::doWrite(const uint8_t* data, size_t dataLen)
 {
-  flushOutputBuffer();
-  if (!isOutputBufferEmpty())
-    return 0;
+    flushOutputBuffer();
+    if (!isOutputBufferEmpty())
+        return 0;
 
-  preTransform();
-  flushOutputBuffer();
-  if (!isOutputBufferEmpty())
-    return 0;
+    preTransform();
+    flushOutputBuffer();
+    if (!isOutputBufferEmpty())
+        return 0;
 
-  size_t nConverted = convert(data, dataLen);
+    size_t nConverted = convert(data, dataLen);
 
-  flushOutputBuffer();
+    flushOutputBuffer();
 
-  return nConverted;
+    return nConverted;
 }
 
 void
 Transform::doEnd()
 {
-  finalize();
-  m_next->end();
+    finalize();
+    m_next->end();
 }
 
 void
@@ -148,7 +147,7 @@ Transform::preTransform()
 void
 Transform::finalize()
 {
-  flushAllOutput();
+    flushAllOutput();
 }
 
 Source::Source()
@@ -159,27 +158,27 @@ Source::Source()
 void
 Source::pump()
 {
-  doPump();
+    doPump();
 }
 
 Source&
 Source::operator>>(unique_ptr<Transform> transform)
 {
-  transform->setIndex(m_nModules);
-  m_nModules++;
-  this->appendChain(std::move(transform));
+    transform->setIndex(m_nModules);
+    m_nModules++;
+    this->appendChain(std::move(transform));
 
-  return *this;
+    return *this;
 }
 
 void
 Source::operator>>(unique_ptr<Sink> sink)
 {
-  sink->setIndex(m_nModules);
-  m_nModules++;
-  this->appendChain(std::move(sink));
+    sink->setIndex(m_nModules);
+    m_nModules++;
+    this->appendChain(std::move(sink));
 
-  this->pump();
+    this->pump();
 }
 
 } // namespace transform

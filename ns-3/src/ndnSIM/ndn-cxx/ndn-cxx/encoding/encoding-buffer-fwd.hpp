@@ -28,34 +28,30 @@ namespace ndn {
 namespace encoding {
 
 enum Tag {
-  EncoderTag   = true, ///< Tag for EncodingImpl to indicate that Encoder is requested
-  EstimatorTag = false ///< Tag for EncodingImpl to indicate that Estimator is requested
+    EncoderTag = true,   ///< Tag for EncodingImpl to indicate that Encoder is requested
+    EstimatorTag = false ///< Tag for EncodingImpl to indicate that Estimator is requested
 };
 
-template<Tag TAG>
+template <Tag TAG>
 class EncodingImpl;
 
-using EncodingBuffer    = EncodingImpl<EncoderTag>;
+using EncodingBuffer = EncodingImpl<EncoderTag>;
 using EncodingEstimator = EncodingImpl<EstimatorTag>;
 
 } // namespace encoding
 
-using encoding::EncodingImpl;
 using encoding::EncodingBuffer;
 using encoding::EncodingEstimator;
+using encoding::EncodingImpl;
 
 } // namespace ndn
 
-#define NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(ClassName) \
-  extern template size_t \
-  ClassName::wireEncode<::ndn::encoding::EncoderTag>(::ndn::EncodingBuffer&) const; \
-  extern template size_t \
-  ClassName::wireEncode<::ndn::encoding::EstimatorTag>(::ndn::EncodingEstimator&) const \
+#define NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(ClassName)                                                          \
+    extern template size_t ClassName::wireEncode<::ndn::encoding::EncoderTag>(::ndn::EncodingBuffer&) const;           \
+    extern template size_t ClassName::wireEncode<::ndn::encoding::EstimatorTag>(::ndn::EncodingEstimator&) const
 
-#define NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ClassName) \
-  template size_t \
-  ClassName::wireEncode<::ndn::encoding::EncoderTag>(::ndn::EncodingBuffer&) const; \
-  template size_t \
-  ClassName::wireEncode<::ndn::encoding::EstimatorTag>(::ndn::EncodingEstimator&) const \
+#define NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ClassName)                                                           \
+    template size_t ClassName::wireEncode<::ndn::encoding::EncoderTag>(::ndn::EncodingBuffer&) const;                  \
+    template size_t ClassName::wireEncode<::ndn::encoding::EstimatorTag>(::ndn::EncodingEstimator&) const
 
 #endif // NDN_ENCODING_ENCODING_BUFFER_FWD_HPP

@@ -40,8 +40,7 @@ namespace fw {
 /** \brief determine whether forwarding the Interest in \p pitEntry to \p outFace would violate scope
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/ScopeControl
  */
-bool
-wouldViolateScope(const Face& inFace, const Interest& interest, const Face& outFace);
+bool wouldViolateScope(const Face& inFace, const Interest& interest, const Face& outFace);
 
 /** \brief decide whether Interest can be forwarded to face
  *
@@ -53,43 +52,38 @@ wouldViolateScope(const Face& inFace, const Interest& interest, const Face& outF
  *        in new strategies.
  *  \todo find a better name for this function
  */
-bool
-canForwardToLegacy(const pit::Entry& pitEntry, const Face& face);
+bool canForwardToLegacy(const pit::Entry& pitEntry, const Face& face);
 
 /** \brief indicates where duplicate Nonces are found
  */
 enum DuplicateNonceWhere {
-  DUPLICATE_NONCE_NONE      = 0,        ///< no duplicate Nonce is found
-  DUPLICATE_NONCE_IN_SAME   = (1 << 0), ///< in-record of same face
-  DUPLICATE_NONCE_IN_OTHER  = (1 << 1), ///< in-record of other face
-  DUPLICATE_NONCE_OUT_SAME  = (1 << 2), ///< out-record of same face
-  DUPLICATE_NONCE_OUT_OTHER = (1 << 3)  ///< out-record of other face
+    DUPLICATE_NONCE_NONE = 0,            ///< no duplicate Nonce is found
+    DUPLICATE_NONCE_IN_SAME = (1 << 0),  ///< in-record of same face
+    DUPLICATE_NONCE_IN_OTHER = (1 << 1), ///< in-record of other face
+    DUPLICATE_NONCE_OUT_SAME = (1 << 2), ///< out-record of same face
+    DUPLICATE_NONCE_OUT_OTHER = (1 << 3) ///< out-record of other face
 };
 
 /** \brief determine whether \p pitEntry has duplicate Nonce \p nonce
  *  \return OR'ed DuplicateNonceWhere
  */
-int
-findDuplicateNonce(const pit::Entry& pitEntry, uint32_t nonce, const Face& face);
+int findDuplicateNonce(const pit::Entry& pitEntry, uint32_t nonce, const Face& face);
 
 /** \brief determine whether \p pitEntry has any pending out-records
  *  \return true if there is at least one out-record waiting for Data
  */
-bool
-hasPendingOutRecords(const pit::Entry& pitEntry);
+bool hasPendingOutRecords(const pit::Entry& pitEntry);
 
 /** \return last out-record time
  *  \pre pitEntry has one or more unexpired out-records
  */
-time::steady_clock::TimePoint
-getLastOutgoing(const pit::Entry& pitEntry);
+time::steady_clock::TimePoint getLastOutgoing(const pit::Entry& pitEntry);
 
 /** \brief pick an eligible NextHop with earliest out-record
  *  \note It is assumed that every nexthop has an out-record.
  */
 fib::NextHopList::const_iterator
-findEligibleNextHopWithEarliestOutRecord(const Face& inFace, const Interest& interest,
-                                         const fib::NextHopList& nexthops,
+findEligibleNextHopWithEarliestOutRecord(const Face& inFace, const Interest& interest, const fib::NextHopList& nexthops,
                                          const shared_ptr<pit::Entry>& pitEntry);
 
 /** \brief determines whether a NextHop is eligible i.e. not the same inFace
@@ -100,12 +94,9 @@ findEligibleNextHopWithEarliestOutRecord(const Face& inFace, const Interest& int
  *  \param wantUnused if true, NextHop must not have unexpired out-record
  *  \param now time::steady_clock::now(), ignored if !wantUnused
  */
-bool
-isNextHopEligible(const Face& inFace, const Interest& interest,
-                  const fib::NextHop& nexthop,
-                  const shared_ptr<pit::Entry>& pitEntry,
-                  bool wantUnused = false,
-                  time::steady_clock::TimePoint now = time::steady_clock::TimePoint::min());
+bool isNextHopEligible(const Face& inFace, const Interest& interest, const fib::NextHop& nexthop,
+                       const shared_ptr<pit::Entry>& pitEntry, bool wantUnused = false,
+                       time::steady_clock::TimePoint now = time::steady_clock::TimePoint::min());
 
 } // namespace fw
 } // namespace nfd

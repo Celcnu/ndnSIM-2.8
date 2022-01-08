@@ -38,84 +38,87 @@ FaceManagerCommandNode::FaceManagerCommandNode(ndn::KeyChain& keyChain, uint16_t
   , faceSystem(faceTable, make_shared<ndn::net::NetworkMonitorStub>(0))
   , manager(faceSystem, dispatcher, *authenticator)
 {
-  dispatcher.addTopPrefix("/localhost/nfd");
+    dispatcher.addTopPrefix("/localhost/nfd");
 
-  const std::string config =
-    "face_system\n"
-    "{\n"
-    "  tcp\n"
-    "  {\n"
-    "    port " + to_string(port) + "\n"
-    "  }\n"
-    "  udp\n"
-    "  {\n"
-    "    port " + to_string(port) + "\n"
-    "    mcast no\n"
-    "  }\n"
-    "  ether\n"
-    "  {\n"
-    "    mcast no\n"
-    "  }\n"
-    "}\n"
-    "authorizations\n"
-    "{\n"
-    "  authorize\n"
-    "  {\n"
-    "    certfile any\n"
-    "    privileges\n"
-    "    {\n"
-    "      faces\n"
-    "    }\n"
-    "  }\n"
-    "}\n"
-    "\n";
+    const std::string config = "face_system\n"
+                               "{\n"
+                               "  tcp\n"
+                               "  {\n"
+                               "    port "
+                               + to_string(port)
+                               + "\n"
+                                 "  }\n"
+                                 "  udp\n"
+                                 "  {\n"
+                                 "    port "
+                               + to_string(port)
+                               + "\n"
+                                 "    mcast no\n"
+                                 "  }\n"
+                                 "  ether\n"
+                                 "  {\n"
+                                 "    mcast no\n"
+                                 "  }\n"
+                                 "}\n"
+                                 "authorizations\n"
+                                 "{\n"
+                                 "  authorize\n"
+                                 "  {\n"
+                                 "    certfile any\n"
+                                 "    privileges\n"
+                                 "    {\n"
+                                 "      faces\n"
+                                 "    }\n"
+                                 "  }\n"
+                                 "}\n"
+                                 "\n";
 
-  ConfigFile cf;
-  faceSystem.setConfigFile(cf);
-  authenticator->setConfigFile(cf);
-  cf.parse(config, false, "dummy-config");
+    ConfigFile cf;
+    faceSystem.setConfigFile(cf);
+    authenticator->setConfigFile(cf);
+    cf.parse(config, false, "dummy-config");
 }
 
 FaceManagerCommandNode::~FaceManagerCommandNode()
 {
-  // Explicitly closing faces is necessary. Otherwise, in a subsequent test case,
-  // incoming packets may be delivered to an old socket from a previous test case.
-  // This should be handled by the FaceTable destructor - see #2517
-  std::vector<std::reference_wrapper<Face>> facesToClose;
-  std::copy(faceTable.begin(), faceTable.end(), std::back_inserter(facesToClose));
-  for (Face& face : facesToClose) {
-    face.close();
-  }
+    // Explicitly closing faces is necessary. Otherwise, in a subsequent test case,
+    // incoming packets may be delivered to an old socket from a previous test case.
+    // This should be handled by the FaceTable destructor - see #2517
+    std::vector<std::reference_wrapper<Face>> facesToClose;
+    std::copy(faceTable.begin(), faceTable.end(), std::back_inserter(facesToClose));
+    for (Face& face : facesToClose) {
+        face.close();
+    }
 }
 
 const Face*
 FaceManagerCommandNode::findFaceByUri(const std::string& uri) const
 {
-  for (const auto& face : faceTable) {
-    if (face.getRemoteUri().toString() == uri) {
-      return &face;
+    for (const auto& face : faceTable) {
+        if (face.getRemoteUri().toString() == uri) {
+            return &face;
+        }
     }
-  }
-  return nullptr;
+    return nullptr;
 }
 
 FaceId
 FaceManagerCommandNode::findFaceIdByUri(const std::string& uri) const
 {
-  auto face = findFaceByUri(uri);
-  return face != nullptr ? face->getId() : face::INVALID_FACEID;
+    auto face = findFaceByUri(uri);
+    return face != nullptr ? face->getId() : face::INVALID_FACEID;
 }
 
 FaceManagerCommandFixture::FaceManagerCommandFixture()
   : node1(m_keyChain, 16363)
   , node2(m_keyChain, 26363)
 {
-  advanceClocks(1_ms, 5);
+    advanceClocks(1_ms, 5);
 }
 
 FaceManagerCommandFixture::~FaceManagerCommandFixture()
 {
-  advanceClocks(1_ms, 5);
+    advanceClocks(1_ms, 5);
 }
 
 } // namespace tests

@@ -52,125 +52,101 @@ namespace v2 {
  * The returned pointer to Certificate from `find` methods is only guaranteed to be valid until
  * the next invocation of `find` and may be invalidated afterwards.
  */
-class TrustAnchorContainer : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class TrustAnchorContainer : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * @brief Insert a static trust anchor.
-   *
-   * @param groupId  Certificate group id.
-   * @param cert     Certificate to insert.
-   *
-   * If @p cert (same name without considering implicit digest) already exists in the group @p
-   * groupId, this method has no effect.
-   *
-   * @throw Error @p groupId is a dynamic anchor group .
-   */
-  void
-  insert(const std::string& groupId, Certificate&& cert);
+    /**
+     * @brief Insert a static trust anchor.
+     *
+     * @param groupId  Certificate group id.
+     * @param cert     Certificate to insert.
+     *
+     * If @p cert (same name without considering implicit digest) already exists in the group @p
+     * groupId, this method has no effect.
+     *
+     * @throw Error @p groupId is a dynamic anchor group .
+     */
+    void insert(const std::string& groupId, Certificate&& cert);
 
-  /**
-   * @brief Insert dynamic trust anchors from path.
-   *
-   * @param groupId        Certificate group id, must not be empty.
-   * @param path           Specifies the path to load the trust anchors.
-   * @param refreshPeriod  Refresh period for the trust anchors, must be positive.
-   *                       Relevant trust anchors will only be updated when find is called
-   * @param isDir          Tells whether the path is a directory or a single file.
-   *
-   * @throw std::invalid_argument @p refreshPeriod is not positive
-   * @throw Error a group with @p groupId already exists
-   */
-  void
-  insert(const std::string& groupId, const boost::filesystem::path& path,
-         time::nanoseconds refreshPeriod, bool isDir = false);
+    /**
+     * @brief Insert dynamic trust anchors from path.
+     *
+     * @param groupId        Certificate group id, must not be empty.
+     * @param path           Specifies the path to load the trust anchors.
+     * @param refreshPeriod  Refresh period for the trust anchors, must be positive.
+     *                       Relevant trust anchors will only be updated when find is called
+     * @param isDir          Tells whether the path is a directory or a single file.
+     *
+     * @throw std::invalid_argument @p refreshPeriod is not positive
+     * @throw Error a group with @p groupId already exists
+     */
+    void insert(const std::string& groupId, const boost::filesystem::path& path, time::nanoseconds refreshPeriod,
+                bool isDir = false);
 
-  /**
-   * @brief Remove all static or dynamic anchors
-   */
-  void
-  clear();
+    /**
+     * @brief Remove all static or dynamic anchors
+     */
+    void clear();
 
-  /**
-   * @brief Search for certificate across all groups (longest prefix match)
-   * @param keyName  Key name prefix for searching the certificate.
-   * @return The found certificate, nullptr if not found.
-   *
-   * @note The returned value may be invalidated after next call to one of `find` methods.
-   */
-  const Certificate*
-  find(const Name& keyName) const;
+    /**
+     * @brief Search for certificate across all groups (longest prefix match)
+     * @param keyName  Key name prefix for searching the certificate.
+     * @return The found certificate, nullptr if not found.
+     *
+     * @note The returned value may be invalidated after next call to one of `find` methods.
+     */
+    const Certificate* find(const Name& keyName) const;
 
-  /**
-   * @brief Find certificate given interest
-   * @param interest  The input interest packet.
-   * @return The found certificate, nullptr if not found.
-   *
-   * @note The returned value may be invalidated after next call to one of `find` methods.
-   *
-   * @note Interest with implicit digest is not supported.
-   */
-  const Certificate*
-  find(const Interest& interest) const;
+    /**
+     * @brief Find certificate given interest
+     * @param interest  The input interest packet.
+     * @return The found certificate, nullptr if not found.
+     *
+     * @note The returned value may be invalidated after next call to one of `find` methods.
+     *
+     * @note Interest with implicit digest is not supported.
+     */
+    const Certificate* find(const Interest& interest) const;
 
-  /**
-   * @brief Get trusted anchor group
-   * @throw Error @p groupId does not exist
-   */
-  TrustAnchorGroup&
-  getGroup(const std::string& groupId) const;
+    /**
+     * @brief Get trusted anchor group
+     * @throw Error @p groupId does not exist
+     */
+    TrustAnchorGroup& getGroup(const std::string& groupId) const;
 
-  /**
-   * @brief Get number of trust anchors across all groups
-   */
-  size_t
-  size() const;
+    /**
+     * @brief Get number of trust anchors across all groups
+     */
+    size_t size() const;
 
-private:
-  void
-  refresh();
+  private:
+    void refresh();
 
-private:
-  using AnchorContainerBase = boost::multi_index::multi_index_container<
-    Certificate,
-    boost::multi_index::indexed_by<
-      boost::multi_index::ordered_unique<
-        boost::multi_index::const_mem_fun<Data, const Name&, &Data::getName>
-      >
-    >
-  >;
+  private:
+    using AnchorContainerBase = boost::multi_index::multi_index_container<
+      Certificate, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<
+                     boost::multi_index::const_mem_fun<Data, const Name&, &Data::getName>>>>;
 
-  class AnchorContainer : public CertContainerInterface,
-                          public AnchorContainerBase
-  {
-  public:
-    void
-    add(Certificate&& cert) final;
+    class AnchorContainer : public CertContainerInterface, public AnchorContainerBase {
+      public:
+        void add(Certificate&& cert) final;
 
-    void
-    remove(const Name& certName) final;
+        void remove(const Name& certName) final;
 
-    void
-    clear();
-  };
+        void clear();
+    };
 
-  using GroupContainer = boost::multi_index::multi_index_container<
-    shared_ptr<TrustAnchorGroup>,
-    boost::multi_index::indexed_by<
-      boost::multi_index::hashed_unique<
-        boost::multi_index::const_mem_fun<TrustAnchorGroup, const std::string&, &TrustAnchorGroup::getId>
-      >
-    >
-  >;
+    using GroupContainer = boost::multi_index::multi_index_container<
+      shared_ptr<TrustAnchorGroup>,
+      boost::multi_index::indexed_by<boost::multi_index::hashed_unique<
+        boost::multi_index::const_mem_fun<TrustAnchorGroup, const std::string&, &TrustAnchorGroup::getId>>>>;
 
-  GroupContainer m_groups;
-  AnchorContainer m_anchors;
+    GroupContainer m_groups;
+    AnchorContainer m_anchors;
 };
 
 } // namespace v2

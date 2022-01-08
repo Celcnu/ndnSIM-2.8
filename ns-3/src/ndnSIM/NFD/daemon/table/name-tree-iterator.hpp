@@ -39,13 +39,12 @@ using EntrySelector = std::function<bool(const Entry&)>;
 
 /** \brief an EntrySelector that accepts every Entry
  */
-struct AnyEntry
-{
-  bool
-  operator()(const Entry&) const
-  {
-    return true;
-  }
+struct AnyEntry {
+    bool
+    operator()(const Entry&) const
+    {
+        return true;
+    }
 };
 
 /** \brief a predicate to accept or reject an Entry and its children
@@ -56,118 +55,106 @@ using EntrySubTreeSelector = std::function<std::pair<bool, bool>(const Entry&)>;
 
 /** \brief an EntrySubTreeSelector that accepts every Entry and its children
  */
-struct AnyEntrySubTree
-{
-  std::pair<bool, bool>
-  operator()(const Entry&) const
-  {
-    return {true, true};
-  }
+struct AnyEntrySubTree {
+    std::pair<bool, bool>
+    operator()(const Entry&) const
+    {
+        return {true, true};
+    }
 };
 
 class EnumerationImpl;
 
 /** \brief NameTree iterator
  */
-class Iterator
-{
-public:
-  using iterator_category = std::forward_iterator_tag;
-  using value_type        = const Entry;
-  using difference_type   = std::ptrdiff_t;
-  using pointer           = value_type*;
-  using reference         = value_type&;
+class Iterator {
+  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = const Entry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
 
-  Iterator();
+    Iterator();
 
-  Iterator(shared_ptr<EnumerationImpl> impl, const Entry* ref);
+    Iterator(shared_ptr<EnumerationImpl> impl, const Entry* ref);
 
-  const Entry&
-  operator*() const
-  {
-    BOOST_ASSERT(m_impl != nullptr);
-    return *m_entry;
-  }
+    const Entry&
+    operator*() const
+    {
+        BOOST_ASSERT(m_impl != nullptr);
+        return *m_entry;
+    }
 
-  const Entry*
-  operator->() const
-  {
-    BOOST_ASSERT(m_impl != nullptr);
-    return m_entry;
-  }
+    const Entry*
+    operator->() const
+    {
+        BOOST_ASSERT(m_impl != nullptr);
+        return m_entry;
+    }
 
-  Iterator&
-  operator++();
+    Iterator& operator++();
 
-  Iterator
-  operator++(int);
+    Iterator operator++(int);
 
-  bool
-  operator==(const Iterator& other) const;
+    bool operator==(const Iterator& other) const;
 
-  bool
-  operator!=(const Iterator& other) const
-  {
-    return !this->operator==(other);
-  }
+    bool
+    operator!=(const Iterator& other) const
+    {
+        return !this->operator==(other);
+    }
 
-private:
-  /** \brief enumeration implementation; nullptr for end iterator
-   */
-  shared_ptr<EnumerationImpl> m_impl;
+  private:
+    /** \brief enumeration implementation; nullptr for end iterator
+     */
+    shared_ptr<EnumerationImpl> m_impl;
 
-  /** \brief current entry; nullptr for uninitialized iterator
-   */
-  const Entry* m_entry;
+    /** \brief current entry; nullptr for uninitialized iterator
+     */
+    const Entry* m_entry;
 
-  /** \brief reference entry used by enumeration implementation
-   */
-  const Entry* m_ref;
+    /** \brief reference entry used by enumeration implementation
+     */
+    const Entry* m_ref;
 
-  /** \brief state used by enumeration implementation
-   */
-  int m_state;
+    /** \brief state used by enumeration implementation
+     */
+    int m_state;
 
-  friend std::ostream& operator<<(std::ostream&, const Iterator&);
-  friend class FullEnumerationImpl;
-  friend class PartialEnumerationImpl;
-  friend class PrefixMatchImpl;
+    friend std::ostream& operator<<(std::ostream&, const Iterator&);
+    friend class FullEnumerationImpl;
+    friend class PartialEnumerationImpl;
+    friend class PrefixMatchImpl;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const Iterator& i);
+std::ostream& operator<<(std::ostream& os, const Iterator& i);
 
 /** \brief enumeration operation implementation
  */
-class EnumerationImpl
-{
-public:
-  explicit
-  EnumerationImpl(const NameTree& nt);
+class EnumerationImpl {
+  public:
+    explicit EnumerationImpl(const NameTree& nt);
 
-  virtual
-  ~EnumerationImpl() = default;
+    virtual ~EnumerationImpl() = default;
 
-  virtual void
-  advance(Iterator& i) = 0;
+    virtual void advance(Iterator& i) = 0;
 
-protected:
-  const NameTree& nt;
-  const Hashtable& ht;
+  protected:
+    const NameTree& nt;
+    const Hashtable& ht;
 };
 
 /** \brief full enumeration implementation
  */
-class FullEnumerationImpl : public EnumerationImpl
-{
-public:
-  FullEnumerationImpl(const NameTree& nt, const EntrySelector& pred);
+class FullEnumerationImpl : public EnumerationImpl {
+  public:
+    FullEnumerationImpl(const NameTree& nt, const EntrySelector& pred);
 
-  void
-  advance(Iterator& i) override;
+    void advance(Iterator& i) override;
 
-private:
-  EntrySelector m_pred;
+  private:
+    EntrySelector m_pred;
 };
 
 /** \brief partial enumeration implementation
@@ -175,33 +162,29 @@ private:
  *  Iterator::m_ref should be initialized to subtree root.
  *  Iterator::m_state LSB indicates whether to visit children of m_entry.
  */
-class PartialEnumerationImpl : public EnumerationImpl
-{
-public:
-  PartialEnumerationImpl(const NameTree& nt, const EntrySubTreeSelector& pred);
+class PartialEnumerationImpl : public EnumerationImpl {
+  public:
+    PartialEnumerationImpl(const NameTree& nt, const EntrySubTreeSelector& pred);
 
-  void
-  advance(Iterator& i) override;
+    void advance(Iterator& i) override;
 
-private:
-  EntrySubTreeSelector m_pred;
+  private:
+    EntrySubTreeSelector m_pred;
 };
 
 /** \brief partial enumeration implementation
  *
  *  Iterator::m_ref should be initialized to longest prefix matched entry.
  */
-class PrefixMatchImpl : public EnumerationImpl
-{
-public:
-  PrefixMatchImpl(const NameTree& nt, const EntrySelector& pred);
+class PrefixMatchImpl : public EnumerationImpl {
+  public:
+    PrefixMatchImpl(const NameTree& nt, const EntrySelector& pred);
 
-private:
-  void
-  advance(Iterator& i) override;
+  private:
+    void advance(Iterator& i) override;
 
-private:
-  EntrySelector m_pred;
+  private:
+    EntrySelector m_pred;
 };
 
 /** \brief a Forward Range of name tree entries

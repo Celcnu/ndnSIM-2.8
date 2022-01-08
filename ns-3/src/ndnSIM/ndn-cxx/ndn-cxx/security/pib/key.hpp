@@ -46,150 +46,134 @@ class KeyImpl;
  * the default certificate of this key.  A certificate can be directly accessed from a Key
  * object.
  */
-class Key
-{
-public:
-  /**
-   * @brief Default Constructor
-   *
-   * Key created using this default constructor is just a place holder.
-   * It can obtain an actual instance from Identity::getKey(...).  A typical
-   * usage would be for exception handling:
-   *
-   *   Key key;
-   *   try {
-   *     key = identity.getKey(...);
-   *   }
-   *   catch (const Pib::Error&) {
-   *     ...
-   *   }
-   *
-   * A Key instance created using this constructor is invalid. Calling a
-   * member method on an invalid Key instance may cause an std::domain_error.
-   */
-  Key();
+class Key {
+  public:
+    /**
+     * @brief Default Constructor
+     *
+     * Key created using this default constructor is just a place holder.
+     * It can obtain an actual instance from Identity::getKey(...).  A typical
+     * usage would be for exception handling:
+     *
+     *   Key key;
+     *   try {
+     *     key = identity.getKey(...);
+     *   }
+     *   catch (const Pib::Error&) {
+     *     ...
+     *   }
+     *
+     * A Key instance created using this constructor is invalid. Calling a
+     * member method on an invalid Key instance may cause an std::domain_error.
+     */
+    Key();
 
-  /**
-   * @brief Create a Key with a backend implementation @p impl.
-   *
-   * This method should only be used by KeyContainer.
-   */
-  explicit
-  Key(weak_ptr<detail::KeyImpl> impl);
+    /**
+     * @brief Create a Key with a backend implementation @p impl.
+     *
+     * This method should only be used by KeyContainer.
+     */
+    explicit Key(weak_ptr<detail::KeyImpl> impl);
 
-  /**
-   * @brief Get key name.
-   */
-  const Name&
-  getName() const;
+    /**
+     * @brief Get key name.
+     */
+    const Name& getName() const;
 
-  /**
-   * @brief Get the name of the belonging identity.
-   */
-  const Name&
-  getIdentity() const;
+    /**
+     * @brief Get the name of the belonging identity.
+     */
+    const Name& getIdentity() const;
 
-  /**
-   * @brief Get key type.
-   */
-  KeyType
-  getKeyType() const;
+    /**
+     * @brief Get key type.
+     */
+    KeyType getKeyType() const;
 
-  /**
-   * @brief Get public key bits.
-   */
-  const Buffer&
-  getPublicKey() const;
+    /**
+     * @brief Get public key bits.
+     */
+    const Buffer& getPublicKey() const;
 
-  /**
-   * @brief Get a certificate with @p certName
-   * @throw std::invalid_argument @p certName does not match key name
-   * @throw Pib::Error the certificate does not exist.
-   */
-  v2::Certificate
-  getCertificate(const Name& certName) const;
+    /**
+     * @brief Get a certificate with @p certName
+     * @throw std::invalid_argument @p certName does not match key name
+     * @throw Pib::Error the certificate does not exist.
+     */
+    v2::Certificate getCertificate(const Name& certName) const;
 
-  /**
-   * @brief Get all certificates for this key.
-   */
-  const CertificateContainer&
-  getCertificates() const;
+    /**
+     * @brief Get all certificates for this key.
+     */
+    const CertificateContainer& getCertificates() const;
 
-  /**
-   * @brief Get the default certificate for this Key.
-   * @throw Pib::Error the default certificate does not exist.
-   */
-  const v2::Certificate&
-  getDefaultCertificate() const;
+    /**
+     * @brief Get the default certificate for this Key.
+     * @throw Pib::Error the default certificate does not exist.
+     */
+    const v2::Certificate& getDefaultCertificate() const;
 
-  /**
-   * @brief Check if the Key instance is valid.
-   */
-  explicit
-  operator bool() const;
+    /**
+     * @brief Check if the Key instance is valid.
+     */
+    explicit operator bool() const;
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE: // write operations should be private
-  /**
-   * @brief Add @p certificate.
-   * @throw std::invalid_argument certificate name does not match key name
-   *
-   * If a certificate with the same name (without implicit digest) already exists, overwrite
-   * the certificate.
-   */
-  void
-  addCertificate(const v2::Certificate& certificate) const;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE : // write operations should be private
+                                             /**
+                                              * @brief Add @p certificate.
+                                              * @throw std::invalid_argument certificate name does not match key name
+                                              *
+                                              * If a certificate with the same name (without implicit digest) already
+                                              * exists, overwrite the certificate.
+                                              */
+                                             void
+                                             addCertificate(const v2::Certificate& certificate) const;
 
-  /**
-   * @brief Remove a certificate with @p certName
-   * @throw std::invalid_argument @p certName does not match key name
-   */
-  void
-  removeCertificate(const Name& certName) const;
+    /**
+     * @brief Remove a certificate with @p certName
+     * @throw std::invalid_argument @p certName does not match key name
+     */
+    void removeCertificate(const Name& certName) const;
 
-  /**
-   * @brief Set an existing certificate with @p certName as the default certificate
-   * @throw std::invalid_argument @p certName does not match key name
-   * @throw Pib::Error the certificate does not exist.
-   * @return the default certificate
-   */
-  const v2::Certificate&
-  setDefaultCertificate(const Name& certName) const;
+    /**
+     * @brief Set an existing certificate with @p certName as the default certificate
+     * @throw std::invalid_argument @p certName does not match key name
+     * @throw Pib::Error the certificate does not exist.
+     * @return the default certificate
+     */
+    const v2::Certificate& setDefaultCertificate(const Name& certName) const;
 
-  /**
-   * @brief Add @p certificate and set it as the default certificate of the key
-   * @throw std::invalid_argument @p certificate does not match key name
-   * @return the default certificate
-   */
-  const v2::Certificate&
-  setDefaultCertificate(const v2::Certificate& certificate) const;
+    /**
+     * @brief Add @p certificate and set it as the default certificate of the key
+     * @throw std::invalid_argument @p certificate does not match key name
+     * @return the default certificate
+     */
+    const v2::Certificate& setDefaultCertificate(const v2::Certificate& certificate) const;
 
-private:
-  /**
-   * @brief Check the validity of the instance
-   * @return a shared_ptr when the instance is valid
-   * @throw std::domain_error the instance is invalid
-   */
-  shared_ptr<detail::KeyImpl>
-  lock() const;
+  private:
+    /**
+     * @brief Check the validity of the instance
+     * @return a shared_ptr when the instance is valid
+     * @throw std::domain_error the instance is invalid
+     */
+    shared_ptr<detail::KeyImpl> lock() const;
 
-private:
-  weak_ptr<detail::KeyImpl> m_impl;
+  private:
+    weak_ptr<detail::KeyImpl> m_impl;
 
-  friend class v2::KeyChain;
-  friend bool operator!=(const Key&, const Key&);
+    friend class v2::KeyChain;
+    friend bool operator!=(const Key&, const Key&);
 };
 
-bool
-operator!=(const Key& lhs, const Key& rhs);
+bool operator!=(const Key& lhs, const Key& rhs);
 
 inline bool
 operator==(const Key& lhs, const Key& rhs)
 {
-  return !(lhs != rhs);
+    return !(lhs != rhs);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const Key& key);
+std::ostream& operator<<(std::ostream& os, const Key& key);
 
 } // namespace pib
 
@@ -200,20 +184,17 @@ namespace v2 {
 /**
  * @brief Construct key name based on the appropriate naming conventions
  */
-Name
-constructKeyName(const Name& identity, const name::Component& keyId);
+Name constructKeyName(const Name& identity, const name::Component& keyId);
 
 /**
  * @brief Check if @p keyName follow the naming conventions for the key name
  */
-bool
-isValidKeyName(const Name& keyName);
+bool isValidKeyName(const Name& keyName);
 
 /**
  * @brief Extract identity namespace from the key name @p keyName
  */
-Name
-extractIdentityFromKeyName(const Name& keyName);
+Name extractIdentityFromKeyName(const Name& keyName);
 
 } // namespace v2
 

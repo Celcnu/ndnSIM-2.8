@@ -43,62 +43,66 @@ BOOST_AUTO_TEST_SUITE(TestHelp)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  CommandParser parser;
-  ExecuteCommand dummyExecute = [] (ExecuteContext&) { BOOST_ERROR("should not be called"); };
+    CommandParser parser;
+    ExecuteCommand dummyExecute = [](ExecuteContext&) { BOOST_ERROR("should not be called"); };
 
-  boost::test_tools::output_test_stream out;
-  const std::string header("nfdc [-h|--help] [-V|--version] <command> [<args>]\n\n");
-  const std::string trailer("\nSee 'nfdc help <command>' to read about a specific subcommand.\n");
+    boost::test_tools::output_test_stream out;
+    const std::string header("nfdc [-h|--help] [-V|--version] <command> [<args>]\n\n");
+    const std::string trailer("\nSee 'nfdc help <command>' to read about a specific subcommand.\n");
 
-  helpList(out, parser);
-  BOOST_CHECK(out.is_equal(header + "All subcommands:\n"
-                                    "  (none)\n"));
+    helpList(out, parser);
+    BOOST_CHECK(out.is_equal(header
+                             + "All subcommands:\n"
+                               "  (none)\n"));
 
-  parser.addCommand(CommandDefinition("status", "show"), dummyExecute);
-  parser.addCommand(CommandDefinition("face", "list"), dummyExecute);
-  parser.addCommand(CommandDefinition("route", "list"), dummyExecute);
-  parser.addCommand(CommandDefinition("route", "add"), dummyExecute);
-  parser.addCommand(CommandDefinition("batch", "command"), dummyExecute,
-                    AVAILABLE_IN_BATCH | AVAILABLE_IN_HELP);
+    parser.addCommand(CommandDefinition("status", "show"), dummyExecute);
+    parser.addCommand(CommandDefinition("face", "list"), dummyExecute);
+    parser.addCommand(CommandDefinition("route", "list"), dummyExecute);
+    parser.addCommand(CommandDefinition("route", "add"), dummyExecute);
+    parser.addCommand(CommandDefinition("batch", "command"), dummyExecute, AVAILABLE_IN_BATCH | AVAILABLE_IN_HELP);
 
-  helpList(out, parser);
-  BOOST_CHECK(out.is_equal(header +
-                           "All subcommands:\n"
-                           "  status show     \n"
-                           "  face list       \n"
-                           "  route list      \n"
-                           "  route add       \n" + trailer));
+    helpList(out, parser);
+    BOOST_CHECK(out.is_equal(header
+                             + "All subcommands:\n"
+                               "  status show     \n"
+                               "  face list       \n"
+                               "  route list      \n"
+                               "  route add       \n"
+                             + trailer));
 
-  helpList(out, parser, ParseMode::ONE_SHOT, "route");
-  BOOST_CHECK(out.is_equal(header +
-                           "Subcommands starting with route:\n"
-                           "  route list      \n"
-                           "  route add       \n" + trailer));
+    helpList(out, parser, ParseMode::ONE_SHOT, "route");
+    BOOST_CHECK(out.is_equal(header
+                             + "Subcommands starting with route:\n"
+                               "  route list      \n"
+                               "  route add       \n"
+                             + trailer));
 
-  helpList(out, parser, ParseMode::ONE_SHOT, "hello");
-  BOOST_CHECK(out.is_equal(header +
-                           "Subcommands starting with hello:\n"
-                           "  (none)\n"));
+    helpList(out, parser, ParseMode::ONE_SHOT, "hello");
+    BOOST_CHECK(out.is_equal(header
+                             + "Subcommands starting with hello:\n"
+                               "  (none)\n"));
 
-  helpList(out, parser, ParseMode::BATCH);
-  BOOST_CHECK(out.is_equal(header +
-                           "All subcommands:\n"
-                           "  status show     \n"
-                           "  face list       \n"
-                           "  route list      \n"
-                           "  route add       \n"
-                           "  batch command   \n" + trailer));
+    helpList(out, parser, ParseMode::BATCH);
+    BOOST_CHECK(out.is_equal(header
+                             + "All subcommands:\n"
+                               "  status show     \n"
+                               "  face list       \n"
+                               "  route list      \n"
+                               "  route add       \n"
+                               "  batch command   \n"
+                             + trailer));
 
-  BOOST_CHECK_EQUAL(help(out, parser, {}), 2);
-  BOOST_CHECK(out.is_empty());
+    BOOST_CHECK_EQUAL(help(out, parser, {}), 2);
+    BOOST_CHECK(out.is_empty());
 
-  BOOST_CHECK_EQUAL(help(out, parser, {"help"}), 0);
-  BOOST_CHECK(out.is_equal(header +
-                           "All subcommands:\n"
-                           "  status show     \n"
-                           "  face list       \n"
-                           "  route list      \n"
-                           "  route add       \n" + trailer));
+    BOOST_CHECK_EQUAL(help(out, parser, {"help"}), 0);
+    BOOST_CHECK(out.is_equal(header
+                             + "All subcommands:\n"
+                               "  status show     \n"
+                               "  face list       \n"
+                               "  route list      \n"
+                               "  route add       \n"
+                             + trailer));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCommandParser

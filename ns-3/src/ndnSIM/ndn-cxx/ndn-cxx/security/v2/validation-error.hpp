@@ -31,60 +31,57 @@ namespace v2 {
 /**
  * @brief Validation error code and optional detailed error message
  */
-class ValidationError
-{
-public:
-  /**
-   * @brief Known validation error code
-   * @sa specs/validation-error-code.rst
-   */
-  enum Code : uint32_t {
-    NO_ERROR             = 0,
-    INVALID_SIGNATURE    = 1,
-    NO_SIGNATURE         = 2,
-    CANNOT_RETRIEVE_CERT = 3,
-    EXPIRED_CERT         = 4,
-    LOOP_DETECTED        = 5,
-    MALFORMED_CERT       = 6,
-    EXCEEDED_DEPTH_LIMIT = 7,
-    INVALID_KEY_LOCATOR  = 8,
-    POLICY_ERROR         = 9,
-    IMPLEMENTATION_ERROR = 255,
-    USER_MIN             = 256 // custom error codes should use >=256
-  };
+class ValidationError {
+  public:
+    /**
+     * @brief Known validation error code
+     * @sa specs/validation-error-code.rst
+     */
+    enum Code : uint32_t {
+        NO_ERROR = 0,
+        INVALID_SIGNATURE = 1,
+        NO_SIGNATURE = 2,
+        CANNOT_RETRIEVE_CERT = 3,
+        EXPIRED_CERT = 4,
+        LOOP_DETECTED = 5,
+        MALFORMED_CERT = 6,
+        EXCEEDED_DEPTH_LIMIT = 7,
+        INVALID_KEY_LOCATOR = 8,
+        POLICY_ERROR = 9,
+        IMPLEMENTATION_ERROR = 255,
+        USER_MIN = 256 // custom error codes should use >=256
+    };
 
-public:
-  /**
-   * @brief Validation error, implicitly convertible from an error code and info
-   */
-  ValidationError(uint32_t code, const std::string& info = "")
-    : m_code(code)
-    , m_info(info)
-  {
-  }
+  public:
+    /**
+     * @brief Validation error, implicitly convertible from an error code and info
+     */
+    ValidationError(uint32_t code, const std::string& info = "")
+      : m_code(code)
+      , m_info(info)
+    {
+    }
 
-  uint32_t
-  getCode() const
-  {
-    return m_code;
-  }
+    uint32_t
+    getCode() const
+    {
+        return m_code;
+    }
 
-  const std::string&
-  getInfo() const
-  {
-    return m_info;
-  }
+    const std::string&
+    getInfo() const
+    {
+        return m_info;
+    }
 
-private:
-  uint32_t m_code;
-  std::string m_info;
+  private:
+    uint32_t m_code;
+    std::string m_info;
 };
 
-std::ostream&
-operator<<(std::ostream& os, ValidationError::Code code);
+std::ostream& operator<<(std::ostream& os, ValidationError::Code code);
 
-std::ostream&
-operator<<(std::ostream& os, const ValidationError& error);
+std::ostream& operator<<(std::ostream& os, const ValidationError& error);
 
 } // namespace v2
 } // namespace security

@@ -38,44 +38,33 @@ using ndn::nfd::CsInfo;
 /** \brief provides access to NFD CS management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt
  */
-class CsModule : public Module, noncopyable
-{
-public:
-  /** \brief register 'cs config' command
-   */
-  static void
-  registerCommands(CommandParser& parser);
+class CsModule : public Module, noncopyable {
+  public:
+    /** \brief register 'cs config' command
+     */
+    static void registerCommands(CommandParser& parser);
 
-  /** \brief the 'cs config' command
-   */
-  static void
-  config(ExecuteContext& ctx);
+    /** \brief the 'cs config' command
+     */
+    static void config(ExecuteContext& ctx);
 
-  /** \brief the 'cs erase' command
-   */
-  static void
-  erase(ExecuteContext& ctx);
+    /** \brief the 'cs erase' command
+     */
+    static void erase(ExecuteContext& ctx);
 
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  static void
-  formatItemXml(std::ostream& os, const CsInfo& item);
+    static void formatItemXml(std::ostream& os, const CsInfo& item);
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  static void
-  formatItemText(std::ostream& os, const CsInfo& item);
+    static void formatItemText(std::ostream& os, const CsInfo& item);
 
-private:
-  CsInfo m_status;
+  private:
+    CsInfo m_status;
 };
 
 } // namespace nfdc

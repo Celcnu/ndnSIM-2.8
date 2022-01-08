@@ -30,26 +30,26 @@ KeyHandle::~KeyHandle() = default;
 ConstBufferPtr
 KeyHandle::sign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const
 {
-  return doSign(digestAlgorithm, buf, size);
+    return doSign(digestAlgorithm, buf, size);
 }
 
 bool
-KeyHandle::verify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen,
-                  const uint8_t* sig, size_t sigLen) const
+KeyHandle::verify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen, const uint8_t* sig,
+                  size_t sigLen) const
 {
-  return doVerify(digestAlgorithm, buf, bufLen, sig, sigLen);
+    return doVerify(digestAlgorithm, buf, bufLen, sig, sigLen);
 }
 
 ConstBufferPtr
 KeyHandle::decrypt(const uint8_t* cipherText, size_t cipherTextLen) const
 {
-  return doDecrypt(cipherText, cipherTextLen);
+    return doDecrypt(cipherText, cipherTextLen);
 }
 
 ConstBufferPtr
 KeyHandle::derivePublicKey() const
 {
-  return doDerivePublicKey();
+    return doDerivePublicKey();
 }
 
 } // namespace tpm

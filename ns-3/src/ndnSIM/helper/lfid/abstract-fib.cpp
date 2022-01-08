@@ -42,146 +42,144 @@ AbstractFib::AbstractFib(const Ptr<GlobalRouter> own, int numNodes)
   , upwardCounter{0}
   , totalNhCounter{0}
 {
-  checkInputs();
+    checkInputs();
 
-  createEmptyFib();
+    createEmptyFib();
 }
 
 void
 AbstractFib::checkInputs()
 {
-  if (nodeDegree <= 0) {
-    std::cerr << nodeName << " has a degree of " << nodeDegree << "!\n\n";
-  }
+    if (nodeDegree <= 0) {
+        std::cerr << nodeName << " has a degree of " << nodeDegree << "!\n\n";
+    }
 
-  const auto MAX_SIZE{1e5};
-  NS_ABORT_UNLESS(nodeId >= 0 && nodeId <= MAX_SIZE);
-  NS_ABORT_UNLESS(nodeName.size() > 0 && nodeName.size() <= MAX_SIZE);
-  NS_ABORT_UNLESS(nodeDegree >= 0 && nodeDegree <= MAX_SIZE);
-  NS_ABORT_UNLESS(numberOfNodes > 1 && numberOfNodes <= MAX_SIZE);
+    const auto MAX_SIZE{1e5};
+    NS_ABORT_UNLESS(nodeId >= 0 && nodeId <= MAX_SIZE);
+    NS_ABORT_UNLESS(nodeName.size() > 0 && nodeName.size() <= MAX_SIZE);
+    NS_ABORT_UNLESS(nodeDegree >= 0 && nodeDegree <= MAX_SIZE);
+    NS_ABORT_UNLESS(numberOfNodes > 1 && numberOfNodes <= MAX_SIZE);
 }
 
 void
 AbstractFib::createEmptyFib()
 {
-  // Create empty FIB:
-  for (int dstId = 0; dstId < numberOfNodes; dstId++) {
-    if (dstId == nodeId) {
-      continue;
+    // Create empty FIB:
+    for (int dstId = 0; dstId < numberOfNodes; dstId++) {
+        if (dstId == nodeId) {
+            continue;
+        }
+        perDstFib.insert({dstId, {}});
+        upwardPerDstFib.insert({dstId, {}});
     }
-    perDstFib.insert({dstId, {}});
-    upwardPerDstFib.insert({dstId, {}});
-  }
 }
 
 Ptr<GlobalRouter>
 AbstractFib::getGR() const
 {
-  return ownRouter;
+    return ownRouter;
 }
 
 // Setters:
 void
 AbstractFib::insert(int dstId, const FibNextHop& nh)
 {
-  NS_ABORT_UNLESS(nh.getType() == NextHopType::DOWNWARD || nh.getType() == NextHopType::UPWARD);
-  NS_ABORT_UNLESS(nh.getNexthopId() != nodeId);
+    NS_ABORT_UNLESS(nh.getType() == NextHopType::DOWNWARD || nh.getType() == NextHopType::UPWARD);
+    NS_ABORT_UNLESS(nh.getNexthopId() != nodeId);
 
-  bool inserted1 = perDstFib.at(dstId).insert(nh).second;
-  BOOST_VERIFY(inserted1); // Check if it didn't exist yet.
-  totalNhCounter++;
+    bool inserted1 = perDstFib.at(dstId).insert(nh).second;
+    BOOST_VERIFY(inserted1); // Check if it didn't exist yet.
+    totalNhCounter++;
 
-  if (nh.getType() == NextHopType::UPWARD) {
-    bool inserted2 = upwardPerDstFib.at(dstId).insert(nh).second;
-    BOOST_VERIFY(inserted2);
-    upwardCounter++;
-  }
+    if (nh.getType() == NextHopType::UPWARD) {
+        bool inserted2 = upwardPerDstFib.at(dstId).insert(nh).second;
+        BOOST_VERIFY(inserted2);
+        upwardCounter++;
+    }
 }
 
 size_t
 AbstractFib::erase(int dstId, int nhId)
 {
-  auto& fib{perDstFib.at(dstId)};
+    auto& fib{perDstFib.at(dstId)};
 
-  auto fibNh = std::find_if(fib.begin(), fib.end(),
-                            [&](const FibNextHop& item) { return item.getNexthopId() == nhId; });
+    auto fibNh =
+      std::find_if(fib.begin(), fib.end(), [&](const FibNextHop& item) { return item.getNexthopId() == nhId; });
 
-  // Element doesn't exist:
-  if (fibNh == fib.end()) {
+    // Element doesn't exist:
+    if (fibNh == fib.end()) {
 
-    // TODO: Figure out why this happens.
-    return 0;
-  }
+        // TODO: Figure out why this happens.
+        return 0;
+    }
 
-  NS_ABORT_UNLESS(fibNh != perDstFib.at(dstId).end());
-  NS_ABORT_UNLESS(fibNh->getType() == NextHopType::UPWARD);
-  totalNhCounter--;
+    NS_ABORT_UNLESS(fibNh != perDstFib.at(dstId).end());
+    NS_ABORT_UNLESS(fibNh->getType() == NextHopType::UPWARD);
+    totalNhCounter--;
 
-  fib.erase(fibNh);
-  auto numErased2 = upwardPerDstFib.at(dstId).erase(*fibNh);
-  NS_ABORT_UNLESS(numErased2 == 1);
-  upwardCounter--;
+    fib.erase(fibNh);
+    auto numErased2 = upwardPerDstFib.at(dstId).erase(*fibNh);
+    NS_ABORT_UNLESS(numErased2 == 1);
+    upwardCounter--;
 
-  return numErased2;
+    return numErased2;
 }
 
 // O(1)
 const set<FibNextHop>&
 AbstractFib::getNexthops(int dstId) const
 {
-  NS_ABORT_MSG_IF(dstId == nodeId, "Requested destination id is the same as current nodeId!");
-  NS_ABORT_MSG_IF(perDstFib.count(dstId) == 0,
-                  "Node " << nodeId << " No nexthops for dst: " << dstId << "!");
-  NS_ABORT_UNLESS(perDstFib.count(dstId) != 0);
-  return perDstFib.at(dstId);
+    NS_ABORT_MSG_IF(dstId == nodeId, "Requested destination id is the same as current nodeId!");
+    NS_ABORT_MSG_IF(perDstFib.count(dstId) == 0, "Node " << nodeId << " No nexthops for dst: " << dstId << "!");
+    NS_ABORT_UNLESS(perDstFib.count(dstId) != 0);
+    return perDstFib.at(dstId);
 }
 
 const set<FibNextHop>&
 AbstractFib::getUpwardNexthops(int dstId) const
 {
-  NS_ABORT_MSG_IF(dstId == nodeId, "Requested destination id is the same as current nodeId!");
-  NS_ABORT_MSG_IF(perDstFib.count(dstId) == 0,
-                  "Node " << nodeId << " No nexthops for dst: " << dstId << "!");
-  return upwardPerDstFib.at(dstId);
+    NS_ABORT_MSG_IF(dstId == nodeId, "Requested destination id is the same as current nodeId!");
+    NS_ABORT_MSG_IF(perDstFib.count(dstId) == 0, "Node " << nodeId << " No nexthops for dst: " << dstId << "!");
+    return upwardPerDstFib.at(dstId);
 }
 
 void
 AbstractFib::checkFib() const
 {
-  BOOST_VERIFY(perDstFib.size() > 0);
+    BOOST_VERIFY(perDstFib.size() > 0);
 
-  for (const auto& fibSet : perDstFib) {
-    const size_t numNhs = fibSet.second.size();
+    for (const auto& fibSet : perDstFib) {
+        const size_t numNhs = fibSet.second.size();
 
-    bool hasDownward{false};
-    std::unordered_set<int> nextHopSet{};
+        bool hasDownward{false};
+        std::unordered_set<int> nextHopSet{};
 
-    for (const FibNextHop& nextHop : fibSet.second) {
-      BOOST_VERIFY(nextHop.getCost() > 0 && nextHop.getCost() < FibNextHop::MAX_COST);
-      if (nextHop.getType() == NextHopType::DOWNWARD) {
-        hasDownward = true;
-      }
+        for (const FibNextHop& nextHop : fibSet.second) {
+            BOOST_VERIFY(nextHop.getCost() > 0 && nextHop.getCost() < FibNextHop::MAX_COST);
+            if (nextHop.getType() == NextHopType::DOWNWARD) {
+                hasDownward = true;
+            }
 
-      // Only one FIB entry per nexthop allowed!
-      BOOST_VERIFY(nextHopSet.count(nextHop.getNexthopId()) == 0);
-      nextHopSet.emplace(nextHop.getNexthopId());
+            // Only one FIB entry per nexthop allowed!
+            BOOST_VERIFY(nextHopSet.count(nextHop.getNexthopId()) == 0);
+            nextHopSet.emplace(nextHop.getNexthopId());
+        }
+        BOOST_VERIFY(hasDownward || numNhs == 0);
+        BOOST_VERIFY(nextHopSet.size() == fibSet.second.size());
     }
-    BOOST_VERIFY(hasDownward || numNhs == 0);
-    BOOST_VERIFY(nextHopSet.size() == fibSet.second.size());
-  }
 }
 
 std::ostream&
 operator<<(std::ostream& os, const AbstractFib& fib)
 {
-  for (const auto& entry : fib.perDstFib) {
-    os << "\nFIB node: " << fib.nodeName << fib.nodeId << "\n";
-    os << "Dst: " << entry.first << "\n";
-    for (const auto& nh : entry.second) {
-      os << nh << "\n";
+    for (const auto& entry : fib.perDstFib) {
+        os << "\nFIB node: " << fib.nodeName << fib.nodeId << "\n";
+        os << "Dst: " << entry.first << "\n";
+        for (const auto& nh : entry.second) {
+            os << nh << "\n";
+        }
     }
-  }
-  return os;
+    return os;
 }
 
 } // namespace ndn

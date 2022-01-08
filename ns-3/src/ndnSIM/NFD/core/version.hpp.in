@@ -35,14 +35,14 @@
  *
  *  Equivalent to: `#NFD_VERSION_MAJOR*1000000 + #NFD_VERSION_MINOR*1000 + #NFD_VERSION_PATCH`
  */
-#define NFD_VERSION @VERSION@
+#define NFD_VERSION @VERSION @
 
 /// The major version of NFD
-#define NFD_VERSION_MAJOR @VERSION_MAJOR@
+#define NFD_VERSION_MAJOR @VERSION_MAJOR @
 /// The minor version of NFD
-#define NFD_VERSION_MINOR @VERSION_MINOR@
+#define NFD_VERSION_MINOR @VERSION_MINOR @
 /// The patch version of NFD
-#define NFD_VERSION_PATCH @VERSION_PATCH@
+#define NFD_VERSION_PATCH @VERSION_PATCH @
 
 /** \brief NFD version represented as a string.
  *

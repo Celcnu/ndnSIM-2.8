@@ -40,7 +40,7 @@ namespace debug {
 
 template <typename config>
 class endpoint {
-public:
+  public:
     /// Type of this endpoint transport component
     typedef endpoint type;
     /// Type of a pointer to this endpoint transport component
@@ -63,7 +63,7 @@ public:
     // generate and manage our own io_service
     explicit endpoint()
     {
-        //std::cout << "transport::iostream::endpoint constructor" << std::endl;
+        // std::cout << "transport::iostream::endpoint constructor" << std::endl;
     }
 
     /// Set whether or not endpoint can create secure connections
@@ -78,7 +78,10 @@ public:
      *
      * @param value Whether or not the endpoint can create secure connections.
      */
-    void set_secure(bool) {}
+    void
+    set_secure(bool)
+    {
+    }
 
     /// Tests whether or not the underlying transport is secure
     /**
@@ -86,10 +89,13 @@ public:
      *
      * @return Whether or not the underlying transport is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return false;
     }
-protected:
+
+  protected:
     /// Initialize logging
     /**
      * The loggers are located in the main endpoint class. As such, the
@@ -103,7 +109,9 @@ protected:
      * @param a A pointer to the access logger to use.
      * @param e A pointer to the error logger to use.
      */
-    void init_logging(lib::shared_ptr<alog_type>, lib::shared_ptr<elog_type>) {}
+    void init_logging(lib::shared_ptr<alog_type>, lib::shared_ptr<elog_type>)
+    {
+    }
 
     /// Initiate a new connection
     /**
@@ -112,7 +120,9 @@ protected:
      * @param u A URI pointer to the URI to connect to.
      * @param cb The function to call back with the results when complete.
      */
-    void async_connect(transport_con_ptr, uri_ptr, connect_handler cb) {
+    void
+    async_connect(transport_con_ptr, uri_ptr, connect_handler cb)
+    {
         cb(lib::error_code());
     }
 
@@ -126,11 +136,12 @@ protected:
      * @param tcon A pointer to the transport portion of the connection.
      * @return A status code indicating the success or failure of the operation
      */
-    lib::error_code init(transport_con_ptr) {
+    lib::error_code init(transport_con_ptr)
+    {
         return lib::error_code();
     }
-private:
 
+  private:
 };
 
 } // namespace debug

@@ -38,63 +38,50 @@ using ndn::nfd::StrategyChoice;
 /** \brief provides access to NFD Strategy Choice management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyChoice
  */
-class StrategyChoiceModule : public Module, noncopyable
-{
-public:
-  /** \brief register 'strategy list', 'strategy show', 'strategy set', 'strategy unset' commands
-   */
-  static void
-  registerCommands(CommandParser& parser);
+class StrategyChoiceModule : public Module, noncopyable {
+  public:
+    /** \brief register 'strategy list', 'strategy show', 'strategy set', 'strategy unset' commands
+     */
+    static void registerCommands(CommandParser& parser);
 
-  /** \brief the 'strategy list' command
-   */
-  static void
-  list(ExecuteContext& ctx);
+    /** \brief the 'strategy list' command
+     */
+    static void list(ExecuteContext& ctx);
 
-  /** \brief the 'strategy show' command
-   */
-  static void
-  show(ExecuteContext& ctx);
+    /** \brief the 'strategy show' command
+     */
+    static void show(ExecuteContext& ctx);
 
-  /** \brief the 'strategy set' command
-   */
-  static void
-  set(ExecuteContext& ctx);
+    /** \brief the 'strategy set' command
+     */
+    static void set(ExecuteContext& ctx);
 
-  /** \brief the 'strategy unset' command
-   */
-  static void
-  unset(ExecuteContext& ctx);
+    /** \brief the 'strategy unset' command
+     */
+    static void unset(ExecuteContext& ctx);
 
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemXml(std::ostream& os, const StrategyChoice& item) const;
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemXml(std::ostream& os, const StrategyChoice& item) const;
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  /** \brief format a single status item as text
-   *  \param os output stream
-   *  \param item status item
-   *  \param wantMultiLine use multi-line style
-   */
-  static void
-  formatItemText(std::ostream& os, const StrategyChoice& item, bool wantMultiLine = false);
+    /** \brief format a single status item as text
+     *  \param os output stream
+     *  \param item status item
+     *  \param wantMultiLine use multi-line style
+     */
+    static void formatItemText(std::ostream& os, const StrategyChoice& item, bool wantMultiLine = false);
 
-private:
-  std::vector<StrategyChoice> m_status;
+  private:
+    std::vector<StrategyChoice> m_status;
 };
 
 } // namespace nfdc

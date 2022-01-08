@@ -32,8 +32,7 @@ namespace nfd {
 namespace tools {
 namespace nfdc {
 
-void
-registerCommands(CommandParser& parser);
+void registerCommands(CommandParser& parser);
 
 } // namespace nfdc
 } // namespace tools

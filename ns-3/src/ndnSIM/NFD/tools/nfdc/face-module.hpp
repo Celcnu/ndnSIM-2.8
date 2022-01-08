@@ -39,71 +39,57 @@ using ndn::nfd::FaceStatus;
 /** \brief provides access to NFD face management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt
  */
-class FaceModule : public Module, noncopyable
-{
-public:
-  /** \brief register 'face list', 'face show', 'face create', 'face destroy' commands
-   */
-  static void
-  registerCommands(CommandParser& parser);
+class FaceModule : public Module, noncopyable {
+  public:
+    /** \brief register 'face list', 'face show', 'face create', 'face destroy' commands
+     */
+    static void registerCommands(CommandParser& parser);
 
-  /** \brief the 'face list' command
-   */
-  static void
-  list(ExecuteContext& ctx);
+    /** \brief the 'face list' command
+     */
+    static void list(ExecuteContext& ctx);
 
-  /** \brief the 'face show' command
-   */
-  static void
-  show(ExecuteContext& ctx);
+    /** \brief the 'face show' command
+     */
+    static void show(ExecuteContext& ctx);
 
-  /** \brief the 'face create' command
-   */
-  static void
-  create(ExecuteContext& ctx);
+    /** \brief the 'face create' command
+     */
+    static void create(ExecuteContext& ctx);
 
-  /** \brief the 'face destroy' command
-   */
-  static void
-  destroy(ExecuteContext& ctx);
+    /** \brief the 'face destroy' command
+     */
+    static void destroy(ExecuteContext& ctx);
 
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemXml(std::ostream& os, const FaceStatus& item) const;
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemXml(std::ostream& os, const FaceStatus& item) const;
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  /** \brief format a single status item as text
-   *  \param os output stream
-   *  \param item status item
-   *  \param wantMultiLine use multi-line style
-   */
-  static void
-  formatItemText(std::ostream& os, const FaceStatus& item, bool wantMultiLine);
+    /** \brief format a single status item as text
+     *  \param os output stream
+     *  \param item status item
+     *  \param wantMultiLine use multi-line style
+     */
+    static void formatItemText(std::ostream& os, const FaceStatus& item, bool wantMultiLine);
 
-  /** \brief print face response parameters to specified ostream
-   *  \param os output stream
-   *  \param ia ItemAttributes used to format output
-   *  \param resp response control parameters to print
-   */
-  static void
-  printFaceParams(std::ostream& os, text::ItemAttributes& ia, const ControlParameters& resp);
+    /** \brief print face response parameters to specified ostream
+     *  \param os output stream
+     *  \param ia ItemAttributes used to format output
+     *  \param resp response control parameters to print
+     */
+    static void printFaceParams(std::ostream& os, text::ItemAttributes& ia, const ControlParameters& resp);
 
-private:
-  std::vector<FaceStatus> m_status;
+  private:
+    std::vector<FaceStatus> m_status;
 };
 
 } // namespace nfdc

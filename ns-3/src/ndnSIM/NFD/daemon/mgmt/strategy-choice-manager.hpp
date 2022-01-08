@@ -38,26 +38,20 @@ class StrategyChoice;
  * @brief Implements the Strategy Choice Management of NFD Management Protocol.
  * @sa https://redmine.named-data.net/projects/nfd/wiki/StrategyChoice
  */
-class StrategyChoiceManager : public ManagerBase
-{
-public:
-  StrategyChoiceManager(strategy_choice::StrategyChoice& table,
-                        Dispatcher& dispatcher, CommandAuthenticator& authenticator);
+class StrategyChoiceManager : public ManagerBase {
+  public:
+    StrategyChoiceManager(strategy_choice::StrategyChoice& table, Dispatcher& dispatcher,
+                          CommandAuthenticator& authenticator);
 
-private:
-  void
-  setStrategy(ControlParameters parameters,
-              const ndn::mgmt::CommandContinuation& done);
+  private:
+    void setStrategy(ControlParameters parameters, const ndn::mgmt::CommandContinuation& done);
 
-  void
-  unsetStrategy(ControlParameters parameters,
-                const ndn::mgmt::CommandContinuation& done);
+    void unsetStrategy(ControlParameters parameters, const ndn::mgmt::CommandContinuation& done);
 
-  void
-  listChoices(ndn::mgmt::StatusDatasetContext& context);
+    void listChoices(ndn::mgmt::StatusDatasetContext& context);
 
-private:
-  strategy_choice::StrategyChoice& m_table;
+  private:
+    strategy_choice::StrategyChoice& m_table;
 };
 
 } // namespace nfd

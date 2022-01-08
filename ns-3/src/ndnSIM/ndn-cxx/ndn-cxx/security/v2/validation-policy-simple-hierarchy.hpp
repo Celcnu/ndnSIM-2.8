@@ -31,16 +31,13 @@ namespace v2 {
 /**
  * @brief Validation policy for a simple hierarchical trust model
  */
-class ValidationPolicySimpleHierarchy : public ValidationPolicy
-{
-public:
-  void
-  checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+class ValidationPolicySimpleHierarchy : public ValidationPolicy {
+  public:
+    void checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+    void checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 };
 
 } // namespace v2

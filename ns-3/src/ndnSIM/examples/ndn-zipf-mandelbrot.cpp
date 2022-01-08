@@ -54,66 +54,66 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  // LogComponentEnable("ndn.CbisGlobalRoutingHelper", LOG_LEVEL_INFO);
-  // Setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("10p"));
+    // LogComponentEnable("ndn.CbisGlobalRoutingHelper", LOG_LEVEL_INFO);
+    // Setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
+    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("10p"));
 
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  // Creating 3x3 topology
-  PointToPointHelper p2p;
-  PointToPointGridHelper grid(3, 3, p2p);
-  grid.BoundingBox(100, 100, 200, 200);
+    // Creating 3x3 topology
+    PointToPointHelper p2p;
+    PointToPointGridHelper grid(3, 3, p2p);
+    grid.BoundingBox(100, 100, 200, 200);
 
-  // Install CCNx stack on all nodes
-  ndn::StackHelper ndnHelper;
-  // ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SmartFlooding");
-  // ndnHelper.SetContentStore ("ns3::ndn::cs::Lru", "MaxSize", "10");
-  ndnHelper.InstallAll();
+    // Install CCNx stack on all nodes
+    ndn::StackHelper ndnHelper;
+    // ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SmartFlooding");
+    // ndnHelper.SetContentStore ("ns3::ndn::cs::Lru", "MaxSize", "10");
+    ndnHelper.InstallAll();
 
-  // Choosing forwarding strategy
-  ndn::StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/ncc");
+    // Choosing forwarding strategy
+    ndn::StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/ncc");
 
-  // Installing global routing interface on all nodes
-  // ndn::CbisGlobalRoutingHelper ndnGlobalRoutingHelper;
-  ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
-  ndnGlobalRoutingHelper.InstallAll();
+    // Installing global routing interface on all nodes
+    // ndn::CbisGlobalRoutingHelper ndnGlobalRoutingHelper;
+    ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
+    ndnGlobalRoutingHelper.InstallAll();
 
-  // Getting containers for the consumer/producer
-  Ptr<Node> producer = grid.GetNode(2, 2);
-  NodeContainer consumerNodes;
-  consumerNodes.Add(grid.GetNode(0, 0));
+    // Getting containers for the consumer/producer
+    Ptr<Node> producer = grid.GetNode(2, 2);
+    NodeContainer consumerNodes;
+    consumerNodes.Add(grid.GetNode(0, 0));
 
-  // Install CCNx applications
-  std::string prefix = "/prefix";
+    // Install CCNx applications
+    std::string prefix = "/prefix";
 
-  ndn::AppHelper consumerHelper("ns3::ndn::ConsumerZipfMandelbrot");
-  // ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
-  consumerHelper.SetPrefix(prefix);
-  consumerHelper.SetAttribute("Frequency", StringValue("100"));        // 100 interests a second
-  consumerHelper.SetAttribute("NumberOfContents", StringValue("100")); // 10 different contents
-  // consumerHelper.SetAttribute ("Randomize", StringValue ("uniform")); // 100 interests a second
-  consumerHelper.Install(consumerNodes);
+    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerZipfMandelbrot");
+    // ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
+    consumerHelper.SetPrefix(prefix);
+    consumerHelper.SetAttribute("Frequency", StringValue("100"));        // 100 interests a second
+    consumerHelper.SetAttribute("NumberOfContents", StringValue("100")); // 10 different contents
+    // consumerHelper.SetAttribute ("Randomize", StringValue ("uniform")); // 100 interests a second
+    consumerHelper.Install(consumerNodes);
 
-  ndn::AppHelper producerHelper("ns3::ndn::Producer");
-  producerHelper.SetPrefix(prefix);
-  producerHelper.SetAttribute("PayloadSize", StringValue("100"));
-  producerHelper.Install(producer);
-  ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    producerHelper.SetPrefix(prefix);
+    producerHelper.SetAttribute("PayloadSize", StringValue("100"));
+    producerHelper.Install(producer);
+    ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
 
-  // Calculate and install FIBs
-  ndn::GlobalRoutingHelper::CalculateRoutes();
+    // Calculate and install FIBs
+    ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  Simulator::Stop(Seconds(1.0));
+    Simulator::Stop(Seconds(1.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -121,5 +121,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

@@ -29,18 +29,17 @@
 namespace ndn {
 namespace tests {
 
-class TransportFixture : public TestHomeEnvSaver
-{
-public:
-  void
-  initializeConfig(const char* path)
-  {
-    setenv("TEST_HOME", path, 1);
-    m_config = make_unique<ConfigFile>();
-  }
+class TransportFixture : public TestHomeEnvSaver {
+  public:
+    void
+    initializeConfig(const char* path)
+    {
+        setenv("TEST_HOME", path, 1);
+        m_config = make_unique<ConfigFile>();
+    }
 
-protected:
-  unique_ptr<ConfigFile> m_config;
+  protected:
+    unique_ptr<ConfigFile> m_config;
 };
 
 } // namespace tests

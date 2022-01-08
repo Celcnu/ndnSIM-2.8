@@ -42,137 +42,118 @@ using OptionalConfigSection = boost::optional<const ConfigSection&>;
 
 /** \brief callback to process a config file section
  */
-using ConfigSectionHandler = std::function<void(const ConfigSection& section, bool isDryRun,
-                                                const std::string& filename)>;
+using ConfigSectionHandler =
+  std::function<void(const ConfigSection& section, bool isDryRun, const std::string& filename)>;
 
 /** \brief callback to process a config file section without a \p ConfigSectionHandler
  */
-using UnknownConfigSectionHandler = std::function<void(const std::string& filename,
-                                                       const std::string& sectionName,
-                                                       const ConfigSection& section,
-                                                       bool isDryRun)>;
+using UnknownConfigSectionHandler = std::function<void(const std::string& filename, const std::string& sectionName,
+                                                       const ConfigSection& section, bool isDryRun)>;
 
 /** \brief configuration file parsing utility
  */
-class ConfigFile : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class ConfigFile : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  explicit
-  ConfigFile(UnknownConfigSectionHandler unknownSectionCallback = throwErrorOnUnknownSection);
+    explicit ConfigFile(UnknownConfigSectionHandler unknownSectionCallback = throwErrorOnUnknownSection);
 
-public: // unknown section handlers
-  static void
-  throwErrorOnUnknownSection(const std::string& filename,
-                             const std::string& sectionName,
-                             const ConfigSection& section,
-                             bool isDryRun);
+  public: // unknown section handlers
+    static void throwErrorOnUnknownSection(const std::string& filename, const std::string& sectionName,
+                                           const ConfigSection& section, bool isDryRun);
 
-  static void
-  ignoreUnknownSection(const std::string& filename,
-                       const std::string& sectionName,
-                       const ConfigSection& section,
-                       bool isDryRun);
+    static void ignoreUnknownSection(const std::string& filename, const std::string& sectionName,
+                                     const ConfigSection& section, bool isDryRun);
 
-public: // parse helpers
-  /** \brief parse a config option that can be either "yes" or "no"
-   *  \retval true "yes"
-   *  \retval false "no"
-   *  \throw Error the value is neither "yes" nor "no"
-   */
-  static bool
-  parseYesNo(const ConfigSection& node, const std::string& key, const std::string& sectionName);
+  public: // parse helpers
+    /** \brief parse a config option that can be either "yes" or "no"
+     *  \retval true "yes"
+     *  \retval false "no"
+     *  \throw Error the value is neither "yes" nor "no"
+     */
+    static bool parseYesNo(const ConfigSection& node, const std::string& key, const std::string& sectionName);
 
-  static bool
-  parseYesNo(const ConfigSection::value_type& option, const std::string& sectionName)
-  {
-    return parseYesNo(option.second, option.first, sectionName);
-  }
-
-  /**
-   * \brief parse a numeric (integral or floating point) config option
-   * \tparam T an arithmetic type
-   *
-   * \return the numeric value of the parsed option
-   * \throw Error the value cannot be converted to the specified type
-   */
-  template<typename T>
-  static T
-  parseNumber(const ConfigSection& node, const std::string& key, const std::string& sectionName)
-  {
-    static_assert(std::is_arithmetic<T>::value, "T must be an arithmetic type");
-
-    boost::optional<T> value = node.get_value_optional<T>();
-    if (value) {
-      return *value;
+    static bool
+    parseYesNo(const ConfigSection::value_type& option, const std::string& sectionName)
+    {
+        return parseYesNo(option.second, option.first, sectionName);
     }
-    NDN_THROW(Error("Invalid value '" + node.get_value<std::string>() +
-                    "' for option '" + key + "' in section '" + sectionName + "'"));
-  }
 
-  template <typename T>
-  static T
-  parseNumber(const ConfigSection::value_type& option, const std::string& sectionName)
-  {
-    return parseNumber<T>(option.second, option.first, sectionName);
-  }
+    /**
+     * \brief parse a numeric (integral or floating point) config option
+     * \tparam T an arithmetic type
+     *
+     * \return the numeric value of the parsed option
+     * \throw Error the value cannot be converted to the specified type
+     */
+    template <typename T>
+    static T
+    parseNumber(const ConfigSection& node, const std::string& key, const std::string& sectionName)
+    {
+        static_assert(std::is_arithmetic<T>::value, "T must be an arithmetic type");
 
-public: // setup and parsing
-  /// \brief setup notification of configuration file sections
-  void
-  addSectionHandler(const std::string& sectionName,
-                    ConfigSectionHandler subscriber);
+        boost::optional<T> value = node.get_value_optional<T>();
+        if (value) {
+            return *value;
+        }
+        NDN_THROW(Error("Invalid value '" + node.get_value<std::string>() + "' for option '" + key + "' in section '"
+                        + sectionName + "'"));
+    }
 
-  /**
-   * \param filename file to parse
-   * \param isDryRun true if performing a dry run of configuration, false otherwise
-   * \throws ConfigFile::Error if file not found
-   * \throws ConfigFile::Error if parse error
-   */
-  void
-  parse(const std::string& filename, bool isDryRun);
+    template <typename T>
+    static T
+    parseNumber(const ConfigSection::value_type& option, const std::string& sectionName)
+    {
+        return parseNumber<T>(option.second, option.first, sectionName);
+    }
 
-  /**
-   * \param input configuration (as a string) to parse
-   * \param isDryRun true if performing a dry run of configuration, false otherwise
-   * \param filename logical filename of the config file, can appear in error messages
-   * \throws ConfigFile::Error if file not found
-   * \throws ConfigFile::Error if parse error
-   */
-  void
-  parse(const std::string& input, bool isDryRun, const std::string& filename);
+  public: // setup and parsing
+    /// \brief setup notification of configuration file sections
+    void addSectionHandler(const std::string& sectionName, ConfigSectionHandler subscriber);
 
-  /**
-   * \param input stream to parse
-   * \param isDryRun true if performing a dry run of configuration, false otherwise
-   * \param filename logical filename of the config file, can appear in error messages
-   * \throws ConfigFile::Error if parse error
-   */
-  void
-  parse(std::istream& input, bool isDryRun, const std::string& filename);
+    /**
+     * \param filename file to parse
+     * \param isDryRun true if performing a dry run of configuration, false otherwise
+     * \throws ConfigFile::Error if file not found
+     * \throws ConfigFile::Error if parse error
+     */
+    void parse(const std::string& filename, bool isDryRun);
 
-  /**
-   * \param config ConfigSection that needs to be processed
-   * \param isDryRun true if performing a dry run of configuration, false otherwise
-   * \param filename logical filename of the config file, can appear in error messages
-   * \throws ConfigFile::Error if parse error
-   */
-  void
-  parse(const ConfigSection& config, bool isDryRun, const std::string& filename);
+    /**
+     * \param input configuration (as a string) to parse
+     * \param isDryRun true if performing a dry run of configuration, false otherwise
+     * \param filename logical filename of the config file, can appear in error messages
+     * \throws ConfigFile::Error if file not found
+     * \throws ConfigFile::Error if parse error
+     */
+    void parse(const std::string& input, bool isDryRun, const std::string& filename);
 
-private:
-  void
-  process(bool isDryRun, const std::string& filename) const;
+    /**
+     * \param input stream to parse
+     * \param isDryRun true if performing a dry run of configuration, false otherwise
+     * \param filename logical filename of the config file, can appear in error messages
+     * \throws ConfigFile::Error if parse error
+     */
+    void parse(std::istream& input, bool isDryRun, const std::string& filename);
 
-private:
-  UnknownConfigSectionHandler m_unknownSectionCallback;
-  std::map<std::string, ConfigSectionHandler> m_subscriptions;
-  ConfigSection m_global;
+    /**
+     * \param config ConfigSection that needs to be processed
+     * \param isDryRun true if performing a dry run of configuration, false otherwise
+     * \param filename logical filename of the config file, can appear in error messages
+     * \throws ConfigFile::Error if parse error
+     */
+    void parse(const ConfigSection& config, bool isDryRun, const std::string& filename);
+
+  private:
+    void process(bool isDryRun, const std::string& filename) const;
+
+  private:
+    UnknownConfigSectionHandler m_unknownSectionCallback;
+    std::map<std::string, ConfigSectionHandler> m_subscriptions;
+    ConfigSection m_global;
 };
 
 } // namespace nfd

@@ -37,102 +37,93 @@ BOOST_AUTO_TEST_SUITE(TestCommandParser)
 
 BOOST_AUTO_TEST_CASE(PrintAvailableIn)
 {
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_NONE), "hidden");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_ONE_SHOT), "one-shot|hidden");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_BATCH), "batch|hidden");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_HELP), "none");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_ALL), "one-shot|batch");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_NONE), "hidden");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_ONE_SHOT), "one-shot|hidden");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_BATCH), "batch|hidden");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_HELP), "none");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(AVAILABLE_IN_ALL), "one-shot|batch");
 }
 
 BOOST_AUTO_TEST_CASE(PrintParseMode)
 {
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(ParseMode::ONE_SHOT), "one-shot");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(ParseMode::BATCH), "batch");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(static_cast<ParseMode>(0xFF)), "255");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(ParseMode::ONE_SHOT), "one-shot");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(ParseMode::BATCH), "batch");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(static_cast<ParseMode>(0xFF)), "255");
 }
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  CommandParser parser;
-  ExecuteCommand dummyExecute = [] (ExecuteContext&) { BOOST_ERROR("should not be called"); };
+    CommandParser parser;
+    ExecuteCommand dummyExecute = [](ExecuteContext&) { BOOST_ERROR("should not be called"); };
 
-  BOOST_CHECK(parser.listCommands("", ParseMode::ONE_SHOT).empty());
+    BOOST_CHECK(parser.listCommands("", ParseMode::ONE_SHOT).empty());
 
-  CommandDefinition defFoo("foo", "");
-  parser.addCommand(defFoo, dummyExecute, AVAILABLE_IN_ONE_SHOT | AVAILABLE_IN_HELP);
+    CommandDefinition defFoo("foo", "");
+    parser.addCommand(defFoo, dummyExecute, AVAILABLE_IN_ONE_SHOT | AVAILABLE_IN_HELP);
 
-  CommandDefinition defStatusShow("status", "show");
-  parser.addCommand(defStatusShow, dummyExecute);
-  parser.addAlias("status", "show", "");
-  parser.addAlias("status", "show", "list");
-  BOOST_CHECK_THROW(parser.addAlias("status", "show2", "list"), std::out_of_range);
+    CommandDefinition defStatusShow("status", "show");
+    parser.addCommand(defStatusShow, dummyExecute);
+    parser.addAlias("status", "show", "");
+    parser.addAlias("status", "show", "list");
+    BOOST_CHECK_THROW(parser.addAlias("status", "show2", "list"), std::out_of_range);
 
-  CommandDefinition defRouteList("route", "list");
-  defRouteList
-    .addArg("nexthop", ArgValueType::FACE_ID_OR_URI, Required::NO, Positional::YES);
-  parser.addCommand(defRouteList, dummyExecute);
-  parser.addAlias("route", "list", "");
+    CommandDefinition defRouteList("route", "list");
+    defRouteList.addArg("nexthop", ArgValueType::FACE_ID_OR_URI, Required::NO, Positional::YES);
+    parser.addCommand(defRouteList, dummyExecute);
+    parser.addAlias("route", "list", "");
 
-  CommandDefinition defRouteAdd("route", "add");
-  defRouteAdd
-    .addArg("prefix", ArgValueType::NAME, Required::YES, Positional::YES)
-    .addArg("nexthop", ArgValueType::FACE_ID_OR_URI, Required::YES, Positional::YES);
-  parser.addCommand(defRouteAdd, dummyExecute);
-  parser.addAlias("route", "add", "add2");
+    CommandDefinition defRouteAdd("route", "add");
+    defRouteAdd.addArg("prefix", ArgValueType::NAME, Required::YES, Positional::YES)
+      .addArg("nexthop", ArgValueType::FACE_ID_OR_URI, Required::YES, Positional::YES);
+    parser.addCommand(defRouteAdd, dummyExecute);
+    parser.addAlias("route", "add", "add2");
 
-  CommandDefinition defHidden("hidden", "");
-  parser.addCommand(defHidden, dummyExecute, AVAILABLE_IN_BATCH);
+    CommandDefinition defHidden("hidden", "");
+    parser.addCommand(defHidden, dummyExecute, AVAILABLE_IN_BATCH);
 
-  BOOST_CHECK_EQUAL(parser.listCommands("", ParseMode::ONE_SHOT).size(), 4);
-  BOOST_CHECK_EQUAL(parser.listCommands("", ParseMode::BATCH).size(), 3);
-  BOOST_CHECK_EQUAL(parser.listCommands("route", ParseMode::ONE_SHOT).size(), 2);
-  BOOST_CHECK_EQUAL(parser.listCommands("unknown", ParseMode::ONE_SHOT).size(), 0);
+    BOOST_CHECK_EQUAL(parser.listCommands("", ParseMode::ONE_SHOT).size(), 4);
+    BOOST_CHECK_EQUAL(parser.listCommands("", ParseMode::BATCH).size(), 3);
+    BOOST_CHECK_EQUAL(parser.listCommands("route", ParseMode::ONE_SHOT).size(), 2);
+    BOOST_CHECK_EQUAL(parser.listCommands("unknown", ParseMode::ONE_SHOT).size(), 0);
 
-  std::string noun, verb;
-  CommandArguments ca;
-  ExecuteCommand execute;
+    std::string noun, verb;
+    CommandArguments ca;
+    ExecuteCommand execute;
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"foo"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "foo");
-  BOOST_CHECK_EQUAL(verb, "");
+    std::tie(noun, verb, ca, execute) = parser.parse({"foo"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "foo");
+    BOOST_CHECK_EQUAL(verb, "");
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"status"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "status");
-  BOOST_CHECK_EQUAL(verb, "show");
+    std::tie(noun, verb, ca, execute) = parser.parse({"status"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "status");
+    BOOST_CHECK_EQUAL(verb, "show");
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"status", "list"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "status");
-  BOOST_CHECK_EQUAL(verb, "show");
+    std::tie(noun, verb, ca, execute) = parser.parse({"status", "list"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "status");
+    BOOST_CHECK_EQUAL(verb, "show");
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"route", "add", "/n", "300"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "route");
-  BOOST_CHECK_EQUAL(verb, "add");
-  BOOST_CHECK_EQUAL(ndn::any_cast<Name>(ca.at("prefix")), "/n");
-  BOOST_CHECK_EQUAL(ndn::any_cast<uint64_t>(ca.at("nexthop")), 300);
+    std::tie(noun, verb, ca, execute) = parser.parse({"route", "add", "/n", "300"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "route");
+    BOOST_CHECK_EQUAL(verb, "add");
+    BOOST_CHECK_EQUAL(ndn::any_cast<Name>(ca.at("prefix")), "/n");
+    BOOST_CHECK_EQUAL(ndn::any_cast<uint64_t>(ca.at("nexthop")), 300);
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"route", "add2", "/n", "300"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "route");
-  BOOST_CHECK_EQUAL(verb, "add");
+    std::tie(noun, verb, ca, execute) = parser.parse({"route", "add2", "/n", "300"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "route");
+    BOOST_CHECK_EQUAL(verb, "add");
 
-  std::tie(noun, verb, ca, execute) = parser.parse({"route", "list", "400"}, ParseMode::ONE_SHOT);
-  BOOST_CHECK_EQUAL(noun, "route");
-  BOOST_CHECK_EQUAL(verb, "list");
-  BOOST_CHECK_EQUAL(ndn::any_cast<uint64_t>(ca.at("nexthop")), 400);
+    std::tie(noun, verb, ca, execute) = parser.parse({"route", "list", "400"}, ParseMode::ONE_SHOT);
+    BOOST_CHECK_EQUAL(noun, "route");
+    BOOST_CHECK_EQUAL(verb, "list");
+    BOOST_CHECK_EQUAL(ndn::any_cast<uint64_t>(ca.at("nexthop")), 400);
 
-  BOOST_CHECK_THROW(parser.parse({}, ParseMode::ONE_SHOT),
-                    CommandParser::NoSuchCommandError);
-  BOOST_CHECK_THROW(parser.parse({"bar"}, ParseMode::ONE_SHOT),
-                    CommandParser::NoSuchCommandError);
-  BOOST_CHECK_THROW(parser.parse({"status", "hide"}, ParseMode::ONE_SHOT),
-                    CommandParser::NoSuchCommandError);
-  BOOST_CHECK_THROW(parser.parse({"status", "show", "something"}, ParseMode::ONE_SHOT),
-                    CommandDefinition::Error);
-  BOOST_CHECK_THROW(parser.parse({"route", "66"}, ParseMode::ONE_SHOT),
-                    CommandParser::NoSuchCommandError);
-  BOOST_CHECK_THROW(parser.parse({"route", "add"}, ParseMode::ONE_SHOT),
-                    CommandDefinition::Error);
-  BOOST_CHECK_THROW(parser.parse({"hidden"}, ParseMode::ONE_SHOT),
-                    CommandParser::NoSuchCommandError);
+    BOOST_CHECK_THROW(parser.parse({}, ParseMode::ONE_SHOT), CommandParser::NoSuchCommandError);
+    BOOST_CHECK_THROW(parser.parse({"bar"}, ParseMode::ONE_SHOT), CommandParser::NoSuchCommandError);
+    BOOST_CHECK_THROW(parser.parse({"status", "hide"}, ParseMode::ONE_SHOT), CommandParser::NoSuchCommandError);
+    BOOST_CHECK_THROW(parser.parse({"status", "show", "something"}, ParseMode::ONE_SHOT), CommandDefinition::Error);
+    BOOST_CHECK_THROW(parser.parse({"route", "66"}, ParseMode::ONE_SHOT), CommandParser::NoSuchCommandError);
+    BOOST_CHECK_THROW(parser.parse({"route", "add"}, ParseMode::ONE_SHOT), CommandDefinition::Error);
+    BOOST_CHECK_THROW(parser.parse({"hidden"}, ParseMode::ONE_SHOT), CommandParser::NoSuchCommandError);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCommandParser

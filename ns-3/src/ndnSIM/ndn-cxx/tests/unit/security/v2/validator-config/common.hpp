@@ -35,10 +35,10 @@ namespace tests {
 inline ConfigSection
 makeSection(const std::string& config)
 {
-  std::istringstream inputStream(config);
-  ConfigSection section;
-  boost::property_tree::read_info(inputStream, section);
-  return section;
+    std::istringstream inputStream(config);
+    ConfigSection section;
+    boost::property_tree::read_info(inputStream, section);
+    return section;
 }
 
 } // namespace tests

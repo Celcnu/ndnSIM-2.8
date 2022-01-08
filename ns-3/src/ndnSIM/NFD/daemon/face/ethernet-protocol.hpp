@@ -36,8 +36,7 @@ namespace ethernet {
 using namespace ndn::ethernet;
 
 std::pair<const ether_header*, std::string>
-checkFrameHeader(const uint8_t* packet, size_t length,
-                 const Address& localAddr, const Address& destAddr);
+checkFrameHeader(const uint8_t* packet, size_t length, const Address& localAddr, const Address& destAddr);
 
 } // namespace ethernet
 } // namespace nfd

@@ -33,8 +33,7 @@ ManagerBase::ManagerBase(const std::string& module, Dispatcher& dispatcher)
 {
 }
 
-ManagerBase::ManagerBase(const std::string& module, Dispatcher& dispatcher,
-                         CommandAuthenticator& authenticator)
+ManagerBase::ManagerBase(const std::string& module, Dispatcher& dispatcher, CommandAuthenticator& authenticator)
   : m_module(module)
   , m_dispatcher(dispatcher)
   , m_authenticator(&authenticator)
@@ -44,72 +43,66 @@ ManagerBase::ManagerBase(const std::string& module, Dispatcher& dispatcher,
 ManagerBase::~ManagerBase() = default;
 
 void
-ManagerBase::registerStatusDatasetHandler(const std::string& verb,
-                                          const ndn::mgmt::StatusDatasetHandler& handler)
+ManagerBase::registerStatusDatasetHandler(const std::string& verb, const ndn::mgmt::StatusDatasetHandler& handler)
 {
-  m_dispatcher.addStatusDataset(makeRelPrefix(verb),
-                                ndn::mgmt::makeAcceptAllAuthorization(),
-                                handler);
+    m_dispatcher.addStatusDataset(makeRelPrefix(verb), ndn::mgmt::makeAcceptAllAuthorization(), handler);
 }
 
 ndn::mgmt::PostNotification
 ManagerBase::registerNotificationStream(const std::string& verb)
 {
-  return m_dispatcher.addNotificationStream(makeRelPrefix(verb));
+    return m_dispatcher.addNotificationStream(makeRelPrefix(verb));
 }
 
 void
 ManagerBase::extractRequester(const Interest& interest, ndn::mgmt::AcceptContinuation accept)
 {
-  const Name& interestName = interest.getName();
+    const Name& interestName = interest.getName();
 
-  try {
-    ndn::SignatureInfo sigInfo(interestName.at(ndn::signed_interest::POS_SIG_INFO).blockFromValue());
-    if (!sigInfo.hasKeyLocator() || sigInfo.getKeyLocator().getType() != tlv::Name) {
-      return accept("");
+    try {
+        ndn::SignatureInfo sigInfo(interestName.at(ndn::signed_interest::POS_SIG_INFO).blockFromValue());
+        if (!sigInfo.hasKeyLocator() || sigInfo.getKeyLocator().getType() != tlv::Name) {
+            return accept("");
+        }
+
+        accept(sigInfo.getKeyLocator().getName().toUri());
     }
-
-    accept(sigInfo.getKeyLocator().getName().toUri());
-  }
-  catch (const tlv::Error&) {
-    accept("");
-  }
+    catch (const tlv::Error&) {
+        accept("");
+    }
 }
 
 ndn::mgmt::Authorization
 ManagerBase::makeAuthorization(const std::string& verb)
 {
-  BOOST_ASSERT(m_authenticator != nullptr);
-  return m_authenticator->makeAuthorization(m_module, verb);
+    BOOST_ASSERT(m_authenticator != nullptr);
+    return m_authenticator->makeAuthorization(m_module, verb);
 }
 
 bool
-ManagerBase::validateParameters(const ControlCommand& command,
-                                const ndn::mgmt::ControlParameters& parameters)
+ManagerBase::validateParameters(const ControlCommand& command, const ndn::mgmt::ControlParameters& parameters)
 {
-  BOOST_ASSERT(dynamic_cast<const ControlParameters*>(&parameters) != nullptr);
+    BOOST_ASSERT(dynamic_cast<const ControlParameters*>(&parameters) != nullptr);
 
-  try {
-    command.validateRequest(static_cast<const ControlParameters&>(parameters));
-  }
-  catch (const ControlCommand::ArgumentError&) {
-    return false;
-  }
-  return true;
+    try {
+        command.validateRequest(static_cast<const ControlParameters&>(parameters));
+    }
+    catch (const ControlCommand::ArgumentError&) {
+        return false;
+    }
+    return true;
 }
 
 void
-ManagerBase::handleCommand(shared_ptr<ControlCommand> command,
-                           const ControlCommandHandler& handler,
-                           const Name& prefix, const Interest& interest,
-                           const ndn::mgmt::ControlParameters& params,
+ManagerBase::handleCommand(shared_ptr<ControlCommand> command, const ControlCommandHandler& handler, const Name& prefix,
+                           const Interest& interest, const ndn::mgmt::ControlParameters& params,
                            ndn::mgmt::CommandContinuation done)
 {
-  BOOST_ASSERT(dynamic_cast<const ControlParameters*>(&params) != nullptr);
+    BOOST_ASSERT(dynamic_cast<const ControlParameters*>(&params) != nullptr);
 
-  ControlParameters parameters = static_cast<const ControlParameters&>(params);
-  command->applyDefaultsToRequest(parameters);
-  handler(*command, prefix, interest, parameters, done);
+    ControlParameters parameters = static_cast<const ControlParameters&>(params);
+    command->applyDefaultsToRequest(parameters);
+    handler(*command, prefix, interest, parameters, done);
 }
 
 } // namespace nfd

@@ -44,106 +44,104 @@ using nfd::Face;
 
 BOOST_AUTO_TEST_CASE(GetLinkService)
 {
-  auto linkService = make_unique<GenericLinkService>();
-  auto linkServicePtr = linkService.get();
-  auto face = make_unique<Face>(std::move(linkService), make_unique<DummyTransport>());
+    auto linkService = make_unique<GenericLinkService>();
+    auto linkServicePtr = linkService.get();
+    auto face = make_unique<Face>(std::move(linkService), make_unique<DummyTransport>());
 
-  BOOST_CHECK_EQUAL(face->getLinkService(), linkServicePtr);
+    BOOST_CHECK_EQUAL(face->getLinkService(), linkServicePtr);
 }
 
 BOOST_AUTO_TEST_CASE(GetTransport)
 {
-  auto dummyTransport = make_unique<DummyTransport>();
-  auto transportPtr = dummyTransport.get();
-  auto face = make_unique<Face>(make_unique<GenericLinkService>(), std::move(dummyTransport));
+    auto dummyTransport = make_unique<DummyTransport>();
+    auto transportPtr = dummyTransport.get();
+    auto face = make_unique<Face>(make_unique<GenericLinkService>(), std::move(dummyTransport));
 
-  BOOST_CHECK_EQUAL(face->getTransport(), transportPtr);
+    BOOST_CHECK_EQUAL(face->getTransport(), transportPtr);
 }
 
 BOOST_AUTO_TEST_CASE(StaticProperties)
 {
-  auto face = make_unique<DummyFace>();
+    auto face = make_unique<DummyFace>();
 
-  BOOST_CHECK_EQUAL(face->getId(), INVALID_FACEID);
-  BOOST_CHECK_EQUAL(face->getLocalUri().getScheme(), "dummy");
-  BOOST_CHECK_EQUAL(face->getRemoteUri().getScheme(), "dummy");
-  BOOST_CHECK_EQUAL(face->getScope(), ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  BOOST_CHECK_EQUAL(face->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
-  BOOST_CHECK_EQUAL(face->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    BOOST_CHECK_EQUAL(face->getId(), INVALID_FACEID);
+    BOOST_CHECK_EQUAL(face->getLocalUri().getScheme(), "dummy");
+    BOOST_CHECK_EQUAL(face->getRemoteUri().getScheme(), "dummy");
+    BOOST_CHECK_EQUAL(face->getScope(), ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    BOOST_CHECK_EQUAL(face->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERSISTENT);
+    BOOST_CHECK_EQUAL(face->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
 
-  face->setId(222);
-  BOOST_CHECK_EQUAL(face->getId(), 222);
+    face->setId(222);
+    BOOST_CHECK_EQUAL(face->getId(), 222);
 
-  face->setPersistency(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
-  BOOST_CHECK_EQUAL(face->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    face->setPersistency(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    BOOST_CHECK_EQUAL(face->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
 }
 
 BOOST_AUTO_TEST_CASE(State)
 {
-  auto face = make_shared<DummyFace>();
-  BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
+    auto face = make_shared<DummyFace>();
+    BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
 
-  face->setState(FaceState::DOWN);
-  BOOST_CHECK_EQUAL(face->getState(), FaceState::DOWN);
+    face->setState(FaceState::DOWN);
+    BOOST_CHECK_EQUAL(face->getState(), FaceState::DOWN);
 }
 
 BOOST_AUTO_TEST_CASE(LinkServiceSendReceive)
 {
-  auto face1 = make_shared<DummyFace>();
+    auto face1 = make_shared<DummyFace>();
 
-  const size_t nInInterests = 192;
-  const size_t nInData = 91;
-  const size_t nInNacks = 29;
-  const size_t nOutInterests = 202;
-  const size_t nOutData = 128;
-  const size_t nOutNacks = 84;
+    const size_t nInInterests = 192;
+    const size_t nInData = 91;
+    const size_t nInNacks = 29;
+    const size_t nOutInterests = 202;
+    const size_t nOutData = 128;
+    const size_t nOutNacks = 84;
 
-  size_t nReceivedInterests = 0;
-  size_t nReceivedData = 0;
-  size_t nReceivedNacks = 0;
-  face1->afterReceiveInterest.connect(bind([&nReceivedInterests] { ++nReceivedInterests; }));
-  face1->afterReceiveData.connect(bind([&nReceivedData] { ++nReceivedData; }));
-  face1->afterReceiveNack.connect(bind([&nReceivedNacks] { ++nReceivedNacks; }));
+    size_t nReceivedInterests = 0;
+    size_t nReceivedData = 0;
+    size_t nReceivedNacks = 0;
+    face1->afterReceiveInterest.connect(bind([&nReceivedInterests] { ++nReceivedInterests; }));
+    face1->afterReceiveData.connect(bind([&nReceivedData] { ++nReceivedData; }));
+    face1->afterReceiveNack.connect(bind([&nReceivedNacks] { ++nReceivedNacks; }));
 
-  for (size_t i = 0; i < nInInterests; ++i) {
-    face1->receiveInterest(*makeInterest("/JSQdqward4"), 0);
-  }
+    for (size_t i = 0; i < nInInterests; ++i) {
+        face1->receiveInterest(*makeInterest("/JSQdqward4"), 0);
+    }
 
-  for (size_t i = 0; i < nInData; ++i) {
-    face1->receiveData(*makeData("/hT8FDigWn1"), 0);
-  }
+    for (size_t i = 0; i < nInData; ++i) {
+        face1->receiveData(*makeData("/hT8FDigWn1"), 0);
+    }
 
-  for (size_t i = 0; i < nInNacks; ++i) {
-    face1->receiveNack(makeNack(*makeInterest("/StnEVTj4Ex", false, nullopt, 561),
-                                lp::NackReason::CONGESTION), 0);
-  }
+    for (size_t i = 0; i < nInNacks; ++i) {
+        face1->receiveNack(makeNack(*makeInterest("/StnEVTj4Ex", false, nullopt, 561), lp::NackReason::CONGESTION), 0);
+    }
 
-  for (size_t i = 0; i < nOutInterests; ++i) {
-    face1->sendInterest(*makeInterest("/XyUAFYQDmd"), 0);
-  }
+    for (size_t i = 0; i < nOutInterests; ++i) {
+        face1->sendInterest(*makeInterest("/XyUAFYQDmd"), 0);
+    }
 
-  for (size_t i = 0; i < nOutData; ++i) {
-    face1->sendData(*makeData("/GigPEtPH6"), 0);
-  }
+    for (size_t i = 0; i < nOutData; ++i) {
+        face1->sendData(*makeData("/GigPEtPH6"), 0);
+    }
 
-  for (size_t i = 0; i < nOutNacks; ++i) {
-    face1->sendNack(makeNack(*makeInterest("/9xK6FbwIBM", false, nullopt, 365),
-                             lp::NackReason::CONGESTION), 0);
-  }
+    for (size_t i = 0; i < nOutNacks; ++i) {
+        face1->sendNack(makeNack(*makeInterest("/9xK6FbwIBM", false, nullopt, 365), lp::NackReason::CONGESTION), 0);
+    }
 
-  BOOST_CHECK_EQUAL(face1->getCounters().nInInterests, nInInterests);
-  BOOST_CHECK_EQUAL(face1->getCounters().nInData, nInData);
-  BOOST_CHECK_EQUAL(face1->getCounters().nInNacks, nInNacks);
-  BOOST_CHECK_EQUAL(face1->getCounters().nOutInterests, nOutInterests);
-  BOOST_CHECK_EQUAL(face1->getCounters().nOutData, nOutData);
-  BOOST_CHECK_EQUAL(face1->getCounters().nOutNacks, nOutNacks);
+    BOOST_CHECK_EQUAL(face1->getCounters().nInInterests, nInInterests);
+    BOOST_CHECK_EQUAL(face1->getCounters().nInData, nInData);
+    BOOST_CHECK_EQUAL(face1->getCounters().nInNacks, nInNacks);
+    BOOST_CHECK_EQUAL(face1->getCounters().nOutInterests, nOutInterests);
+    BOOST_CHECK_EQUAL(face1->getCounters().nOutData, nOutData);
+    BOOST_CHECK_EQUAL(face1->getCounters().nOutNacks, nOutNacks);
 
-  BOOST_CHECK_EQUAL(nReceivedInterests, nInInterests);
-  BOOST_CHECK_EQUAL(nReceivedData, nInData);
-  BOOST_CHECK_EQUAL(nReceivedNacks, nInNacks);
-  BOOST_CHECK_EQUAL(face1->sentInterests.size(), nOutInterests);
-  BOOST_CHECK_EQUAL(face1->sentData.size(), nOutData);
-  BOOST_CHECK_EQUAL(face1->sentNacks.size(), nOutNacks);
+    BOOST_CHECK_EQUAL(nReceivedInterests, nInInterests);
+    BOOST_CHECK_EQUAL(nReceivedData, nInData);
+    BOOST_CHECK_EQUAL(nReceivedNacks, nInNacks);
+    BOOST_CHECK_EQUAL(face1->sentInterests.size(), nOutInterests);
+    BOOST_CHECK_EQUAL(face1->sentData.size(), nOutData);
+    BOOST_CHECK_EQUAL(face1->sentNacks.size(), nOutNacks);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestFace

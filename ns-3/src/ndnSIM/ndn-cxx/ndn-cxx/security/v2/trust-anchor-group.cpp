@@ -47,13 +47,13 @@ TrustAnchorGroup::~TrustAnchorGroup() = default;
 size_t
 TrustAnchorGroup::size() const
 {
-  return m_anchorNames.size();
+    return m_anchorNames.size();
 }
 
 void
 TrustAnchorGroup::refresh()
 {
-  // base method does nothing
+    // base method does nothing
 }
 
 //////////////
@@ -66,78 +66,78 @@ StaticTrustAnchorGroup::StaticTrustAnchorGroup(CertContainerInterface& certConta
 void
 StaticTrustAnchorGroup::add(Certificate&& cert)
 {
-  if (m_anchorNames.count(cert.getName()) != 0) {
-    return;
-  }
+    if (m_anchorNames.count(cert.getName()) != 0) {
+        return;
+    }
 
-  m_anchorNames.insert(cert.getName());
-  m_certs.add(std::move(cert));
+    m_anchorNames.insert(cert.getName());
+    m_certs.add(std::move(cert));
 }
 
 void
 StaticTrustAnchorGroup::remove(const Name& certName)
 {
-  m_anchorNames.erase(certName);
-  m_certs.remove(certName);
+    m_anchorNames.erase(certName);
+    m_certs.remove(certName);
 }
 
 /////////////
 
 DynamicTrustAnchorGroup::DynamicTrustAnchorGroup(CertContainerInterface& certContainer, const std::string& id,
-                                                 const boost::filesystem::path& path,
-                                                 time::nanoseconds refreshPeriod, bool isDir)
+                                                 const boost::filesystem::path& path, time::nanoseconds refreshPeriod,
+                                                 bool isDir)
   : TrustAnchorGroup(certContainer, id)
   , m_isDir(isDir)
   , m_path(path)
   , m_refreshPeriod(refreshPeriod)
 {
-  if (refreshPeriod <= time::nanoseconds::zero()) {
-    NDN_THROW(std::runtime_error("Refresh period for the dynamic group must be positive"));
-  }
+    if (refreshPeriod <= time::nanoseconds::zero()) {
+        NDN_THROW(std::runtime_error("Refresh period for the dynamic group must be positive"));
+    }
 
-  NDN_LOG_TRACE("Create dynamic trust anchor group " << id << " for file/dir " << path
-                << " with refresh time " << refreshPeriod);
-  refresh();
+    NDN_LOG_TRACE("Create dynamic trust anchor group " << id << " for file/dir " << path << " with refresh time "
+                                                       << refreshPeriod);
+    refresh();
 }
 
 void
 DynamicTrustAnchorGroup::refresh()
 {
-  if (m_expireTime > time::steady_clock::now()) {
-    return;
-  }
-  m_expireTime = time::steady_clock::now() + m_refreshPeriod;
-  NDN_LOG_TRACE("Reloading dynamic trust anchor group");
-
-  std::set<Name> oldAnchorNames = m_anchorNames;
-
-  auto loadCert = [this, &oldAnchorNames] (const fs::path& file) {
-    auto cert = io::load<Certificate>(file.string());
-    if (cert != nullptr) {
-      if (m_anchorNames.count(cert->getName()) == 0) {
-        m_anchorNames.insert(cert->getName());
-        m_certs.add(std::move(*cert));
-      }
-      else {
-        oldAnchorNames.erase(cert->getName());
-      }
+    if (m_expireTime > time::steady_clock::now()) {
+        return;
     }
-  };
+    m_expireTime = time::steady_clock::now() + m_refreshPeriod;
+    NDN_LOG_TRACE("Reloading dynamic trust anchor group");
 
-  if (!m_isDir) {
-    loadCert(m_path);
-  }
-  else {
-    if (fs::exists(m_path)) {
-      std::for_each(fs::directory_iterator(m_path), fs::directory_iterator(), loadCert);
+    std::set<Name> oldAnchorNames = m_anchorNames;
+
+    auto loadCert = [this, &oldAnchorNames](const fs::path& file) {
+        auto cert = io::load<Certificate>(file.string());
+        if (cert != nullptr) {
+            if (m_anchorNames.count(cert->getName()) == 0) {
+                m_anchorNames.insert(cert->getName());
+                m_certs.add(std::move(*cert));
+            }
+            else {
+                oldAnchorNames.erase(cert->getName());
+            }
+        }
+    };
+
+    if (!m_isDir) {
+        loadCert(m_path);
     }
-  }
+    else {
+        if (fs::exists(m_path)) {
+            std::for_each(fs::directory_iterator(m_path), fs::directory_iterator(), loadCert);
+        }
+    }
 
-  // remove old certs
-  for (const auto& oldAnchorName : oldAnchorNames) {
-    m_anchorNames.erase(oldAnchorName);
-    m_certs.remove(oldAnchorName);
-  }
+    // remove old certs
+    for (const auto& oldAnchorName : oldAnchorNames) {
+        m_anchorNames.erase(oldAnchorName);
+        m_certs.remove(oldAnchorName);
+    }
 }
 
 } // namespace v2

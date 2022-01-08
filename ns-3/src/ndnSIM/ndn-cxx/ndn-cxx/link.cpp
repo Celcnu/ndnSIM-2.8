@@ -27,76 +27,75 @@ BOOST_CONCEPT_ASSERT((boost::EqualityComparable<Link>));
 BOOST_CONCEPT_ASSERT((WireEncodable<Link>));
 BOOST_CONCEPT_ASSERT((WireEncodableWithEncodingBuffer<Link>));
 BOOST_CONCEPT_ASSERT((WireDecodable<Link>));
-static_assert(std::is_base_of<Data::Error, Link::Error>::value,
-              "Link::Error should inherit from Data::Error");
+static_assert(std::is_base_of<Data::Error, Link::Error>::value, "Link::Error should inherit from Data::Error");
 
 Link::Link() = default;
 
 Link::Link(const Block& wire, bool wantSort)
 {
-  this->wireDecode(wire, wantSort);
+    this->wireDecode(wire, wantSort);
 }
 
 Link::Link(const Name& name, std::initializer_list<Delegation> dels)
   : Data(name)
   , m_delList(dels)
 {
-  encodeContent();
+    encodeContent();
 }
 
 void
 Link::encodeContent()
 {
-  setContentType(tlv::ContentType_Link);
+    setContentType(tlv::ContentType_Link);
 
-  if (m_delList.size() > 0) {
-    EncodingEstimator estimator;
-    size_t estimatedSize = m_delList.wireEncode(estimator, tlv::Content);
+    if (m_delList.size() > 0) {
+        EncodingEstimator estimator;
+        size_t estimatedSize = m_delList.wireEncode(estimator, tlv::Content);
 
-    EncodingBuffer buffer(estimatedSize, 0);
-    m_delList.wireEncode(buffer, tlv::Content);
+        EncodingBuffer buffer(estimatedSize, 0);
+        m_delList.wireEncode(buffer, tlv::Content);
 
-    setContent(buffer.block());
-  }
-  else {
-    setContent(nullptr, 0);
-  }
+        setContent(buffer.block());
+    }
+    else {
+        setContent(nullptr, 0);
+    }
 }
 
 void
 Link::wireDecode(const Block& wire, bool wantSort)
 {
-  Data::wireDecode(wire);
+    Data::wireDecode(wire);
 
-  if (getContentType() != tlv::ContentType_Link) {
-    NDN_THROW(Error("Expecting ContentType Link, got " + to_string(getContentType())));
-  }
+    if (getContentType() != tlv::ContentType_Link) {
+        NDN_THROW(Error("Expecting ContentType Link, got " + to_string(getContentType())));
+    }
 
-  m_delList.wireDecode(getContent(), wantSort);
+    m_delList.wireDecode(getContent(), wantSort);
 }
 
 void
 Link::setDelegationList(const DelegationList& dels)
 {
-  m_delList = dels;
-  encodeContent();
+    m_delList = dels;
+    encodeContent();
 }
 
 void
 Link::addDelegation(uint32_t preference, const Name& name)
 {
-  m_delList.insert(preference, name, DelegationList::INS_REPLACE);
-  encodeContent();
+    m_delList.insert(preference, name, DelegationList::INS_REPLACE);
+    encodeContent();
 }
 
 bool
 Link::removeDelegation(const Name& name)
 {
-  size_t nErased = m_delList.erase(name);
-  if (nErased > 0) {
-    encodeContent();
-  }
-  return nErased > 0;
+    size_t nErased = m_delList.erase(name);
+    if (nErased > 0) {
+        encodeContent();
+    }
+    return nErased > 0;
 }
 
 } // namespace ndn

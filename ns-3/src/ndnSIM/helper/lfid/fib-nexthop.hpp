@@ -29,110 +29,105 @@
 namespace ns3 {
 namespace ndn {
 
-enum class NextHopType { DOWNWARD,
-                         UPWARD,
-                         DISABLED };
+enum class NextHopType { DOWNWARD, UPWARD, DISABLED };
 
 class FibNextHop {
-public:
-  static constexpr int MAX_COST = 1 * 1000 * 1000;
+  public:
+    static constexpr int MAX_COST = 1 * 1000 * 1000;
 
-  /**
-   * @param nhId The nexthop id.
-   * @param cost The link cost of a nexthop. has to be larger than 0!
-   * @param costDelta The cost difference (relative to the shortest path nexthop)
-   * @param type The nexthop type @sa NextHopType
-   */
-  FibNextHop(int cost, int nhId, int costDelta = -1, NextHopType type = NextHopType::DISABLED);
+    /**
+     * @param nhId The nexthop id.
+     * @param cost The link cost of a nexthop. has to be larger than 0!
+     * @param costDelta The cost difference (relative to the shortest path nexthop)
+     * @param type The nexthop type @sa NextHopType
+     */
+    FibNextHop(int cost, int nhId, int costDelta = -1, NextHopType type = NextHopType::DISABLED);
 
-  // Getters
-  int
-  getNexthopId() const
-  {
-    return m_nhId;
-  }
-
-  int
-  getCost() const
-  {
-    return m_cost;
-  }
-
-  int
-  getCostDelta() const
-  {
-    return m_costDelta;
-  }
-
-  NextHopType
-  getType() const
-  {
-    return m_type;
-  }
-
-  // Setters:
-  void
-  setType(const NextHopType& newType)
-  {
-    NS_ABORT_UNLESS(newType != NextHopType::DISABLED);
-    this->m_type = newType;
-  }
-
-  // Only used in old fillFib:
-  void
-  setCost(int newCost, int newCostDelta)
-  {
-    NS_ABORT_UNLESS(newCost > 0);
-    NS_ABORT_UNLESS(newCostDelta >= 0);
-    this->m_cost = newCost;
-    this->m_costDelta = newCostDelta;
-  }
-
-private:
-  // Order of FibNexthop:
-  friend bool
-  operator<(const FibNextHop& own, const FibNextHop& other)
-  {
-    NS_ABORT_UNLESS(own.m_nhId != -1);
-
-    return std::tie(own.m_costDelta, own.m_cost, own.m_nhId)
-           < std::tie(other.m_costDelta, other.m_cost, other.m_nhId);
-  }
-
-  friend bool
-  operator==(const FibNextHop& own, const FibNextHop& other)
-  {
-    if (other.m_nhId == own.m_nhId) {
-      // Check that there are no FibNextHop with identical id, but different cost.
-      NS_ABORT_UNLESS(other.m_cost == own.m_cost);
-      NS_ABORT_UNLESS(other.m_costDelta == own.m_costDelta);
-      return true;
+    // Getters
+    int
+    getNexthopId() const
+    {
+        return m_nhId;
     }
-    else {
-      return false;
+
+    int
+    getCost() const
+    {
+        return m_cost;
     }
-  }
 
-  friend bool
-  operator!=(const FibNextHop& own, const FibNextHop& other)
-  {
-    return !(own == other);
-  }
+    int
+    getCostDelta() const
+    {
+        return m_costDelta;
+    }
 
-  friend std::ostream&
-  operator<<(std::ostream&, const FibNextHop& fib);
+    NextHopType
+    getType() const
+    {
+        return m_type;
+    }
 
-private:
-  int m_cost;
-  int m_nhId;
-  NextHopType m_type;
-  int m_costDelta;
+    // Setters:
+    void
+    setType(const NextHopType& newType)
+    {
+        NS_ABORT_UNLESS(newType != NextHopType::DISABLED);
+        this->m_type = newType;
+    }
+
+    // Only used in old fillFib:
+    void
+    setCost(int newCost, int newCostDelta)
+    {
+        NS_ABORT_UNLESS(newCost > 0);
+        NS_ABORT_UNLESS(newCostDelta >= 0);
+        this->m_cost = newCost;
+        this->m_costDelta = newCostDelta;
+    }
+
+  private:
+    // Order of FibNexthop:
+    friend bool
+    operator<(const FibNextHop& own, const FibNextHop& other)
+    {
+        NS_ABORT_UNLESS(own.m_nhId != -1);
+
+        return std::tie(own.m_costDelta, own.m_cost, own.m_nhId)
+               < std::tie(other.m_costDelta, other.m_cost, other.m_nhId);
+    }
+
+    friend bool
+    operator==(const FibNextHop& own, const FibNextHop& other)
+    {
+        if (other.m_nhId == own.m_nhId) {
+            // Check that there are no FibNextHop with identical id, but different cost.
+            NS_ABORT_UNLESS(other.m_cost == own.m_cost);
+            NS_ABORT_UNLESS(other.m_costDelta == own.m_costDelta);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    friend bool
+    operator!=(const FibNextHop& own, const FibNextHop& other)
+    {
+        return !(own == other);
+    }
+
+    friend std::ostream& operator<<(std::ostream&, const FibNextHop& fib);
+
+  private:
+    int m_cost;
+    int m_nhId;
+    NextHopType m_type;
+    int m_costDelta;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const NextHopType& type);
-std::ostream&
-operator<<(std::ostream& os, const FibNextHop& a);
+std::ostream& operator<<(std::ostream& os, const NextHopType& type);
+std::ostream& operator<<(std::ostream& os, const FibNextHop& a);
 
 } // namespace ndn
 } // namespace ns-3

@@ -36,118 +36,88 @@ namespace pib {
  * All the contents in Pib are stored in a SQLite3 database file.
  * This backend provides more persistent storage than PibMemory.
  */
-class PibSqlite3 : public PibImpl
-{
-public:
-  /**
-   * @brief Create sqlite3-based PIB backed
-   *
-   * This method will create a SQLite3 database file under the directory @p location.
-   * If the directory does not exist, it will be created automatically.
-   * It assumes that the directory does not contain a PIB database of an older version,
-   * It is user's responsibility to update the older version database or remove the database.
-   *
-   * @param location The directory where the database file is located. By default, it points to the
-   *                 $HOME/.ndn directory.
-   * @throw PibImpl::Error when initialization fails.
-   */
-  explicit
-  PibSqlite3(const std::string& location = "");
+class PibSqlite3 : public PibImpl {
+  public:
+    /**
+     * @brief Create sqlite3-based PIB backed
+     *
+     * This method will create a SQLite3 database file under the directory @p location.
+     * If the directory does not exist, it will be created automatically.
+     * It assumes that the directory does not contain a PIB database of an older version,
+     * It is user's responsibility to update the older version database or remove the database.
+     *
+     * @param location The directory where the database file is located. By default, it points to the
+     *                 $HOME/.ndn directory.
+     * @throw PibImpl::Error when initialization fails.
+     */
+    explicit PibSqlite3(const std::string& location = "");
 
-  /**
-   * @brief Destruct and cleanup internal state
-   */
-  ~PibSqlite3();
+    /**
+     * @brief Destruct and cleanup internal state
+     */
+    ~PibSqlite3();
 
-  static const std::string&
-  getScheme();
+    static const std::string& getScheme();
 
-public: // TpmLocator management
-  void
-  setTpmLocator(const std::string& tpmLocator) final;
+  public: // TpmLocator management
+    void setTpmLocator(const std::string& tpmLocator) final;
 
-  std::string
-  getTpmLocator() const final;
+    std::string getTpmLocator() const final;
 
-public: // Identity management
-  bool
-  hasIdentity(const Name& identity) const final;
+  public: // Identity management
+    bool hasIdentity(const Name& identity) const final;
 
-  void
-  addIdentity(const Name& identity) final;
+    void addIdentity(const Name& identity) final;
 
-  void
-  removeIdentity(const Name& identity) final;
+    void removeIdentity(const Name& identity) final;
 
-  void
-  clearIdentities() final;
+    void clearIdentities() final;
 
-  std::set<Name>
-  getIdentities() const final;
+    std::set<Name> getIdentities() const final;
 
-  void
-  setDefaultIdentity(const Name& identityName) final;
+    void setDefaultIdentity(const Name& identityName) final;
 
-  Name
-  getDefaultIdentity() const final;
+    Name getDefaultIdentity() const final;
 
-public: // Key management
-  bool
-  hasKey(const Name& keyName) const final;
+  public: // Key management
+    bool hasKey(const Name& keyName) const final;
 
-  void
-  addKey(const Name& identity, const Name& keyName,
-         const uint8_t* key, size_t keyLen) final;
+    void addKey(const Name& identity, const Name& keyName, const uint8_t* key, size_t keyLen) final;
 
-  void
-  removeKey(const Name& keyName) final;
+    void removeKey(const Name& keyName) final;
 
-  Buffer
-  getKeyBits(const Name& keyName) const final;
+    Buffer getKeyBits(const Name& keyName) const final;
 
-  std::set<Name>
-  getKeysOfIdentity(const Name& identity) const final;
+    std::set<Name> getKeysOfIdentity(const Name& identity) const final;
 
-  void
-  setDefaultKeyOfIdentity(const Name& identity, const Name& keyName) final;
+    void setDefaultKeyOfIdentity(const Name& identity, const Name& keyName) final;
 
-  Name
-  getDefaultKeyOfIdentity(const Name& identity) const final;
+    Name getDefaultKeyOfIdentity(const Name& identity) const final;
 
-public: // Certificate Management
-  bool
-  hasCertificate(const Name& certName) const final;
+  public: // Certificate Management
+    bool hasCertificate(const Name& certName) const final;
 
-  void
-  addCertificate(const v2::Certificate& certificate) final;
+    void addCertificate(const v2::Certificate& certificate) final;
 
-  void
-  removeCertificate(const Name& certName) final;
+    void removeCertificate(const Name& certName) final;
 
-  v2::Certificate
-  getCertificate(const Name& certName) const final;
+    v2::Certificate getCertificate(const Name& certName) const final;
 
-  std::set<Name>
-  getCertificatesOfKey(const Name& keyName) const final;
+    std::set<Name> getCertificatesOfKey(const Name& keyName) const final;
 
-  void
-  setDefaultCertificateOfKey(const Name& keyName, const Name& certName) final;
+    void setDefaultCertificateOfKey(const Name& keyName, const Name& certName) final;
 
-  v2::Certificate
-  getDefaultCertificateOfKey(const Name& keyName) const final;
+    v2::Certificate getDefaultCertificateOfKey(const Name& keyName) const final;
 
-private:
-  bool
-  hasDefaultIdentity() const;
+  private:
+    bool hasDefaultIdentity() const;
 
-  bool
-  hasDefaultKeyOfIdentity(const Name& identity) const;
+    bool hasDefaultKeyOfIdentity(const Name& identity) const;
 
-  bool
-  hasDefaultCertificateOfKey(const Name& keyName) const;
+    bool hasDefaultCertificateOfKey(const Name& keyName) const;
 
-private:
-  sqlite3* m_database;
+  private:
+    sqlite3* m_database;
 };
 
 } // namespace pib

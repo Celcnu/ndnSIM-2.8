@@ -35,21 +35,20 @@
 namespace nfd {
 namespace tests {
 
-class StrategyNewNextHopFixture : public GlobalIoTimeFixture
-{
-protected:
-  template<typename ...Args>
-  shared_ptr<DummyFace>
-  addFace(Args&&... args)
-  {
-    auto face = make_shared<DummyFace>(std::forward<Args>(args)...);
-    faceTable.add(face);
-    return face;
-  }
+class StrategyNewNextHopFixture : public GlobalIoTimeFixture {
+  protected:
+    template <typename... Args>
+    shared_ptr<DummyFace>
+    addFace(Args&&... args)
+    {
+        auto face = make_shared<DummyFace>(std::forward<Args>(args)...);
+        faceTable.add(face);
+        return face;
+    }
 
-protected:
-  FaceTable faceTable;
-  Forwarder forwarder{faceTable};
+  protected:
+    FaceTable faceTable;
+    Forwarder forwarder{faceTable};
 };
 
 BOOST_AUTO_TEST_SUITE(Fw)
@@ -57,103 +56,103 @@ BOOST_FIXTURE_TEST_SUITE(TestStrategyNewNextHop, StrategyNewNextHopFixture)
 
 BOOST_AUTO_TEST_CASE(AfterNewNextHop1)
 {
-  auto face1 = addFace();
-  auto face2 = addFace();
-  auto face3 = addFace();
+    auto face1 = addFace();
+    auto face2 = addFace();
+    auto face3 = addFace();
 
-  DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
-  StrategyChoice& sc = forwarder.getStrategyChoice();
-  sc.insert(Name("/A/B"), strategy.getStrategyName());
-  sc.insert(Name("/A/B/C"), strategy.getStrategyName());
+    DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
+    StrategyChoice& sc = forwarder.getStrategyChoice();
+    sc.insert(Name("/A/B"), strategy.getStrategyName());
+    sc.insert(Name("/A/B/C"), strategy.getStrategyName());
 
-  strategy.enableNewNextHopTrigger(true);
+    strategy.enableNewNextHopTrigger(true);
 
-  Fib& fib = forwarder.getFib();
-  Pit& pit = forwarder.getPit();
+    Fib& fib = forwarder.getFib();
+    Pit& pit = forwarder.getPit();
 
-  // fib: "/", "/A/B"
-  fib::Entry* entry = fib.insert("/").first;
-  fib.addOrUpdateNextHop(*entry, *face1, 0);
-  entry = fib.insert("/A/B").first;
-  fib.addOrUpdateNextHop(*entry, *face1, 0);
+    // fib: "/", "/A/B"
+    fib::Entry* entry = fib.insert("/").first;
+    fib.addOrUpdateNextHop(*entry, *face1, 0);
+    entry = fib.insert("/A/B").first;
+    fib.addOrUpdateNextHop(*entry, *face1, 0);
 
-  // pit: "/A", "/A/B/C"
-  auto interest1 = makeInterest("/A");
-  shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
-  pit1->insertOrUpdateInRecord(*face3, *interest1);
-  auto interest2 = makeInterest("/A/B/C");
-  shared_ptr<pit::Entry> pit2 = pit.insert(*interest2).first;
-  pit2->insertOrUpdateInRecord(*face3, *interest2);
-  // new nexthop for "/"
-  entry = fib.insert("/").first;
-  fib.addOrUpdateNextHop(*entry, *face2, 0);
+    // pit: "/A", "/A/B/C"
+    auto interest1 = makeInterest("/A");
+    shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
+    pit1->insertOrUpdateInRecord(*face3, *interest1);
+    auto interest2 = makeInterest("/A/B/C");
+    shared_ptr<pit::Entry> pit2 = pit.insert(*interest2).first;
+    pit2->insertOrUpdateInRecord(*face3, *interest2);
+    // new nexthop for "/"
+    entry = fib.insert("/").first;
+    fib.addOrUpdateNextHop(*entry, *face2, 0);
 
-  // /A --> triggered, /A/B --> not triggered, /A/B/C --> not triggered
-  BOOST_REQUIRE_EQUAL(strategy.afterNewNextHopCalls.size(), 1);
-  BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls[0], Name("/A"));
+    // /A --> triggered, /A/B --> not triggered, /A/B/C --> not triggered
+    BOOST_REQUIRE_EQUAL(strategy.afterNewNextHopCalls.size(), 1);
+    BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls[0], Name("/A"));
 }
 
 BOOST_AUTO_TEST_CASE(AfterNewNextHop2)
 {
-  auto face1 = addFace();
-  auto face2 = addFace();
-  auto face3 = addFace();
+    auto face1 = addFace();
+    auto face2 = addFace();
+    auto face3 = addFace();
 
-  DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
-  StrategyChoice& sc = forwarder.getStrategyChoice();
-  sc.insert(Name("/A/B"), strategy.getStrategyName());
-  sc.insert(Name("/A/B/C"), strategy.getStrategyName());
+    DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
+    StrategyChoice& sc = forwarder.getStrategyChoice();
+    sc.insert(Name("/A/B"), strategy.getStrategyName());
+    sc.insert(Name("/A/B/C"), strategy.getStrategyName());
 
-  strategy.enableNewNextHopTrigger(true);
+    strategy.enableNewNextHopTrigger(true);
 
-  Fib& fib = forwarder.getFib();
-  Pit& pit = forwarder.getPit();
+    Fib& fib = forwarder.getFib();
+    Pit& pit = forwarder.getPit();
 
-  // fib: "/", "/A/B"
-  fib::Entry* entry = fib.insert("/").first;
-  fib.addOrUpdateNextHop(*entry, *face1, 0);
-  entry = fib.insert("/A/B").first;
-  fib.addOrUpdateNextHop(*entry, *face1, 0);
+    // fib: "/", "/A/B"
+    fib::Entry* entry = fib.insert("/").first;
+    fib.addOrUpdateNextHop(*entry, *face1, 0);
+    entry = fib.insert("/A/B").first;
+    fib.addOrUpdateNextHop(*entry, *face1, 0);
 
-  // pit: "/A", "/A/B/C"
-  auto interest1 = makeInterest("/A");
-  shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
-  pit1->insertOrUpdateInRecord(*face3, *interest1);
-  auto interest2 = makeInterest("/A/B");
-  shared_ptr<pit::Entry> pit2 = pit.insert(*interest2).first;
-  pit2->insertOrUpdateInRecord(*face3, *interest2);
-  // new nexthop for "/"
-  entry = fib.insert("/").first;
-  fib.addOrUpdateNextHop(*entry, *face2, 0);
+    // pit: "/A", "/A/B/C"
+    auto interest1 = makeInterest("/A");
+    shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
+    pit1->insertOrUpdateInRecord(*face3, *interest1);
+    auto interest2 = makeInterest("/A/B");
+    shared_ptr<pit::Entry> pit2 = pit.insert(*interest2).first;
+    pit2->insertOrUpdateInRecord(*face3, *interest2);
+    // new nexthop for "/"
+    entry = fib.insert("/").first;
+    fib.addOrUpdateNextHop(*entry, *face2, 0);
 
-  // /A --> triggered, /A/B --> not triggered, /A/B/C --> not triggered
-  BOOST_REQUIRE_EQUAL(strategy.afterNewNextHopCalls.size(), 1);
-  BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls[0], Name("/A"));
+    // /A --> triggered, /A/B --> not triggered, /A/B/C --> not triggered
+    BOOST_REQUIRE_EQUAL(strategy.afterNewNextHopCalls.size(), 1);
+    BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls[0], Name("/A"));
 }
 
 BOOST_AUTO_TEST_CASE(DisableTrigger)
 {
-  auto face1 = addFace();
-  auto face2 = addFace();
-  auto face3 = addFace();
+    auto face1 = addFace();
+    auto face2 = addFace();
+    auto face3 = addFace();
 
-  DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
-  strategy.enableNewNextHopTrigger(false);
+    DummyStrategy& strategy = choose<DummyStrategy>(forwarder, "/A", DummyStrategy::getStrategyName());
+    strategy.enableNewNextHopTrigger(false);
 
-  Fib& fib = forwarder.getFib();
-  Pit& pit = forwarder.getPit();
+    Fib& fib = forwarder.getFib();
+    Pit& pit = forwarder.getPit();
 
-  fib::Entry* entry = fib.insert("/").first;
-  fib.addOrUpdateNextHop(*entry, *face1, 0);
+    fib::Entry* entry = fib.insert("/").first;
+    fib.addOrUpdateNextHop(*entry, *face1, 0);
 
-  auto interest1 = makeInterest("/A");
-  shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
-  pit1->insertOrUpdateInRecord(*face3, *interest1);
-  // new nexthop for "/A"
-  entry = fib.insert("/A").first;
-  fib.addOrUpdateNextHop(*entry, *face2, 0);
+    auto interest1 = makeInterest("/A");
+    shared_ptr<pit::Entry> pit1 = pit.insert(*interest1).first;
+    pit1->insertOrUpdateInRecord(*face3, *interest1);
+    // new nexthop for "/A"
+    entry = fib.insert("/A").first;
+    fib.addOrUpdateNextHop(*entry, *face2, 0);
 
-  BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls.size(), 0);
+    BOOST_CHECK_EQUAL(strategy.afterNewNextHopCalls.size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStrategyNewNextHop

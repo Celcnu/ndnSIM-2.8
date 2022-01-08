@@ -36,50 +36,46 @@ namespace tests {
  *  \param lifetime InterestLifetime
  *  \param nonce if non-zero, set Nonce to this value (useful for creating Nack with same Nonce)
  */
-shared_ptr<Interest>
-makeInterest(const Name& name, bool canBePrefix = false,
-             time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME, uint32_t nonce = 0);
+shared_ptr<Interest> makeInterest(const Name& name, bool canBePrefix = false,
+                                  time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME, uint32_t nonce = 0);
 
 /** \brief create a Data with fake signature
  *  \note Data may be modified afterwards without losing the fake signature.
  *        If a real signature is desired, sign again with KeyChain.
  */
-shared_ptr<Data>
-makeData(const Name& name);
+shared_ptr<Data> makeData(const Name& name);
 
 /** \brief add a fake signature to Data
  */
-Data&
-signData(Data& data);
+Data& signData(Data& data);
 
 /** \brief add a fake signature to Data
  */
 inline shared_ptr<Data>
 signData(shared_ptr<Data> data)
 {
-  signData(*data);
-  return data;
+    signData(*data);
+    return data;
 }
 
 /** \brief create a Nack
  *  \param interest Interest
  *  \param reason Nack reason
  */
-lp::Nack
-makeNack(const Interest& interest, lp::NackReason reason);
+lp::Nack makeNack(const Interest& interest, lp::NackReason reason);
 
 /** \brief replace a name component in a packet
  *  \param[inout] pkt the packet
  *  \param index the index of the name component to replace
  *  \param args arguments to name::Component constructor
  */
-template<typename Packet, typename ...Args>
+template <typename Packet, typename... Args>
 void
-setNameComponent(Packet& pkt, ssize_t index, Args&& ...args)
+setNameComponent(Packet& pkt, ssize_t index, Args&&... args)
 {
-  Name name = pkt.getName();
-  name.set(index, name::Component(std::forward<Args>(args)...));
-  pkt.setName(name);
+    Name name = pkt.getName();
+    name.set(index, name::Component(std::forward<Args>(args)...));
+    pkt.setName(name);
 }
 
 } // namespace tests

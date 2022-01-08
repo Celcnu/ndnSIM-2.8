@@ -33,34 +33,34 @@ ScopedConnection::ScopedConnection(Connection connection) noexcept
 ScopedConnection&
 ScopedConnection::operator=(Connection connection)
 {
-  if (m_connection != connection) {
-    disconnect();
-    m_connection = std::move(connection);
-  }
-  return *this;
+    if (m_connection != connection) {
+        disconnect();
+        m_connection = std::move(connection);
+    }
+    return *this;
 }
 
 ScopedConnection::~ScopedConnection()
 {
-  disconnect();
+    disconnect();
 }
 
 void
 ScopedConnection::disconnect()
 {
-  m_connection.disconnect();
+    m_connection.disconnect();
 }
 
 bool
 ScopedConnection::isConnected() const noexcept
 {
-  return m_connection.isConnected();
+    return m_connection.isConnected();
 }
 
 void
 ScopedConnection::release() noexcept
 {
-  m_connection = {};
+    m_connection = {};
 }
 
 } // namespace signal

@@ -32,32 +32,31 @@ namespace nfdc {
 time::nanoseconds
 ExecuteContext::getTimeout() const
 {
-  return 4_s;
+    return 4_s;
 }
 
 ndn::nfd::CommandOptions
 ExecuteContext::makeCommandOptions() const
 {
-  return ndn::nfd::CommandOptions()
-           .setTimeout(time::duration_cast<time::milliseconds>(this->getTimeout()));
+    return ndn::nfd::CommandOptions().setTimeout(time::duration_cast<time::milliseconds>(this->getTimeout()));
 }
 
 Controller::CommandFailCallback
 ExecuteContext::makeCommandFailureHandler(const std::string& commandName)
 {
-  return [=] (const ControlResponse& resp) {
-    this->exitCode = 1;
-    this->err << "Error " << resp.getCode() << " when " << commandName << ": " << resp.getText() << '\n';
-  };
+    return [=](const ControlResponse& resp) {
+        this->exitCode = 1;
+        this->err << "Error " << resp.getCode() << " when " << commandName << ": " << resp.getText() << '\n';
+    };
 }
 
 Controller::DatasetFailCallback
 ExecuteContext::makeDatasetFailureHandler(const std::string& datasetName)
 {
-  return [=] (uint32_t code, const std::string& reason) {
-    this->exitCode = 1;
-    this->err << "Error " << code << " when fetching " << datasetName << ": " << reason << '\n';
-  };
+    return [=](uint32_t code, const std::string& reason) {
+        this->exitCode = 1;
+        this->err << "Error " << code << " when fetching " << datasetName << ": " << reason << '\n';
+    };
 }
 
 } // namespace nfdc

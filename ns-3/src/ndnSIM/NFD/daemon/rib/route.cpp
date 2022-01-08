@@ -34,18 +34,18 @@ const uint64_t PA_ROUTE_COST = 2048; ///< cost of route created by prefix announ
 static time::steady_clock::TimePoint
 computeExpiration(const ndn::PrefixAnnouncement& ann)
 {
-  time::steady_clock::Duration validityEnd = time::steady_clock::Duration::max();
-  if (ann.getValidityPeriod()) {
-    auto now = time::system_clock::now();
-    if (!ann.getValidityPeriod()->isValid(now)) {
-      validityEnd = time::steady_clock::Duration::zero();
+    time::steady_clock::Duration validityEnd = time::steady_clock::Duration::max();
+    if (ann.getValidityPeriod()) {
+        auto now = time::system_clock::now();
+        if (!ann.getValidityPeriod()->isValid(now)) {
+            validityEnd = time::steady_clock::Duration::zero();
+        }
+        else {
+            validityEnd = ann.getValidityPeriod()->getPeriod().second - now;
+        }
     }
-    else {
-      validityEnd = ann.getValidityPeriod()->getPeriod().second - now;
-    }
-  }
-  return time::steady_clock::now() +
-    std::min(validityEnd, time::duration_cast<time::steady_clock::Duration>(ann.getExpiration()));
+    return time::steady_clock::now()
+           + std::min(validityEnd, time::duration_cast<time::steady_clock::Duration>(ann.getExpiration()));
 }
 
 Route::Route(const ndn::PrefixAnnouncement& ann, uint64_t faceId)
@@ -62,34 +62,28 @@ Route::Route(const ndn::PrefixAnnouncement& ann, uint64_t faceId)
 bool
 operator==(const Route& lhs, const Route& rhs)
 {
-  return lhs.faceId == rhs.faceId &&
-         lhs.origin == rhs.origin &&
-         lhs.flags == rhs.flags &&
-         lhs.cost == rhs.cost &&
-         lhs.expires == rhs.expires &&
-         lhs.announcement == rhs.announcement;
+    return lhs.faceId == rhs.faceId && lhs.origin == rhs.origin && lhs.flags == rhs.flags && lhs.cost == rhs.cost
+           && lhs.expires == rhs.expires && lhs.announcement == rhs.announcement;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Route& route)
 {
-  os << "Route("
-     << "faceid: " << route.faceId
-     << ", origin: " << route.origin
-     << ", cost: " << route.cost
-     << ", flags: " << ndn::AsHex{route.flags};
-  if (route.expires) {
-    os << ", expires in: " << time::duration_cast<time::milliseconds>(*route.expires - time::steady_clock::now());
-  }
-  else {
-    os << ", never expires";
-  }
-  if (route.announcement) {
-    os << ", announcement: (" << *route.announcement << ')';
-  }
-  os << ')';
+    os << "Route("
+       << "faceid: " << route.faceId << ", origin: " << route.origin << ", cost: " << route.cost
+       << ", flags: " << ndn::AsHex{route.flags};
+    if (route.expires) {
+        os << ", expires in: " << time::duration_cast<time::milliseconds>(*route.expires - time::steady_clock::now());
+    }
+    else {
+        os << ", never expires";
+    }
+    if (route.announcement) {
+        os << ", announcement: (" << *route.announcement << ')';
+    }
+    os << ')';
 
-  return os;
+    return os;
 }
 
 } // namespace rib

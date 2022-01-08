@@ -32,59 +32,50 @@ namespace nfd {
  * \brief represents an item in NFD Channel dataset
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Channel-Dataset
  */
-class ChannelStatus
-{
-public:
-  class Error : public tlv::Error
-  {
+class ChannelStatus {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  ChannelStatus();
+    ChannelStatus();
 
-  explicit
-  ChannelStatus(const Block& payload);
+    explicit ChannelStatus(const Block& payload);
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& wire);
+    void wireDecode(const Block& wire);
 
-public: // getters & setters
-  const std::string&
-  getLocalUri() const
-  {
-    return m_localUri;
-  }
+  public: // getters & setters
+    const std::string&
+    getLocalUri() const
+    {
+        return m_localUri;
+    }
 
-  ChannelStatus&
-  setLocalUri(const std::string localUri);
+    ChannelStatus& setLocalUri(const std::string localUri);
 
-private:
-  std::string m_localUri;
+  private:
+    std::string m_localUri;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(ChannelStatus);
 
-bool
-operator==(const ChannelStatus& a, const ChannelStatus& b);
+bool operator==(const ChannelStatus& a, const ChannelStatus& b);
 
 inline bool
 operator!=(const ChannelStatus& a, const ChannelStatus& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const ChannelStatus& status);
+std::ostream& operator<<(std::ostream& os, const ChannelStatus& status);
 
 } // namespace nfd
 } // namespace ndn

@@ -33,15 +33,14 @@ namespace time {
  * The only behavior that is currently controlled by the traits is default start
  * time.  The generic implementation assumes start time to be zero.
  */
-template<class BaseClock>
-class UnitTestClockTraits
-{
-public:
-  static nanoseconds
-  getDefaultStartTime()
-  {
-    return nanoseconds::zero();
-  }
+template <class BaseClock>
+class UnitTestClockTraits {
+  public:
+    static nanoseconds
+    getDefaultStartTime()
+    {
+        return nanoseconds::zero();
+    }
 };
 
 /**
@@ -50,15 +49,14 @@ public:
  * This specialization sets the default start time to 1415684132 seconds
  * (equivalent to Tue 11 Nov 2014 05:35:32 UTC, if Unix epoch is assumed).
  */
-template<>
-class UnitTestClockTraits<system_clock>
-{
-public:
-  static nanoseconds
-  getDefaultStartTime()
-  {
-    return seconds(1415684132);
-  }
+template <>
+class UnitTestClockTraits<system_clock> {
+  public:
+    static nanoseconds
+    getDefaultStartTime()
+    {
+        return seconds(1415684132);
+    }
 };
 
 /**
@@ -69,37 +67,30 @@ public:
  *
  * @note Default start time is determined by UnitTestClockTraits
  */
-template<class BaseClock, class ClockTraits = UnitTestClockTraits<BaseClock>>
-class UnitTestClock : public CustomClock<BaseClock>
-{
-public:
-  explicit
-  UnitTestClock(nanoseconds startTime = ClockTraits::getDefaultStartTime());
+template <class BaseClock, class ClockTraits = UnitTestClockTraits<BaseClock>>
+class UnitTestClock : public CustomClock<BaseClock> {
+  public:
+    explicit UnitTestClock(nanoseconds startTime = ClockTraits::getDefaultStartTime());
 
-  /**
-   * @brief Advance unit test clock by @p duration
-   */
-  void
-  advance(nanoseconds duration);
+    /**
+     * @brief Advance unit test clock by @p duration
+     */
+    void advance(nanoseconds duration);
 
-  /**
-   * @brief Explicitly set clock to @p timeSinceEpoch
-   */
-  void
-  setNow(nanoseconds timeSinceEpoch);
+    /**
+     * @brief Explicitly set clock to @p timeSinceEpoch
+     */
+    void setNow(nanoseconds timeSinceEpoch);
 
-public:
-  std::string
-  getSince() const override;
+  public:
+    std::string getSince() const override;
 
-  typename BaseClock::time_point
-  getNow() const override;
+    typename BaseClock::time_point getNow() const override;
 
-  typename BaseClock::duration
-  toWaitDuration(typename BaseClock::duration d) const override;
+    typename BaseClock::duration toWaitDuration(typename BaseClock::duration d) const override;
 
-private:
-  nanoseconds m_currentTime;
+  private:
+    nanoseconds m_currentTime;
 };
 
 extern template class UnitTestClock<system_clock>;

@@ -40,23 +40,22 @@ BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 BOOST_AUTO_TEST_SUITE(ValidatorConfig)
 
-template<uint32_t PktType>
-class RuleFixture : public IdentityManagementFixture
-{
-public:
-  RuleFixture()
-    : rule(ruleId, PktType)
-    , pktName("/foo/bar")
-  {
-    if (PktType == tlv::Interest) {
-      pktName = Name("/foo/bar/SigInfo/SigValue");
+template <uint32_t PktType>
+class RuleFixture : public IdentityManagementFixture {
+  public:
+    RuleFixture()
+      : rule(ruleId, PktType)
+      , pktName("/foo/bar")
+    {
+        if (PktType == tlv::Interest) {
+            pktName = Name("/foo/bar/SigInfo/SigValue");
+        }
     }
-  }
 
-public:
-  const std::string ruleId = "rule-id";
-  Rule rule;
-  Name pktName;
+  public:
+    const std::string ruleId = "rule-id";
+    Rule rule;
+    Name pktName;
 };
 
 using PktTypes = boost::mpl::vector_c<uint32_t, tlv::Data, tlv::Interest>;
@@ -65,83 +64,80 @@ BOOST_AUTO_TEST_SUITE(TestRule)
 
 BOOST_FIXTURE_TEST_CASE(Errors, RuleFixture<tlv::Data>)
 {
-  BOOST_CHECK_THROW(rule.match(tlv::Interest, this->pktName), Error);
+    BOOST_CHECK_THROW(rule.match(tlv::Interest, this->pktName), Error);
 
-  auto state = make_shared<DummyValidationState>();
-  BOOST_CHECK_THROW(rule.check(tlv::Interest, this->pktName, "/foo/bar", state), Error);
+    auto state = make_shared<DummyValidationState>();
+    BOOST_CHECK_THROW(rule.check(tlv::Interest, this->pktName, "/foo/bar", state), Error);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Constructor, PktType, PktTypes, RuleFixture<PktType::value>)
 {
-  BOOST_CHECK_EQUAL(this->rule.getId(), this->ruleId);
-  BOOST_CHECK_EQUAL(this->rule.getPktType(), PktType::value);
+    BOOST_CHECK_EQUAL(this->rule.getId(), this->ruleId);
+    BOOST_CHECK_EQUAL(this->rule.getPktType(), PktType::value);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(EmptyRule, PktType, PktTypes, RuleFixture<PktType::value>)
 {
-  BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
+    BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
 
-  auto state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), false);
+    auto state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), false);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Filters, PktType, PktTypes, RuleFixture<PktType::value>)
 {
-  this->rule.addFilter(make_unique<RegexNameFilter>(Regex("^<foo><bar>$")));
+    this->rule.addFilter(make_unique<RegexNameFilter>(Regex("^<foo><bar>$")));
 
-  BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
-  BOOST_CHECK_EQUAL(this->rule.match(PktType::value, "/not" + this->pktName.toUri()), false);
+    BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
+    BOOST_CHECK_EQUAL(this->rule.match(PktType::value, "/not" + this->pktName.toUri()), false);
 
-  this->rule.addFilter(make_unique<RegexNameFilter>(Regex("^<not><foo><bar>$")));
+    this->rule.addFilter(make_unique<RegexNameFilter>(Regex("^<not><foo><bar>$")));
 
-  BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
-  BOOST_CHECK_EQUAL(this->rule.match(PktType::value, "/not" + this->pktName.toUri()), true);
+    BOOST_CHECK_EQUAL(this->rule.match(PktType::value, this->pktName), true);
+    BOOST_CHECK_EQUAL(this->rule.match(PktType::value, "/not" + this->pktName.toUri()), true);
 
-  auto state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), false);
+    auto state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), false);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Checkers, PktType, PktTypes, RuleFixture<PktType::value>)
 {
-  this->rule.addChecker(make_unique<HyperRelationChecker>("^(<>+)$", "\\1",
-                                                        "^<not>?(<>+)$", "\\1",
-                                                        NameRelation::EQUAL));
+    this->rule.addChecker(
+      make_unique<HyperRelationChecker>("^(<>+)$", "\\1", "^<not>?(<>+)$", "\\1", NameRelation::EQUAL));
 
-  auto state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), true);
+    auto state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), true);
 
-  state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/not/foo/bar", state), true);
+    state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/not/foo/bar", state), true);
 
-  this->rule.addChecker(make_unique<HyperRelationChecker>("^(<>+)$", "\\1",
-                                                        "^(<>+)$", "\\1",
-                                                        NameRelation::EQUAL));
-  state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), true);
+    this->rule.addChecker(make_unique<HyperRelationChecker>("^(<>+)$", "\\1", "^(<>+)$", "\\1", NameRelation::EQUAL));
+    state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/foo/bar", state), true);
 
-  state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/not/foo/bar", state), false);
+    state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(this->rule.check(PktType::value, this->pktName, "/not/foo/bar", state), false);
 }
 
 BOOST_AUTO_TEST_SUITE(Create)
 
 BOOST_AUTO_TEST_CASE(Errors)
 {
-  BOOST_CHECK_THROW(Rule::create(makeSection(""), "test-config"), Error);
+    BOOST_CHECK_THROW(Rule::create(makeSection(""), "test-config"), Error);
 
-  std::string config = R"CONF(
+    std::string config = R"CONF(
       id rule-id
       for something
     )CONF";
-  BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error);
+    BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error);
 
-  config = R"CONF(
+    config = R"CONF(
       id rule-id
       for data
     )CONF";
-  BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error); // at least one checker required
+    BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error); // at least one checker required
 
-  config = R"CONF(
+    config = R"CONF(
       id rule-id
       for data
       checker
@@ -151,14 +147,15 @@ BOOST_AUTO_TEST_CASE(Errors)
       }
       other stuff
     )CONF";
-  BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error);
+    BOOST_CHECK_THROW(Rule::create(makeSection(config), "test-config"), Error);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(FilterAndChecker, PktType, PktTypes, RuleFixture<PktType::value>)
 {
-  std::string config = R"CONF(
+    std::string config = R"CONF(
       id rule-id
-      for )CONF" + (PktType::value == tlv::Data ? "data"s : "interest"s) + R"CONF(
+      for )CONF" + (PktType::value == tlv::Data ? "data"s : "interest"s)
+                         + R"CONF(
       filter
       {
         type name
@@ -182,16 +179,16 @@ BOOST_FIXTURE_TEST_CASE_TEMPLATE(FilterAndChecker, PktType, PktTypes, RuleFixtur
         }
       }
     )CONF";
-  auto rule = Rule::create(makeSection(config), "test-config");
+    auto rule = Rule::create(makeSection(config), "test-config");
 
-  BOOST_CHECK_EQUAL(rule->match(PktType::value, this->pktName), true);
-  BOOST_CHECK_EQUAL(rule->match(PktType::value, "/not" + this->pktName.toUri()), false);
+    BOOST_CHECK_EQUAL(rule->match(PktType::value, this->pktName), true);
+    BOOST_CHECK_EQUAL(rule->match(PktType::value, "/not" + this->pktName.toUri()), false);
 
-  auto state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(rule->check(PktType::value, this->pktName, "/foo/bar", state), true);
+    auto state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(rule->check(PktType::value, this->pktName, "/foo/bar", state), true);
 
-  state = make_shared<DummyValidationState>();
-  BOOST_CHECK_EQUAL(rule->check(PktType::value, this->pktName, "/not/foo/bar", state), false);
+    state = make_shared<DummyValidationState>();
+    BOOST_CHECK_EQUAL(rule->check(PktType::value, this->pktName, "/not/foo/bar", state), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Create

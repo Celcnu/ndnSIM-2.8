@@ -33,28 +33,27 @@ namespace face {
 
 /** \brief A LinkService that drops every packet.
  */
-class NullLinkService final : public LinkService
-{
-private:
-  void
-  doSendInterest(const Interest&, const EndpointId&) final
-  {
-  }
+class NullLinkService final : public LinkService {
+  private:
+    void
+    doSendInterest(const Interest&, const EndpointId&) final
+    {
+    }
 
-  void
-  doSendData(const Data&, const EndpointId&) final
-  {
-  }
+    void
+    doSendData(const Data&, const EndpointId&) final
+    {
+    }
 
-  void
-  doSendNack(const lp::Nack&, const EndpointId&) final
-  {
-  }
+    void
+    doSendNack(const lp::Nack&, const EndpointId&) final
+    {
+    }
 
-  void
-  doReceivePacket(const Block&, const EndpointId&) final
-  {
-  }
+    void
+    doReceivePacket(const Block&, const EndpointId&) final
+    {
+    }
 };
 
 } // namespace face

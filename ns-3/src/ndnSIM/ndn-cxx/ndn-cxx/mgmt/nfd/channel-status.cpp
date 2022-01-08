@@ -33,18 +33,18 @@ ChannelStatus::ChannelStatus() = default;
 
 ChannelStatus::ChannelStatus(const Block& payload)
 {
-  this->wireDecode(payload);
+    this->wireDecode(payload);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 ChannelStatus::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
-  totalLength += prependStringBlock(encoder, tlv::nfd::LocalUri, m_localUri);
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::nfd::ChannelStatus);
-  return totalLength;
+    size_t totalLength = 0;
+    totalLength += prependStringBlock(encoder, tlv::nfd::LocalUri, m_localUri);
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::nfd::ChannelStatus);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ChannelStatus);
@@ -52,57 +52,57 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ChannelStatus);
 const Block&
 ChannelStatus::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  return m_wire;
 }
 
 void
 ChannelStatus::wireDecode(const Block& block)
 {
-  if (block.type() != tlv::nfd::ChannelStatus) {
-    NDN_THROW(Error("ChannelStatus", block.type()));
-  }
+    if (block.type() != tlv::nfd::ChannelStatus) {
+        NDN_THROW(Error("ChannelStatus", block.type()));
+    }
 
-  m_wire = block;
-  m_wire.parse();
-  auto val = m_wire.elements_begin();
+    m_wire = block;
+    m_wire.parse();
+    auto val = m_wire.elements_begin();
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::LocalUri) {
-    m_localUri = readString(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("Missing required LocalUri field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::LocalUri) {
+        m_localUri = readString(*val);
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("Missing required LocalUri field"));
+    }
 }
 
 ChannelStatus&
 ChannelStatus::setLocalUri(const std::string localUri)
 {
-  m_wire.reset();
-  m_localUri = localUri;
-  return *this;
+    m_wire.reset();
+    m_localUri = localUri;
+    return *this;
 }
 
 bool
 operator==(const ChannelStatus& a, const ChannelStatus& b)
 {
-  return a.getLocalUri() == b.getLocalUri();
+    return a.getLocalUri() == b.getLocalUri();
 }
 
 std::ostream&
 operator<<(std::ostream& os, const ChannelStatus& status)
 {
-  return os << "Channel(LocalUri: " << status.getLocalUri() << ")";
+    return os << "Channel(LocalUri: " << status.getLocalUri() << ")";
 }
 
 } // namespace nfd

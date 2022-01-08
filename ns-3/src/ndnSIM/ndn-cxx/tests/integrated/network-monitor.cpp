@@ -19,7 +19,7 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  */
 
-#define BOOST_TEST_MODULE ndn-cxx Integrated Tests (Network Monitor)
+#define BOOST_TEST_MODULE ndn - cxx Integrated Tests(Network Monitor)
 #include "tests/boost-test.hpp"
 
 #include "ndn-cxx/net/network-monitor.hpp"
@@ -42,57 +42,52 @@ BOOST_AUTO_TEST_SUITE(TestNetworkMonitor)
 static std::ostream&
 logEvent(const shared_ptr<const NetworkInterface>& ni = nullptr, std::ostream& os = std::cout)
 {
-  os << '[' << time::toIsoString(time::system_clock::now()) << "] ";
-  if (ni != nullptr)
-    os << ni->getName() << ": ";
-  return os;
+    os << '[' << time::toIsoString(time::system_clock::now()) << "] ";
+    if (ni != nullptr)
+        os << ni->getName() << ": ";
+    return os;
 }
 
 BOOST_AUTO_TEST_CASE(Signals)
 {
-  boost::asio::io_service io;
-  NetworkMonitor monitor(io);
+    boost::asio::io_service io;
+    NetworkMonitor monitor(io);
 
-  std::cout << "capabilities=" << AsHex{monitor.getCapabilities()} << std::endl;
+    std::cout << "capabilities=" << AsHex{monitor.getCapabilities()} << std::endl;
 
-  monitor.onNetworkStateChanged.connect([] {
-    logEvent() << "onNetworkStateChanged" << std::endl;
-  });
+    monitor.onNetworkStateChanged.connect([] { logEvent() << "onNetworkStateChanged" << std::endl; });
 
-  monitor.onEnumerationCompleted.connect([&monitor] {
-    logEvent() << "onEnumerationCompleted" << std::endl;
-    for (const auto& ni : monitor.listNetworkInterfaces()) {
-      std::cout << *ni;
-    }
-  });
-
-  monitor.onInterfaceAdded.connect([] (const shared_ptr<const NetworkInterface>& ni) {
-    logEvent(ni) << "onInterfaceAdded\n" << *ni;
-    logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
-
-    ni->onAddressAdded.connect([ni] (const NetworkAddress& address) {
-      logEvent(ni) << "onAddressAdded " << address << std::endl;
+    monitor.onEnumerationCompleted.connect([&monitor] {
+        logEvent() << "onEnumerationCompleted" << std::endl;
+        for (const auto& ni : monitor.listNetworkInterfaces()) {
+            std::cout << *ni;
+        }
     });
 
-    ni->onAddressRemoved.connect([ni] (const NetworkAddress& address) {
-      logEvent(ni) << "onAddressRemoved " << address << std::endl;
-    });
+    monitor.onInterfaceAdded.connect([](const shared_ptr<const NetworkInterface>& ni) {
+        logEvent(ni) << "onInterfaceAdded\n" << *ni;
+        logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
 
-    ni->onStateChanged.connect([ni] (InterfaceState oldState, InterfaceState newState) {
-      logEvent(ni) << "onStateChanged " << oldState << " -> " << newState << std::endl;
-      logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
-    });
+        ni->onAddressAdded.connect(
+          [ni](const NetworkAddress& address) { logEvent(ni) << "onAddressAdded " << address << std::endl; });
 
-    ni->onMtuChanged.connect([ni] (uint32_t oldMtu, uint32_t newMtu) {
-      logEvent(ni) << "onMtuChanged " << oldMtu << " -> " << newMtu << std::endl;
-    });
-  }); // monitor.onInterfaceAdded.connect
+        ni->onAddressRemoved.connect(
+          [ni](const NetworkAddress& address) { logEvent(ni) << "onAddressRemoved " << address << std::endl; });
 
-  monitor.onInterfaceRemoved.connect([] (const shared_ptr<const NetworkInterface>& ni) {
-    logEvent(ni) << "onInterfaceRemoved" << std::endl;
-  });
+        ni->onStateChanged.connect([ni](InterfaceState oldState, InterfaceState newState) {
+            logEvent(ni) << "onStateChanged " << oldState << " -> " << newState << std::endl;
+            logEvent(ni) << "link-type: " << detail::getLinkType(ni->getName()) << std::endl;
+        });
 
-  io.run();
+        ni->onMtuChanged.connect([ni](uint32_t oldMtu, uint32_t newMtu) {
+            logEvent(ni) << "onMtuChanged " << oldMtu << " -> " << newMtu << std::endl;
+        });
+    }); // monitor.onInterfaceAdded.connect
+
+    monitor.onInterfaceRemoved.connect(
+      [](const shared_ptr<const NetworkInterface>& ni) { logEvent(ni) << "onInterfaceRemoved" << std::endl; });
+
+    io.run();
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNetworkMonitor

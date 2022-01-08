@@ -30,47 +30,43 @@ namespace util {
 /** \brief Indicates the severity level of a log message.
  */
 enum class LogLevel {
-  FATAL   = -1,   ///< fatal (will be logged unconditionally)
-  NONE    = 0,    ///< no messages
-  ERROR   = 1,    ///< serious error messages
-  WARN    = 2,    ///< warning messages
-  INFO    = 3,    ///< informational messages
-  DEBUG   = 4,    ///< debug messages
-  TRACE   = 5,    ///< trace messages (most verbose)
-  ALL     = 255   ///< all messages
+    FATAL = -1, ///< fatal (will be logged unconditionally)
+    NONE = 0,   ///< no messages
+    ERROR = 1,  ///< serious error messages
+    WARN = 2,   ///< warning messages
+    INFO = 3,   ///< informational messages
+    DEBUG = 4,  ///< debug messages
+    TRACE = 5,  ///< trace messages (most verbose)
+    ALL = 255   ///< all messages
 };
 
 /** \brief Output LogLevel as a string.
  *  \throw std::invalid_argument unknown \p level
  */
-std::ostream&
-operator<<(std::ostream& os, LogLevel level);
+std::ostream& operator<<(std::ostream& os, LogLevel level);
 
 /** \brief Parse LogLevel from a string.
  *  \throw std::invalid_argument unknown level name
  */
-LogLevel
-parseLogLevel(const std::string& s);
+LogLevel parseLogLevel(const std::string& s);
 
 namespace detail {
 
 /** \cond */
-template<class T>
+template <class T>
 struct ExtractArgument;
 
-template<class T, class U>
-struct ExtractArgument<T(U&)>
-{
-  using type = U;
+template <class T, class U>
+struct ExtractArgument<T(U&)> {
+    using type = U;
 };
 
-template<class T, class U>
-struct ExtractArgument<T(U)&>
-{
-  using type = U;
+template <class T, class U>
+struct ExtractArgument<T(U)&> {
+    using type = U;
 };
 
-template<class T>
+template <class T>
 using ArgumentType = typename ExtractArgument<T>::type;
 /** \endcond */
 
@@ -80,25 +76,25 @@ using ArgumentType = typename ExtractArgument<T>::type;
  */
 #define NDN_LOG_INIT(name) NS_LOG_COMPONENT_DEFINE("ndn-cxx." BOOST_STRINGIZE(name))
 
-#define NDN_LOG_MEMBER_DECL() \
-  static ::ns3::LogComponent g_log
+#define NDN_LOG_MEMBER_DECL() static ::ns3::LogComponent g_log
 
-#define NDN_LOG_MEMBER_INIT(cls, name) \
-  ::ns3::LogComponent cls::g_log = ::ns3::LogComponent("ndn-cxx." BOOST_STRINGIZE(name), __FILE__)
+#define NDN_LOG_MEMBER_INIT(cls, name)                                                                                 \
+    ::ns3::LogComponent cls::g_log = ::ns3::LogComponent("ndn-cxx." BOOST_STRINGIZE(name), __FILE__)
 
-// ::ns3::LogComponent ::ndn::util::detail::ArgumentType<void(cls)>::g_log = ::ns3::LogComponent("ndn-cxx." BOOST_STRINGIZE(name), __FILE__)
+// ::ns3::LogComponent ::ndn::util::detail::ArgumentType<void(cls)>::g_log = ::ns3::LogComponent("ndn-cxx."
+// BOOST_STRINGIZE(name), __FILE__)
 
-#define NDN_LOG_MEMBER_DECL_SPECIALIZED(cls) \
-  static ::ns3::LogComponent g_log
+#define NDN_LOG_MEMBER_DECL_SPECIALIZED(cls) static ::ns3::LogComponent g_log
 
-#define NDN_LOG_MEMBER_INIT_SPECIALIZED(cls, name) \
-  template<> \
-  ::ns3::LogComponent ::ndn::util::detail::ArgumentType<void(cls)>::g_log = ::ns3::LogComponent("ndn-cxx." BOOST_STRINGIZE(name), __FILE__)
+#define NDN_LOG_MEMBER_INIT_SPECIALIZED(cls, name)                                                                     \
+    template <>                                                                                                        \
+    ::ns3::LogComponent ::ndn::util::detail::ArgumentType<void(cls)>::g_log =                                          \
+      ::ns3::LogComponent("ndn-cxx." BOOST_STRINGIZE(name), __FILE__)
 
 #define NDN_LOG_TRACE(expression) NS_LOG_LOGIC(expression)
 #define NDN_LOG_DEBUG(expression) NS_LOG_DEBUG(expression)
-#define NDN_LOG_INFO(expression)  NS_LOG_INFO(expression)
-#define NDN_LOG_WARN(expression)  NS_LOG_ERROR(expression)
+#define NDN_LOG_INFO(expression) NS_LOG_INFO(expression)
+#define NDN_LOG_WARN(expression) NS_LOG_ERROR(expression)
 #define NDN_LOG_ERROR(expression) NS_LOG_WARN(expression)
 #define NDN_LOG_FATAL(expression) NS_LOG_FATAL(expression)
 

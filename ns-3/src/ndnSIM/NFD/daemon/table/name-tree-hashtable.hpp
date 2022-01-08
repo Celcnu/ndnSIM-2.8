@@ -44,99 +44,93 @@ using HashSequence = std::vector<HashValue>;
 
 /** \brief computes hash value of \p name.getPrefix(prefixLen)
  */
-HashValue
-computeHash(const Name& name, size_t prefixLen = std::numeric_limits<size_t>::max());
+HashValue computeHash(const Name& name, size_t prefixLen = std::numeric_limits<size_t>::max());
 
 /** \brief computes hash values for each prefix of \p name.getPrefix(prefixLen)
  *  \return a hash sequence, where the i-th hash value equals computeHash(name, i)
  */
-HashSequence
-computeHashes(const Name& name, size_t prefixLen = std::numeric_limits<size_t>::max());
+HashSequence computeHashes(const Name& name, size_t prefixLen = std::numeric_limits<size_t>::max());
 
 /** \brief a hashtable node
  *
  *  Zero or more nodes can be added to a hashtable bucket. They are organized as
  *  a doubly linked list through prev and next pointers.
  */
-class Node : noncopyable
-{
-public:
-  /** \post entry.getName() == name
-   *  \post getNode(entry) == this
-   */
-  Node(HashValue h, const Name& name);
+class Node : noncopyable {
+  public:
+    /** \post entry.getName() == name
+     *  \post getNode(entry) == this
+     */
+    Node(HashValue h, const Name& name);
 
-  /** \pre prev == nullptr
-   *  \pre next == nullptr
-   */
-  ~Node();
+    /** \pre prev == nullptr
+     *  \pre next == nullptr
+     */
+    ~Node();
 
-public:
-  const HashValue hash;
-  Node* prev;
-  Node* next;
-  mutable Entry entry;
+  public:
+    const HashValue hash;
+    Node* prev;
+    Node* next;
+    mutable Entry entry;
 };
 
 /** \return node associated with entry
  *  \note This function is for NameTree internal use.
  */
-Node*
-getNode(const Entry& entry);
+Node* getNode(const Entry& entry);
 
 /** \brief invoke a function for each node in a doubly linked list
  *  \tparam N either Node or const Node
  *  \tparam F a functor with signature void F(N*)
  *  \note It's safe to delete the node in the function.
  */
-template<typename N, typename F>
+template <typename N, typename F>
 void
 foreachNode(N* head, const F& func)
 {
-  N* node = head;
-  while (node != nullptr) {
-    N* next = node->next;
-    func(node);
-    node = next;
-  }
+    N* node = head;
+    while (node != nullptr) {
+        N* next = node->next;
+        func(node);
+        node = next;
+    }
 }
 
 /** \brief provides options for Hashtable
  */
-class HashtableOptions
-{
-public:
-  /** \brief constructor
-   *  \post initialSize == size
-   *  \post minSize == size
-   */
-  explicit
-  HashtableOptions(size_t size = 16);
+class HashtableOptions {
+  public:
+    /** \brief constructor
+     *  \post initialSize == size
+     *  \post minSize == size
+     */
+    explicit HashtableOptions(size_t size = 16);
 
-public:
-  /** \brief initial number of buckets
-   */
-  size_t initialSize;
+  public:
+    /** \brief initial number of buckets
+     */
+    size_t initialSize;
 
-  /** \brief minimal number of buckets
-   */
-  size_t minSize;
+    /** \brief minimal number of buckets
+     */
+    size_t minSize;
 
-  /** \brief if hashtable has more than nBuckets*expandLoadFactor nodes, it will be expanded
-   */
-  float expandLoadFactor = 0.5;
+    /** \brief if hashtable has more than nBuckets*expandLoadFactor nodes, it will be expanded
+     */
+    float expandLoadFactor = 0.5;
 
-  /** \brief when hashtable is expanded, its new size is nBuckets*expandFactor
-   */
-  float expandFactor = 2.0;
+    /** \brief when hashtable is expanded, its new size is nBuckets*expandFactor
+     */
+    float expandFactor = 2.0;
 
-  /** \brief if hashtable has less than nBuckets*shrinkLoadFactor nodes, it will be shrunk
-   */
-  float shrinkLoadFactor = 0.1;
+    /** \brief if hashtable has less than nBuckets*shrinkLoadFactor nodes, it will be shrunk
+     */
+    float shrinkLoadFactor = 0.1;
 
-  /** \brief when hashtable is shrunk, its new size is max(nBuckets*shrinkFactor, minSize)
-   */
-  float shrinkFactor = 0.5;
+    /** \brief when hashtable is shrunk, its new size is max(nBuckets*shrinkFactor, minSize)
+     */
+    float shrinkFactor = 0.5;
 };
 
 /** \brief a hashtable for fast exact name lookup
@@ -146,104 +140,93 @@ public:
  *  Hash collision is resolved through a doubly linked list in each bucket.
  *  The number of buckets is adjusted according to how many nodes are stored.
  */
-class Hashtable
-{
-public:
-  typedef HashtableOptions Options;
+class Hashtable {
+  public:
+    typedef HashtableOptions Options;
 
-  explicit
-  Hashtable(const Options& options);
+    explicit Hashtable(const Options& options);
 
-  /** \brief deallocates all nodes
-   */
-  ~Hashtable();
+    /** \brief deallocates all nodes
+     */
+    ~Hashtable();
 
-  /** \return number of nodes
-   */
-  size_t
-  size() const
-  {
-    return m_size;
-  }
+    /** \return number of nodes
+     */
+    size_t
+    size() const
+    {
+        return m_size;
+    }
 
-  /** \return number of buckets
-   */
-  size_t
-  getNBuckets() const
-  {
-    return m_buckets.size();
-  }
+    /** \return number of buckets
+     */
+    size_t
+    getNBuckets() const
+    {
+        return m_buckets.size();
+    }
 
-  /** \return bucket index for hash value h
-   */
-  size_t
-  computeBucketIndex(HashValue h) const
-  {
-    return h % this->getNBuckets();
-  }
+    /** \return bucket index for hash value h
+     */
+    size_t
+    computeBucketIndex(HashValue h) const
+    {
+        return h % this->getNBuckets();
+    }
 
-  /** \return i-th bucket
-   *  \pre bucket < getNBuckets()
-   */
-  const Node*
-  getBucket(size_t bucket) const
-  {
-    BOOST_ASSERT(bucket < this->getNBuckets());
-    return m_buckets[bucket]; // don't use m_bucket.at() for better performance
-  }
+    /** \return i-th bucket
+     *  \pre bucket < getNBuckets()
+     */
+    const Node*
+    getBucket(size_t bucket) const
+    {
+        BOOST_ASSERT(bucket < this->getNBuckets());
+        return m_buckets[bucket]; // don't use m_bucket.at() for better performance
+    }
 
-  /** \brief find node for name.getPrefix(prefixLen)
-   *  \pre name.size() > prefixLen
-   */
-  const Node*
-  find(const Name& name, size_t prefixLen) const;
+    /** \brief find node for name.getPrefix(prefixLen)
+     *  \pre name.size() > prefixLen
+     */
+    const Node* find(const Name& name, size_t prefixLen) const;
 
-  /** \brief find node for name.getPrefix(prefixLen)
-   *  \pre name.size() > prefixLen
-   *  \pre hashes == computeHashes(name)
-   */
-  const Node*
-  find(const Name& name, size_t prefixLen, const HashSequence& hashes) const;
+    /** \brief find node for name.getPrefix(prefixLen)
+     *  \pre name.size() > prefixLen
+     *  \pre hashes == computeHashes(name)
+     */
+    const Node* find(const Name& name, size_t prefixLen, const HashSequence& hashes) const;
 
-  /** \brief find or insert node for name.getPrefix(prefixLen)
-   *  \pre name.size() > prefixLen
-   *  \pre hashes == computeHashes(name)
-   */
-  std::pair<const Node*, bool>
-  insert(const Name& name, size_t prefixLen, const HashSequence& hashes);
+    /** \brief find or insert node for name.getPrefix(prefixLen)
+     *  \pre name.size() > prefixLen
+     *  \pre hashes == computeHashes(name)
+     */
+    std::pair<const Node*, bool> insert(const Name& name, size_t prefixLen, const HashSequence& hashes);
 
-  /** \brief delete node
-   *  \pre node exists in this hashtable
-   */
-  void
-  erase(Node* node);
+    /** \brief delete node
+     *  \pre node exists in this hashtable
+     */
+    void erase(Node* node);
 
-private:
-  /** \brief attach node to bucket
-   */
-  void
-  attach(size_t bucket, Node* node);
+  private:
+    /** \brief attach node to bucket
+     */
+    void attach(size_t bucket, Node* node);
 
-  /** \brief detach node from bucket
-   */
-  void
-  detach(size_t bucket, Node* node);
+    /** \brief detach node from bucket
+     */
+    void detach(size_t bucket, Node* node);
 
-  std::pair<const Node*, bool>
-  findOrInsert(const Name& name, size_t prefixLen, HashValue h, bool allowInsert);
+    std::pair<const Node*, bool> findOrInsert(const Name& name, size_t prefixLen, HashValue h, bool allowInsert);
 
-  void
-  computeThresholds();
+    void computeThresholds();
 
-  void
-  resize(size_t newNBuckets);
+    void resize(size_t newNBuckets);
 
-private:
-  std::vector<Node*> m_buckets;
-  Options m_options;
-  size_t m_size;
-  size_t m_expandThreshold;
-  size_t m_shrinkThreshold;
+  private:
+    std::vector<Node*> m_buckets;
+    Options m_options;
+    size_t m_size;
+    size_t m_expandThreshold;
+    size_t m_shrinkThreshold;
 };
 
 } // namespace name_tree

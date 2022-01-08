@@ -38,32 +38,32 @@ BOOST_FIXTURE_TEST_SUITE(TestDigestSha256, IdentityManagementFixture)
 
 BOOST_AUTO_TEST_CASE(Sha256)
 {
-  char content[6] = "1234\n";
-  ConstBufferPtr buf = util::Sha256::computeDigest(reinterpret_cast<uint8_t*>(content), 5);
+    char content[6] = "1234\n";
+    ConstBufferPtr buf = util::Sha256::computeDigest(reinterpret_cast<uint8_t*>(content), 5);
 
-  BOOST_CHECK_EQUAL(toHex(buf->data(), buf->size(), false),
-                    "a883dafc480d466ee04e0d6da986bd78eb1fdd2178d04693723da3a8f95d42f4");
+    BOOST_CHECK_EQUAL(toHex(buf->data(), buf->size(), false),
+                      "a883dafc480d466ee04e0d6da986bd78eb1fdd2178d04693723da3a8f95d42f4");
 }
 
 BOOST_AUTO_TEST_CASE(DataSignature)
 {
-  Name name("/TestSignatureSha/Basic");
-  Data testData(name);
-  char content[5] = "1234";
-  testData.setContent(reinterpret_cast<uint8_t*>(content), 5);
-  m_keyChain.sign(testData, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
+    Name name("/TestSignatureSha/Basic");
+    Data testData(name);
+    char content[5] = "1234";
+    testData.setContent(reinterpret_cast<uint8_t*>(content), 5);
+    m_keyChain.sign(testData, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
 
-  BOOST_CHECK_THROW(testData.getSignature().getKeyLocator(), ndn::SignatureInfo::Error);
-  verifyDigest(testData, DigestAlgorithm::SHA256);
+    BOOST_CHECK_THROW(testData.getSignature().getKeyLocator(), ndn::SignatureInfo::Error);
+    verifyDigest(testData, DigestAlgorithm::SHA256);
 }
 
 BOOST_AUTO_TEST_CASE(InterestSignature)
 {
-  Name name("/SecurityTestDigestSha256/InterestSignature/Interest1");
-  Interest testInterest(name);
+    Name name("/SecurityTestDigestSha256/InterestSignature/Interest1");
+    Interest testInterest(name);
 
-  m_keyChain.sign(testInterest, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
-  verifyDigest(testInterest, DigestAlgorithm::SHA256);
+    m_keyChain.sign(testInterest, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
+    verifyDigest(testInterest, DigestAlgorithm::SHA256);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestDigestSha256

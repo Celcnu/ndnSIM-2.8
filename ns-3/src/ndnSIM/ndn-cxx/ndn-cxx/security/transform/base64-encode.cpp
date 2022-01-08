@@ -30,32 +30,31 @@ namespace transform {
  * @brief The implementation class which contains the internal state of the filter
  *        which includes openssl specific structures.
  */
-class Base64Encode::Impl
-{
-public:
-  Impl()
-    : m_base64(BIO_new(BIO_f_base64()))
-    , m_sink(BIO_new(BIO_s_mem()))
-  {
-    // connect base64 transform to the data sink.
-    BIO_push(m_base64, m_sink);
-  }
+class Base64Encode::Impl {
+  public:
+    Impl()
+      : m_base64(BIO_new(BIO_f_base64()))
+      , m_sink(BIO_new(BIO_s_mem()))
+    {
+        // connect base64 transform to the data sink.
+        BIO_push(m_base64, m_sink);
+    }
 
-  ~Impl()
-  {
-    BIO_free_all(m_base64);
-  }
+    ~Impl()
+    {
+        BIO_free_all(m_base64);
+    }
 
-public:
-  BIO* m_base64;
-  BIO* m_sink; // BIO_f_base64 alone does not work without a sink
+  public:
+    BIO* m_base64;
+    BIO* m_sink; // BIO_f_base64 alone does not work without a sink
 };
 
 Base64Encode::Base64Encode(bool needBreak)
   : m_impl(make_unique<Impl>())
 {
-  if (!needBreak)
-    BIO_set_flags(m_impl->m_base64, BIO_FLAGS_BASE64_NO_NL);
+    if (!needBreak)
+        BIO_set_flags(m_impl->m_base64, BIO_FLAGS_BASE64_NO_NL);
 }
 
 Base64Encode::~Base64Encode() = default;
@@ -63,72 +62,72 @@ Base64Encode::~Base64Encode() = default;
 void
 Base64Encode::preTransform()
 {
-  fillOutputBuffer();
+    fillOutputBuffer();
 }
 
 size_t
 Base64Encode::convert(const uint8_t* data, size_t dataLen)
 {
-  if (dataLen == 0)
-    return 0;
+    if (dataLen == 0)
+        return 0;
 
-  int wLen = BIO_write(m_impl->m_base64, data, dataLen);
+    int wLen = BIO_write(m_impl->m_base64, data, dataLen);
 
-  if (wLen <= 0) { // fail to write data
-    if (!BIO_should_retry(m_impl->m_base64)) {
-      // we haven't written everything but some error happens, and we cannot retry
-      NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+    if (wLen <= 0) { // fail to write data
+        if (!BIO_should_retry(m_impl->m_base64)) {
+            // we haven't written everything but some error happens, and we cannot retry
+            NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+        }
+        return 0;
     }
-    return 0;
-  }
-  else { // update number of bytes written
-    fillOutputBuffer();
-    return wLen;
-  }
+    else { // update number of bytes written
+        fillOutputBuffer();
+        return wLen;
+    }
 }
 
 void
 Base64Encode::finalize()
 {
-  if (BIO_flush(m_impl->m_base64) != 1)
-    NDN_THROW(Error(getIndex(), "Failed to flush"));
+    if (BIO_flush(m_impl->m_base64) != 1)
+        NDN_THROW(Error(getIndex(), "Failed to flush"));
 
-  while (!isConverterEmpty()) {
-    fillOutputBuffer();
-    while (!isOutputBufferEmpty()) {
-      flushOutputBuffer();
+    while (!isConverterEmpty()) {
+        fillOutputBuffer();
+        while (!isOutputBufferEmpty()) {
+            flushOutputBuffer();
+        }
     }
-  }
 }
 
 void
 Base64Encode::fillOutputBuffer()
 {
-  int nRead = BIO_pending(m_impl->m_sink);
-  if (nRead <= 0)
-    return;
+    int nRead = BIO_pending(m_impl->m_sink);
+    if (nRead <= 0)
+        return;
 
-  // there is something to read from BIO
-  auto buffer = make_unique<OBuffer>(nRead);
-  int rLen = BIO_read(m_impl->m_sink, buffer->data(), nRead);
-  if (rLen < 0)
-    return;
+    // there is something to read from BIO
+    auto buffer = make_unique<OBuffer>(nRead);
+    int rLen = BIO_read(m_impl->m_sink, buffer->data(), nRead);
+    if (rLen < 0)
+        return;
 
-  if (rLen < nRead)
-    buffer->erase(buffer->begin() + rLen, buffer->end());
-  setOutputBuffer(std::move(buffer));
+    if (rLen < nRead)
+        buffer->erase(buffer->begin() + rLen, buffer->end());
+    setOutputBuffer(std::move(buffer));
 }
 
 bool
 Base64Encode::isConverterEmpty()
 {
-  return (BIO_pending(m_impl->m_sink) <= 0);
+    return (BIO_pending(m_impl->m_sink) <= 0);
 }
 
 unique_ptr<Transform>
 base64Encode(bool needBreak)
 {
-  return make_unique<Base64Encode>(needBreak);
+    return make_unique<Base64Encode>(needBreak);
 }
 
 } // namespace transform

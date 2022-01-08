@@ -32,34 +32,25 @@ namespace security {
 /**
  * @brief Helper for validator that uses CommandInterest + Config policy and NetworkFetcher
  */
-class ValidatorConfig : public v2::Validator
-{
-public:
-  using v2::Validator::Validator;
-  using Options = v2::ValidationPolicyCommandInterest::Options;
+class ValidatorConfig : public v2::Validator {
+  public:
+    using v2::Validator::Validator;
+    using Options = v2::ValidationPolicyCommandInterest::Options;
 
-  explicit
-  ValidatorConfig(std::unique_ptr<v2::CertificateFetcher> fetcher, const Options& options = Options());
+    explicit ValidatorConfig(std::unique_ptr<v2::CertificateFetcher> fetcher, const Options& options = Options());
 
-  explicit
-  ValidatorConfig(Face& face, const Options& options = Options());
+    explicit ValidatorConfig(Face& face, const Options& options = Options());
 
-public: // helpers for ValidationPolicyConfig
-  void
-  load(const std::string& filename);
+  public: // helpers for ValidationPolicyConfig
+    void load(const std::string& filename);
 
-  void
-  load(const std::string& input, const std::string& filename);
+    void load(const std::string& input, const std::string& filename);
 
-  void
-  load(std::istream& input, const std::string& filename);
+    void load(std::istream& input, const std::string& filename);
 
-  void
-  load(const v2::validator_config::ConfigSection& configSection,
-       const std::string& filename);
+    void load(const v2::validator_config::ConfigSection& configSection, const std::string& filename);
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  v2::ValidationPolicyConfig& m_policyConfig;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE : v2::ValidationPolicyConfig& m_policyConfig;
 };
 
 } // namespace security

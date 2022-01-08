@@ -31,16 +31,16 @@ namespace udp {
 ssize_t
 computeMtu(const Endpoint& localEndpoint)
 {
-  size_t mtu = 0;
-  if (localEndpoint.address().is_v4()) { // IPv4
-    mtu = std::numeric_limits<uint16_t>::max(); // maximum Total Length
-    mtu -= sizeof(uint32_t) * ((1 << 4) - 1); // maximum Internet Header Length
-  }
-  else { // IPv6
-    mtu = std::numeric_limits<uint16_t>::max(); // maximum Payload Length
-  }
-  mtu -= sizeof(uint16_t) * 4; // size of UDP header
-  return mtu;
+    size_t mtu = 0;
+    if (localEndpoint.address().is_v4()) {          // IPv4
+        mtu = std::numeric_limits<uint16_t>::max(); // maximum Total Length
+        mtu -= sizeof(uint32_t) * ((1 << 4) - 1);   // maximum Internet Header Length
+    }
+    else {                                          // IPv6
+        mtu = std::numeric_limits<uint16_t>::max(); // maximum Payload Length
+    }
+    mtu -= sizeof(uint16_t) * 4; // size of UDP header
+    return mtu;
 }
 
 } // namespace udp

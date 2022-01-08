@@ -31,18 +31,18 @@ SignatureSha256WithRsa::SignatureSha256WithRsa(const KeyLocator& keyLocator)
 SignatureSha256WithRsa::SignatureSha256WithRsa(const Signature& signature)
   : Signature(signature)
 {
-  if (getType() != tlv::SignatureSha256WithRsa)
-    NDN_THROW(Error("Cannot construct Sha256WithRsa from SignatureType " + to_string(getType())));
+    if (getType() != tlv::SignatureSha256WithRsa)
+        NDN_THROW(Error("Cannot construct Sha256WithRsa from SignatureType " + to_string(getType())));
 
-  if (!hasKeyLocator()) {
-    NDN_THROW(Error("KeyLocator is missing in Sha256WithRsa signature"));
-  }
+    if (!hasKeyLocator()) {
+        NDN_THROW(Error("KeyLocator is missing in Sha256WithRsa signature"));
+    }
 }
 
 void
 SignatureSha256WithRsa::unsetKeyLocator()
 {
-  NDN_THROW(Error("KeyLocator cannot be unset in Sha256WithRsa signature"));
+    NDN_THROW(Error("KeyLocator cannot be unset in Sha256WithRsa signature"));
 }
 
 } // namespace ndn

@@ -29,48 +29,47 @@
 
 namespace app {
 
-class RealApp
-{
-public:
-  RealApp(ndn::KeyChain& keyChain)
-    : m_keyChain(keyChain)
-    , m_faceProducer(m_faceConsumer.getIoService())
-    , m_scheduler(m_faceConsumer.getIoService())
-  {
-    // register prefix and set interest filter on producer face
-    m_faceProducer.setInterestFilter("/hello", std::bind(&RealApp::respondToAnyInterest, this, _2),
-                                     std::bind([]{}), std::bind([]{}));
+class RealApp {
+  public:
+    RealApp(ndn::KeyChain& keyChain)
+      : m_keyChain(keyChain)
+      , m_faceProducer(m_faceConsumer.getIoService())
+      , m_scheduler(m_faceConsumer.getIoService())
+    {
+        // register prefix and set interest filter on producer face
+        m_faceProducer.setInterestFilter("/hello", std::bind(&RealApp::respondToAnyInterest, this, _2),
+                                         std::bind([] {}), std::bind([] {}));
 
-    // use scheduler to send interest later on consumer face
-    m_scheduler.schedule(ndn::time::seconds(2), [this] {
-        m_faceConsumer.expressInterest(ndn::Interest("/hello/world"),
-                                       std::bind([] { std::cout << "Hello!" << std::endl; }),
-                                       std::bind([] { std::cout << "NACK!" << std::endl; }),
-                                       std::bind([] { std::cout << "Bye!.." << std::endl; }));
-      });
-  }
+        // use scheduler to send interest later on consumer face
+        m_scheduler.schedule(ndn::time::seconds(2), [this] {
+            m_faceConsumer.expressInterest(ndn::Interest("/hello/world"),
+                                           std::bind([] { std::cout << "Hello!" << std::endl; }),
+                                           std::bind([] { std::cout << "NACK!" << std::endl; }),
+                                           std::bind([] { std::cout << "Bye!.." << std::endl; }));
+        });
+    }
 
-  void
-  run()
-  {
-    m_faceConsumer.processEvents(); // ok (will not block and do nothing)
-    // m_faceConsumer.getIoService().run(); // will crash
-  }
+    void
+    run()
+    {
+        m_faceConsumer.processEvents(); // ok (will not block and do nothing)
+                                        // m_faceConsumer.getIoService().run(); // will crash
+    }
 
-private:
-  void
-  respondToAnyInterest(const ndn::Interest& interest)
-  {
-    auto data = std::make_shared<ndn::Data>(interest.getName());
-    m_keyChain.sign(*data);
-    m_faceProducer.put(*data);
-  }
+  private:
+    void
+    respondToAnyInterest(const ndn::Interest& interest)
+    {
+        auto data = std::make_shared<ndn::Data>(interest.getName());
+        m_keyChain.sign(*data);
+        m_faceProducer.put(*data);
+    }
 
-private:
-  ndn::KeyChain& m_keyChain;
-  ndn::Face m_faceConsumer;
-  ndn::Face m_faceProducer;
-  ndn::Scheduler m_scheduler;
+  private:
+    ndn::KeyChain& m_keyChain;
+    ndn::Face m_faceConsumer;
+    ndn::Face m_faceProducer;
+    ndn::Scheduler m_scheduler;
 };
 
 } // namespace app

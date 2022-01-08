@@ -38,74 +38,62 @@ namespace ethernet {
 
 const uint16_t ETHERTYPE_NDN = 0x8624;
 
-const size_t ADDR_LEN     = 6;      ///< Octets in one Ethernet address
-const size_t TYPE_LEN     = 2;      ///< Octets in Ethertype field
-const size_t HDR_LEN      = 14;     ///< Total octets in Ethernet header (without 802.1Q tag)
-const size_t TAG_LEN      = 4;      ///< Octets in 802.1Q tag (TPID + priority + VLAN)
-const size_t MIN_DATA_LEN = 46;     ///< Min octets in Ethernet payload (assuming no 802.1Q tag)
-const size_t MAX_DATA_LEN = 1500;   ///< Max octets in Ethernet payload
-const size_t CRC_LEN      = 4;      ///< Octets in Ethernet frame check sequence
-
+const size_t ADDR_LEN = 6;        ///< Octets in one Ethernet address
+const size_t TYPE_LEN = 2;        ///< Octets in Ethertype field
+const size_t HDR_LEN = 14;        ///< Total octets in Ethernet header (without 802.1Q tag)
+const size_t TAG_LEN = 4;         ///< Octets in 802.1Q tag (TPID + priority + VLAN)
+const size_t MIN_DATA_LEN = 46;   ///< Min octets in Ethernet payload (assuming no 802.1Q tag)
+const size_t MAX_DATA_LEN = 1500; ///< Max octets in Ethernet payload
+const size_t CRC_LEN = 4;         ///< Octets in Ethernet frame check sequence
 
 /** \brief represents an Ethernet hardware address
  */
-class Address : public std::array<uint8_t, ADDR_LEN>
-{
-public:
-  /// Constructs a null Ethernet address (00:00:00:00:00:00)
-  Address();
+class Address : public std::array<uint8_t, ADDR_LEN> {
+  public:
+    /// Constructs a null Ethernet address (00:00:00:00:00:00)
+    Address();
 
-  /// Constructs a new Ethernet address with the given octets
-  Address(uint8_t a1, uint8_t a2, uint8_t a3,
-          uint8_t a4, uint8_t a5, uint8_t a6);
+    /// Constructs a new Ethernet address with the given octets
+    Address(uint8_t a1, uint8_t a2, uint8_t a3, uint8_t a4, uint8_t a5, uint8_t a6);
 
-  /// Constructs a new Ethernet address with the given octets
-  explicit
-  Address(const uint8_t octets[ADDR_LEN]);
+    /// Constructs a new Ethernet address with the given octets
+    explicit Address(const uint8_t octets[ADDR_LEN]);
 
-  /// True if this is a broadcast address (ff:ff:ff:ff:ff:ff)
-  bool
-  isBroadcast() const;
+    /// True if this is a broadcast address (ff:ff:ff:ff:ff:ff)
+    bool isBroadcast() const;
 
-  /// True if this is a multicast address
-  bool
-  isMulticast() const;
+    /// True if this is a multicast address
+    bool isMulticast() const;
 
-  /// True if this is a null address (00:00:00:00:00:00)
-  bool
-  isNull() const;
+    /// True if this is a null address (00:00:00:00:00:00)
+    bool isNull() const;
 
-  /**
-   * \brief Converts the address to a human-readable string
-   *
-   * \param sep A character used to visually separate the octets,
-   *            usually ':' (the default value) or '-'
-   */
-  std::string
-  toString(char sep = ':') const;
+    /**
+     * \brief Converts the address to a human-readable string
+     *
+     * \param sep A character used to visually separate the octets,
+     *            usually ':' (the default value) or '-'
+     */
+    std::string toString(char sep = ':') const;
 
-  /**
-   * \brief Creates an Address from a string containing an Ethernet address
-   *        in hexadecimal notation, with colons or hyphens as separators
-   *
-   * \param str The string to be parsed
-   * \return Always an instance of Address, which will be null
-   *         if the parsing fails
-   */
-  static Address
-  fromString(const std::string& str);
+    /**
+     * \brief Creates an Address from a string containing an Ethernet address
+     *        in hexadecimal notation, with colons or hyphens as separators
+     *
+     * \param str The string to be parsed
+     * \return Always an instance of Address, which will be null
+     *         if the parsing fails
+     */
+    static Address fromString(const std::string& str);
 };
 
 /// Returns the Ethernet broadcast address (ff:ff:ff:ff:ff:ff)
-Address
-getBroadcastAddress();
+Address getBroadcastAddress();
 
 /// Returns the default Ethernet multicast address for NDN
-Address
-getDefaultMulticastAddress();
+Address getDefaultMulticastAddress();
 
-std::ostream&
-operator<<(std::ostream& o, const Address& a);
+std::ostream& operator<<(std::ostream& o, const Address& a);
 
 } // namespace ethernet
 } // namespace ndn
@@ -113,11 +101,9 @@ operator<<(std::ostream& o, const Address& a);
 namespace std {
 
 // specialize std::hash<> for ethernet::Address
-template<>
-struct hash<ndn::ethernet::Address>
-{
-  size_t
-  operator()(const ndn::ethernet::Address& a) const noexcept;
+template <>
+struct hash<ndn::ethernet::Address> {
+    size_t operator()(const ndn::ethernet::Address& a) const noexcept;
 };
 
 } // namespace std

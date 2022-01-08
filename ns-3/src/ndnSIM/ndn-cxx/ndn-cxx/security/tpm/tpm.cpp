@@ -41,136 +41,135 @@ Tpm::~Tpm() = default;
 std::string
 Tpm::getTpmLocator() const
 {
-  return m_scheme + ":" + m_location;
+    return m_scheme + ":" + m_location;
 }
 
 bool
 Tpm::hasKey(const Name& keyName) const
 {
-  return m_backEnd->hasKey(keyName);
+    return m_backEnd->hasKey(keyName);
 }
 
 Name
 Tpm::createKey(const Name& identityName, const KeyParams& params)
 {
-  auto keyHandle = m_backEnd->createKey(identityName, params);
-  auto keyName = keyHandle->getKeyName();
-  m_keys[keyName] = std::move(keyHandle);
-  return keyName;
+    auto keyHandle = m_backEnd->createKey(identityName, params);
+    auto keyName = keyHandle->getKeyName();
+    m_keys[keyName] = std::move(keyHandle);
+    return keyName;
 }
 
 void
 Tpm::deleteKey(const Name& keyName)
 {
-  auto it = m_keys.find(keyName);
-  if (it != m_keys.end())
-    m_keys.erase(it);
+    auto it = m_keys.find(keyName);
+    if (it != m_keys.end())
+        m_keys.erase(it);
 
-  m_backEnd->deleteKey(keyName);
+    m_backEnd->deleteKey(keyName);
 }
 
 ConstBufferPtr
 Tpm::getPublicKey(const Name& keyName) const
 {
-  const KeyHandle* key = findKey(keyName);
+    const KeyHandle* key = findKey(keyName);
 
-  if (key == nullptr)
-    return nullptr;
-  else
-    return key->derivePublicKey();
+    if (key == nullptr)
+        return nullptr;
+    else
+        return key->derivePublicKey();
 }
 
 ConstBufferPtr
 Tpm::sign(const uint8_t* buf, size_t size, const Name& keyName, DigestAlgorithm digestAlgorithm) const
 {
-  const KeyHandle* key = findKey(keyName);
+    const KeyHandle* key = findKey(keyName);
 
-  if (key == nullptr)
-    return nullptr;
-  else
-    return key->sign(digestAlgorithm, buf, size);
+    if (key == nullptr)
+        return nullptr;
+    else
+        return key->sign(digestAlgorithm, buf, size);
 }
 
 boost::logic::tribool
-Tpm::verify(const uint8_t* buf, size_t bufLen, const uint8_t* sig, size_t sigLen,
-            const Name& keyName, DigestAlgorithm digestAlgorithm) const
+Tpm::verify(const uint8_t* buf, size_t bufLen, const uint8_t* sig, size_t sigLen, const Name& keyName,
+            DigestAlgorithm digestAlgorithm) const
 {
-  const KeyHandle* key = findKey(keyName);
+    const KeyHandle* key = findKey(keyName);
 
-  if (key == nullptr)
-    return boost::logic::indeterminate;
-  else
-    return key->verify(digestAlgorithm, buf, bufLen, sig, sigLen);
+    if (key == nullptr)
+        return boost::logic::indeterminate;
+    else
+        return key->verify(digestAlgorithm, buf, bufLen, sig, sigLen);
 }
 
 ConstBufferPtr
 Tpm::decrypt(const uint8_t* buf, size_t size, const Name& keyName) const
 {
-  const KeyHandle* key = findKey(keyName);
+    const KeyHandle* key = findKey(keyName);
 
-  if (key == nullptr)
-    return nullptr;
-  else
-    return key->decrypt(buf, size);
+    if (key == nullptr)
+        return nullptr;
+    else
+        return key->decrypt(buf, size);
 }
 
 bool
 Tpm::isTerminalMode() const
 {
-  return m_backEnd->isTerminalMode();
+    return m_backEnd->isTerminalMode();
 }
 
 void
 Tpm::setTerminalMode(bool isTerminal) const
 {
-  m_backEnd->setTerminalMode(isTerminal);
+    m_backEnd->setTerminalMode(isTerminal);
 }
 
 bool
 Tpm::isTpmLocked() const
 {
-  return m_backEnd->isTpmLocked();
+    return m_backEnd->isTpmLocked();
 }
 
 bool
 Tpm::unlockTpm(const char* password, size_t passwordLength) const
 {
-  return m_backEnd->unlockTpm(password, passwordLength);
+    return m_backEnd->unlockTpm(password, passwordLength);
 }
 
 ConstBufferPtr
 Tpm::exportPrivateKey(const Name& keyName, const char* pw, size_t pwLen) const
 {
-  return m_backEnd->exportKey(keyName, pw, pwLen);
+    return m_backEnd->exportKey(keyName, pw, pwLen);
 }
 
 void
-Tpm::importPrivateKey(const Name& keyName, const uint8_t* pkcs8, size_t pkcs8Len,
-                      const char* pw, size_t pwLen)
+Tpm::importPrivateKey(const Name& keyName, const uint8_t* pkcs8, size_t pkcs8Len, const char* pw, size_t pwLen)
 {
-  m_backEnd->importKey(keyName, pkcs8, pkcs8Len, pw, pwLen);
+    m_backEnd->importKey(keyName, pkcs8, pkcs8Len, pw, pwLen);
 }
 
 void
 Tpm::importPrivateKey(const Name& keyName, shared_ptr<transform::PrivateKey> key)
 {
-  m_backEnd->importKey(keyName, std::move(key));
+    m_backEnd->importKey(keyName, std::move(key));
 }
 
 const KeyHandle*
 Tpm::findKey(const Name& keyName) const
 {
-  auto it = m_keys.find(keyName);
-  if (it != m_keys.end())
-    return it->second.get();
+    auto it = m_keys.find(keyName);
+    if (it != m_keys.end())
+        return it->second.get();
 
-  auto handle = m_backEnd->getKeyHandle(keyName);
-  if (handle == nullptr)
-    return nullptr;
+    auto handle = m_backEnd->getKeyHandle(keyName);
+    if (handle == nullptr)
+        return nullptr;
 
-  const KeyHandle* key = handle.get();
-  m_keys[keyName] = std::move(handle);
-  return key;
+    const KeyHandle* key = handle.get();
+    m_keys[keyName] = std::move(handle);
+    return key;
 }
 
 } // namespace tpm

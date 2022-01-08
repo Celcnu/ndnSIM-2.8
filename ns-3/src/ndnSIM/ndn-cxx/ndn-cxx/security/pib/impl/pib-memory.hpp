@@ -34,111 +34,85 @@ namespace pib {
  * All the contents in Pib are stored in memory
  * and have the same lifetime as the implementation instance.
  */
-class PibMemory : public PibImpl
-{
-public:
-  /**
-   * @brief Create memory based PIB backend
-   * @param location Not used (required by the PIB-registration interface)
-   */
-  explicit
-  PibMemory(const std::string& location = "");
+class PibMemory : public PibImpl {
+  public:
+    /**
+     * @brief Create memory based PIB backend
+     * @param location Not used (required by the PIB-registration interface)
+     */
+    explicit PibMemory(const std::string& location = "");
 
-  static const std::string&
-  getScheme();
+    static const std::string& getScheme();
 
-public: // TpmLocator management
-  void
-  setTpmLocator(const std::string& tpmLocator) override;
+  public: // TpmLocator management
+    void setTpmLocator(const std::string& tpmLocator) override;
 
-  std::string
-  getTpmLocator() const override;
+    std::string getTpmLocator() const override;
 
-public: // Identity management
-  bool
-  hasIdentity(const Name& identity) const override;
+  public: // Identity management
+    bool hasIdentity(const Name& identity) const override;
 
-  void
-  addIdentity(const Name& identity) override;
+    void addIdentity(const Name& identity) override;
 
-  void
-  removeIdentity(const Name& identity) override;
+    void removeIdentity(const Name& identity) override;
 
-  void
-  clearIdentities() override;
+    void clearIdentities() override;
 
-  std::set<Name>
-  getIdentities() const override;
+    std::set<Name> getIdentities() const override;
 
-  void
-  setDefaultIdentity(const Name& identityName) override;
+    void setDefaultIdentity(const Name& identityName) override;
 
-  Name
-  getDefaultIdentity() const override;
+    Name getDefaultIdentity() const override;
 
-public: // Key management
-  bool
-  hasKey(const Name& keyName) const override;
+  public: // Key management
+    bool hasKey(const Name& keyName) const override;
 
-  void
-  addKey(const Name& identity, const Name& keyName, const uint8_t* key, size_t keyLen) override;
+    void addKey(const Name& identity, const Name& keyName, const uint8_t* key, size_t keyLen) override;
 
-  void
-  removeKey(const Name& keyName) override;
+    void removeKey(const Name& keyName) override;
 
-  Buffer
-  getKeyBits(const Name& keyName) const override;
+    Buffer getKeyBits(const Name& keyName) const override;
 
-  std::set<Name>
-  getKeysOfIdentity(const Name& identity) const override;
+    std::set<Name> getKeysOfIdentity(const Name& identity) const override;
 
-  void
-  setDefaultKeyOfIdentity(const Name& identity, const Name& keyName) override;
+    void setDefaultKeyOfIdentity(const Name& identity, const Name& keyName) override;
 
-  Name
-  getDefaultKeyOfIdentity(const Name& identity) const override;
+    Name getDefaultKeyOfIdentity(const Name& identity) const override;
 
-public: // Certificate management
-  bool
-  hasCertificate(const Name& certName) const override;
+  public: // Certificate management
+    bool hasCertificate(const Name& certName) const override;
 
-  void
-  addCertificate(const v2::Certificate& certificate) override;
+    void addCertificate(const v2::Certificate& certificate) override;
 
-  void
-  removeCertificate(const Name& certName) override;
+    void removeCertificate(const Name& certName) override;
 
-  v2::Certificate
-  getCertificate(const Name& certName) const override;
+    v2::Certificate getCertificate(const Name& certName) const override;
 
-  std::set<Name>
-  getCertificatesOfKey(const Name& keyName) const override;
+    std::set<Name> getCertificatesOfKey(const Name& keyName) const override;
 
-  void
-  setDefaultCertificateOfKey(const Name& keyName, const Name& certName) override;
+    void setDefaultCertificateOfKey(const Name& keyName, const Name& certName) override;
 
-  v2::Certificate
-  getDefaultCertificateOfKey(const Name& keyName) const override;
+    v2::Certificate getDefaultCertificateOfKey(const Name& keyName) const override;
 
-private:
-  std::string m_tpmLocator;
+  private:
+    std::string m_tpmLocator;
 
-  bool m_hasDefaultIdentity;
-  Name m_defaultIdentity;
+    bool m_hasDefaultIdentity;
+    Name m_defaultIdentity;
 
-  std::set<Name> m_identities;
+    std::set<Name> m_identities;
 
-  /// @brief identity => default key Name
-  std::map<Name, Name> m_defaultKeys;
+    /// @brief identity => default key Name
+    std::map<Name, Name> m_defaultKeys;
 
-  /// @brief keyName => keyBits
-  std::map<Name, Buffer> m_keys;
+    /// @brief keyName => keyBits
+    std::map<Name, Buffer> m_keys;
 
-  /// @brief keyName => default certificate Name
-  std::map<Name, Name> m_defaultCerts;
+    /// @brief keyName => default certificate Name
+    std::map<Name, Name> m_defaultCerts;
 
-  /// @brief certificate Name => certificate
-  std::map<Name, v2::Certificate> m_certs;
+    /// @brief certificate Name => certificate
+    std::map<Name, v2::Certificate> m_certs;
 };
 
 } // namespace pib

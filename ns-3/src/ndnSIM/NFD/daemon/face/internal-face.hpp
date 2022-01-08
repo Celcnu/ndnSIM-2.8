@@ -42,8 +42,7 @@ namespace face {
  *                        prefix registration commands.
  *  \return a forwarder-side face and a client-side face connected with each other
  */
-std::tuple<shared_ptr<Face>, shared_ptr<ndn::Face>>
-makeInternalFace(ndn::KeyChain& clientKeyChain);
+std::tuple<shared_ptr<Face>, shared_ptr<ndn::Face>> makeInternalFace(ndn::KeyChain& clientKeyChain);
 
 } // namespace face
 } // namespace nfd

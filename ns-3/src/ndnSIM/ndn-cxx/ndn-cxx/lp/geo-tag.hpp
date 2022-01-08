@@ -32,68 +32,62 @@ namespace lp {
 /**
  * \brief represents a GeoTag header field
  */
-class GeoTag : public Tag
-{
-public:
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return 0x60000001;
-  }
+class GeoTag : public Tag {
+  public:
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return 0x60000001;
+    }
 
-  GeoTag() = default;
+    GeoTag() = default;
 
-  explicit
-  GeoTag(std::tuple<double, double, double> pos)
-    : m_pos(pos)
-  {
-  }
+    explicit GeoTag(std::tuple<double, double, double> pos)
+      : m_pos(pos)
+    {
+    }
 
-  explicit
-  GeoTag(const Block& block);
+    explicit GeoTag(const Block& block);
 
-  /**
-   * \brief prepend GeoTag to encoder
-   */
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    /**
+     * \brief prepend GeoTag to encoder
+     */
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  /**
-   * \brief encode GeoTag into wire format
-   */
-  const Block&
-  wireEncode() const;
+    /**
+     * \brief encode GeoTag into wire format
+     */
+    const Block& wireEncode() const;
 
-  /**
-   * \brief get GeoTag from wire format
-   */
-  void
-  wireDecode(const Block& wire);
+    /**
+     * \brief get GeoTag from wire format
+     */
+    void wireDecode(const Block& wire);
 
-public: // get & set GeoTag
-  /**
-   * \return position x of GeoTag
-   */
-  std::tuple<double, double, double>
-  getPos() const
-  {
-    return m_pos;
-  }
+  public: // get & set GeoTag
+    /**
+     * \return position x of GeoTag
+     */
+    std::tuple<double, double, double>
+    getPos() const
+    {
+        return m_pos;
+    }
 
-  /**
-   * \brief set position x
-   */
-  GeoTag*
-  setPosX(std::tuple<double, double, double> pos)
-  {
-    m_pos = pos;
-    return this;
-  }
+    /**
+     * \brief set position x
+     */
+    GeoTag*
+    setPosX(std::tuple<double, double, double> pos)
+    {
+        m_pos = pos;
+        return this;
+    }
 
-private:
-  std::tuple<double, double, double> m_pos = {0.0, 0.0, 0.0};
-  mutable Block m_wire;
+  private:
+    std::tuple<double, double, double> m_pos = {0.0, 0.0, 0.0};
+    mutable Block m_wire;
 };
 
 } // namespace lp

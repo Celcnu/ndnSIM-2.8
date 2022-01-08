@@ -29,99 +29,87 @@ namespace mgmt {
 
 /** \brief ControlCommand response
  */
-class ControlResponse
-{
-public:
-  class Error : public tlv::Error
-  {
+class ControlResponse {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  ControlResponse();
+    ControlResponse();
 
-  ControlResponse(uint32_t code, const std::string& text);
+    ControlResponse(uint32_t code, const std::string& text);
 
-  explicit
-  ControlResponse(const Block& block);
+    explicit ControlResponse(const Block& block);
 
-  uint32_t
-  getCode() const;
+    uint32_t getCode() const;
 
-  ControlResponse&
-  setCode(uint32_t code);
+    ControlResponse& setCode(uint32_t code);
 
-  const std::string&
-  getText() const;
+    const std::string& getText() const;
 
-  ControlResponse&
-  setText(const std::string& text);
+    ControlResponse& setText(const std::string& text);
 
-  const Block&
-  getBody() const;
+    const Block& getBody() const;
 
-  ControlResponse&
-  setBody(const Block& body);
+    ControlResponse& setBody(const Block& body);
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& block);
+    void wireDecode(const Block& block);
 
-protected:
-  uint32_t m_code;
-  std::string m_text;
-  Block m_body;
+  protected:
+    uint32_t m_code;
+    std::string m_text;
+    Block m_body;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 inline uint32_t
 ControlResponse::getCode() const
 {
-  return m_code;
+    return m_code;
 }
 
 inline ControlResponse&
 ControlResponse::setCode(uint32_t code)
 {
-  m_code = code;
-  m_wire.reset();
-  return *this;
+    m_code = code;
+    m_wire.reset();
+    return *this;
 }
 
 inline const std::string&
 ControlResponse::getText() const
 {
-  return m_text;
+    return m_text;
 }
 
 inline ControlResponse&
 ControlResponse::setText(const std::string& text)
 {
-  m_text = text;
-  m_wire.reset();
-  return *this;
+    m_text = text;
+    m_wire.reset();
+    return *this;
 }
 
 inline const Block&
 ControlResponse::getBody() const
 {
-  return m_body;
+    return m_body;
 }
 
 inline ControlResponse&
 ControlResponse::setBody(const Block& body)
 {
-  m_body = body;
-  m_body.encode(); // will do nothing if already encoded
-  m_wire.reset();
-  return *this;
+    m_body = body;
+    m_body.encode(); // will do nothing if already encoded
+    m_wire.reset();
+    return *this;
 }
 
-std::ostream&
-operator<<(std::ostream& os, const ControlResponse& response);
+std::ostream& operator<<(std::ostream& os, const ControlResponse& response);
 
 } // namespace mgmt
 } // namespace ndn

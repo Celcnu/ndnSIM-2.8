@@ -30,70 +30,60 @@ namespace signal {
 
 /** \brief Disconnects a Connection automatically upon destruction.
  */
-class ScopedConnection
-{
-public:
-  constexpr
-  ScopedConnection() noexcept = default;
+class ScopedConnection {
+  public:
+    constexpr ScopedConnection() noexcept = default;
 
-  ScopedConnection(const ScopedConnection&) = delete;
+    ScopedConnection(const ScopedConnection&) = delete;
 
-  ScopedConnection&
-  operator=(const ScopedConnection&) = delete;
+    ScopedConnection& operator=(const ScopedConnection&) = delete;
 
-  /** \brief Move constructor.
-   */
-  ScopedConnection(ScopedConnection&&) noexcept;
+    /** \brief Move constructor.
+     */
+    ScopedConnection(ScopedConnection&&) noexcept;
 
-  /** \brief Move assignment operator.
-   */
-  ScopedConnection&
-  operator=(ScopedConnection&&) noexcept;
+    /** \brief Move assignment operator.
+     */
+    ScopedConnection& operator=(ScopedConnection&&) noexcept;
 
-  /** \brief Implicit constructor from Connection.
-   *  \param connection the Connection to be disconnected upon destruction
-   */
-  ScopedConnection(Connection connection) noexcept;
+    /** \brief Implicit constructor from Connection.
+     *  \param connection the Connection to be disconnected upon destruction
+     */
+    ScopedConnection(Connection connection) noexcept;
 
-  /** \brief Assign a connection.
-   *
-   *  If a different connection has been assigned to this instance previously,
-   *  that connection will be disconnected immediately.
-   */
-  ScopedConnection&
-  operator=(Connection connection);
+    /** \brief Assign a connection.
+     *
+     *  If a different connection has been assigned to this instance previously,
+     *  that connection will be disconnected immediately.
+     */
+    ScopedConnection& operator=(Connection connection);
 
-  /** \brief Destructor, automatically disconnects the connection.
-   */
-  ~ScopedConnection();
+    /** \brief Destructor, automatically disconnects the connection.
+     */
+    ~ScopedConnection();
 
-  /** \brief Manually disconnect the connection.
-   */
-  void
-  disconnect();
+    /** \brief Manually disconnect the connection.
+     */
+    void disconnect();
 
-  /** \brief Check if the connection is connected to the signal.
-   *  \return false when a default-constructed connection is used, the connection is released,
-   *          or the connection is disconnected
-   */
-  bool
-  isConnected() const noexcept;
+    /** \brief Check if the connection is connected to the signal.
+     *  \return false when a default-constructed connection is used, the connection is released,
+     *          or the connection is disconnected
+     */
+    bool isConnected() const noexcept;
 
-  /** \brief Release the connection so that it won't be disconnected
-   *         when this ScopedConnection is destructed.
-   */
-  void
-  release() noexcept;
+    /** \brief Release the connection so that it won't be disconnected
+     *         when this ScopedConnection is destructed.
+     */
+    void release() noexcept;
 
-private:
-  Connection m_connection;
+  private:
+    Connection m_connection;
 };
 
-inline
-ScopedConnection::ScopedConnection(ScopedConnection&&) noexcept = default;
+inline ScopedConnection::ScopedConnection(ScopedConnection&&) noexcept = default;
 
-inline ScopedConnection&
-ScopedConnection::operator=(ScopedConnection&&) noexcept = default;
+inline ScopedConnection& ScopedConnection::operator=(ScopedConnection&&) noexcept = default;
 
 } // namespace signal
 } // namespace util

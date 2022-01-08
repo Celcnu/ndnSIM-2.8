@@ -43,72 +43,56 @@ namespace net {
 
 class IfAddrs;
 
-class NetworkMonitorImplOsx : public NetworkMonitorImpl
-{
-public:
-  NetworkMonitorImplOsx(boost::asio::io_service& io);
+class NetworkMonitorImplOsx : public NetworkMonitorImpl {
+  public:
+    NetworkMonitorImplOsx(boost::asio::io_service& io);
 
-  ~NetworkMonitorImplOsx();
+    ~NetworkMonitorImplOsx();
 
-  uint32_t
-  getCapabilities() const final
-  {
-    return NetworkMonitor::CAP_ENUM |
-           NetworkMonitor::CAP_IF_ADD_REMOVE |
-           NetworkMonitor::CAP_STATE_CHANGE |
-           NetworkMonitor::CAP_ADDR_ADD_REMOVE;
-  }
+    uint32_t
+    getCapabilities() const final
+    {
+        return NetworkMonitor::CAP_ENUM | NetworkMonitor::CAP_IF_ADD_REMOVE | NetworkMonitor::CAP_STATE_CHANGE
+               | NetworkMonitor::CAP_ADDR_ADD_REMOVE;
+    }
 
-  shared_ptr<const NetworkInterface>
-  getNetworkInterface(const std::string& ifname) const final;
+    shared_ptr<const NetworkInterface> getNetworkInterface(const std::string& ifname) const final;
 
-  std::vector<shared_ptr<const NetworkInterface>>
-  listNetworkInterfaces() const final;
+    std::vector<shared_ptr<const NetworkInterface>> listNetworkInterfaces() const final;
 
-private:
-  static void
-  afterNotificationCenterEvent(CFNotificationCenterRef center, void* observer,
-                               CFStringRef name, const void* object,
-                               CFDictionaryRef userInfo);
+  private:
+    static void afterNotificationCenterEvent(CFNotificationCenterRef center, void* observer, CFStringRef name,
+                                             const void* object, CFDictionaryRef userInfo);
 
-  void
-  scheduleCfLoop();
+    void scheduleCfLoop();
 
-  void
-  enumerateInterfaces();
+    void enumerateInterfaces();
 
-  std::set<std::string>
-  getInterfaceNames() const;
+    std::set<std::string> getInterfaceNames() const;
 
-  void
-  addNewInterface(const std::string& ifName, const IfAddrs& ifaList);
+    void addNewInterface(const std::string& ifName, const IfAddrs& ifaList);
 
-  InterfaceState
-  getInterfaceState(const NetworkInterface& netif) const;
+    InterfaceState getInterfaceState(const NetworkInterface& netif) const;
 
-  size_t
-  getInterfaceMtu(const NetworkInterface& netif);
+    size_t getInterfaceMtu(const NetworkInterface& netif);
 
-  void
-  updateInterfaceInfo(NetworkInterface& netif, const IfAddrs& ifaList);
+    void updateInterfaceInfo(NetworkInterface& netif, const IfAddrs& ifaList);
 
-  static void
-  onConfigChanged(SCDynamicStoreRef store, CFArrayRef changedKeys, void* context);
+    static void onConfigChanged(SCDynamicStoreRef store, CFArrayRef changedKeys, void* context);
 
-  void
-  onConfigChanged(CFArrayRef changedKeys);
+    void onConfigChanged(CFArrayRef changedKeys);
 
-private:
-  std::map<std::string, shared_ptr<NetworkInterface>> m_interfaces; ///< ifname => interface
+  private:
+    std::map<std::string, shared_ptr<NetworkInterface>> m_interfaces; ///< ifname => interface
 
-  Scheduler m_scheduler;
-  scheduler::ScopedEventId m_cfLoopEvent;
+    Scheduler m_scheduler;
+    scheduler::ScopedEventId m_cfLoopEvent;
 
-  SCDynamicStoreContext m_context;
-  detail::CFReleaser<SCDynamicStoreRef> m_scStore;
-  detail::CFReleaser<CFRunLoopSourceRef> m_loopSource;
+    SCDynamicStoreContext m_context;
+    detail::CFReleaser<SCDynamicStoreRef> m_scStore;
+    detail::CFReleaser<CFRunLoopSourceRef> m_loopSource;
 
-  boost::asio::ip::udp::socket m_ioctlSocket;
+    boost::asio::ip::udp::socket m_ioctlSocket;
 };
 
 } // namespace net

@@ -33,65 +33,59 @@ namespace face {
 namespace tests {
 
 enum PacketLoggingFlags : unsigned {
-  LogNothing          = 0,      ///< disable packet logging
-  LogSentInterests    = 1 << 0, ///< log sent Interest packets
-  LogSentData         = 1 << 1, ///< log sent Data packets
-  LogSentNacks        = 1 << 2, ///< log sent Nack packets
-  LogSentPackets      = LogSentInterests | LogSentData | LogSentNacks, ///< log all sent packets
-  LogReceivedPackets  = 1 << 3, ///< log all received link-layer packets
-  LogAllPackets       = LogSentPackets | LogReceivedPackets, ///< log all sent and received packets
+    LogNothing = 0,                                                 ///< disable packet logging
+    LogSentInterests = 1 << 0,                                      ///< log sent Interest packets
+    LogSentData = 1 << 1,                                           ///< log sent Data packets
+    LogSentNacks = 1 << 2,                                          ///< log sent Nack packets
+    LogSentPackets = LogSentInterests | LogSentData | LogSentNacks, ///< log all sent packets
+    LogReceivedPackets = 1 << 3,                                    ///< log all received link-layer packets
+    LogAllPackets = LogSentPackets | LogReceivedPackets,            ///< log all sent and received packets
 };
 
-struct RxPacket
-{
-  Block packet;
-  EndpointId endpoint;
+struct RxPacket {
+    Block packet;
+    EndpointId endpoint;
 };
 
 /** \brief A dummy LinkService that logs all sent and received packets.
  */
-class DummyLinkService final : public LinkService
-{
-public:
-  /** \brief Emitted after a network-layer packet is sent through this link service.
-   *
-   *  The packet type is reported via the argument, whose value will be one of
-   *  tlv::Interest, tlv::Data, or lp::tlv::Nack. Signal handlers may retrieve
-   *  the packet via `sentInterests.back()`, `sentData.back()`, or `sentNacks.back()`.
-   */
-  signal::Signal<DummyLinkService, uint32_t> afterSend;
+class DummyLinkService final : public LinkService {
+  public:
+    /** \brief Emitted after a network-layer packet is sent through this link service.
+     *
+     *  The packet type is reported via the argument, whose value will be one of
+     *  tlv::Interest, tlv::Data, or lp::tlv::Nack. Signal handlers may retrieve
+     *  the packet via `sentInterests.back()`, `sentData.back()`, or `sentNacks.back()`.
+     */
+    signal::Signal<DummyLinkService, uint32_t> afterSend;
 
-  using LinkService::receiveInterest;
-  using LinkService::receiveData;
-  using LinkService::receiveNack;
+    using LinkService::receiveData;
+    using LinkService::receiveInterest;
+    using LinkService::receiveNack;
 
-  void
-  setPacketLogging(std::underlying_type_t<PacketLoggingFlags> flags)
-  {
-    m_loggingFlags = static_cast<PacketLoggingFlags>(flags);
-  }
+    void
+    setPacketLogging(std::underlying_type_t<PacketLoggingFlags> flags)
+    {
+        m_loggingFlags = static_cast<PacketLoggingFlags>(flags);
+    }
 
-private:
-  void
-  doSendInterest(const Interest& interest, const EndpointId& endpoint) final;
+  private:
+    void doSendInterest(const Interest& interest, const EndpointId& endpoint) final;
 
-  void
-  doSendData(const Data& data, const EndpointId& endpoint) final;
+    void doSendData(const Data& data, const EndpointId& endpoint) final;
 
-  void
-  doSendNack(const lp::Nack& nack, const EndpointId& endpoint) final;
+    void doSendNack(const lp::Nack& nack, const EndpointId& endpoint) final;
 
-  void
-  doReceivePacket(const Block& packet, const EndpointId& endpoint) final;
+    void doReceivePacket(const Block& packet, const EndpointId& endpoint) final;
 
-public:
-  std::vector<Interest> sentInterests;
-  std::vector<Data> sentData;
-  std::vector<lp::Nack> sentNacks;
-  std::vector<RxPacket> receivedPackets;
+  public:
+    std::vector<Interest> sentInterests;
+    std::vector<Data> sentData;
+    std::vector<lp::Nack> sentNacks;
+    std::vector<RxPacket> receivedPackets;
 
-private:
-  PacketLoggingFlags m_loggingFlags = LogAllPackets;
+  private:
+    PacketLoggingFlags m_loggingFlags = LogAllPackets;
 };
 
 } // namespace tests

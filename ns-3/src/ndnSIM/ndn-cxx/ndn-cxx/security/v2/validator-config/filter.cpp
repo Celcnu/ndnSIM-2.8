@@ -36,17 +36,17 @@ namespace validator_config {
 bool
 Filter::match(uint32_t pktType, const Name& pktName)
 {
-  BOOST_ASSERT(pktType == tlv::Interest || pktType == tlv::Data);
+    BOOST_ASSERT(pktType == tlv::Interest || pktType == tlv::Data);
 
-  if (pktType == tlv::Interest) {
-    if (pktName.size() < signed_interest::MIN_SIZE)
-      return false;
+    if (pktType == tlv::Interest) {
+        if (pktName.size() < signed_interest::MIN_SIZE)
+            return false;
 
-    return matchName(pktName.getPrefix(-signed_interest::MIN_SIZE));
-  }
-  else {
-    return matchName(pktName);
-  }
+        return matchName(pktName.getPrefix(-signed_interest::MIN_SIZE));
+    }
+    else {
+        return matchName(pktName);
+    }
 }
 
 RelationNameFilter::RelationNameFilter(const Name& name, NameRelation relation)
@@ -58,7 +58,7 @@ RelationNameFilter::RelationNameFilter(const Name& name, NameRelation relation)
 bool
 RelationNameFilter::matchName(const Name& name)
 {
-  return checkNameRelation(m_relation, m_name, name);
+    return checkNameRelation(m_relation, m_name, name);
 }
 
 RegexNameFilter::RegexNameFilter(const Regex& regex)
@@ -69,76 +69,76 @@ RegexNameFilter::RegexNameFilter(const Regex& regex)
 bool
 RegexNameFilter::matchName(const Name& name)
 {
-  return m_regex.match(name);
+    return m_regex.match(name);
 }
 
 unique_ptr<Filter>
 Filter::create(const ConfigSection& configSection, const std::string& configFilename)
 {
-  auto propertyIt = configSection.begin();
+    auto propertyIt = configSection.begin();
 
-  if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "type")) {
-    NDN_THROW(Error("Expecting <filter.type>"));
-  }
+    if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "type")) {
+        NDN_THROW(Error("Expecting <filter.type>"));
+    }
 
-  std::string type = propertyIt->second.data();
-  if (boost::iequals(type, "name"))
-    return createNameFilter(configSection, configFilename);
-  else
-    NDN_THROW(Error("Unrecognized <filter.type>: " + type));
+    std::string type = propertyIt->second.data();
+    if (boost::iequals(type, "name"))
+        return createNameFilter(configSection, configFilename);
+    else
+        NDN_THROW(Error("Unrecognized <filter.type>: " + type));
 }
 
 unique_ptr<Filter>
 Filter::createNameFilter(const ConfigSection& configSection, const std::string& configFilename)
 {
-  auto propertyIt = configSection.begin();
-  propertyIt++;
-
-  if (propertyIt == configSection.end())
-    NDN_THROW(Error("Unexpected end of <filter>"));
-
-  if (boost::iequals(propertyIt->first, "name")) {
-    // Get filter.name
-    Name name;
-    try {
-      name = Name(propertyIt->second.data());
-    }
-    catch (const Name::Error&) {
-      NDN_THROW_NESTED(Error("Invalid <filter.name>: " + propertyIt->second.data()));
-    }
-
+    auto propertyIt = configSection.begin();
     propertyIt++;
 
-    // Get filter.relation
-    if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "relation")) {
-      NDN_THROW(Error("Expecting <filter.relation>"));
+    if (propertyIt == configSection.end())
+        NDN_THROW(Error("Unexpected end of <filter>"));
+
+    if (boost::iequals(propertyIt->first, "name")) {
+        // Get filter.name
+        Name name;
+        try {
+            name = Name(propertyIt->second.data());
+        }
+        catch (const Name::Error&) {
+            NDN_THROW_NESTED(Error("Invalid <filter.name>: " + propertyIt->second.data()));
+        }
+
+        propertyIt++;
+
+        // Get filter.relation
+        if (propertyIt == configSection.end() || !boost::iequals(propertyIt->first, "relation")) {
+            NDN_THROW(Error("Expecting <filter.relation>"));
+        }
+
+        NameRelation relation = getNameRelationFromString(propertyIt->second.data());
+        propertyIt++;
+
+        if (propertyIt != configSection.end())
+            NDN_THROW(Error("Expecting end of <filter>"));
+
+        return make_unique<RelationNameFilter>(name, relation);
     }
+    else if (boost::iequals(propertyIt->first, "regex")) {
+        std::string regexString = propertyIt->second.data();
+        propertyIt++;
 
-    NameRelation relation = getNameRelationFromString(propertyIt->second.data());
-    propertyIt++;
+        if (propertyIt != configSection.end())
+            NDN_THROW(Error("Expecting end of <filter>"));
 
-    if (propertyIt != configSection.end())
-      NDN_THROW(Error("Expecting end of <filter>"));
-
-    return make_unique<RelationNameFilter>(name, relation);
-  }
-  else if (boost::iequals(propertyIt->first, "regex")) {
-    std::string regexString = propertyIt->second.data();
-    propertyIt++;
-
-    if (propertyIt != configSection.end())
-      NDN_THROW(Error("Expecting end of <filter>"));
-
-    try {
-      return make_unique<RegexNameFilter>(Regex(regexString));
+        try {
+            return make_unique<RegexNameFilter>(Regex(regexString));
+        }
+        catch (const Regex::Error&) {
+            NDN_THROW_NESTED(Error("Invalid <filter.regex>: " + regexString));
+        }
     }
-    catch (const Regex::Error&) {
-      NDN_THROW_NESTED(Error("Invalid <filter.regex>: " + regexString));
+    else {
+        NDN_THROW(Error("Unrecognized <filter> property: " + propertyIt->first));
     }
-  }
-  else {
-    NDN_THROW(Error("Unrecognized <filter> property: " + propertyIt->first));
-  }
 }
 
 } // namespace validator_config

@@ -35,26 +35,25 @@ StreamSink::StreamSink(std::ostream& os)
 size_t
 StreamSink::doWrite(const uint8_t* buf, size_t size)
 {
-  m_os.write(reinterpret_cast<const char*>(buf), size);
+    m_os.write(reinterpret_cast<const char*>(buf), size);
 
-  if (m_os.bad())
-    NDN_THROW(Error(getIndex(), "Fail to write data into output stream"));
+    if (m_os.bad())
+        NDN_THROW(Error(getIndex(), "Fail to write data into output stream"));
 
-  return size;
+    return size;
 }
 
 void
 StreamSink::doEnd()
 {
-  m_os.flush();
+    m_os.flush();
 }
 
 unique_ptr<Sink>
 streamSink(std::ostream& os)
 {
-  return make_unique<StreamSink>(os);
+    return make_unique<StreamSink>(os);
 }
-
 
 } // namespace transform
 } // namespace security

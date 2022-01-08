@@ -39,60 +39,48 @@ namespace tpm {
  * In this TPM, each private key is stored in a separate file with permission 0400, i.e.,
  * owner read-only.  The key is stored in PKCS #1 format in base64 encoding.
  */
-class BackEndFile final : public BackEnd
-{
-public:
-  /**
-   * @brief Create file-based TPM backend.
-   *
-   * @param location Directory to store private keys.
-   */
-  explicit
-  BackEndFile(const std::string& location = "");
+class BackEndFile final : public BackEnd {
+  public:
+    /**
+     * @brief Create file-based TPM backend.
+     *
+     * @param location Directory to store private keys.
+     */
+    explicit BackEndFile(const std::string& location = "");
 
-  ~BackEndFile() final;
+    ~BackEndFile() final;
 
-  static const std::string&
-  getScheme();
+    static const std::string& getScheme();
 
-private: // inherited from tpm::BackEnd
-  bool
-  doHasKey(const Name& keyName) const final;
+  private: // inherited from tpm::BackEnd
+    bool doHasKey(const Name& keyName) const final;
 
-  unique_ptr<KeyHandle>
-  doGetKeyHandle(const Name& keyName) const final;
+    unique_ptr<KeyHandle> doGetKeyHandle(const Name& keyName) const final;
 
-  unique_ptr<KeyHandle>
-  doCreateKey(const Name& identityName, const KeyParams& params) final;
+    unique_ptr<KeyHandle> doCreateKey(const Name& identityName, const KeyParams& params) final;
 
-  void
-  doDeleteKey(const Name& keyName) final;
+    void doDeleteKey(const Name& keyName) final;
 
-  ConstBufferPtr
-  doExportKey(const Name& keyName, const char* pw, size_t pwLen) final;
+    ConstBufferPtr doExportKey(const Name& keyName, const char* pw, size_t pwLen) final;
 
-  void
-  doImportKey(const Name& keyName, const uint8_t* buf, size_t size, const char* pw, size_t pwLen) final;
+    void doImportKey(const Name& keyName, const uint8_t* buf, size_t size, const char* pw, size_t pwLen) final;
 
-  void
-  doImportKey(const Name& keyName, shared_ptr<transform::PrivateKey> key) final;
+    void doImportKey(const Name& keyName, shared_ptr<transform::PrivateKey> key) final;
 
-private:
-  /**
-   * @brief Load a private key with name @p keyName from the key directory.
-   */
-  unique_ptr<transform::PrivateKey>
-  loadKey(const Name& keyName) const;
+  private:
+    /**
+     * @brief Load a private key with name @p keyName from the key directory.
+     */
+    unique_ptr<transform::PrivateKey> loadKey(const Name& keyName) const;
 
-  /**
-   * @brief Save a private key with name @p keyName into the key directory.
-   */
-  void
-  saveKey(const Name& keyName, const transform::PrivateKey& key);
+    /**
+     * @brief Save a private key with name @p keyName into the key directory.
+     */
+    void saveKey(const Name& keyName, const transform::PrivateKey& key);
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
 } // namespace tpm

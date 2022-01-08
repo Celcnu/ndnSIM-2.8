@@ -35,10 +35,10 @@ Connection::Connection(weak_ptr<DisconnectFunction> disconnect) noexcept
 void
 Connection::disconnect()
 {
-  auto f = m_disconnect.lock();
-  if (f != nullptr) {
-    (*f)();
-  }
+    auto f = m_disconnect.lock();
+    if (f != nullptr) {
+        (*f)();
+    }
 }
 
 } // namespace signal

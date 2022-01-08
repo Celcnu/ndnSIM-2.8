@@ -49,56 +49,50 @@ class Readvertise;
  * Only one instance of this class can be created at any time.
  * After initialization, NFD-RIB instance can be started by running the global io_service.
  */
-class Service : noncopyable
-{
-public:
-  Service(const ConfigSection& configSection, ndn::Face& face, ndn::KeyChain& keyChain);
+class Service : noncopyable {
+  public:
+    Service(const ConfigSection& configSection, ndn::Face& face, ndn::KeyChain& keyChain);
 
-  /**
-   * \brief Destructor
-   */
-  ~Service();
+    /**
+     * \brief Destructor
+     */
+    ~Service();
 
-  /**
-   * \brief Get a reference to the only instance of this class
-   * \throw std::logic_error No instance has been constructed
-   * \throw std::logic_error This function is invoked on a thread other than the RIB thread
-   */
-  static Service&
-  get();
+    /**
+     * \brief Get a reference to the only instance of this class
+     * \throw std::logic_error No instance has been constructed
+     * \throw std::logic_error This function is invoked on a thread other than the RIB thread
+     */
+    static Service& get();
 
-  RibManager&
-  getRibManager()
-  {
-    return m_ribManager;
-  }
+    RibManager&
+    getRibManager()
+    {
+        return m_ribManager;
+    }
 
-private:
-  template<typename ConfigParseFunc>
-  Service(ndn::KeyChain& keyChain, ndn::Face& face,
-          const ConfigParseFunc& configParse);
+  private:
+    template <typename ConfigParseFunc>
+    Service(ndn::KeyChain& keyChain, ndn::Face& face, const ConfigParseFunc& configParse);
 
-  void
-  processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename);
+    void processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename);
 
-  void
-  checkConfig(const ConfigSection& section, const std::string& filename);
+    void checkConfig(const ConfigSection& section, const std::string& filename);
 
-  void
-  applyConfig(const ConfigSection& section, const std::string& filename);
+    void applyConfig(const ConfigSection& section, const std::string& filename);
 
-private:
-  ndn::KeyChain& m_keyChain;
-  ndn::Face& m_face;
-  ndn::Scheduler m_scheduler;
-  ndn::nfd::Controller m_nfdController;
+  private:
+    ndn::KeyChain& m_keyChain;
+    ndn::Face& m_face;
+    ndn::Scheduler m_scheduler;
+    ndn::nfd::Controller m_nfdController;
 
-  Rib m_rib;
-  FibUpdater m_fibUpdater;
-  unique_ptr<Readvertise> m_readvertiseNlsr;
-  unique_ptr<Readvertise> m_readvertisePropagation;
-  ndn::mgmt::Dispatcher m_dispatcher;
-  RibManager m_ribManager;
+    Rib m_rib;
+    FibUpdater m_fibUpdater;
+    unique_ptr<Readvertise> m_readvertiseNlsr;
+    unique_ptr<Readvertise> m_readvertisePropagation;
+    ndn::mgmt::Dispatcher m_dispatcher;
+    RibManager m_ribManager;
 };
 
 } // namespace rib

@@ -49,11 +49,10 @@ static char const handshake_guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 } // namespace constants
 
-
 /// Processor class related error codes
 namespace error_cat {
 enum value {
-    BAD_REQUEST = 0, // Error was the result of improperly formatted user input
+    BAD_REQUEST = 0,    // Error was the result of improperly formatted user input
     INTERNAL_ERROR = 1, // Error was a logic error internal to WebSocket++
     PROTOCOL_VIOLATION = 2,
     MESSAGE_TOO_BIG = 3,
@@ -151,7 +150,7 @@ enum processor_errors {
 
     /// Extension related operation was ignored because extensions are disabled
     extensions_disabled,
-    
+
     /// Short Ke3 read. Hybi00 requires a third key to be read from the 8 bytes
     /// after the handshake. Less than 8 bytes were read.
     short_key3
@@ -159,15 +158,21 @@ enum processor_errors {
 
 /// Category for processor errors
 class processor_category : public lib::error_category {
-public:
-    processor_category() {}
+  public:
+    processor_category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.processor";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case error::general:
                 return "Generic processor error";
             case error::bad_request:
@@ -235,13 +240,17 @@ public:
 };
 
 /// Get a reference to a static copy of the processor error category
-inline lib::error_category const & get_processor_category() {
+inline lib::error_category const&
+get_processor_category()
+{
     static processor_category instance;
     return instance;
 }
 
 /// Create an error code with the given value and the processor category
-inline lib::error_code make_error_code(error::processor_errors e) {
+inline lib::error_code
+make_error_code(error::processor_errors e)
+{
     return lib::error_code(static_cast<int>(e), get_processor_category());
 }
 
@@ -258,7 +267,9 @@ inline lib::error_code make_error_code(error::processor_errors e) {
  * applications, ex: invalid arguments) then
  * close::status::internal_endpoint_error is returned.
  */
-inline close::status::value to_ws(lib::error_code ec) {
+inline close::status::value
+to_ws(lib::error_code ec)
+{
     if (ec.category() != get_processor_category()) {
         return close::status::blank;
     }
@@ -290,10 +301,10 @@ inline close::status::value to_ws(lib::error_code ec) {
 } // namespace websocketpp
 
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum<websocketpp::processor::error::processor_errors>
-{
+template <>
+struct is_error_code_enum<websocketpp::processor::error::processor_errors> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_
 
-#endif //WEBSOCKETPP_PROCESSOR_BASE_HPP
+#endif // WEBSOCKETPP_PROCESSOR_BASE_HPP

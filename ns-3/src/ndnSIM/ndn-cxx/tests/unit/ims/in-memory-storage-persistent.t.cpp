@@ -34,46 +34,46 @@ BOOST_AUTO_TEST_SUITE(TestInMemoryStoragePersistent)
 
 BOOST_AUTO_TEST_CASE(GetLimit)
 {
-  InMemoryStoragePersistent ims;
+    InMemoryStoragePersistent ims;
 
-  BOOST_CHECK_EQUAL(ims.getLimit(), -1);
+    BOOST_CHECK_EQUAL(ims.getLimit(), -1);
 }
 
 BOOST_AUTO_TEST_CASE(InsertAndDouble)
 {
-  InMemoryStoragePersistent ims;
-  size_t initialCapacity = ims.getCapacity();
+    InMemoryStoragePersistent ims;
+    size_t initialCapacity = ims.getCapacity();
 
-  for (size_t i = 0; i < initialCapacity + 1; i++) {
-    shared_ptr<Data> data = makeData(to_string(i));
-    data->setFreshnessPeriod(5000_ms);
-    signData(data);
-    ims.insert(*data);
-  }
+    for (size_t i = 0; i < initialCapacity + 1; i++) {
+        shared_ptr<Data> data = makeData(to_string(i));
+        data->setFreshnessPeriod(5000_ms);
+        signData(data);
+        ims.insert(*data);
+    }
 
-  BOOST_CHECK_EQUAL(ims.size(), initialCapacity + 1);
+    BOOST_CHECK_EQUAL(ims.size(), initialCapacity + 1);
 
-  BOOST_CHECK_EQUAL(ims.getCapacity(), initialCapacity * 2);
+    BOOST_CHECK_EQUAL(ims.getCapacity(), initialCapacity * 2);
 }
 
 BOOST_AUTO_TEST_CASE(EraseAndShrink)
 {
-  InMemoryStoragePersistent ims;
+    InMemoryStoragePersistent ims;
 
-  auto capacity = ims.getCapacity() * 2;
-  ims.setCapacity(capacity);
+    auto capacity = ims.getCapacity() * 2;
+    ims.setCapacity(capacity);
 
-  Name name("/1");
-  shared_ptr<Data> data = makeData(name);
-  data->setFreshnessPeriod(5000_ms);
-  signData(data);
-  ims.insert(*data);
-  BOOST_CHECK_EQUAL(ims.size(), 1);
+    Name name("/1");
+    shared_ptr<Data> data = makeData(name);
+    data->setFreshnessPeriod(5000_ms);
+    signData(data);
+    ims.insert(*data);
+    BOOST_CHECK_EQUAL(ims.size(), 1);
 
-  ims.erase(name);
+    ims.erase(name);
 
-  BOOST_CHECK_EQUAL(ims.size(), 0);
-  BOOST_CHECK_EQUAL(ims.getCapacity(), capacity / 2);
+    BOOST_CHECK_EQUAL(ims.size(), 0);
+    BOOST_CHECK_EQUAL(ims.getCapacity(), capacity / 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestInMemoryStoragePersistent

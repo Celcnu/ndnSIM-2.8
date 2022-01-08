@@ -41,111 +41,111 @@ using security::Pib;
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  auto pibImpl = make_shared<pib::PibMemory>();
-  IdentityImpl identity1(id1, pibImpl, true);
+    auto pibImpl = make_shared<pib::PibMemory>();
+    IdentityImpl identity1(id1, pibImpl, true);
 
-  BOOST_CHECK_EQUAL(identity1.getName(), id1);
+    BOOST_CHECK_EQUAL(identity1.getName(), id1);
 }
 
 BOOST_AUTO_TEST_CASE(KeyOperation)
 {
-  auto pibImpl = make_shared<pib::PibMemory>();
-  IdentityImpl identity1(id1, pibImpl, true);
-  BOOST_CHECK_NO_THROW(IdentityImpl(id1, pibImpl, false));
+    auto pibImpl = make_shared<pib::PibMemory>();
+    IdentityImpl identity1(id1, pibImpl, true);
+    BOOST_CHECK_NO_THROW(IdentityImpl(id1, pibImpl, false));
 
-  // identity does not have any key
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 0);
+    // identity does not have any key
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 0);
 
-  // get non-existing key, throw Pib::Error
-  BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
-  // get default key, throw Pib::Error
-  BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
-  // set non-existing key as default key, throw Pib::Error
-  BOOST_REQUIRE_THROW(identity1.setDefaultKey(id1Key1Name), Pib::Error);
+    // get non-existing key, throw Pib::Error
+    BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
+    // get default key, throw Pib::Error
+    BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
+    // set non-existing key as default key, throw Pib::Error
+    BOOST_REQUIRE_THROW(identity1.setDefaultKey(id1Key1Name), Pib::Error);
 
-  // add key
-  identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  BOOST_CHECK_NO_THROW(identity1.getKey(id1Key1Name));
+    // add key
+    identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    BOOST_CHECK_NO_THROW(identity1.getKey(id1Key1Name));
 
-  // new key becomes default key when there is no default key
-  BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
-  const Key& defaultKey0 = identity1.getDefaultKey();
-  BOOST_CHECK_EQUAL(defaultKey0.getName(), id1Key1Name);
-  BOOST_CHECK(defaultKey0.getPublicKey() == id1Key1);
+    // new key becomes default key when there is no default key
+    BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
+    const Key& defaultKey0 = identity1.getDefaultKey();
+    BOOST_CHECK_EQUAL(defaultKey0.getName(), id1Key1Name);
+    BOOST_CHECK(defaultKey0.getPublicKey() == id1Key1);
 
-  // remove key
-  identity1.removeKey(id1Key1Name);
-  BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
-  BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
+    // remove key
+    identity1.removeKey(id1Key1Name);
+    BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
+    BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
 
-  // set default key directly
-  BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key1.data(), id1Key1.size(), id1Key1Name));
-  BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
-  BOOST_CHECK_NO_THROW(identity1.getKey(id1Key1Name));
+    // set default key directly
+    BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key1.data(), id1Key1.size(), id1Key1Name));
+    BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
+    BOOST_CHECK_NO_THROW(identity1.getKey(id1Key1Name));
 
-  // check default key
-  const Key& defaultKey1 = identity1.getDefaultKey();
-  BOOST_CHECK_EQUAL(defaultKey1.getName(), id1Key1Name);
-  BOOST_CHECK(defaultKey1.getPublicKey() == id1Key1);
+    // check default key
+    const Key& defaultKey1 = identity1.getDefaultKey();
+    BOOST_CHECK_EQUAL(defaultKey1.getName(), id1Key1Name);
+    BOOST_CHECK(defaultKey1.getPublicKey() == id1Key1);
 
-  // add another key
-  identity1.addKey(id1Key2.data(), id1Key2.size(), id1Key2Name);
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 2);
+    // add another key
+    identity1.addKey(id1Key2.data(), id1Key2.size(), id1Key2Name);
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 2);
 
-  // set default key through name
-  BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key2Name));
-  BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
-  const Key& defaultKey2 = identity1.getDefaultKey();
-  BOOST_CHECK_EQUAL(defaultKey2.getName(), id1Key2Name);
-  BOOST_CHECK(defaultKey2.getPublicKey() == id1Key2);
+    // set default key through name
+    BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key2Name));
+    BOOST_REQUIRE_NO_THROW(identity1.getDefaultKey());
+    const Key& defaultKey2 = identity1.getDefaultKey();
+    BOOST_CHECK_EQUAL(defaultKey2.getName(), id1Key2Name);
+    BOOST_CHECK(defaultKey2.getPublicKey() == id1Key2);
 
-  // remove key
-  identity1.removeKey(id1Key1Name);
-  BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 1);
+    // remove key
+    identity1.removeKey(id1Key1Name);
+    BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 1);
 
-  // set default key directly again, change the default setting
-  BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key1.data(), id1Key1.size(), id1Key1Name));
-  const Key& defaultKey3 = identity1.getDefaultKey();
-  BOOST_CHECK_EQUAL(defaultKey3.getName(), id1Key1Name);
-  BOOST_CHECK(defaultKey3.getPublicKey() == id1Key1);
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 2);
+    // set default key directly again, change the default setting
+    BOOST_REQUIRE_NO_THROW(identity1.setDefaultKey(id1Key1.data(), id1Key1.size(), id1Key1Name));
+    const Key& defaultKey3 = identity1.getDefaultKey();
+    BOOST_CHECK_EQUAL(defaultKey3.getName(), id1Key1Name);
+    BOOST_CHECK(defaultKey3.getPublicKey() == id1Key1);
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 2);
 
-  // remove all keys
-  identity1.removeKey(id1Key1Name);
-  BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 1);
-  identity1.removeKey(id1Key2Name);
-  BOOST_CHECK_THROW(identity1.getKey(id1Key2Name), Pib::Error);
-  BOOST_CHECK_EQUAL(identity1.getKeys().size(), 0);
-  BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
+    // remove all keys
+    identity1.removeKey(id1Key1Name);
+    BOOST_CHECK_THROW(identity1.getKey(id1Key1Name), Pib::Error);
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 1);
+    identity1.removeKey(id1Key2Name);
+    BOOST_CHECK_THROW(identity1.getKey(id1Key2Name), Pib::Error);
+    BOOST_CHECK_EQUAL(identity1.getKeys().size(), 0);
+    BOOST_CHECK_THROW(identity1.getDefaultKey(), Pib::Error);
 }
 
 BOOST_AUTO_TEST_CASE(Overwrite)
 {
-  auto pibImpl = make_shared<pib::PibMemory>();
-  IdentityImpl identity1(id1, pibImpl, true);
+    auto pibImpl = make_shared<pib::PibMemory>();
+    IdentityImpl identity1(id1, pibImpl, true);
 
-  identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  BOOST_CHECK(identity1.getKey(id1Key1Name).getPublicKey() == id1Key1);
+    identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    BOOST_CHECK(identity1.getKey(id1Key1Name).getPublicKey() == id1Key1);
 
-  identity1.addKey(id1Key2.data(), id1Key2.size(), id1Key1Name); // overwriting key should work
-  BOOST_CHECK(identity1.getKey(id1Key1Name).getPublicKey() == id1Key2);
+    identity1.addKey(id1Key2.data(), id1Key2.size(), id1Key1Name); // overwriting key should work
+    BOOST_CHECK(identity1.getKey(id1Key1Name).getPublicKey() == id1Key2);
 }
 
 BOOST_AUTO_TEST_CASE(Errors)
 {
-  auto pibImpl = make_shared<pib::PibMemory>();
+    auto pibImpl = make_shared<pib::PibMemory>();
 
-  BOOST_CHECK_THROW(IdentityImpl(id1, pibImpl, false), Pib::Error);
-  IdentityImpl identity1(id1, pibImpl, true);
+    BOOST_CHECK_THROW(IdentityImpl(id1, pibImpl, false), Pib::Error);
+    IdentityImpl identity1(id1, pibImpl, true);
 
-  identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  BOOST_CHECK_THROW(identity1.addKey(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(identity1.removeKey(id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(identity1.getKey(id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(identity1.setDefaultKey(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(identity1.setDefaultKey(id2Key1Name), std::invalid_argument);
+    identity1.addKey(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    BOOST_CHECK_THROW(identity1.addKey(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(identity1.removeKey(id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(identity1.getKey(id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(identity1.setDefaultKey(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(identity1.setDefaultKey(id2Key1Name), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestIdentityImpl

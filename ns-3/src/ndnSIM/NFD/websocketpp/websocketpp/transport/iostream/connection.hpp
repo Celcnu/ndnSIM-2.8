@@ -53,12 +53,15 @@ namespace iostream {
 /// Empty timer class to stub out for timer functionality that iostream
 /// transport doesn't support
 struct timer {
-    void cancel() {}
+    void
+    cancel()
+    {
+    }
 };
 
 template <typename config>
-class connection : public lib::enable_shared_from_this< connection<config> > {
-public:
+class connection : public lib::enable_shared_from_this<connection<config>> {
+  public:
     /// Type of this connection transport component
     typedef connection<config> type;
     /// Type of a shared pointer to this connection transport component
@@ -77,7 +80,7 @@ public:
 
     typedef lib::shared_ptr<timer> timer_ptr;
 
-    explicit connection(bool is_server, const lib::shared_ptr<alog_type> & alog, const lib::shared_ptr<elog_type> & elog)
+    explicit connection(bool is_server, const lib::shared_ptr<alog_type>& alog, const lib::shared_ptr<elog_type>& elog)
       : m_output_stream(NULL)
       , m_reading(false)
       , m_is_server(is_server)
@@ -86,11 +89,13 @@ public:
       , m_elog(elog)
       , m_remote_endpoint("iostream transport")
     {
-        m_alog->write(log::alevel::devel,"iostream con transport constructor");
+        m_alog->write(log::alevel::devel, "iostream con transport constructor");
     }
 
     /// Get a shared pointer to this component
-    ptr get_shared() {
+    ptr
+    get_shared()
+    {
         return type::shared_from_this();
     }
 
@@ -101,7 +106,9 @@ public:
      *
      * @param o A pointer to the ostream to use for output.
      */
-    void register_ostream(std::ostream * o) {
+    void
+    register_ostream(std::ostream* o)
+    {
         // TODO: lock transport state?
         scoped_lock_type lock(m_read_mutex);
         m_output_stream = o;
@@ -118,7 +125,9 @@ public:
      *
      * @param u The uri to set
      */
-    void set_uri(uri_ptr) {}
+    void set_uri(uri_ptr)
+    {
+    }
 
     /// Overloaded stream input operator
     /**
@@ -139,7 +148,9 @@ public:
      * If there is no pending read operation when the input method is called, it
      * will return immediately and tellg() will not have changed.
      */
-    friend std::istream & operator>> (std::istream & in, type & t) {
+    friend std::istream&
+    operator>>(std::istream& in, type& t)
+    {
         // this serializes calls to external read.
         scoped_lock_type lock(t.m_read_mutex);
 
@@ -162,11 +173,13 @@ public:
      * @param len Length of buf
      * @return The number of characters from buf actually read.
      */
-    size_t read_some(char const * buf, size_t len) {
+    size_t
+    read_some(char const* buf, size_t len)
+    {
         // this serializes calls to external read.
         scoped_lock_type lock(m_read_mutex);
 
-        return this->read_some_impl(buf,len);
+        return this->read_some_impl(buf, len);
     }
 
     /// Manual input supply (read all)
@@ -185,7 +198,9 @@ public:
      * @param len Length of buf
      * @return The number of characters from buf actually read.
      */
-    size_t read_all(char const * buf, size_t len) {
+    size_t
+    read_all(char const* buf, size_t len)
+    {
         // this serializes calls to external read.
         scoped_lock_type lock(m_read_mutex);
 
@@ -193,7 +208,7 @@ public:
         size_t temp_read = 0;
 
         do {
-            temp_read = this->read_some_impl(buf+total_read,len-total_read);
+            temp_read = this->read_some_impl(buf + total_read, len - total_read);
             total_read += temp_read;
         } while (temp_read != 0 && total_read < len);
 
@@ -205,8 +220,10 @@ public:
      * @deprecated DEPRECATED in favor of read_some()
      * @see read_some()
      */
-    size_t readsome(char const * buf, size_t len) {
-        return this->read_some(buf,len);
+    size_t
+    readsome(char const* buf, size_t len)
+    {
+        return this->read_some(buf, len);
     }
 
     /// Signal EOF
@@ -216,7 +233,9 @@ public:
      *
      * @since 0.3.0-alpha4
      */
-    void eof() {
+    void
+    eof()
+    {
         // this serializes calls to external read.
         scoped_lock_type lock(m_read_mutex);
 
@@ -232,7 +251,9 @@ public:
      *
      * @since 0.3.0-alpha4
      */
-    void fatal_error() {
+    void
+    fatal_error()
+    {
         // this serializes calls to external read.
         scoped_lock_type lock(m_read_mutex);
 
@@ -254,7 +275,9 @@ public:
      *
      * @param value Whether or not this connection is secure.
      */
-    void set_secure(bool value) {
+    void
+    set_secure(bool value)
+    {
         m_is_secure = value;
     }
 
@@ -268,7 +291,9 @@ public:
      *
      * @return Whether or not the underlying transport is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return m_is_secure;
     }
 
@@ -286,7 +311,9 @@ public:
      *
      * @param value The remote endpoint address to set.
      */
-    void set_remote_endpoint(std::string value) {
+    void
+    set_remote_endpoint(std::string value)
+    {
         m_remote_endpoint = value;
     }
 
@@ -302,7 +329,9 @@ public:
      *
      * @return A string identifying the address of the remote endpoint
      */
-    std::string get_remote_endpoint() const {
+    std::string
+    get_remote_endpoint() const
+    {
         return m_remote_endpoint;
     }
 
@@ -310,7 +339,9 @@ public:
     /**
      * @return The handle for this connection.
      */
-    connection_hdl get_handle() const {
+    connection_hdl
+    get_handle() const
+    {
         return m_connection_hdl;
     }
 
@@ -324,7 +355,9 @@ public:
      * @return A handle that can be used to cancel the timer if it is no longer
      * needed.
      */
-    timer_ptr set_timer(long, timer_handler) {
+    timer_ptr
+    set_timer(long, timer_handler)
+    {
         return timer_ptr();
     }
 
@@ -347,7 +380,9 @@ public:
      *
      * @param h The handler to call when data is to be written.
      */
-    void set_write_handler(write_handler h) {
+    void
+    set_write_handler(write_handler h)
+    {
         m_write_handler = h;
     }
 
@@ -377,7 +412,9 @@ public:
      *
      * @param h The handler to call when vectored data is to be written.
      */
-    void set_vector_write_handler(vector_write_handler h) {
+    void
+    set_vector_write_handler(vector_write_handler h)
+    {
         m_vector_write_handler = h;
     }
 
@@ -397,18 +434,23 @@ public:
      *
      * @param h The handler to call on connection shutdown.
      */
-    void set_shutdown_handler(shutdown_handler h) {
+    void
+    set_shutdown_handler(shutdown_handler h)
+    {
         m_shutdown_handler = h;
     }
-protected:
+
+  protected:
     /// Initialize the connection transport
     /**
      * Initialize the connection's transport component.
      *
      * @param handler The `init_handler` to call when initialization is done
      */
-    void init(init_handler handler) {
-        m_alog->write(log::alevel::devel,"iostream connection init");
+    void
+    init(init_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "iostream connection init");
         handler(lib::error_code());
     }
 
@@ -436,25 +478,25 @@ protected:
      * @param handler The callback to invoke when the operation is complete or
      * ends in an error
      */
-    void async_read_at_least(size_t num_bytes, char *buf, size_t len,
-        read_handler handler)
+    void
+    async_read_at_least(size_t num_bytes, char* buf, size_t len, read_handler handler)
     {
         std::stringstream s;
         s << "iostream_con async_read_at_least: " << num_bytes;
-        m_alog->write(log::alevel::devel,s.str());
+        m_alog->write(log::alevel::devel, s.str());
 
         if (num_bytes > len) {
-            handler(make_error_code(error::invalid_num_bytes),size_t(0));
+            handler(make_error_code(error::invalid_num_bytes), size_t(0));
             return;
         }
 
         if (m_reading == true) {
-            handler(make_error_code(error::double_read),size_t(0));
+            handler(make_error_code(error::double_read), size_t(0));
             return;
         }
 
         if (num_bytes == 0 || len == 0) {
-            handler(lib::error_code(),size_t(0));
+            handler(lib::error_code(), size_t(0));
             return;
         }
 
@@ -484,23 +526,25 @@ protected:
      * @param len number of bytes to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(char const * buf, size_t len, transport::write_handler
-        handler)
+    void
+    async_write(char const* buf, size_t len, transport::write_handler handler)
     {
-        m_alog->write(log::alevel::devel,"iostream_con async_write");
+        m_alog->write(log::alevel::devel, "iostream_con async_write");
         // TODO: lock transport state?
 
         lib::error_code ec;
 
         if (m_output_stream) {
-            m_output_stream->write(buf,len);
+            m_output_stream->write(buf, len);
 
             if (m_output_stream->bad()) {
                 ec = make_error_code(error::bad_stream);
             }
-        } else if (m_write_handler) {
+        }
+        else if (m_write_handler) {
             ec = m_write_handler(m_connection_hdl, buf, len);
-        } else {
+        }
+        else {
             ec = make_error_code(error::output_stream_required);
         }
 
@@ -524,10 +568,10 @@ protected:
      * @param bufs vector of buffers to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(std::vector<buffer> const & bufs, transport::write_handler
-        handler)
+    void
+    async_write(std::vector<buffer> const& bufs, transport::write_handler handler)
     {
-        m_alog->write(log::alevel::devel,"iostream_con async_write buffer list");
+        m_alog->write(log::alevel::devel, "iostream_con async_write buffer list");
         // TODO: lock transport state?
 
         lib::error_code ec;
@@ -535,23 +579,27 @@ protected:
         if (m_output_stream) {
             std::vector<buffer>::const_iterator it;
             for (it = bufs.begin(); it != bufs.end(); it++) {
-                m_output_stream->write((*it).buf,(*it).len);
+                m_output_stream->write((*it).buf, (*it).len);
 
                 if (m_output_stream->bad()) {
                     ec = make_error_code(error::bad_stream);
                     break;
                 }
             }
-        } else if (m_vector_write_handler) {
+        }
+        else if (m_vector_write_handler) {
             ec = m_vector_write_handler(m_connection_hdl, bufs);
-        } else if (m_write_handler) {
+        }
+        else if (m_write_handler) {
             std::vector<buffer>::const_iterator it;
             for (it = bufs.begin(); it != bufs.end(); it++) {
                 ec = m_write_handler(m_connection_hdl, (*it).buf, (*it).len);
-                if (ec) {break;}
+                if (ec) {
+                    break;
+                }
             }
-
-        } else {
+        }
+        else {
             ec = make_error_code(error::output_stream_required);
         }
 
@@ -562,7 +610,9 @@ protected:
     /**
      * @param hdl The new handle
      */
-    void set_handle(connection_hdl hdl) {
+    void
+    set_handle(connection_hdl hdl)
+    {
         m_connection_hdl = hdl;
     }
 
@@ -577,7 +627,9 @@ protected:
      * @return Whether or not the transport was able to register the handler for
      * callback.
      */
-    lib::error_code dispatch(dispatch_handler handler) {
+    lib::error_code
+    dispatch(dispatch_handler handler)
+    {
         handler();
         return lib::error_code();
     }
@@ -590,7 +642,9 @@ protected:
      *
      * @param handler The `shutdown_handler` to call back when complete
      */
-    void async_shutdown(transport::shutdown_handler handler) {
+    void
+    async_shutdown(transport::shutdown_handler handler)
+    {
         lib::error_code ec;
 
         if (m_shutdown_handler) {
@@ -599,20 +653,23 @@ protected:
 
         handler(ec);
     }
-private:
-    void read(std::istream &in) {
-        m_alog->write(log::alevel::devel,"iostream_con read");
+
+  private:
+    void
+    read(std::istream& in)
+    {
+        m_alog->write(log::alevel::devel, "iostream_con read");
 
         while (in.good()) {
             if (!m_reading) {
-                m_elog->write(log::elevel::devel,"write while not reading");
+                m_elog->write(log::elevel::devel, "write while not reading");
                 break;
             }
 
-            in.read(m_buf+m_cursor,static_cast<std::streamsize>(m_len-m_cursor));
+            in.read(m_buf + m_cursor, static_cast<std::streamsize>(m_len - m_cursor));
 
             if (in.gcount() == 0) {
-                m_elog->write(log::elevel::devel,"read zero bytes");
+                m_elog->write(log::elevel::devel, "read zero bytes");
                 break;
             }
 
@@ -631,17 +688,19 @@ private:
         }
     }
 
-    size_t read_some_impl(char const * buf, size_t len) {
-        m_alog->write(log::alevel::devel,"iostream_con read_some");
+    size_t
+    read_some_impl(char const* buf, size_t len)
+    {
+        m_alog->write(log::alevel::devel, "iostream_con read_some");
 
         if (!m_reading) {
-            m_elog->write(log::elevel::devel,"write while not reading");
+            m_elog->write(log::elevel::devel, "write while not reading");
             return 0;
         }
 
-        size_t bytes_to_copy = (std::min)(len,m_len-m_cursor);
+        size_t bytes_to_copy = (std::min)(len, m_len - m_cursor);
 
-        std::copy(buf,buf+bytes_to_copy,m_buf+m_cursor);
+        std::copy(buf, buf + bytes_to_copy, m_buf + m_cursor);
 
         m_cursor += bytes_to_copy;
 
@@ -668,44 +727,45 @@ private:
      *
      * @param ec The error code to forward to the read handler
      */
-    void complete_read(lib::error_code const & ec) {
+    void
+    complete_read(lib::error_code const& ec)
+    {
         m_reading = false;
 
         read_handler handler = m_read_handler;
         m_read_handler = read_handler();
 
-        handler(ec,m_cursor);
+        handler(ec, m_cursor);
     }
 
     // Read space (Protected by m_read_mutex)
-    char *          m_buf;
-    size_t          m_len;
-    size_t          m_bytes_needed;
-    read_handler    m_read_handler;
-    size_t          m_cursor;
+    char* m_buf;
+    size_t m_len;
+    size_t m_bytes_needed;
+    read_handler m_read_handler;
+    size_t m_cursor;
 
     // transport resources
-    std::ostream *  m_output_stream;
-    connection_hdl  m_connection_hdl;
-    write_handler   m_write_handler;
+    std::ostream* m_output_stream;
+    connection_hdl m_connection_hdl;
+    write_handler m_write_handler;
     vector_write_handler m_vector_write_handler;
-    shutdown_handler    m_shutdown_handler;
+    shutdown_handler m_shutdown_handler;
 
-    bool            m_reading;
-    bool const      m_is_server;
-    bool            m_is_secure;
-    lib::shared_ptr<alog_type>     m_alog;
-    lib::shared_ptr<elog_type>     m_elog;
-    std::string     m_remote_endpoint;
+    bool m_reading;
+    bool const m_is_server;
+    bool m_is_secure;
+    lib::shared_ptr<alog_type> m_alog;
+    lib::shared_ptr<elog_type> m_elog;
+    std::string m_remote_endpoint;
 
     // This lock ensures that only one thread can edit read data for this
     // connection. This is a very coarse lock that is basically locked all the
     // time. The nature of the connection is such that it cannot be
     // parallelized, the locking is here to prevent intra-connection concurrency
     // in order to allow inter-connection concurrency.
-    mutex_type      m_read_mutex;
+    mutex_type m_read_mutex;
 };
-
 
 } // namespace iostream
 } // namespace transport

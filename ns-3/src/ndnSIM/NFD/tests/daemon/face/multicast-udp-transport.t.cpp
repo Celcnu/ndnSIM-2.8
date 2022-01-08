@@ -36,79 +36,74 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Face)
 
 using MulticastUdpTransportFixtureWithAddress =
-  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::Any,
-                     AddressScope::Global, MulticastInterface::Yes>;
+  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::Any, AddressScope::Global, MulticastInterface::Yes>;
 
 BOOST_FIXTURE_TEST_SUITE(TestMulticastUdpTransport, MulticastUdpTransportFixtureWithAddress)
 
 using MulticastUdpTransportFixtures = boost::mpl::vector<
   IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V4, AddressScope::Global, MulticastInterface::Yes>,
   IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::LinkLocal, MulticastInterface::Yes>,
-  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::Global, MulticastInterface::Yes>
->;
+  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::Global, MulticastInterface::Yes>>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(StaticProperties, T, MulticastUdpTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  checkStaticPropertiesInitialized(*this->transport);
+    checkStaticPropertiesInitialized(*this->transport);
 
-  BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(udp::endpoint(this->address, this->txPort)));
-  BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->mcastEp));
-  BOOST_CHECK_EQUAL(this->transport->getScope(), ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
-  BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_MULTI_ACCESS);
-  BOOST_CHECK_EQUAL(this->transport->getMtu(),
-                    this->addressFamily == AddressFamily::V4 ? (65535 - 60 - 8) : (65535 - 8));
-  BOOST_CHECK_GT(this->transport->getSendQueueCapacity(), 0);
+    BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(udp::endpoint(this->address, this->txPort)));
+    BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->mcastEp));
+    BOOST_CHECK_EQUAL(this->transport->getScope(), ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+    BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_MULTI_ACCESS);
+    BOOST_CHECK_EQUAL(this->transport->getMtu(),
+                      this->addressFamily == AddressFamily::V4 ? (65535 - 60 - 8) : (65535 - 8));
+    BOOST_CHECK_GT(this->transport->getSendQueueCapacity(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(PersistencyChange)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveMultipleRemoteEndpoints, T, MulticastUdpTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  // we need a second remote tx socket for this test case
-  udp::socket remoteSockTx2(this->g_io);
-  MulticastUdpTransport::openTxSocket(remoteSockTx2, udp::endpoint(this->address, 0), nullptr, true);
+    // we need a second remote tx socket for this test case
+    udp::socket remoteSockTx2(this->g_io);
+    MulticastUdpTransport::openTxSocket(remoteSockTx2, udp::endpoint(this->address, 0), nullptr, true);
 
-  Block pkt1 = ndn::encoding::makeStringBlock(300, "hello");
-  ndn::Buffer buf1(pkt1.begin(), pkt1.end());
-  this->remoteWrite(buf1);
+    Block pkt1 = ndn::encoding::makeStringBlock(300, "hello");
+    ndn::Buffer buf1(pkt1.begin(), pkt1.end());
+    this->remoteWrite(buf1);
 
-  Block pkt2 = ndn::encoding::makeStringBlock(301, "world");
-  ndn::Buffer buf2(pkt2.begin(), pkt2.end());
-  this->remoteWrite(buf2);
+    Block pkt2 = ndn::encoding::makeStringBlock(301, "world");
+    ndn::Buffer buf2(pkt2.begin(), pkt2.end());
+    this->remoteWrite(buf2);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size() + buf2.size());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size() + buf2.size());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 
-  BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 2);
-  BOOST_CHECK_EQUAL(this->receivedPackets->at(0).endpoint,
-                    this->receivedPackets->at(1).endpoint);
+    BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 2);
+    BOOST_CHECK_EQUAL(this->receivedPackets->at(0).endpoint, this->receivedPackets->at(1).endpoint);
 
-  this->sendToGroup(remoteSockTx2, buf1);
-  this->sendToGroup(remoteSockTx2, buf2);
-  this->limitedIo.defer(1_s);
+    this->sendToGroup(remoteSockTx2, buf1);
+    this->sendToGroup(remoteSockTx2, buf2);
+    this->limitedIo.defer(1_s);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 4);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 2 * buf1.size() + 2 * buf2.size());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 4);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 2 * buf1.size() + 2 * buf2.size());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 
-  BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 4);
-  BOOST_CHECK_EQUAL(this->receivedPackets->at(2).endpoint,
-                    this->receivedPackets->at(3).endpoint);
-  BOOST_CHECK_NE(this->receivedPackets->at(0).endpoint,
-                 this->receivedPackets->at(2).endpoint);
+    BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 4);
+    BOOST_CHECK_EQUAL(this->receivedPackets->at(2).endpoint, this->receivedPackets->at(3).endpoint);
+    BOOST_CHECK_NE(this->receivedPackets->at(0).endpoint, this->receivedPackets->at(2).endpoint);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestMulticastUdpTransport

@@ -44,56 +44,53 @@ Program::Program(const Options& options, Face& face, KeyChain& keyChain)
   , m_keyChain(keyChain)
   , m_dispatcher(face, keyChain)
 {
-  this->enableHubData(options.hubFaceUri);
-  if (!options.routablePrefixes.empty()) {
-    this->enableRoutablePrefixesDataset(options.routablePrefixes);
-  }
+    this->enableHubData(options.hubFaceUri);
+    if (!options.routablePrefixes.empty()) {
+        this->enableRoutablePrefixesDataset(options.routablePrefixes);
+    }
 }
 
 void
 Program::enableHubData(const FaceUri& hubFaceUri)
 {
-  std::string uri = hubFaceUri.toString();
+    std::string uri = hubFaceUri.toString();
 
-  auto data = make_shared<Data>(Name(HUB_DATA_NAME).appendVersion());
-  data->setFreshnessPeriod(1_h);
-  data->setContent(makeBinaryBlock(tlv::nfd::Uri,
-                                   reinterpret_cast<const uint8_t*>(uri.data()), uri.size()));
-  m_keyChain.sign(*data);
+    auto data = make_shared<Data>(Name(HUB_DATA_NAME).appendVersion());
+    data->setFreshnessPeriod(1_h);
+    data->setContent(makeBinaryBlock(tlv::nfd::Uri, reinterpret_cast<const uint8_t*>(uri.data()), uri.size()));
+    m_keyChain.sign(*data);
 
-  m_face.setInterestFilter(HUB_DATA_NAME,
-    [this, data] (const Name&, const Interest& interest) {
-      if (interest.matchesData(*data)) {
-        m_face.put(*data);
-      }
-    },
-    bind(&Program::handlePrefixRegistrationFailure, this, _1, _2));
+    m_face.setInterestFilter(
+      HUB_DATA_NAME,
+      [this, data](const Name&, const Interest& interest) {
+          if (interest.matchesData(*data)) {
+              m_face.put(*data);
+          }
+      },
+      bind(&Program::handlePrefixRegistrationFailure, this, _1, _2));
 }
 
 void
 Program::enableRoutablePrefixesDataset(const std::vector<Name>& routablePrefixes)
 {
-  m_dispatcher.addStatusDataset(ROUTABLE_PREFIXES_DATA_SUFFIX,
-    mgmt::makeAcceptAllAuthorization(),
-    [=] (const Name&, const Interest&, mgmt::StatusDatasetContext& context) {
-      for (const Name& routablePrefix : routablePrefixes) {
-        context.append(routablePrefix.wireEncode());
-      }
-      context.end();
-    });
-  m_dispatcher.addTopPrefix(ROUTABLE_PREFIXES_DATA_PREFIX, false);
+    m_dispatcher.addStatusDataset(ROUTABLE_PREFIXES_DATA_SUFFIX, mgmt::makeAcceptAllAuthorization(),
+                                  [=](const Name&, const Interest&, mgmt::StatusDatasetContext& context) {
+                                      for (const Name& routablePrefix : routablePrefixes) {
+                                          context.append(routablePrefix.wireEncode());
+                                      }
+                                      context.end();
+                                  });
+    m_dispatcher.addTopPrefix(ROUTABLE_PREFIXES_DATA_PREFIX, false);
 
-  m_face.registerPrefix(Name(ROUTABLE_PREFIXES_DATA_PREFIX).append(ROUTABLE_PREFIXES_DATA_SUFFIX),
-                        nullptr,
-                        bind(&Program::handlePrefixRegistrationFailure, this, _1, _2));
+    m_face.registerPrefix(Name(ROUTABLE_PREFIXES_DATA_PREFIX).append(ROUTABLE_PREFIXES_DATA_SUFFIX), nullptr,
+                          bind(&Program::handlePrefixRegistrationFailure, this, _1, _2));
 }
 
 void
 Program::handlePrefixRegistrationFailure(const Name& prefix, const std::string& reason)
 {
-  std::cerr << "ERROR: cannot register prefix " << prefix
-            << " (" << reason << ")" << std::endl;
-  m_face.shutdown();
+    std::cerr << "ERROR: cannot register prefix " << prefix << " (" << reason << ")" << std::endl;
+    m_face.shutdown();
 }
 
 } // namespace autoconfig_server

@@ -34,62 +34,48 @@ namespace lp {
 /**
  * \brief indicates the reason type of a network NACK
  */
-enum class NackReason {
-  NONE = 0,
-  CONGESTION = 50,
-  DUPLICATE = 100,
-  NO_ROUTE = 150
-};
+enum class NackReason { NONE = 0, CONGESTION = 50, DUPLICATE = 100, NO_ROUTE = 150 };
 
-std::ostream&
-operator<<(std::ostream& os, NackReason reason);
+std::ostream& operator<<(std::ostream& os, NackReason reason);
 
 /** \brief compare NackReason for severity
  *
  *  lp::NackReason::NONE is treated as most severe
  */
-bool
-isLessSevere(lp::NackReason x, lp::NackReason y);
+bool isLessSevere(lp::NackReason x, lp::NackReason y);
 
 /**
  * \brief represents a Network NACK header
  */
-class NackHeader
-{
-public:
-  NackHeader();
+class NackHeader {
+  public:
+    NackHeader();
 
-  explicit
-  NackHeader(const Block& block);
+    explicit NackHeader(const Block& block);
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& wire);
+    void wireDecode(const Block& wire);
 
-public: // reason
-  /**
-   * \return reason code
-   * \retval NackReason::NONE if NackReason element does not exist or has an unknown code
-   */
-  NackReason
-  getReason() const;
+  public: // reason
+    /**
+     * \return reason code
+     * \retval NackReason::NONE if NackReason element does not exist or has an unknown code
+     */
+    NackReason getReason() const;
 
-  /**
-   * \brief set reason code
-   * \param reason a reason code; NackReason::NONE clears the reason
-   */
-  NackHeader&
-  setReason(NackReason reason);
+    /**
+     * \brief set reason code
+     * \param reason a reason code; NackReason::NONE clears the reason
+     */
+    NackHeader& setReason(NackReason reason);
 
-private:
-  NackReason m_reason;
-  mutable Block m_wire;
+  private:
+    NackReason m_reason;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(NackHeader);

@@ -41,109 +41,108 @@ using pib::Pib;
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  auto pibImpl = make_shared<PibMemory>();
+    auto pibImpl = make_shared<PibMemory>();
 
-  // start with an empty container
-  IdentityContainer container(pibImpl);
-  BOOST_CHECK_EQUAL(container.size(), 0);
-  BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 0);
+    // start with an empty container
+    IdentityContainer container(pibImpl);
+    BOOST_CHECK_EQUAL(container.size(), 0);
+    BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 0);
 
-  // add the first identity
-  Identity identity11 = container.add(id1);
-  BOOST_CHECK_EQUAL(identity11.getName(), id1);
-  BOOST_CHECK_EQUAL(container.size(), 1);
-  BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 1);
-  BOOST_CHECK(container.find(id1) != container.end());
+    // add the first identity
+    Identity identity11 = container.add(id1);
+    BOOST_CHECK_EQUAL(identity11.getName(), id1);
+    BOOST_CHECK_EQUAL(container.size(), 1);
+    BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 1);
+    BOOST_CHECK(container.find(id1) != container.end());
 
-  // add the same identity again
-  Identity identity12 = container.add(id1);
-  BOOST_CHECK_EQUAL(identity12.getName(), id1);
-  BOOST_CHECK_EQUAL(container.size(), 1);
-  BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 1);
-  BOOST_CHECK(container.find(id1) != container.end());
+    // add the same identity again
+    Identity identity12 = container.add(id1);
+    BOOST_CHECK_EQUAL(identity12.getName(), id1);
+    BOOST_CHECK_EQUAL(container.size(), 1);
+    BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 1);
+    BOOST_CHECK(container.find(id1) != container.end());
 
-  // add the second identity
-  Identity identity21 = container.add(id2);
-  BOOST_CHECK_EQUAL(identity21.getName(), id2);
-  BOOST_CHECK_EQUAL(container.size(), 2);
-  BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 2);
-  BOOST_CHECK(container.find(id1) != container.end());
-  BOOST_CHECK(container.find(id2) != container.end());
+    // add the second identity
+    Identity identity21 = container.add(id2);
+    BOOST_CHECK_EQUAL(identity21.getName(), id2);
+    BOOST_CHECK_EQUAL(container.size(), 2);
+    BOOST_CHECK_EQUAL(container.getLoadedIdentities().size(), 2);
+    BOOST_CHECK(container.find(id1) != container.end());
+    BOOST_CHECK(container.find(id2) != container.end());
 
-  // get identities
-  BOOST_REQUIRE_NO_THROW(container.get(id1));
-  BOOST_REQUIRE_NO_THROW(container.get(id2));
-  BOOST_CHECK_THROW(container.get(Name("/non-existing")), Pib::Error);
+    // get identities
+    BOOST_REQUIRE_NO_THROW(container.get(id1));
+    BOOST_REQUIRE_NO_THROW(container.get(id2));
+    BOOST_CHECK_THROW(container.get(Name("/non-existing")), Pib::Error);
 
-  // check identity
-  Identity identity1 = container.get(id1);
-  Identity identity2 = container.get(id2);
-  BOOST_CHECK_EQUAL(identity1.getName(), id1);
-  BOOST_CHECK_EQUAL(identity2.getName(), id2);
+    // check identity
+    Identity identity1 = container.get(id1);
+    Identity identity2 = container.get(id2);
+    BOOST_CHECK_EQUAL(identity1.getName(), id1);
+    BOOST_CHECK_EQUAL(identity2.getName(), id2);
 
-  // create another container from the same PibImpl
-  // cache should be empty
-  IdentityContainer container2(pibImpl);
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 0);
+    // create another container from the same PibImpl
+    // cache should be empty
+    IdentityContainer container2(pibImpl);
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 0);
 
-  // get key, cache should be filled
-  BOOST_REQUIRE_NO_THROW(container2.get(id1));
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 1);
+    // get key, cache should be filled
+    BOOST_REQUIRE_NO_THROW(container2.get(id1));
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 1);
 
-  BOOST_REQUIRE_NO_THROW(container2.get(id2));
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 2);
+    BOOST_REQUIRE_NO_THROW(container2.get(id2));
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 2);
 
-  // remove a key
-  container2.remove(id1);
-  BOOST_CHECK_EQUAL(container2.size(), 1);
-  BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 1);
-  BOOST_CHECK(container2.find(id1) == container2.end());
-  BOOST_CHECK(container2.find(id2) != container2.end());
+    // remove a key
+    container2.remove(id1);
+    BOOST_CHECK_EQUAL(container2.size(), 1);
+    BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 1);
+    BOOST_CHECK(container2.find(id1) == container2.end());
+    BOOST_CHECK(container2.find(id2) != container2.end());
 
-  // remove another key
-  container2.remove(id2);
-  BOOST_CHECK_EQUAL(container2.size(), 0);
-  BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 0);
-  BOOST_CHECK(container2.find(id2) == container2.end());
-
+    // remove another key
+    container2.remove(id2);
+    BOOST_CHECK_EQUAL(container2.size(), 0);
+    BOOST_CHECK_EQUAL(container2.getLoadedIdentities().size(), 0);
+    BOOST_CHECK(container2.find(id2) == container2.end());
 }
 
 BOOST_AUTO_TEST_CASE(Iterator)
 {
-  auto pibImpl = make_shared<PibMemory>();
-  IdentityContainer container(pibImpl);
-  container.add(id1);
-  container.add(id2);
+    auto pibImpl = make_shared<PibMemory>();
+    IdentityContainer container(pibImpl);
+    container.add(id1);
+    container.add(id2);
 
-  std::set<Name> idNames;
-  idNames.insert(id1);
-  idNames.insert(id2);
+    std::set<Name> idNames;
+    idNames.insert(id1);
+    idNames.insert(id2);
 
-  IdentityContainer::const_iterator it = container.begin();
-  std::set<Name>::const_iterator testIt = idNames.begin();
-  BOOST_CHECK_EQUAL((*it).getName(), *testIt);
-  it++;
-  testIt++;
-  BOOST_CHECK_EQUAL((*it).getName(), *testIt);
-  ++it;
-  testIt++;
-  BOOST_CHECK(it == container.end());
-
-  size_t count = 0;
-  testIt = idNames.begin();
-  for (const auto& identity : container) {
-    BOOST_CHECK_EQUAL(identity.getName(), *testIt);
+    IdentityContainer::const_iterator it = container.begin();
+    std::set<Name>::const_iterator testIt = idNames.begin();
+    BOOST_CHECK_EQUAL((*it).getName(), *testIt);
+    it++;
     testIt++;
-    count++;
-  }
-  BOOST_CHECK_EQUAL(count, 2);
+    BOOST_CHECK_EQUAL((*it).getName(), *testIt);
+    ++it;
+    testIt++;
+    BOOST_CHECK(it == container.end());
 
-  BOOST_CHECK(IdentityContainer::const_iterator() == IdentityContainer::const_iterator());
-  BOOST_CHECK(IdentityContainer::const_iterator() == container.end());
-  BOOST_CHECK(container.end() == IdentityContainer::const_iterator());
+    size_t count = 0;
+    testIt = idNames.begin();
+    for (const auto& identity : container) {
+        BOOST_CHECK_EQUAL(identity.getName(), *testIt);
+        testIt++;
+        count++;
+    }
+    BOOST_CHECK_EQUAL(count, 2);
+
+    BOOST_CHECK(IdentityContainer::const_iterator() == IdentityContainer::const_iterator());
+    BOOST_CHECK(IdentityContainer::const_iterator() == container.end());
+    BOOST_CHECK(container.end() == IdentityContainer::const_iterator());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestIdentityContainer

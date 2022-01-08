@@ -31,113 +31,113 @@ RegexComponentSetMatcher::RegexComponentSetMatcher(const std::string& expr,
   : RegexMatcher(expr, EXPR_COMPONENT_SET, std::move(backrefManager))
   , m_isInclusion(true)
 {
-  compile();
+    compile();
 }
 
 void
 RegexComponentSetMatcher::compile()
 {
-  if (m_expr.size() < 2)
-    NDN_THROW(Error("Regexp compile error (cannot parse " + m_expr + ")"));
+    if (m_expr.size() < 2)
+        NDN_THROW(Error("Regexp compile error (cannot parse " + m_expr + ")"));
 
-  switch (m_expr[0]) {
-    case '<':
-      return compileSingleComponent();
-    case '[': {
-      size_t lastIndex = m_expr.size() - 1;
-      if (']' != m_expr[lastIndex])
-        NDN_THROW(Error("Regexp compile error (no matching ']' in " + m_expr + ")"));
+    switch (m_expr[0]) {
+        case '<':
+            return compileSingleComponent();
+        case '[': {
+            size_t lastIndex = m_expr.size() - 1;
+            if (']' != m_expr[lastIndex])
+                NDN_THROW(Error("Regexp compile error (no matching ']' in " + m_expr + ")"));
 
-      if ('^' == m_expr[1]) {
-        m_isInclusion = false;
-        compileMultipleComponents(2, lastIndex);
-      }
-      else
-        compileMultipleComponents(1, lastIndex);
-      break;
+            if ('^' == m_expr[1]) {
+                m_isInclusion = false;
+                compileMultipleComponents(2, lastIndex);
+            }
+            else
+                compileMultipleComponents(1, lastIndex);
+            break;
+        }
+        default:
+            NDN_THROW(Error("Regexp compile error (cannot parse " + m_expr + ")"));
     }
-    default:
-      NDN_THROW(Error("Regexp compile error (cannot parse " + m_expr + ")"));
-  }
 }
 
 void
 RegexComponentSetMatcher::compileSingleComponent()
 {
-  size_t end = extractComponent(1);
-  if (m_expr.size() != end)
-    NDN_THROW(Error("Component expr error " + m_expr));
+    size_t end = extractComponent(1);
+    if (m_expr.size() != end)
+        NDN_THROW(Error("Component expr error " + m_expr));
 
-  m_components.push_back(make_shared<RegexComponentMatcher>(m_expr.substr(1, end - 2), m_backrefManager));
+    m_components.push_back(make_shared<RegexComponentMatcher>(m_expr.substr(1, end - 2), m_backrefManager));
 }
 
 void
 RegexComponentSetMatcher::compileMultipleComponents(size_t start, size_t lastIndex)
 {
-  size_t index = start;
-  size_t tempIndex = start;
+    size_t index = start;
+    size_t tempIndex = start;
 
-  while (index < lastIndex) {
-    if ('<' != m_expr[index])
-      NDN_THROW(Error("Component expr error " + m_expr));
+    while (index < lastIndex) {
+        if ('<' != m_expr[index])
+            NDN_THROW(Error("Component expr error " + m_expr));
 
-    tempIndex = index + 1;
-    index = extractComponent(tempIndex);
-    m_components.push_back(make_shared<RegexComponentMatcher>(m_expr.substr(tempIndex, index - tempIndex - 1),
-                                                              m_backrefManager));
-  }
+        tempIndex = index + 1;
+        index = extractComponent(tempIndex);
+        m_components.push_back(
+          make_shared<RegexComponentMatcher>(m_expr.substr(tempIndex, index - tempIndex - 1), m_backrefManager));
+    }
 
-  if (index != lastIndex)
-    NDN_THROW(Error("Not sufficient expr to parse " + m_expr));
+    if (index != lastIndex)
+        NDN_THROW(Error("Not sufficient expr to parse " + m_expr));
 }
 
 bool
 RegexComponentSetMatcher::match(const Name& name, size_t offset, size_t len)
 {
-  // componentset only matches one component
-  if (len != 1)
-    return false;
+    // componentset only matches one component
+    if (len != 1)
+        return false;
 
-  bool isMatched = false;
-  for (const auto& comp : m_components) {
-    if (comp->match(name, offset, len)) {
-      isMatched = true;
-      break;
+    bool isMatched = false;
+    for (const auto& comp : m_components) {
+        if (comp->match(name, offset, len)) {
+            isMatched = true;
+            break;
+        }
     }
-  }
 
-  m_matchResult.clear();
+    m_matchResult.clear();
 
-  if (m_isInclusion ? isMatched : !isMatched) {
-    m_matchResult.push_back(name.get(offset));
-    return true;
-  }
-  else
-    return false;
+    if (m_isInclusion ? isMatched : !isMatched) {
+        m_matchResult.push_back(name.get(offset));
+        return true;
+    }
+    else
+        return false;
 }
 
 size_t
 RegexComponentSetMatcher::extractComponent(size_t index) const
 {
-  size_t lcount = 1;
-  size_t rcount = 0;
+    size_t lcount = 1;
+    size_t rcount = 0;
 
-  while (lcount > rcount) {
-    switch (m_expr[index]) {
-      case '<':
-        lcount++;
-        break;
-      case '>':
-        rcount++;
-        break;
-      case 0:
-        NDN_THROW(Error("Square brackets mismatch"));
-        break;
+    while (lcount > rcount) {
+        switch (m_expr[index]) {
+            case '<':
+                lcount++;
+                break;
+            case '>':
+                rcount++;
+                break;
+            case 0:
+                NDN_THROW(Error("Square brackets mismatch"));
+                break;
+        }
+        index++;
     }
-    index++;
-  }
 
-  return index;
+    return index;
 }
 
 } // namespace ndn

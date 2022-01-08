@@ -31,18 +31,18 @@ SignatureSha256WithEcdsa::SignatureSha256WithEcdsa(const KeyLocator& keyLocator)
 SignatureSha256WithEcdsa::SignatureSha256WithEcdsa(const Signature& signature)
   : Signature(signature)
 {
-  if (getType() != tlv::SignatureSha256WithEcdsa)
-    NDN_THROW(Error("Cannot construct Sha256WithEcdsa from SignatureType " + to_string(getType())));
+    if (getType() != tlv::SignatureSha256WithEcdsa)
+        NDN_THROW(Error("Cannot construct Sha256WithEcdsa from SignatureType " + to_string(getType())));
 
-  if (!hasKeyLocator()) {
-    NDN_THROW(Error("KeyLocator is missing in Sha256WithEcdsa signature"));
-  }
+    if (!hasKeyLocator()) {
+        NDN_THROW(Error("KeyLocator is missing in Sha256WithEcdsa signature"));
+    }
 }
 
 void
 SignatureSha256WithEcdsa::unsetKeyLocator()
 {
-  NDN_THROW(Error("KeyLocator cannot be unset in Sha256WithEcdsa signature"));
+    NDN_THROW(Error("KeyLocator cannot be unset in Sha256WithEcdsa signature"));
 }
 
 } // namespace ndn

@@ -39,132 +39,131 @@ NS_LOG_COMPONENT_DEFINE("ndn.AppDelayTracer");
 namespace ns3 {
 namespace ndn {
 
-static std::list<std::tuple<shared_ptr<std::ostream>, std::list<Ptr<AppDelayTracer>>>>
-  g_tracers;
+static std::list<std::tuple<shared_ptr<std::ostream>, std::list<Ptr<AppDelayTracer>>>> g_tracers;
 
 void
 AppDelayTracer::Destroy()
 {
-  g_tracers.clear();
+    g_tracers.clear();
 }
 
 void
 AppDelayTracer::InstallAll(const std::string& file)
 {
-  using namespace boost;
-  using namespace std;
+    using namespace boost;
+    using namespace std;
 
-  std::list<Ptr<AppDelayTracer>> tracers;
-  shared_ptr<std::ostream> outputStream;
-  if (file != "-") {
-    shared_ptr<std::ofstream> os(new std::ofstream());
-    os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
+    std::list<Ptr<AppDelayTracer>> tracers;
+    shared_ptr<std::ostream> outputStream;
+    if (file != "-") {
+        shared_ptr<std::ofstream> os(new std::ofstream());
+        os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
 
-    if (!os->is_open()) {
-      NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
-      return;
+        if (!os->is_open()) {
+            NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
+            return;
+        }
+
+        outputStream = os;
+    }
+    else {
+        outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([] {}));
     }
 
-    outputStream = os;
-  }
-  else {
-    outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([]{}));
-  }
+    for (NodeList::Iterator node = NodeList::Begin(); node != NodeList::End(); node++) {
+        Ptr<AppDelayTracer> trace = Install(*node, outputStream);
+        tracers.push_back(trace);
+    }
 
-  for (NodeList::Iterator node = NodeList::Begin(); node != NodeList::End(); node++) {
-    Ptr<AppDelayTracer> trace = Install(*node, outputStream);
-    tracers.push_back(trace);
-  }
+    if (tracers.size() > 0) {
+        // *m_l3RateTrace << "# "; // not necessary for R's read.table
+        tracers.front()->PrintHeader(*outputStream);
+        *outputStream << "\n";
+    }
 
-  if (tracers.size() > 0) {
-    // *m_l3RateTrace << "# "; // not necessary for R's read.table
-    tracers.front()->PrintHeader(*outputStream);
-    *outputStream << "\n";
-  }
-
-  g_tracers.push_back(std::make_tuple(outputStream, tracers));
+    g_tracers.push_back(std::make_tuple(outputStream, tracers));
 }
 
 void
 AppDelayTracer::Install(const NodeContainer& nodes, const std::string& file)
 {
-  using namespace boost;
-  using namespace std;
+    using namespace boost;
+    using namespace std;
 
-  std::list<Ptr<AppDelayTracer>> tracers;
-  shared_ptr<std::ostream> outputStream;
-  if (file != "-") {
-    shared_ptr<std::ofstream> os(new std::ofstream());
-    os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
+    std::list<Ptr<AppDelayTracer>> tracers;
+    shared_ptr<std::ostream> outputStream;
+    if (file != "-") {
+        shared_ptr<std::ofstream> os(new std::ofstream());
+        os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
 
-    if (!os->is_open()) {
-      NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
-      return;
+        if (!os->is_open()) {
+            NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
+            return;
+        }
+
+        outputStream = os;
+    }
+    else {
+        outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([] {}));
     }
 
-    outputStream = os;
-  }
-  else {
-    outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([]{}));
-  }
+    for (NodeContainer::Iterator node = nodes.Begin(); node != nodes.End(); node++) {
+        Ptr<AppDelayTracer> trace = Install(*node, outputStream);
+        tracers.push_back(trace);
+    }
 
-  for (NodeContainer::Iterator node = nodes.Begin(); node != nodes.End(); node++) {
-    Ptr<AppDelayTracer> trace = Install(*node, outputStream);
-    tracers.push_back(trace);
-  }
+    if (tracers.size() > 0) {
+        // *m_l3RateTrace << "# "; // not necessary for R's read.table
+        tracers.front()->PrintHeader(*outputStream);
+        *outputStream << "\n";
+    }
 
-  if (tracers.size() > 0) {
-    // *m_l3RateTrace << "# "; // not necessary for R's read.table
-    tracers.front()->PrintHeader(*outputStream);
-    *outputStream << "\n";
-  }
-
-  g_tracers.push_back(std::make_tuple(outputStream, tracers));
+    g_tracers.push_back(std::make_tuple(outputStream, tracers));
 }
 
 void
 AppDelayTracer::Install(Ptr<Node> node, const std::string& file)
 {
-  using namespace boost;
-  using namespace std;
+    using namespace boost;
+    using namespace std;
 
-  std::list<Ptr<AppDelayTracer>> tracers;
-  shared_ptr<std::ostream> outputStream;
-  if (file != "-") {
-    shared_ptr<std::ofstream> os(new std::ofstream());
-    os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
+    std::list<Ptr<AppDelayTracer>> tracers;
+    shared_ptr<std::ostream> outputStream;
+    if (file != "-") {
+        shared_ptr<std::ofstream> os(new std::ofstream());
+        os->open(file.c_str(), std::ios_base::out | std::ios_base::trunc);
 
-    if (!os->is_open()) {
-      NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
-      return;
+        if (!os->is_open()) {
+            NS_LOG_ERROR("File " << file << " cannot be opened for writing. Tracing disabled");
+            return;
+        }
+
+        outputStream = os;
+    }
+    else {
+        outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([] {}));
     }
 
-    outputStream = os;
-  }
-  else {
-    outputStream = shared_ptr<std::ostream>(&std::cout, std::bind([]{}));
-  }
+    Ptr<AppDelayTracer> trace = Install(node, outputStream);
+    tracers.push_back(trace);
 
-  Ptr<AppDelayTracer> trace = Install(node, outputStream);
-  tracers.push_back(trace);
+    if (tracers.size() > 0) {
+        // *m_l3RateTrace << "# "; // not necessary for R's read.table
+        tracers.front()->PrintHeader(*outputStream);
+        *outputStream << "\n";
+    }
 
-  if (tracers.size() > 0) {
-    // *m_l3RateTrace << "# "; // not necessary for R's read.table
-    tracers.front()->PrintHeader(*outputStream);
-    *outputStream << "\n";
-  }
-
-  g_tracers.push_back(std::make_tuple(outputStream, tracers));
+    g_tracers.push_back(std::make_tuple(outputStream, tracers));
 }
 
 Ptr<AppDelayTracer>
 AppDelayTracer::Install(Ptr<Node> node, shared_ptr<std::ostream> outputStream)
 {
-  NS_LOG_DEBUG("Node: " << node->GetId());
+    NS_LOG_DEBUG("Node: " << node->GetId());
 
-  Ptr<AppDelayTracer> trace = Create<AppDelayTracer>(outputStream, node);
+    Ptr<AppDelayTracer> trace = Create<AppDelayTracer>(outputStream, node);
 
-  return trace;
+    return trace;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -175,21 +174,21 @@ AppDelayTracer::AppDelayTracer(shared_ptr<std::ostream> os, Ptr<Node> node)
   : m_nodePtr(node)
   , m_os(os)
 {
-  m_node = boost::lexical_cast<std::string>(m_nodePtr->GetId());
+    m_node = boost::lexical_cast<std::string>(m_nodePtr->GetId());
 
-  Connect();
+    Connect();
 
-  std::string name = Names::FindName(node);
-  if (!name.empty()) {
-    m_node = name;
-  }
+    std::string name = Names::FindName(node);
+    if (!name.empty()) {
+        m_node = name;
+    }
 }
 
 AppDelayTracer::AppDelayTracer(shared_ptr<std::ostream> os, const std::string& node)
   : m_node(node)
   , m_os(os)
 {
-  Connect();
+    Connect();
 }
 
 AppDelayTracer::~AppDelayTracer(){};
@@ -197,59 +196,53 @@ AppDelayTracer::~AppDelayTracer(){};
 void
 AppDelayTracer::Connect()
 {
-  Config::ConnectWithoutContext("/NodeList/" + m_node
-                                  + "/ApplicationList/*/LastRetransmittedInterestDataDelay",
-                                MakeCallback(&AppDelayTracer::LastRetransmittedInterestDataDelay,
-                                             this));
+    Config::ConnectWithoutContext("/NodeList/" + m_node + "/ApplicationList/*/LastRetransmittedInterestDataDelay",
+                                  MakeCallback(&AppDelayTracer::LastRetransmittedInterestDataDelay, this));
 
-  Config::ConnectWithoutContext("/NodeList/" + m_node + "/ApplicationList/*/FirstInterestDataDelay",
-                                MakeCallback(&AppDelayTracer::FirstInterestDataDelay, this));
+    Config::ConnectWithoutContext("/NodeList/" + m_node + "/ApplicationList/*/FirstInterestDataDelay",
+                                  MakeCallback(&AppDelayTracer::FirstInterestDataDelay, this));
 }
 
 void
 AppDelayTracer::PrintHeader(std::ostream& os) const
 {
-  os << "Time"
-     << "\t"
-     << "Node"
-     << "\t"
-     << "AppId"
-     << "\t"
-     << "SeqNo"
-     << "\t"
+    os << "Time"
+       << "\t"
+       << "Node"
+       << "\t"
+       << "AppId"
+       << "\t"
+       << "SeqNo"
+       << "\t"
 
-     << "Type"
-     << "\t"
-     << "DelayS"
-     << "\t"
-     << "DelayUS"
-     << "\t"
-     << "RetxCount"
-     << "\t"
-     << "HopCount"
-     << "";
+       << "Type"
+       << "\t"
+       << "DelayS"
+       << "\t"
+       << "DelayUS"
+       << "\t"
+       << "RetxCount"
+       << "\t"
+       << "HopCount"
+       << "";
 }
 
 void
-AppDelayTracer::LastRetransmittedInterestDataDelay(Ptr<App> app, uint32_t seqno, Time delay,
-                                                   int32_t hopCount)
+AppDelayTracer::LastRetransmittedInterestDataDelay(Ptr<App> app, uint32_t seqno, Time delay, int32_t hopCount)
 {
-  *m_os << Simulator::Now().ToDouble(Time::S) << "\t" << m_node << "\t" << app->GetId() << "\t"
-        << seqno << "\t"
-        << "LastDelay"
-        << "\t" << delay.ToDouble(Time::S) << "\t" << delay.ToDouble(Time::US) << "\t" << 1 << "\t"
-        << hopCount << "\n";
+    *m_os << Simulator::Now().ToDouble(Time::S) << "\t" << m_node << "\t" << app->GetId() << "\t" << seqno << "\t"
+          << "LastDelay"
+          << "\t" << delay.ToDouble(Time::S) << "\t" << delay.ToDouble(Time::US) << "\t" << 1 << "\t" << hopCount
+          << "\n";
 }
 
 void
-AppDelayTracer::FirstInterestDataDelay(Ptr<App> app, uint32_t seqno, Time delay, uint32_t retxCount,
-                                       int32_t hopCount)
+AppDelayTracer::FirstInterestDataDelay(Ptr<App> app, uint32_t seqno, Time delay, uint32_t retxCount, int32_t hopCount)
 {
-  *m_os << Simulator::Now().ToDouble(Time::S) << "\t" << m_node << "\t" << app->GetId() << "\t"
-        << seqno << "\t"
-        << "FullDelay"
-        << "\t" << delay.ToDouble(Time::S) << "\t" << delay.ToDouble(Time::US) << "\t" << retxCount
-        << "\t" << hopCount << "\n";
+    *m_os << Simulator::Now().ToDouble(Time::S) << "\t" << m_node << "\t" << app->GetId() << "\t" << seqno << "\t"
+          << "FullDelay"
+          << "\t" << delay.ToDouble(Time::S) << "\t" << delay.ToDouble(Time::US) << "\t" << retxCount << "\t"
+          << hopCount << "\n";
 }
 
 } // namespace ndn

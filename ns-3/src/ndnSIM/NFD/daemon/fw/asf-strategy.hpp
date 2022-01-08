@@ -43,59 +43,46 @@ namespace asf {
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class AsfStrategy : public Strategy
-{
-public:
-  explicit
-  AsfStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+class AsfStrategy : public Strategy {
+  public:
+    explicit AsfStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-public: // triggers
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+  public: // triggers
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-  void
-  beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry,
-                        const FaceEndpoint& ingress, const Data& data) override;
+    void beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
+                               const Data& data) override;
 
-  void
-  afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                   const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
+                          const shared_ptr<pit::Entry>& pitEntry) override;
 
-private:
-  void
-  processParams(const PartialName& parsed);
+  private:
+    void processParams(const PartialName& parsed);
 
-  void
-  forwardInterest(const Interest& interest, Face& outFace, const fib::Entry& fibEntry,
-                  const shared_ptr<pit::Entry>& pitEntry, bool wantNewNonce = false);
+    void forwardInterest(const Interest& interest, Face& outFace, const fib::Entry& fibEntry,
+                         const shared_ptr<pit::Entry>& pitEntry, bool wantNewNonce = false);
 
-  void
-  sendProbe(const Interest& interest, const FaceEndpoint& ingress, const Face& faceToUse,
-            const fib::Entry& fibEntry, const shared_ptr<pit::Entry>& pitEntry);
+    void sendProbe(const Interest& interest, const FaceEndpoint& ingress, const Face& faceToUse,
+                   const fib::Entry& fibEntry, const shared_ptr<pit::Entry>& pitEntry);
 
-  Face*
-  getBestFaceForForwarding(const Interest& interest, const Face& inFace,
-                           const fib::Entry& fibEntry, const shared_ptr<pit::Entry>& pitEntry,
-                           bool isNewInterest = true);
+    Face* getBestFaceForForwarding(const Interest& interest, const Face& inFace, const fib::Entry& fibEntry,
+                                   const shared_ptr<pit::Entry>& pitEntry, bool isNewInterest = true);
 
-  void
-  onTimeout(const Name& interestName, FaceId faceId);
+    void onTimeout(const Name& interestName, FaceId faceId);
 
-  void
-  sendNoRouteNack(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry);
+    void sendNoRouteNack(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry);
 
-private:
-  AsfMeasurements m_measurements;
-  ProbingModule m_probing;
-  RetxSuppressionExponential m_retxSuppression;
-  size_t m_maxSilentTimeouts = 0;
+  private:
+    AsfMeasurements m_measurements;
+    ProbingModule m_probing;
+    RetxSuppressionExponential m_retxSuppression;
+    size_t m_maxSilentTimeouts = 0;
 
-  static const time::milliseconds RETX_SUPPRESSION_INITIAL;
-  static const time::milliseconds RETX_SUPPRESSION_MAX;
+    static const time::milliseconds RETX_SUPPRESSION_INITIAL;
+    static const time::milliseconds RETX_SUPPRESSION_MAX;
 };
 
 } // namespace asf

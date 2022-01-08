@@ -48,82 +48,71 @@ struct ProtocolFactoryCtorParams;
  *  NFD's face system is organized as a FaceSystem-ProtocolFactory-Channel-Face hierarchy.
  *  FaceSystem class is the entry point of NFD's face system and owns ProtocolFactory objects.
  */
-class FaceSystem : noncopyable
-{
-public:
-  FaceSystem(FaceTable& faceTable, shared_ptr<ndn::net::NetworkMonitor> netmon);
-
-  ~FaceSystem();
-
-  /** \return ProtocolFactory objects owned by the FaceSystem
-   */
-  std::set<const ProtocolFactory*>
-  listProtocolFactories() const;
-
-  /** \return ProtocolFactory for the specified registered factory id or nullptr if not found
-   */
-  ProtocolFactory*
-  getFactoryById(const std::string& id);
-
-  /** \return ProtocolFactory for the specified FaceUri scheme or nullptr if not found
-   */
-  ProtocolFactory*
-  getFactoryByScheme(const std::string& scheme);
-
-  bool
-  hasFactoryForScheme(const std::string& scheme) const;
-
-  FaceTable&
-  getFaceTable()
-  {
-    return m_faceTable;
-  }
-
-  /** \brief register handler for face_system section of NFD configuration file
-   */
-  void
-  setConfigFile(ConfigFile& configFile);
-
-  /** \brief configuration options from "general" section
-   */
-  struct GeneralConfig
-  {
-    bool wantCongestionMarking = true;
-  };
-
-  /** \brief context for processing a config section in ProtocolFactory
-   */
-  class ConfigContext : noncopyable
-  {
+class FaceSystem : noncopyable {
   public:
-    GeneralConfig generalConfig;
-    bool isDryRun;
-  };
+    FaceSystem(FaceTable& faceTable, shared_ptr<ndn::net::NetworkMonitor> netmon);
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  ProtocolFactoryCtorParams
-  makePFCtorParams();
+    ~FaceSystem();
 
-private:
-  void
-  processConfig(const ConfigSection& configSection, bool isDryRun,
-                const std::string& filename);
+    /** \return ProtocolFactory objects owned by the FaceSystem
+     */
+    std::set<const ProtocolFactory*> listProtocolFactories() const;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /** \brief config section name => protocol factory
-   */
-  std::map<std::string, unique_ptr<ProtocolFactory>> m_factories;
-  unique_ptr<NetdevBound> m_netdevBound;
+    /** \return ProtocolFactory for the specified registered factory id or nullptr if not found
+     */
+    ProtocolFactory* getFactoryById(const std::string& id);
 
-private:
-  /** \brief scheme => protocol factory
-   *
-   *  The same protocol factory may be available under multiple schemes.
-   */
-  std::map<std::string, ProtocolFactory*> m_factoryByScheme;
+    /** \return ProtocolFactory for the specified FaceUri scheme or nullptr if not found
+     */
+    ProtocolFactory* getFactoryByScheme(const std::string& scheme);
 
-  FaceTable& m_faceTable;
-  shared_ptr<ndn::net::NetworkMonitor> m_netmon;
+    bool hasFactoryForScheme(const std::string& scheme) const;
+
+    FaceTable&
+    getFaceTable()
+    {
+        return m_faceTable;
+    }
+
+    /** \brief register handler for face_system section of NFD configuration file
+     */
+    void setConfigFile(ConfigFile& configFile);
+
+    /** \brief configuration options from "general" section
+     */
+    struct GeneralConfig {
+        bool wantCongestionMarking = true;
+    };
+
+    /** \brief context for processing a config section in ProtocolFactory
+     */
+    class ConfigContext : noncopyable {
+      public:
+        GeneralConfig generalConfig;
+        bool isDryRun;
+    };
+
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : ProtocolFactoryCtorParams makePFCtorParams();
+
+  private:
+    void processConfig(const ConfigSection& configSection, bool isDryRun, const std::string& filename);
+
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /** \brief config section name => protocol factory
+       */
+      std::map<std::string, unique_ptr<ProtocolFactory>>
+        m_factories;
+    unique_ptr<NetdevBound> m_netdevBound;
+
+  private:
+    /** \brief scheme => protocol factory
+     *
+     *  The same protocol factory may be available under multiple schemes.
+     */
+    std::map<std::string, ProtocolFactory*> m_factoryByScheme;
+
+    FaceTable& m_faceTable;
+    shared_ptr<ndn::net::NetworkMonitor> m_netmon;
 };
 
 } // namespace face

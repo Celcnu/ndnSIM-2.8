@@ -30,13 +30,13 @@ BOOST_AUTO_TEST_SUITE(TestTag)
 
 BOOST_AUTO_TEST_CASE(SimpleTag)
 {
-  typedef ndn::SimpleTag<int, 3> MyTag;
+    typedef ndn::SimpleTag<int, 3> MyTag;
 
-  BOOST_CHECK_EQUAL(MyTag::getTypeId(), 3);
-  MyTag tag(23361); // explicitly convertible from value type
-  int value = tag; // implicitly convertible to value type
-  BOOST_CHECK_EQUAL(value, 23361);
-  BOOST_CHECK_EQUAL(tag.get(), 23361);
+    BOOST_CHECK_EQUAL(MyTag::getTypeId(), 3);
+    MyTag tag(23361); // explicitly convertible from value type
+    int value = tag;  // implicitly convertible to value type
+    BOOST_CHECK_EQUAL(value, 23361);
+    BOOST_CHECK_EQUAL(tag.get(), 23361);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTag

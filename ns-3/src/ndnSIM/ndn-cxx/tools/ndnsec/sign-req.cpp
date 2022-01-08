@@ -28,85 +28,80 @@ namespace ndnsec {
 int
 ndnsec_sign_req(int argc, char** argv)
 {
-  namespace po = boost::program_options;
+    namespace po = boost::program_options;
 
-  Name name;
-  bool isKeyName = false;
+    Name name;
+    bool isKeyName = false;
 
-  po::options_description description(
-    "Usage: ndnsec sign-req [-h] [-k] [-n] NAME\n"
-    "\n"
-    "Options");
-  description.add_options()
-    ("help,h", "produce help message")
-    ("name,n", po::value<Name>(&name), "identity or key name, e.g., /ndn/edu/ucla/alice")
-    ("key,k",  po::bool_switch(&isKeyName), "the specified name is a key name rather than an identity")
-    ;
+    po::options_description description("Usage: ndnsec sign-req [-h] [-k] [-n] NAME\n"
+                                        "\n"
+                                        "Options");
+    description.add_options()("help,h", "produce help message")(
+      "name,n", po::value<Name>(&name),
+      "identity or key name, e.g., /ndn/edu/ucla/alice")("key,k", po::bool_switch(&isKeyName),
+                                                         "the specified name is a key name rather than an identity");
 
-  po::positional_options_description p;
-  p.add("name", 1);
+    po::positional_options_description p;
+    p.add("name", 1);
 
-  po::variables_map vm;
-  try {
-    po::store(po::command_line_parser(argc, argv).options(description).positional(p).run(), vm);
-    po::notify(vm);
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n\n"
-              << description << std::endl;
-    return 2;
-  }
+    po::variables_map vm;
+    try {
+        po::store(po::command_line_parser(argc, argv).options(description).positional(p).run(), vm);
+        po::notify(vm);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << "\n\n" << description << std::endl;
+        return 2;
+    }
 
-  if (vm.count("help") > 0) {
-    std::cout << description << std::endl;
+    if (vm.count("help") > 0) {
+        std::cout << description << std::endl;
+        return 0;
+    }
+
+    if (vm.count("name") == 0) {
+        std::cerr << "ERROR: you must specify a name" << std::endl;
+        return 2;
+    }
+
+    security::v2::KeyChain keyChain;
+
+    security::Identity identity;
+    security::Key key;
+    if (!isKeyName) {
+        identity = keyChain.getPib().getIdentity(name);
+        key = identity.getDefaultKey();
+    }
+    else {
+        identity = keyChain.getPib().getIdentity(security::v2::extractIdentityFromKeyName(name));
+        key = identity.getKey(name);
+    }
+
+    // Create signing request (similar to self-signed certificate)
+    security::v2::Certificate certificate;
+
+    // set name
+    Name certificateName = key.getName();
+    certificateName.append("cert-request").appendVersion();
+    certificate.setName(certificateName);
+
+    // set metainfo
+    certificate.setContentType(tlv::ContentType_Key);
+    certificate.setFreshnessPeriod(1_h);
+
+    // set content
+    certificate.setContent(key.getPublicKey().data(), key.getPublicKey().size());
+
+    // set signature-info
+    SignatureInfo signatureInfo;
+    auto now = time::system_clock::now();
+    signatureInfo.setValidityPeriod(security::ValidityPeriod(now, now + 10_days));
+
+    keyChain.sign(certificate, security::SigningInfo(key).setSignatureInfo(signatureInfo));
+
+    io::save(certificate, std::cout);
+
     return 0;
-  }
-
-  if (vm.count("name") == 0) {
-    std::cerr << "ERROR: you must specify a name" << std::endl;
-    return 2;
-  }
-
-  security::v2::KeyChain keyChain;
-
-  security::Identity identity;
-  security::Key key;
-  if (!isKeyName) {
-    identity = keyChain.getPib().getIdentity(name);
-    key = identity.getDefaultKey();
-  }
-  else {
-    identity = keyChain.getPib().getIdentity(security::v2::extractIdentityFromKeyName(name));
-    key = identity.getKey(name);
-  }
-
-  // Create signing request (similar to self-signed certificate)
-  security::v2::Certificate certificate;
-
-  // set name
-  Name certificateName = key.getName();
-  certificateName
-    .append("cert-request")
-    .appendVersion();
-  certificate.setName(certificateName);
-
-  // set metainfo
-  certificate.setContentType(tlv::ContentType_Key);
-  certificate.setFreshnessPeriod(1_h);
-
-  // set content
-  certificate.setContent(key.getPublicKey().data(), key.getPublicKey().size());
-
-  // set signature-info
-  SignatureInfo signatureInfo;
-  auto now = time::system_clock::now();
-  signatureInfo.setValidityPeriod(security::ValidityPeriod(now, now + 10_days));
-
-  keyChain.sign(certificate, security::SigningInfo(key).setSignatureInfo(signatureInfo));
-
-  io::save(certificate, std::cout);
-
-  return 0;
 }
 
 } // namespace ndnsec

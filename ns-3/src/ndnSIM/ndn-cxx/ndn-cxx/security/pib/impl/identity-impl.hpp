@@ -40,95 +40,87 @@ namespace detail {
  *
  * @throw PibImpl::Error when underlying implementation has non-semantic error.
  */
-class IdentityImpl : noncopyable
-{
-public:
-  /**
-   * @brief Create an Identity with @p identityName.
-   *
-   * @param identityName The name of the Identity.
-   * @param pibImpl The PIB backend implementation.
-   * @param needInit If true, create the identity in backend when the identity does not exist.
-   *                 Otherwise, throw Pib::Error when the identity does not exist.
-   */
-  IdentityImpl(const Name& identityName, shared_ptr<PibImpl> pibImpl, bool needInit = false);
+class IdentityImpl : noncopyable {
+  public:
+    /**
+     * @brief Create an Identity with @p identityName.
+     *
+     * @param identityName The name of the Identity.
+     * @param pibImpl The PIB backend implementation.
+     * @param needInit If true, create the identity in backend when the identity does not exist.
+     *                 Otherwise, throw Pib::Error when the identity does not exist.
+     */
+    IdentityImpl(const Name& identityName, shared_ptr<PibImpl> pibImpl, bool needInit = false);
 
-  /**
-   * @brief Get the name of the identity.
-   */
-  const Name&
-  getName() const
-  {
-    return m_name;
-  }
+    /**
+     * @brief Get the name of the identity.
+     */
+    const Name&
+    getName() const
+    {
+        return m_name;
+    }
 
-  /**
-   * @brief Add a @p key of @p keyLen bytes with @p keyName (in PKCS#8 format).
-   *
-   * If no default key is set before, the new key will be set as the default key of the identity.
-   * If a key with the same name already exists, overwrite the key.
-   *
-   * @return the added key.
-   * @throw std::invalid_argument key name does not match identity
-   */
-  Key
-  addKey(const uint8_t* key, size_t keyLen, const Name& keyName);
+    /**
+     * @brief Add a @p key of @p keyLen bytes with @p keyName (in PKCS#8 format).
+     *
+     * If no default key is set before, the new key will be set as the default key of the identity.
+     * If a key with the same name already exists, overwrite the key.
+     *
+     * @return the added key.
+     * @throw std::invalid_argument key name does not match identity
+     */
+    Key addKey(const uint8_t* key, size_t keyLen, const Name& keyName);
 
-  /**
-   * @brief Remove a key with @p keyName
-   * @throw std::invalid_argument @p keyName does not match identity
-   */
-  void
-  removeKey(const Name& keyName);
+    /**
+     * @brief Remove a key with @p keyName
+     * @throw std::invalid_argument @p keyName does not match identity
+     */
+    void removeKey(const Name& keyName);
 
-  /**
-   * @brief Get a key with id @p keyName.
-   *
-   * @throw std::invalid_argument @p keyName does not match identity
-   * @throw Pib::Error the key does not exist.
-   */
-  Key
-  getKey(const Name& keyName) const;
+    /**
+     * @brief Get a key with id @p keyName.
+     *
+     * @throw std::invalid_argument @p keyName does not match identity
+     * @throw Pib::Error the key does not exist.
+     */
+    Key getKey(const Name& keyName) const;
 
-  /**
-   * @brief Get all keys for this Identity.
-   */
-  const KeyContainer&
-  getKeys() const;
+    /**
+     * @brief Get all keys for this Identity.
+     */
+    const KeyContainer& getKeys() const;
 
-  /**
-   * @brief Set the key with id @p keyName.
-   * @throw std::invalid_argument @p keyName does not match identity
-   * @throw Pib::Error the key does not exist.
-   * @return The default key
-   */
-  const Key&
-  setDefaultKey(const Name& keyName);
+    /**
+     * @brief Set the key with id @p keyName.
+     * @throw std::invalid_argument @p keyName does not match identity
+     * @throw Pib::Error the key does not exist.
+     * @return The default key
+     */
+    const Key& setDefaultKey(const Name& keyName);
 
-  /**
-   * @brief Add @p key of @p keyLen bytes with @p keyName and set it as the default key
-   * @throw std::invalid_argument @p keyName does not match identity
-   * @throw Pib::Error the key with the same name already exists
-   * @return the default key
-   */
-  const Key&
-  setDefaultKey(const uint8_t* key, size_t keyLen, const Name& keyName);
+    /**
+     * @brief Add @p key of @p keyLen bytes with @p keyName and set it as the default key
+     * @throw std::invalid_argument @p keyName does not match identity
+     * @throw Pib::Error the key with the same name already exists
+     * @return the default key
+     */
+    const Key& setDefaultKey(const uint8_t* key, size_t keyLen, const Name& keyName);
 
-  /**
-   * @brief Get the default key for this Identity.
-   * @throw Pib::Error the default key does not exist.
-   */
-  const Key&
-  getDefaultKey() const;
+    /**
+     * @brief Get the default key for this Identity.
+     * @throw Pib::Error the default key does not exist.
+     */
+    const Key& getDefaultKey() const;
 
-private:
-  Name m_name;
+  private:
+    Name m_name;
 
-  shared_ptr<PibImpl> m_pib;
+    shared_ptr<PibImpl> m_pib;
 
-  KeyContainer m_keys;
-  mutable bool m_isDefaultKeyLoaded;
-  mutable Key m_defaultKey;
+    KeyContainer m_keys;
+    mutable bool m_isDefaultKeyLoaded;
+    mutable Key m_defaultKey;
 };
 
 } // namespace detail

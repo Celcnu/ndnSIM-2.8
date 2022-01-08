@@ -37,63 +37,55 @@ namespace ns3 {
  * @todo Finish implementation
  */
 class L2RateTracer : public L2Tracer {
-public:
-  /**
-   * @brief Network layer tracer constructor
-   */
-  L2RateTracer(std::shared_ptr<std::ostream> os, Ptr<Node> node);
-  virtual ~L2RateTracer();
+  public:
+    /**
+     * @brief Network layer tracer constructor
+     */
+    L2RateTracer(std::shared_ptr<std::ostream> os, Ptr<Node> node);
+    virtual ~L2RateTracer();
 
-  /**
-   * @brief Helper method to install tracers on all simulation nodes
-   *
-   * @param file File to which traces will be written
-   * @param averagingPeriod Defines averaging period for the rate calculation,
-   *        as well as how often data will be written into the trace file (default, every half
-   *second)
-   *
-   * @returns a tuple of reference to output stream and list of tracers. !!! Attention !!! This
-   *tuple needs to be preserved
-   *          for the lifetime of simulation, otherwise SEGFAULTs are inevitable
-   *
-   */
-  static void
-  InstallAll(const std::string& file, Time averagingPeriod = Seconds(0.5));
+    /**
+     * @brief Helper method to install tracers on all simulation nodes
+     *
+     * @param file File to which traces will be written
+     * @param averagingPeriod Defines averaging period for the rate calculation,
+     *        as well as how often data will be written into the trace file (default, every half
+     *second)
+     *
+     * @returns a tuple of reference to output stream and list of tracers. !!! Attention !!! This
+     *tuple needs to be preserved
+     *          for the lifetime of simulation, otherwise SEGFAULTs are inevitable
+     *
+     */
+    static void InstallAll(const std::string& file, Time averagingPeriod = Seconds(0.5));
 
-  /**
-   * @brief Explicit request to remove all statically created tracers
-   *
-   * This method can be helpful if simulation scenario contains several independent run,
-   * or if it is desired to do a postprocessing of the resulting data
-   */
-  static void
-  Destroy();
+    /**
+     * @brief Explicit request to remove all statically created tracers
+     *
+     * This method can be helpful if simulation scenario contains several independent run,
+     * or if it is desired to do a postprocessing of the resulting data
+     */
+    static void Destroy();
 
-  void
-  SetAveragingPeriod(const Time& period);
+    void SetAveragingPeriod(const Time& period);
 
-  virtual void
-  PrintHeader(std::ostream& os) const;
+    virtual void PrintHeader(std::ostream& os) const;
 
-  virtual void
-  Print(std::ostream& os) const;
+    virtual void Print(std::ostream& os) const;
 
-  virtual void
-  Drop(Ptr<const Packet>);
+    virtual void Drop(Ptr<const Packet>);
 
-private:
-  void
-  PeriodicPrinter();
+  private:
+    void PeriodicPrinter();
 
-  void
-  Reset();
+    void Reset();
 
-private:
-  std::shared_ptr<std::ostream> m_os;
-  Time m_period;
-  EventId m_printEvent;
+  private:
+    std::shared_ptr<std::ostream> m_os;
+    Time m_period;
+    EventId m_printEvent;
 
-  mutable std::tuple<Stats, Stats, Stats, Stats> m_stats;
+    mutable std::tuple<Stats, Stats, Stats, Stats> m_stats;
 };
 
 } // namespace ns3

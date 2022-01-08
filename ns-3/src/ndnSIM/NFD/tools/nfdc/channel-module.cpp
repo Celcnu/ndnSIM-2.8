@@ -31,51 +31,49 @@ namespace tools {
 namespace nfdc {
 
 void
-ChannelModule::fetchStatus(Controller& controller,
-                           const std::function<void()>& onSuccess,
-                           const Controller::DatasetFailCallback& onFailure,
-                           const CommandOptions& options)
+ChannelModule::fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                           const Controller::DatasetFailCallback& onFailure, const CommandOptions& options)
 {
-  controller.fetch<ndn::nfd::ChannelDataset>(
-    [this, onSuccess] (const std::vector<ChannelStatus>& result) {
-      m_status = result;
-      onSuccess();
-    },
-    onFailure, options);
+    controller.fetch<ndn::nfd::ChannelDataset>(
+      [this, onSuccess](const std::vector<ChannelStatus>& result) {
+          m_status = result;
+          onSuccess();
+      },
+      onFailure, options);
 }
 
 void
 ChannelModule::formatStatusXml(std::ostream& os) const
 {
-  os << "<channels>";
-  for (const ChannelStatus& item : m_status) {
-    this->formatItemXml(os, item);
-  }
-  os << "</channels>";
+    os << "<channels>";
+    for (const ChannelStatus& item : m_status) {
+        this->formatItemXml(os, item);
+    }
+    os << "</channels>";
 }
 
 void
 ChannelModule::formatItemXml(std::ostream& os, const ChannelStatus& item) const
 {
-  os << "<channel>";
-  os << "<localUri>" << xml::Text{item.getLocalUri()} << "</localUri>";
-  os << "</channel>";
+    os << "<channel>";
+    os << "<localUri>" << xml::Text{item.getLocalUri()} << "</localUri>";
+    os << "</channel>";
 }
 
 void
 ChannelModule::formatStatusText(std::ostream& os) const
 {
-  os << "Channels:\n";
-  for (const ChannelStatus& item : m_status) {
-    this->formatItemText(os, item);
-  }
+    os << "Channels:\n";
+    for (const ChannelStatus& item : m_status) {
+        this->formatItemText(os, item);
+    }
 }
 
 void
 ChannelModule::formatItemText(std::ostream& os, const ChannelStatus& item) const
 {
-  os << "  " << item.getLocalUri();
-  os << "\n";
+    os << "  " << item.getLocalUri();
+    os << "\n";
 }
 
 } // namespace nfdc

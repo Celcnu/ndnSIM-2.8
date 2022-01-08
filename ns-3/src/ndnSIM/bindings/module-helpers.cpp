@@ -25,7 +25,7 @@ namespace fib {
 std::shared_ptr<Face>
 getFaceFromFibNextHop(const NextHop& nextHop)
 {
-  return nextHop.getFace().shared_from_this();
+    return nextHop.getFace().shared_from_this();
 }
 
 } // namespace fib

@@ -48,92 +48,90 @@ NS_LOG_COMPONENT_DEFINE("ndn.WifiExample");
 int
 main(int argc, char* argv[])
 {
-  // disable fragmentation
-  Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
-  Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("2200"));
-  Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",
-                     StringValue("OfdmRate24Mbps"));
+    // disable fragmentation
+    Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue("2200"));
+    Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue("2200"));
+    Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue("OfdmRate24Mbps"));
 
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  //////////////////////
-  //////////////////////
-  //////////////////////
-  WifiHelper wifi;
-  // wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
-  wifi.SetStandard(WIFI_PHY_STANDARD_80211a);
-  wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode",
-                               StringValue("OfdmRate24Mbps"));
+    //////////////////////
+    //////////////////////
+    //////////////////////
+    WifiHelper wifi;
+    // wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
+    wifi.SetStandard(WIFI_PHY_STANDARD_80211a);
+    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue("OfdmRate24Mbps"));
 
-  YansWifiChannelHelper wifiChannel; // = YansWifiChannelHelper::Default ();
-  wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-  wifiChannel.AddPropagationLoss("ns3::ThreeLogDistancePropagationLossModel");
-  wifiChannel.AddPropagationLoss("ns3::NakagamiPropagationLossModel");
+    YansWifiChannelHelper wifiChannel; // = YansWifiChannelHelper::Default ();
+    wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+    wifiChannel.AddPropagationLoss("ns3::ThreeLogDistancePropagationLossModel");
+    wifiChannel.AddPropagationLoss("ns3::NakagamiPropagationLossModel");
 
-  // YansWifiPhy wifiPhy = YansWifiPhy::Default();
-  YansWifiPhyHelper wifiPhyHelper = YansWifiPhyHelper::Default();
-  wifiPhyHelper.SetChannel(wifiChannel.Create());
-  wifiPhyHelper.Set("TxPowerStart", DoubleValue(5));
-  wifiPhyHelper.Set("TxPowerEnd", DoubleValue(5));
+    // YansWifiPhy wifiPhy = YansWifiPhy::Default();
+    YansWifiPhyHelper wifiPhyHelper = YansWifiPhyHelper::Default();
+    wifiPhyHelper.SetChannel(wifiChannel.Create());
+    wifiPhyHelper.Set("TxPowerStart", DoubleValue(5));
+    wifiPhyHelper.Set("TxPowerEnd", DoubleValue(5));
 
-  WifiMacHelper wifiMacHelper;
-  wifiMacHelper.SetType("ns3::AdhocWifiMac");
+    WifiMacHelper wifiMacHelper;
+    wifiMacHelper.SetType("ns3::AdhocWifiMac");
 
-  Ptr<UniformRandomVariable> randomizer = CreateObject<UniformRandomVariable>();
-  randomizer->SetAttribute("Min", DoubleValue(10));
-  randomizer->SetAttribute("Max", DoubleValue(100));
+    Ptr<UniformRandomVariable> randomizer = CreateObject<UniformRandomVariable>();
+    randomizer->SetAttribute("Min", DoubleValue(10));
+    randomizer->SetAttribute("Max", DoubleValue(100));
 
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", PointerValue(randomizer),
-                                "Y", PointerValue(randomizer), "Z", PointerValue(randomizer));
+    MobilityHelper mobility;
+    mobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", PointerValue(randomizer), "Y",
+                                  PointerValue(randomizer), "Z", PointerValue(randomizer));
 
-  mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
 
-  NodeContainer nodes;
-  nodes.Create(2);
+    NodeContainer nodes;
+    nodes.Create(2);
 
-  ////////////////
-  // 1. Install Wifi
-  NetDeviceContainer wifiNetDevices = wifi.Install(wifiPhyHelper, wifiMacHelper, nodes);
+    ////////////////
+    // 1. Install Wifi
+    NetDeviceContainer wifiNetDevices = wifi.Install(wifiPhyHelper, wifiMacHelper, nodes);
 
-  // 2. Install Mobility model
-  mobility.Install(nodes);
+    // 2. Install Mobility model
+    mobility.Install(nodes);
 
-  // 3. Install NDN stack
-  NS_LOG_INFO("Installing NDN stack");
-  ndn::StackHelper ndnHelper;
-  // ndnHelper.AddNetDeviceFaceCreateCallback (WifiNetDevice::GetTypeId (), MakeCallback
-  // (MyNetDeviceFaceCallback));
-  ndnHelper.setPolicy("nfd::cs::lru");
-  ndnHelper.setCsSize(1000);
-  ndnHelper.SetDefaultRoutes(true);
-  ndnHelper.Install(nodes);
+    // 3. Install NDN stack
+    NS_LOG_INFO("Installing NDN stack");
+    ndn::StackHelper ndnHelper;
+    // ndnHelper.AddNetDeviceFaceCreateCallback (WifiNetDevice::GetTypeId (), MakeCallback
+    // (MyNetDeviceFaceCallback));
+    ndnHelper.setPolicy("nfd::cs::lru");
+    ndnHelper.setCsSize(1000);
+    ndnHelper.SetDefaultRoutes(true);
+    ndnHelper.Install(nodes);
 
-  // Set BestRoute strategy
-  ndn::StrategyChoiceHelper::Install(nodes, "/", "/localhost/nfd/strategy/best-route");
+    // Set BestRoute strategy
+    ndn::StrategyChoiceHelper::Install(nodes, "/", "/localhost/nfd/strategy/best-route");
 
-  // 4. Set up applications
-  NS_LOG_INFO("Installing Applications");
+    // 4. Set up applications
+    NS_LOG_INFO("Installing Applications");
 
-  ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
-  consumerHelper.SetPrefix("/test/prefix");
-  consumerHelper.SetAttribute("Frequency", DoubleValue(10.0));
-  consumerHelper.Install(nodes.Get(0));
+    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+    consumerHelper.SetPrefix("/test/prefix");
+    consumerHelper.SetAttribute("Frequency", DoubleValue(10.0));
+    consumerHelper.Install(nodes.Get(0));
 
-  ndn::AppHelper producerHelper("ns3::ndn::Producer");
-  producerHelper.SetPrefix("/");
-  producerHelper.SetAttribute("PayloadSize", StringValue("1200"));
-  producerHelper.Install(nodes.Get(1));
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    producerHelper.SetPrefix("/");
+    producerHelper.SetAttribute("PayloadSize", StringValue("1200"));
+    producerHelper.Install(nodes.Get(1));
 
-  ////////////////
+    ////////////////
 
-  Simulator::Stop(Seconds(30.0));
+    Simulator::Stop(Seconds(30.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -141,5 +139,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

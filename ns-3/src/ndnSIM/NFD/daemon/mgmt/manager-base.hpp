@@ -44,121 +44,106 @@ using ndn::nfd::ControlResponse;
  * @brief A collection of common functions shared by all NFD managers,
  *        such as communicating with the dispatcher and command validator.
  */
-class ManagerBase : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class ManagerBase : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  virtual
-  ~ManagerBase();
+    virtual ~ManagerBase();
 
-  const std::string&
-  getModule() const
-  {
-    return m_module;
-  }
+    const std::string&
+    getModule() const
+    {
+        return m_module;
+    }
 
-protected:
-  /**
-   * @warning if you use this constructor, you MUST override makeAuthorization()
-   */
-  ManagerBase(const std::string& module, Dispatcher& dispatcher);
+  protected:
+    /**
+     * @warning if you use this constructor, you MUST override makeAuthorization()
+     */
+    ManagerBase(const std::string& module, Dispatcher& dispatcher);
 
-  ManagerBase(const std::string& module, Dispatcher& dispatcher,
-              CommandAuthenticator& authenticator);
+    ManagerBase(const std::string& module, Dispatcher& dispatcher, CommandAuthenticator& authenticator);
 
-PUBLIC_WITH_TESTS_ELSE_PROTECTED: // registrations to the dispatcher
-  // difference from mgmt::ControlCommand: accepts nfd::ControlParameters
-  using ControlCommandHandler = std::function<void(const ControlCommand& command,
-                                                   const Name& prefix, const Interest& interest,
-                                                   const ControlParameters& parameters,
-                                                   const ndn::mgmt::CommandContinuation done)>;
+    PUBLIC_WITH_TESTS_ELSE_PROTECTED
+      : // registrations to the dispatcher
+        // difference from mgmt::ControlCommand: accepts nfd::ControlParameters
+        using ControlCommandHandler =
+          std::function<void(const ControlCommand& command, const Name& prefix, const Interest& interest,
+                             const ControlParameters& parameters, const ndn::mgmt::CommandContinuation done)>;
 
-  template<typename Command>
-  void
-  registerCommandHandler(const std::string& verb,
-                         const ControlCommandHandler& handler);
+    template <typename Command>
+    void registerCommandHandler(const std::string& verb, const ControlCommandHandler& handler);
 
-  void
-  registerStatusDatasetHandler(const std::string& verb,
-                               const ndn::mgmt::StatusDatasetHandler& handler);
+    void registerStatusDatasetHandler(const std::string& verb, const ndn::mgmt::StatusDatasetHandler& handler);
 
-  ndn::mgmt::PostNotification
-  registerNotificationStream(const std::string& verb);
+    ndn::mgmt::PostNotification registerNotificationStream(const std::string& verb);
 
-PUBLIC_WITH_TESTS_ELSE_PROTECTED: // helpers
-  /**
-   * @brief Extracts the requester from a ControlCommand request.
-   *
-   * This is called after the signature has been validated.
-   *
-   * @param interest a request for ControlCommand
-   * @param accept callback of successful validation, takes the requester string as a argument
-   */
-  void
-  extractRequester(const Interest& interest, ndn::mgmt::AcceptContinuation accept);
+    PUBLIC_WITH_TESTS_ELSE_PROTECTED
+      : // helpers
+        /**
+         * @brief Extracts the requester from a ControlCommand request.
+         *
+         * This is called after the signature has been validated.
+         *
+         * @param interest a request for ControlCommand
+         * @param accept callback of successful validation, takes the requester string as a argument
+         */
+        void
+        extractRequester(const Interest& interest, ndn::mgmt::AcceptContinuation accept);
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /**
-   * @brief Returns an authorization function for a specific management module and verb.
-   */
-  virtual ndn::mgmt::Authorization
-  makeAuthorization(const std::string& verb);
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /**
+       * @brief Returns an authorization function for a specific management module and verb.
+       */
+      virtual ndn::mgmt::Authorization
+      makeAuthorization(const std::string& verb);
 
-  /**
-   * @brief Validates the @p parameters for a given @p command.
-   *
-   * @param parameters the original ControlParameters
-   * @return whether the original ControlParameters can be validated
-   */
-  static bool
-  validateParameters(const ControlCommand& command,
-                     const ndn::mgmt::ControlParameters& parameters);
+    /**
+     * @brief Validates the @p parameters for a given @p command.
+     *
+     * @param parameters the original ControlParameters
+     * @return whether the original ControlParameters can be validated
+     */
+    static bool validateParameters(const ControlCommand& command, const ndn::mgmt::ControlParameters& parameters);
 
-  /**
-   * @brief Handles a control command.
-   */
-  static void
-  handleCommand(shared_ptr<ControlCommand> command,
-                const ControlCommandHandler& handler,
-                const Name& prefix, const Interest& interest,
-                const ndn::mgmt::ControlParameters& params,
-                ndn::mgmt::CommandContinuation done);
+    /**
+     * @brief Handles a control command.
+     */
+    static void handleCommand(shared_ptr<ControlCommand> command, const ControlCommandHandler& handler,
+                              const Name& prefix, const Interest& interest, const ndn::mgmt::ControlParameters& params,
+                              ndn::mgmt::CommandContinuation done);
 
-  /**
-   * @brief Generates the relative prefix for a handler by appending the verb name to the module name.
-   *
-   * @param verb the verb name
-   * @return the generated relative prefix
-   */
-  PartialName
-  makeRelPrefix(const std::string& verb)
-  {
-    return PartialName(m_module).append(verb);
-  }
+    /**
+     * @brief Generates the relative prefix for a handler by appending the verb name to the module name.
+     *
+     * @param verb the verb name
+     * @return the generated relative prefix
+     */
+    PartialName
+    makeRelPrefix(const std::string& verb)
+    {
+        return PartialName(m_module).append(verb);
+    }
 
-private:
-  std::string m_module;
-  Dispatcher& m_dispatcher;
-  CommandAuthenticator* m_authenticator = nullptr;
+  private:
+    std::string m_module;
+    Dispatcher& m_dispatcher;
+    CommandAuthenticator* m_authenticator = nullptr;
 };
 
-template<typename Command>
+template <typename Command>
 inline void
-ManagerBase::registerCommandHandler(const std::string& verb,
-                                    const ControlCommandHandler& handler)
+ManagerBase::registerCommandHandler(const std::string& verb, const ControlCommandHandler& handler)
 {
-  auto command = make_shared<Command>();
+    auto command = make_shared<Command>();
 
-  m_dispatcher.addControlCommand<ControlParameters>(
-    makeRelPrefix(verb),
-    makeAuthorization(verb),
-    bind(&ManagerBase::validateParameters, std::cref(*command), _1),
-    bind(&ManagerBase::handleCommand, command, handler, _1, _2, _3, _4));
+    m_dispatcher.addControlCommand<ControlParameters>(makeRelPrefix(verb), makeAuthorization(verb),
+                                                      bind(&ManagerBase::validateParameters, std::cref(*command), _1),
+                                                      bind(&ManagerBase::handleCommand, command, handler, _1, _2, _3,
+                                                           _4));
 }
 
 } // namespace nfd

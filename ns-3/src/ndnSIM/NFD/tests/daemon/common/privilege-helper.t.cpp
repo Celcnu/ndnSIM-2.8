@@ -35,35 +35,34 @@ BOOST_AUTO_TEST_SUITE(TestPrivilegeHelper)
 BOOST_AUTO_TEST_CASE(DropRaise)
 {
 #ifdef HAVE_PRIVILEGE_DROP_AND_ELEVATE
-  SKIP_IF_NOT_SUPERUSER();
+    SKIP_IF_NOT_SUPERUSER();
 
-  // The following assumes that daemon:daemon is present on the test system
-  PrivilegeHelper::initialize("daemon", "daemon");
-  BOOST_CHECK_EQUAL(::geteuid(), 0);
-  BOOST_CHECK_EQUAL(::getegid(), 0);
-
-  PrivilegeHelper::drop();
-  BOOST_CHECK_NE(::geteuid(), 0);
-  BOOST_CHECK_NE(::getegid(), 0);
-
-  PrivilegeHelper::runElevated([] {
+    // The following assumes that daemon:daemon is present on the test system
+    PrivilegeHelper::initialize("daemon", "daemon");
     BOOST_CHECK_EQUAL(::geteuid(), 0);
     BOOST_CHECK_EQUAL(::getegid(), 0);
-  });
-  BOOST_CHECK_NE(::geteuid(), 0);
-  BOOST_CHECK_NE(::getegid(), 0);
 
-  BOOST_CHECK_THROW(PrivilegeHelper::runElevated(std::function<void()>{}),
-                    std::bad_function_call);
-  BOOST_CHECK_NE(::geteuid(), 0);
-  BOOST_CHECK_NE(::getegid(), 0);
+    PrivilegeHelper::drop();
+    BOOST_CHECK_NE(::geteuid(), 0);
+    BOOST_CHECK_NE(::getegid(), 0);
 
-  PrivilegeHelper::raise();
-  BOOST_CHECK_EQUAL(::geteuid(), 0);
-  BOOST_CHECK_EQUAL(::getegid(), 0);
+    PrivilegeHelper::runElevated([] {
+        BOOST_CHECK_EQUAL(::geteuid(), 0);
+        BOOST_CHECK_EQUAL(::getegid(), 0);
+    });
+    BOOST_CHECK_NE(::geteuid(), 0);
+    BOOST_CHECK_NE(::getegid(), 0);
+
+    BOOST_CHECK_THROW(PrivilegeHelper::runElevated(std::function<void()>{}), std::bad_function_call);
+    BOOST_CHECK_NE(::geteuid(), 0);
+    BOOST_CHECK_NE(::getegid(), 0);
+
+    PrivilegeHelper::raise();
+    BOOST_CHECK_EQUAL(::geteuid(), 0);
+    BOOST_CHECK_EQUAL(::getegid(), 0);
 
 #else
-  BOOST_TEST_MESSAGE("Dropping/raising privileges not supported on this platform, skipping");
+    BOOST_TEST_MESSAGE("Dropping/raising privileges not supported on this platform, skipping");
 #endif // HAVE_PRIVILEGE_DROP_AND_ELEVATE
 }
 

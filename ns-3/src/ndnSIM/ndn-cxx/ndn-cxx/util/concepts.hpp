@@ -40,70 +40,66 @@ namespace ndn {
 
 /** \brief a concept check for TLV abstraction with .wireEncode method
  */
-template<class X>
-class WireEncodable
-{
-public:
-  BOOST_CONCEPT_USAGE(WireEncodable)
-  {
-    Block block = j.wireEncode();
-    block.size(); // avoid 'unused variable block'
-  }
+template <class X>
+class WireEncodable {
+  public:
+    BOOST_CONCEPT_USAGE(WireEncodable)
+    {
+        Block block = j.wireEncode();
+        block.size(); // avoid 'unused variable block'
+    }
 
-private:
-  X j;
+  private:
+    X j;
 };
 
 /** \brief a concept check for TLV abstraction with .wireEncode method
  */
-template<class X>
-class WireEncodableWithEncodingBuffer
-{
-public:
-  BOOST_CONCEPT_USAGE(WireEncodableWithEncodingBuffer)
-  {
-    EncodingEstimator estimator;
-    size_t estimatedSize = j.wireEncode(estimator);
+template <class X>
+class WireEncodableWithEncodingBuffer {
+  public:
+    BOOST_CONCEPT_USAGE(WireEncodableWithEncodingBuffer)
+    {
+        EncodingEstimator estimator;
+        size_t estimatedSize = j.wireEncode(estimator);
 
-    EncodingBuffer encoder(estimatedSize, 0);
-    j.wireEncode(encoder);
-  }
+        EncodingBuffer encoder(estimatedSize, 0);
+        j.wireEncode(encoder);
+    }
 
-private:
-  X j;
+  private:
+    X j;
 };
 
 /** \brief a concept check for TLV abstraction with .wireDecode method
  *         and constructible from Block
  */
-template<class X>
-class WireDecodable
-{
-public:
-  BOOST_CONCEPT_USAGE(WireDecodable)
-  {
-    Block block;
-    X j(block);
-    j.wireDecode(block);
-  }
+template <class X>
+class WireDecodable {
+  public:
+    BOOST_CONCEPT_USAGE(WireDecodable)
+    {
+        Block block;
+        X j(block);
+        j.wireDecode(block);
+    }
 };
 
 namespace detail {
 
-template<class X>
-class NfdMgmtProtocolStruct : public WireEncodable<X>
-                            , public WireEncodableWithEncodingBuffer<X>
-                            , public WireDecodable<X>
-{
-public:
-  BOOST_CONCEPT_USAGE(NfdMgmtProtocolStruct)
-  {
-    static_assert(std::is_default_constructible<X>::value, "");
-    static_assert(boost::has_equal_to<X, X, bool>::value, "");
-    static_assert(boost::has_not_equal_to<X, X, bool>::value, "");
-    static_assert(boost::has_left_shift<std::ostream, X, std::ostream&>::value, "");
-    static_assert(std::is_base_of<tlv::Error, typename X::Error>::value, "");
-  }
+template <class X>
+class NfdMgmtProtocolStruct : public WireEncodable<X>,
+                              public WireEncodableWithEncodingBuffer<X>,
+                              public WireDecodable<X> {
+  public:
+    BOOST_CONCEPT_USAGE(NfdMgmtProtocolStruct)
+    {
+        static_assert(std::is_default_constructible<X>::value, "");
+        static_assert(boost::has_equal_to<X, X, bool>::value, "");
+        static_assert(boost::has_not_equal_to<X, X, bool>::value, "");
+        static_assert(boost::has_left_shift<std::ostream, X, std::ostream&>::value, "");
+        static_assert(std::is_base_of<tlv::Error, typename X::Error>::value, "");
+    }
 };
 
 } // namespace detail
@@ -111,17 +107,15 @@ public:
 /** \brief concept check for an item in a Status Dataset
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/StatusDataset
  */
-template<class X>
-class StatusDatasetItem : public detail::NfdMgmtProtocolStruct<X>
-{
+template <class X>
+class StatusDatasetItem : public detail::NfdMgmtProtocolStruct<X> {
 };
 
 /** \brief concept check for an item in a Notification Stream
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/Notification
  */
-template<class X>
-class NotificationStreamItem : public detail::NfdMgmtProtocolStruct<X>
-{
+template <class X>
+class NotificationStreamItem : public detail::NfdMgmtProtocolStruct<X> {
 };
 
 // NDN_CXX_ASSERT_DEFAULT_CONSTRUCTIBLE and NDN_CXX_ASSERT_FORWARD_ITERATOR
@@ -132,10 +126,8 @@ namespace detail {
 // As of Boost 1.61.0, the internal implementation of BOOST_CONCEPT_ASSERT does not allow
 // multiple assertions on the same line, so we have to combine multiple concepts together.
 
-template<typename T>
-class StlForwardIteratorConcept : public boost::ForwardIterator<T>
-                                , public boost::DefaultConstructible<T>
-{
+template <typename T>
+class StlForwardIteratorConcept : public boost::ForwardIterator<T>, public boost::DefaultConstructible<T> {
 };
 
 } // namespace detail
@@ -144,20 +136,18 @@ class StlForwardIteratorConcept : public boost::ForwardIterator<T>
 /** \brief assert T is default constructible
  *  \sa http://en.cppreference.com/w/cpp/concept/DefaultConstructible
  */
-#define NDN_CXX_ASSERT_DEFAULT_CONSTRUCTIBLE(T) \
-  static_assert(std::is_default_constructible<T>::value, \
-                #T " must be default-constructible"); \
-  BOOST_CONCEPT_ASSERT((boost::DefaultConstructible<T>))
+#define NDN_CXX_ASSERT_DEFAULT_CONSTRUCTIBLE(T)                                                                        \
+    static_assert(std::is_default_constructible<T>::value, #T " must be default-constructible");                       \
+    BOOST_CONCEPT_ASSERT((boost::DefaultConstructible<T>))
 
 /** \brief assert T is a forward iterator
  *  \sa http://en.cppreference.com/w/cpp/concept/ForwardIterator
  *  \note A forward iterator should be default constructible, but boost::ForwardIterator follows
  *        SGI standard which doesn't require DefaultConstructible, so a separate check is needed.
  */
-#define NDN_CXX_ASSERT_FORWARD_ITERATOR(T) \
-  static_assert(std::is_default_constructible<T>::value, \
-                #T " must be default-constructible"); \
-  BOOST_CONCEPT_ASSERT((::ndn::detail::StlForwardIteratorConcept<T>))
+#define NDN_CXX_ASSERT_FORWARD_ITERATOR(T)                                                                             \
+    static_assert(std::is_default_constructible<T>::value, #T " must be default-constructible");                       \
+    BOOST_CONCEPT_ASSERT((::ndn::detail::StlForwardIteratorConcept<T>))
 
 } // namespace ndn
 

@@ -32,48 +32,44 @@ namespace ndn {
  * @brief Ndn application for sending out Interest packets at a "constant" rate (Poisson process)
  */
 class ConsumerCbr : public Consumer {
-public:
-  static TypeId
-  GetTypeId();
+  public:
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Default constructor
-   * Sets up randomizer function and packet sequence number
-   */
-  // 构造函数以及虚析构函数（便于派生）
-  ConsumerCbr();
-  virtual ~ConsumerCbr();
+    /**
+     * \brief Default constructor
+     * Sets up randomizer function and packet sequence number
+     */
+    // 构造函数以及虚析构函数（便于派生）
+    ConsumerCbr();
+    virtual ~ConsumerCbr();
 
-protected:
-  /**
-   * \brief Constructs the Interest packet and sends it using a callback to the underlying NDN
-   * protocol
-   */
-  // 发包规则: 以常数频率Frequence发interest
-  virtual void
-  ScheduleNextPacket();
+  protected:
+    /**
+     * \brief Constructs the Interest packet and sends it using a callback to the underlying NDN
+     * protocol
+     */
+    // 发包规则: 以常数频率Frequence发interest
+    virtual void ScheduleNextPacket();
 
-  /**
-   * @brief Set type of frequency randomization
-   * @param value Either 'none', 'uniform', or 'exponential'
-   */
-  // 设置随机性规则，可以选择均匀分布、泊松分布
-  // TODO: ???
-  void
-  SetRandomize(const std::string& value);
+    /**
+     * @brief Set type of frequency randomization
+     * @param value Either 'none', 'uniform', or 'exponential'
+     */
+    // 设置随机性规则，可以选择均匀分布、泊松分布
+    // TODO: ???
+    void SetRandomize(const std::string& value);
 
-  /**
-   * @brief Get type of frequency randomization
-   * @returns either 'none', 'uniform', or 'exponential'
-   */
-  std::string
-  GetRandomize() const;
+    /**
+     * @brief Get type of frequency randomization
+     * @returns either 'none', 'uniform', or 'exponential'
+     */
+    std::string GetRandomize() const;
 
-protected:
-  double m_frequency; // Frequency of interest packets (in hertz)
-  bool m_firstTime;   // 标志是不是第一次请求
-  Ptr<RandomVariableStream> m_random; // 随机数生成器
-  std::string m_randomType; // 随机的规则?
+  protected:
+    double m_frequency;                 // Frequency of interest packets (in hertz)
+    bool m_firstTime;                   // 标志是不是第一次请求
+    Ptr<RandomVariableStream> m_random; // 随机数生成器
+    std::string m_randomType;           // 随机的规则?
 };
 
 } // namespace ndn

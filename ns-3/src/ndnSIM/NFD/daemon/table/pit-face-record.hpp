@@ -36,52 +36,49 @@ namespace pit {
  *  \note This is an implementation detail to extract common functionality
  *        of InRecord and OutRecord
  */
-class FaceRecord : public StrategyInfoHost
-{
-public:
-  explicit
-  FaceRecord(Face& face)
-    : m_face(face)
-  {
-  }
+class FaceRecord : public StrategyInfoHost {
+  public:
+    explicit FaceRecord(Face& face)
+      : m_face(face)
+    {
+    }
 
-  Face&
-  getFace() const
-  {
-    return m_face;
-  }
+    Face&
+    getFace() const
+    {
+        return m_face;
+    }
 
-  uint32_t
-  getLastNonce() const
-  {
-    return m_lastNonce;
-  }
+    uint32_t
+    getLastNonce() const
+    {
+        return m_lastNonce;
+    }
 
-  time::steady_clock::TimePoint
-  getLastRenewed() const
-  {
-    return m_lastRenewed;
-  }
+    time::steady_clock::TimePoint
+    getLastRenewed() const
+    {
+        return m_lastRenewed;
+    }
 
-  /** \brief Returns the time point at which this record expires
-   *  \return getLastRenewed() + InterestLifetime
-   */
-  time::steady_clock::TimePoint
-  getExpiry() const
-  {
-    return m_expiry;
-  }
+    /** \brief Returns the time point at which this record expires
+     *  \return getLastRenewed() + InterestLifetime
+     */
+    time::steady_clock::TimePoint
+    getExpiry() const
+    {
+        return m_expiry;
+    }
 
-  /** \brief updates lastNonce, lastRenewed, expiry fields
-   */
-  void
-  update(const Interest& interest);
+    /** \brief updates lastNonce, lastRenewed, expiry fields
+     */
+    void update(const Interest& interest);
 
-private:
-  Face& m_face;
-  uint32_t m_lastNonce = 0;
-  time::steady_clock::TimePoint m_lastRenewed = time::steady_clock::TimePoint::min();
-  time::steady_clock::TimePoint m_expiry = time::steady_clock::TimePoint::min();
+  private:
+    Face& m_face;
+    uint32_t m_lastNonce = 0;
+    time::steady_clock::TimePoint m_lastRenewed = time::steady_clock::TimePoint::min();
+    time::steady_clock::TimePoint m_expiry = time::steady_clock::TimePoint::min();
 };
 
 } // namespace pit

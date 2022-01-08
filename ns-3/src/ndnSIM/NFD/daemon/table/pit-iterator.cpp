@@ -41,24 +41,24 @@ Iterator::Iterator(const NameTree::const_iterator& ntIt, size_t iPitEntry)
 Iterator&
 Iterator::operator++()
 {
-  BOOST_ASSERT(m_ntIt != NameTree::const_iterator());
-  BOOST_ASSERT(m_iPitEntry < m_ntIt->getPitEntries().size());
+    BOOST_ASSERT(m_ntIt != NameTree::const_iterator());
+    BOOST_ASSERT(m_iPitEntry < m_ntIt->getPitEntries().size());
 
-  if (++m_iPitEntry >= m_ntIt->getPitEntries().size()) {
-    ++m_ntIt;
-    m_iPitEntry = 0;
-    BOOST_ASSERT(m_ntIt == NameTree::const_iterator() || m_ntIt->hasPitEntries());
-  }
+    if (++m_iPitEntry >= m_ntIt->getPitEntries().size()) {
+        ++m_ntIt;
+        m_iPitEntry = 0;
+        BOOST_ASSERT(m_ntIt == NameTree::const_iterator() || m_ntIt->hasPitEntries());
+    }
 
-  return *this;
+    return *this;
 }
 
 Iterator
 Iterator::operator++(int)
 {
-  Iterator copy = *this;
-  this->operator++();
-  return copy;
+    Iterator copy = *this;
+    this->operator++();
+    return copy;
 }
 
 } // namespace pit

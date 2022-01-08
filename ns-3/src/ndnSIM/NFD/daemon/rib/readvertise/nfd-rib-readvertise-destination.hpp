@@ -38,52 +38,41 @@ namespace rib {
 
 /** \brief a readvertise destination using NFD RIB management protocol
  */
-class NfdRibReadvertiseDestination : public ReadvertiseDestination
-{
-public:
-  NfdRibReadvertiseDestination(ndn::nfd::Controller& controller,
-                               Rib& rib,
-                               const ndn::nfd::CommandOptions& options = ndn::nfd::CommandOptions(),
-                               const ndn::nfd::ControlParameters& parameters =
-                                 ndn::nfd::ControlParameters()
-                                   .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT));
+class NfdRibReadvertiseDestination : public ReadvertiseDestination {
+  public:
+    NfdRibReadvertiseDestination(ndn::nfd::Controller& controller, Rib& rib,
+                                 const ndn::nfd::CommandOptions& options = ndn::nfd::CommandOptions(),
+                                 const ndn::nfd::ControlParameters& parameters =
+                                   ndn::nfd::ControlParameters().setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT));
 
-  /** \brief add a name prefix into NFD RIB
-   */
-  void
-  advertise(const ReadvertisedRoute& rr,
-            std::function<void()> successCb,
-            std::function<void(const std::string&)> failureCb) override;
+    /** \brief add a name prefix into NFD RIB
+     */
+    void advertise(const ReadvertisedRoute& rr, std::function<void()> successCb,
+                   std::function<void(const std::string&)> failureCb) override;
 
-  /** \brief remove a name prefix from NFD RIB
-   */
-  void
-  withdraw(const ReadvertisedRoute& rr,
-           std::function<void()> successCb,
-           std::function<void(const std::string&)> failureCb) override;
+    /** \brief remove a name prefix from NFD RIB
+     */
+    void withdraw(const ReadvertisedRoute& rr, std::function<void()> successCb,
+                  std::function<void(const std::string&)> failureCb) override;
 
-protected:
-  ndn::nfd::ControlParameters
-  getControlParameters();
+  protected:
+    ndn::nfd::ControlParameters getControlParameters();
 
-  ndn::nfd::CommandOptions
-  getCommandOptions();
+    ndn::nfd::CommandOptions getCommandOptions();
 
-private:
-  void
-  handleRibInsert(const Name& name);
+  private:
+    void handleRibInsert(const Name& name);
 
-  void
-  handleRibErase(const Name& name);
+    void handleRibErase(const Name& name);
 
-private:
-  ndn::nfd::Controller& m_controller;
+  private:
+    ndn::nfd::Controller& m_controller;
 
-  signal::ScopedConnection m_ribInsertConn;
-  signal::ScopedConnection m_ribEraseConn;
+    signal::ScopedConnection m_ribInsertConn;
+    signal::ScopedConnection m_ribEraseConn;
 
-  ndn::nfd::CommandOptions m_commandOptions;
-  ndn::nfd::ControlParameters m_controlParameters;
+    ndn::nfd::CommandOptions m_commandOptions;
+    ndn::nfd::ControlParameters m_controlParameters;
 };
 
 } // namespace rib

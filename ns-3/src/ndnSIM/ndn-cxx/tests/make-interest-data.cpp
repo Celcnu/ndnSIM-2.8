@@ -29,45 +29,45 @@ namespace tests {
 shared_ptr<Interest>
 makeInterest(const Name& name, bool canBePrefix, time::milliseconds lifetime, uint32_t nonce)
 {
-  auto interest = make_shared<Interest>(name, lifetime);
-  interest->setCanBePrefix(canBePrefix);
-  if (nonce != 0) {
-    interest->setNonce(nonce);
-  }
-  return interest;
+    auto interest = make_shared<Interest>(name, lifetime);
+    interest->setCanBePrefix(canBePrefix);
+    if (nonce != 0) {
+        interest->setNonce(nonce);
+    }
+    return interest;
 }
 
 shared_ptr<Data>
 makeData(const Name& name)
 {
-  auto data = make_shared<Data>(name);
-  return signData(data);
+    auto data = make_shared<Data>(name);
+    return signData(data);
 }
 
 Data&
 signData(Data& data)
 {
-  ndn::SignatureSha256WithRsa fakeSignature;
-  fakeSignature.setValue(ndn::encoding::makeEmptyBlock(tlv::SignatureValue));
-  data.setSignature(fakeSignature);
-  data.wireEncode();
-  return data;
+    ndn::SignatureSha256WithRsa fakeSignature;
+    fakeSignature.setValue(ndn::encoding::makeEmptyBlock(tlv::SignatureValue));
+    data.setSignature(fakeSignature);
+    data.wireEncode();
+    return data;
 }
 
 lp::Nack
 makeNack(const Interest& interest, lp::NackReason reason)
 {
-  lp::Nack nack(interest);
-  nack.setReason(reason);
-  return nack;
+    lp::Nack nack(interest);
+    nack.setReason(reason);
+    return nack;
 }
 
 lp::Nack
 makeNack(const Name& name, uint32_t nonce, lp::NackReason reason)
 {
-  Interest interest(name);
-  interest.setNonce(nonce);
-  return makeNack(interest, reason);
+    Interest interest(name);
+    interest.setNonce(nonce);
+    return makeNack(interest, reason);
 }
 
 } // namespace tests

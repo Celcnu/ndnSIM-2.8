@@ -50,194 +50,174 @@ typedef size_t TopologyNode;
 
 /** \brief represents a network link in the topology which connects two or more nodes
  */
-class TopologyLink : noncopyable
-{
-public:
-  explicit
-  TopologyLink(time::nanoseconds delay);
-
-  /** \brief fail the link, cause packets to be dropped silently
-   */
-  void
-  fail()
-  {
-    m_isUp = false;
-  }
-
-  /** \brief recover the link from a failure
-   */
-  void
-  recover()
-  {
-    m_isUp = true;
-  }
-
-  /** \brief block transmission from i to j
-   *
-   *  Packets transmitted by i would not be delivered to j. Packets from j to i are unaffected.
-   *  This can be used to simulate a wireless channel.
-   */
-  void
-  block(TopologyNode i, TopologyNode j);
-
-  /** \brief unblock transmission from i to j
-   */
-  void
-  unblock(TopologyNode i, TopologyNode j);
-
-  /** \brief change the link delay
-   *  \param delay link delay, must be positive
-   */
-  void
-  setDelay(time::nanoseconds delay);
-
-  /** \brief attach a face to the link
-   *  \param i forwarder index
-   *  \param face a Face with InternalForwarderTransport
-   */
-  void
-  addFace(TopologyNode i, shared_ptr<Face> face);
-
-  /** \return a face of forwarder \p i which is attached to this link
-   */
-  Face&
-  getFace(TopologyNode i)
-  {
-    return *m_transports.at(i).face;
-  }
-
-private:
-  void
-  transmit(TopologyNode i, const Block& packet);
-
-private:
-  bool m_isUp = true;
-  time::nanoseconds m_delay;
-
-  class ReceiveProxy : public face::InternalTransportBase
-  {
+class TopologyLink : noncopyable {
   public:
-    using Callback = std::function<void(const Block&)>;
+    explicit TopologyLink(time::nanoseconds delay);
 
-    explicit
-    ReceiveProxy(Callback cb)
-      : m_cb(std::move(cb))
+    /** \brief fail the link, cause packets to be dropped silently
+     */
+    void
+    fail()
     {
+        m_isUp = false;
     }
 
+    /** \brief recover the link from a failure
+     */
     void
-    receivePacket(const Block& packet) final
+    recover()
     {
-      m_cb(packet);
+        m_isUp = true;
+    }
+
+    /** \brief block transmission from i to j
+     *
+     *  Packets transmitted by i would not be delivered to j. Packets from j to i are unaffected.
+     *  This can be used to simulate a wireless channel.
+     */
+    void block(TopologyNode i, TopologyNode j);
+
+    /** \brief unblock transmission from i to j
+     */
+    void unblock(TopologyNode i, TopologyNode j);
+
+    /** \brief change the link delay
+     *  \param delay link delay, must be positive
+     */
+    void setDelay(time::nanoseconds delay);
+
+    /** \brief attach a face to the link
+     *  \param i forwarder index
+     *  \param face a Face with InternalForwarderTransport
+     */
+    void addFace(TopologyNode i, shared_ptr<Face> face);
+
+    /** \return a face of forwarder \p i which is attached to this link
+     */
+    Face&
+    getFace(TopologyNode i)
+    {
+        return *m_transports.at(i).face;
     }
 
   private:
-    Callback m_cb;
-  };
+    void transmit(TopologyNode i, const Block& packet);
 
-  class NodeTransport
-  {
-  public:
-    NodeTransport(shared_ptr<Face> face, ReceiveProxy::Callback receiveCallback);
+  private:
+    bool m_isUp = true;
+    time::nanoseconds m_delay;
 
-  public:
-    shared_ptr<Face> face;
-    face::InternalForwarderTransport* transport;
-    ReceiveProxy proxy;
-    std::set<TopologyNode> blockedDestinations;
-  };
+    class ReceiveProxy : public face::InternalTransportBase {
+      public:
+        using Callback = std::function<void(const Block&)>;
 
-  std::unordered_map<TopologyNode, NodeTransport> m_transports;
+        explicit ReceiveProxy(Callback cb)
+          : m_cb(std::move(cb))
+        {
+        }
+
+        void
+        receivePacket(const Block& packet) final
+        {
+            m_cb(packet);
+        }
+
+      private:
+        Callback m_cb;
+    };
+
+    class NodeTransport {
+      public:
+        NodeTransport(shared_ptr<Face> face, ReceiveProxy::Callback receiveCallback);
+
+      public:
+        shared_ptr<Face> face;
+        face::InternalForwarderTransport* transport;
+        ReceiveProxy proxy;
+        std::set<TopologyNode> blockedDestinations;
+    };
+
+    std::unordered_map<TopologyNode, NodeTransport> m_transports;
 };
 
 /** \brief represents a link on a single forwarder
  */
-class TopologySingleLink : noncopyable
-{
-public:
-  /** \brief constructor
-   *  \param forwarderFace a Face with InternalForwarderTransport
-   */
-  explicit
-  TopologySingleLink(shared_ptr<Face> forwarderFace);
+class TopologySingleLink : noncopyable {
+  public:
+    /** \brief constructor
+     *  \param forwarderFace a Face with InternalForwarderTransport
+     */
+    explicit TopologySingleLink(shared_ptr<Face> forwarderFace);
 
-  /** \return face on forwarder side
-   */
-  Face&
-  getForwarderFace()
-  {
-    return *m_face;
-  }
+    /** \return face on forwarder side
+     */
+    Face&
+    getForwarderFace()
+    {
+        return *m_face;
+    }
 
-protected:
-  shared_ptr<Face> m_face;
-  face::InternalForwarderTransport* m_forwarderTransport;
+  protected:
+    shared_ptr<Face> m_face;
+    face::InternalForwarderTransport* m_forwarderTransport;
 };
 
 /** \brief represents a link to a local application
  */
-class TopologyAppLink : public TopologySingleLink
-{
-public:
-  /** \brief constructor
-   *  \param forwarderFace a Face with InternalForwarderTransport
-   */
-  explicit
-  TopologyAppLink(shared_ptr<Face> forwarderFace);
+class TopologyAppLink : public TopologySingleLink {
+  public:
+    /** \brief constructor
+     *  \param forwarderFace a Face with InternalForwarderTransport
+     */
+    explicit TopologyAppLink(shared_ptr<Face> forwarderFace);
 
-  /** \brief fail the link, cause packets to be dropped silently
-   */
-  void
-  fail();
+    /** \brief fail the link, cause packets to be dropped silently
+     */
+    void fail();
 
-  /** \brief recover the link from a failure
-   */
-  void
-  recover();
+    /** \brief recover the link from a failure
+     */
+    void recover();
 
-  /** \return face on application side
-   */
-  ndn::Face&
-  getClientFace()
-  {
-    return *m_client;
-  }
+    /** \return face on application side
+     */
+    ndn::Face&
+    getClientFace()
+    {
+        return *m_client;
+    }
 
-private:
-  shared_ptr<face::InternalClientTransport> m_clientTransport;
-  shared_ptr<ndn::Face> m_client;
+  private:
+    shared_ptr<face::InternalClientTransport> m_clientTransport;
+    shared_ptr<ndn::Face> m_client;
 };
 
 /** \brief allows the test case to inject and observe L2 packets on a link
  */
-class TopologyBareLink : public TopologySingleLink
-{
-public:
-  /** \brief constructor
-   *  \param forwarderFace a Face with InternalForwarderTransport
-   */
-  explicit
-  TopologyBareLink(shared_ptr<Face> forwarderFace);
+class TopologyBareLink : public TopologySingleLink {
+  public:
+    /** \brief constructor
+     *  \param forwarderFace a Face with InternalForwarderTransport
+     */
+    explicit TopologyBareLink(shared_ptr<Face> forwarderFace);
 
-  void
-  receivePacket(const Block& packet);
+    void receivePacket(const Block& packet);
 
-public:
-  std::vector<Block> sentPackets;
+  public:
+    std::vector<Block> sentPackets;
 
-private:
-  class Observer;
-  unique_ptr<Observer> m_observer;
+  private:
+    class Observer;
+    unique_ptr<Observer> m_observer;
 };
 
 /** \brief captured packets on a face
  */
-class TopologyPcap : noncopyable
-{
-public:
-  std::vector<Interest> sentInterests;
-  std::vector<Data> sentData;
-  std::vector<lp::Nack> sentNacks;
+class TopologyPcap : noncopyable {
+  public:
+    std::vector<Interest> sentInterests;
+    std::vector<Data> sentData;
+    std::vector<lp::Nack> sentNacks;
 };
 
 /** \brief captured packet timestamp tag
@@ -246,125 +226,111 @@ using TopologyPcapTimestamp = ndn::SimpleTag<time::steady_clock::TimePoint, 0>;
 
 /** \brief builds a topology for forwarding tests
  */
-class TopologyTester : noncopyable
-{
-public:
-  /** \brief creates a forwarder
-   *  \return index of new forwarder
-   */
-  TopologyNode
-  addForwarder(const std::string& label);
-
-  /** \return forwarder instance \p i
-   */
-  Forwarder&
-  getForwarder(TopologyNode i)
-  {
-    return m_forwarders.at(i)->forwarder;
-  }
-
-  /** \brief sets strategy on forwarder \p i
-   *  \tparam S the strategy type
-   *  \note Test scenario can also access StrategyChoice table directly.
-   */
-  template<typename S>
-  void
-  setStrategy(TopologyNode i, Name prefix = Name("ndn:/"),
-              Name instanceName = S::getStrategyName())
-  {
-    Forwarder& forwarder = this->getForwarder(i);
-    choose<S>(forwarder, prefix, instanceName);
-  }
-
-  /** \brief makes a link that interconnects two or more forwarders
-   *  \brief linkType desired link type; LINK_TYPE_NONE to use point-to-point for two forwarders
-   *                  and multi-access for more than two forwarders; it's an error to specify
-   *                  point-to-point when there are more than two forwarders
-   *
-   *  A face is created on each of \p forwarders .
-   *  When a packet is sent onto one of the faces on this link,
-   *  this packet will be received by all other faces on this link after \p delay .
-   */
-  shared_ptr<TopologyLink>
-  addLink(const std::string& label, time::nanoseconds delay,
-          std::initializer_list<TopologyNode> forwarders,
-          ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_NONE);
-
-  /** \brief makes a link to local application
-   */
-  shared_ptr<TopologyAppLink>
-  addAppFace(const std::string& label, TopologyNode i);
-
-  /** \brief makes a link to local application, and register a prefix
-   */
-  shared_ptr<TopologyAppLink>
-  addAppFace(const std::string& label, TopologyNode i, const Name& prefix, uint64_t cost = 0);
-
-  /** \brief makes a link that allows the test case to inject and observe L2 packets
-   */
-  shared_ptr<TopologyBareLink>
-  addBareLink(const std::string& label, TopologyNode i,
-              ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_LOCAL,
-              ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-
-  /** \brief enables packet capture on every forwarder face
-   */
-  void
-  enablePcap(bool isEnabled = true)
-  {
-    m_wantPcap = isEnabled;
-  }
-
-  /** \return captured packets on a forwarder face
-   *  \pre enablePcap(true) is in effect when the face was created
-   */
-  TopologyPcap&
-  getPcap(const Face& face);
-
-  /** \brief registers a prefix on a forwarder face
-   */
-  void
-  registerPrefix(TopologyNode i, const Face& face, const Name& prefix, uint64_t cost = 0);
-
-  /** \brief creates a producer application that answers every Interest with Data of same Name
-   */
-  void
-  addEchoProducer(ndn::Face& face, const Name& prefix = "/", time::nanoseconds replyDelay = 0_ns);
-
-  /** \brief creates a consumer application that sends \p n Interests under \p prefix
-   *         at \p interval fixed rate.
-   *  \param seq if non-negative, append sequence number instead of timestamp
-   */
-  void
-  addIntervalConsumer(ndn::Face& face, const Name& prefix, time::nanoseconds interval,
-                      size_t n, int seq = -1);
-
-private:
-  shared_ptr<Face>
-  makeFace(TopologyNode i, const FaceUri& localUri, const FaceUri& remoteUri,
-           ndn::nfd::FaceScope scope, ndn::nfd::LinkType linkType);
-
-private:
-  class TopologyForwarder
-  {
+class TopologyTester : noncopyable {
   public:
-    explicit
-    TopologyForwarder(const std::string& label)
-      : label(label)
+    /** \brief creates a forwarder
+     *  \return index of new forwarder
+     */
+    TopologyNode addForwarder(const std::string& label);
+
+    /** \return forwarder instance \p i
+     */
+    Forwarder&
+    getForwarder(TopologyNode i)
     {
+        return m_forwarders.at(i)->forwarder;
     }
 
-  public:
-    std::string label;
-    FaceTable faceTable;
-    Forwarder forwarder{faceTable};
-  };
+    /** \brief sets strategy on forwarder \p i
+     *  \tparam S the strategy type
+     *  \note Test scenario can also access StrategyChoice table directly.
+     */
+    template <typename S>
+    void
+    setStrategy(TopologyNode i, Name prefix = Name("ndn:/"), Name instanceName = S::getStrategyName())
+    {
+        Forwarder& forwarder = this->getForwarder(i);
+        choose<S>(forwarder, prefix, instanceName);
+    }
 
-  std::vector<unique_ptr<TopologyForwarder>> m_forwarders;
-  std::vector<shared_ptr<TopologyLink>> m_links;
-  std::vector<shared_ptr<TopologyAppLink>> m_appLinks;
-  std::vector<shared_ptr<TopologyBareLink>> m_bareLinks;
-  bool m_wantPcap = false;
+    /** \brief makes a link that interconnects two or more forwarders
+     *  \brief linkType desired link type; LINK_TYPE_NONE to use point-to-point for two forwarders
+     *                  and multi-access for more than two forwarders; it's an error to specify
+     *                  point-to-point when there are more than two forwarders
+     *
+     *  A face is created on each of \p forwarders .
+     *  When a packet is sent onto one of the faces on this link,
+     *  this packet will be received by all other faces on this link after \p delay .
+     */
+    shared_ptr<TopologyLink>
+    addLink(const std::string& label, time::nanoseconds delay, std::initializer_list<TopologyNode> forwarders,
+            ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_NONE);
+
+    /** \brief makes a link to local application
+     */
+    shared_ptr<TopologyAppLink> addAppFace(const std::string& label, TopologyNode i);
+
+    /** \brief makes a link to local application, and register a prefix
+     */
+    shared_ptr<TopologyAppLink>
+    addAppFace(const std::string& label, TopologyNode i, const Name& prefix, uint64_t cost = 0);
+
+    /** \brief makes a link that allows the test case to inject and observe L2 packets
+     */
+    shared_ptr<TopologyBareLink>
+    addBareLink(const std::string& label, TopologyNode i, ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_LOCAL,
+                ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+
+    /** \brief enables packet capture on every forwarder face
+     */
+    void
+    enablePcap(bool isEnabled = true)
+    {
+        m_wantPcap = isEnabled;
+    }
+
+    /** \return captured packets on a forwarder face
+     *  \pre enablePcap(true) is in effect when the face was created
+     */
+    TopologyPcap& getPcap(const Face& face);
+
+    /** \brief registers a prefix on a forwarder face
+     */
+    void registerPrefix(TopologyNode i, const Face& face, const Name& prefix, uint64_t cost = 0);
+
+    /** \brief creates a producer application that answers every Interest with Data of same Name
+     */
+    void addEchoProducer(ndn::Face& face, const Name& prefix = "/", time::nanoseconds replyDelay = 0_ns);
+
+    /** \brief creates a consumer application that sends \p n Interests under \p prefix
+     *         at \p interval fixed rate.
+     *  \param seq if non-negative, append sequence number instead of timestamp
+     */
+    void addIntervalConsumer(ndn::Face& face, const Name& prefix, time::nanoseconds interval, size_t n, int seq = -1);
+
+  private:
+    shared_ptr<Face> makeFace(TopologyNode i, const FaceUri& localUri, const FaceUri& remoteUri,
+                              ndn::nfd::FaceScope scope, ndn::nfd::LinkType linkType);
+
+  private:
+    class TopologyForwarder {
+      public:
+        explicit TopologyForwarder(const std::string& label)
+          : label(label)
+        {
+        }
+
+      public:
+        std::string label;
+        FaceTable faceTable;
+        Forwarder forwarder{faceTable};
+    };
+
+    std::vector<unique_ptr<TopologyForwarder>> m_forwarders;
+    std::vector<shared_ptr<TopologyLink>> m_links;
+    std::vector<shared_ptr<TopologyAppLink>> m_appLinks;
+    std::vector<shared_ptr<TopologyBareLink>> m_bareLinks;
+    bool m_wantPcap = false;
 };
 
 } // namespace tests

@@ -29,90 +29,81 @@ namespace ndn {
 
 /** @brief represents a Link object
  */
-class Link : public Data
-{
-public:
-  class Error : public Data::Error
-  {
+class Link : public Data {
   public:
-    using Data::Error::Error;
-  };
+    class Error : public Data::Error {
+      public:
+        using Data::Error::Error;
+    };
 
-  /** @brief Create an empty Link object
-   *
-   *  Note that in certain contexts that use Link::shared_from_this(), Link must be
-   *  created using `make_shared`:
-   *
-   *      shared_ptr<Link> linkObject = make_shared<Link>();
-   */
-  Link();
+    /** @brief Create an empty Link object
+     *
+     *  Note that in certain contexts that use Link::shared_from_this(), Link must be
+     *  created using `make_shared`:
+     *
+     *      shared_ptr<Link> linkObject = make_shared<Link>();
+     */
+    Link();
 
-  /** @brief Decode a Link object from a Block
-   *  @param wire a TLV block
-   *  @param wantSort if false, relative order among delegations is preserved
-   *
-   *  Note that in certain contexts that use Link::shared_from_this(), Link must be
-   *  created using `make_shared`:
-   *
-   *      shared_ptr<Link> linkObject = make_shared<Link>(block);
-   */
-  explicit
-  Link(const Block& wire, bool wantSort = true);
+    /** @brief Decode a Link object from a Block
+     *  @param wire a TLV block
+     *  @param wantSort if false, relative order among delegations is preserved
+     *
+     *  Note that in certain contexts that use Link::shared_from_this(), Link must be
+     *  created using `make_shared`:
+     *
+     *      shared_ptr<Link> linkObject = make_shared<Link>(block);
+     */
+    explicit Link(const Block& wire, bool wantSort = true);
 
-  /** @brief Create a Link object with the given name and delegations
-   *  @param name A reference to the name of the redirected namespace
-   *  @param dels Delegations in payload
-   *
-   *  Note that in certain contexts that use Link::shared_from_this(), Link must be
-   *  created using `make_shared`:
-   *
-   *      shared_ptr<Link> link = make_shared<Link>(name, dels);
-   */
-  explicit
-  Link(const Name& name, std::initializer_list<Delegation> dels = {});
+    /** @brief Create a Link object with the given name and delegations
+     *  @param name A reference to the name of the redirected namespace
+     *  @param dels Delegations in payload
+     *
+     *  Note that in certain contexts that use Link::shared_from_this(), Link must be
+     *  created using `make_shared`:
+     *
+     *      shared_ptr<Link> link = make_shared<Link>(name, dels);
+     */
+    explicit Link(const Name& name, std::initializer_list<Delegation> dels = {});
 
-  /** @brief Decode from the wire format
-   *  @param wire a TLV block
-   *  @param wantSort if false, relative order among delegations is preserved
-   */
-  void
-  wireDecode(const Block& wire, bool wantSort = true);
+    /** @brief Decode from the wire format
+     *  @param wire a TLV block
+     *  @param wantSort if false, relative order among delegations is preserved
+     */
+    void wireDecode(const Block& wire, bool wantSort = true);
 
-  /** @brief Get the delegations
-   */
-  const DelegationList&
-  getDelegationList() const
-  {
-    return m_delList;
-  }
+    /** @brief Get the delegations
+     */
+    const DelegationList&
+    getDelegationList() const
+    {
+        return m_delList;
+    }
 
-  /** @brief Set the delegations
-   *  @note This is more efficient than multiple addDelegation and removeDelegation invocations.
-   */
-  void
-  setDelegationList(const DelegationList& dels);
+    /** @brief Set the delegations
+     *  @note This is more efficient than multiple addDelegation and removeDelegation invocations.
+     */
+    void setDelegationList(const DelegationList& dels);
 
-  /** @brief Add a delegation in the format of <Name, Preference>
-   *  @param preference The preference of the delegation to be added
-   *  @param name The name of the delegation to be added
-   *  @note If a delegation with @p name exists, its preference will be updated
-   */
-  void
-  addDelegation(uint32_t preference, const Name& name);
+    /** @brief Add a delegation in the format of <Name, Preference>
+     *  @param preference The preference of the delegation to be added
+     *  @param name The name of the delegation to be added
+     *  @note If a delegation with @p name exists, its preference will be updated
+     */
+    void addDelegation(uint32_t preference, const Name& name);
 
-  /** @brief Remove a delegation whose name is @p name
-   *  @param name The name of the delegation to be removed
-   *  @return true if delegation is removed, otherwise false
-   */
-  bool
-  removeDelegation(const Name& name);
+    /** @brief Remove a delegation whose name is @p name
+     *  @param name The name of the delegation to be removed
+     *  @return true if delegation is removed, otherwise false
+     */
+    bool removeDelegation(const Name& name);
 
-private:
-  void
-  encodeContent();
+  private:
+    void encodeContent();
 
-private:
-  DelegationList m_delList;
+  private:
+    DelegationList m_delList;
 };
 
 } // namespace ndn

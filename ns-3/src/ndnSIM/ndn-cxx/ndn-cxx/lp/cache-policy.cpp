@@ -30,12 +30,12 @@ namespace lp {
 std::ostream&
 operator<<(std::ostream& os, CachePolicyType policy)
 {
-  switch (policy) {
-  case CachePolicyType::NO_CACHE:
-    return os << "NoCache";
-  default:
-    return os << "None";
-  }
+    switch (policy) {
+        case CachePolicyType::NO_CACHE:
+            return os << "NoCache";
+        default:
+            return os << "None";
+    }
 }
 
 CachePolicy::CachePolicy()
@@ -45,22 +45,22 @@ CachePolicy::CachePolicy()
 
 CachePolicy::CachePolicy(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 CachePolicy::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  if (m_policy == CachePolicyType::NONE) {
-    NDN_THROW(Error("CachePolicyType must be set"));
-  }
+    if (m_policy == CachePolicyType::NONE) {
+        NDN_THROW(Error("CachePolicyType must be set"));
+    }
 
-  size_t length = 0;
-  length += prependNonNegativeIntegerBlock(encoder, tlv::CachePolicyType, static_cast<uint32_t>(m_policy));
-  length += encoder.prependVarNumber(length);
-  length += encoder.prependVarNumber(tlv::CachePolicy);
-  return length;
+    size_t length = 0;
+    length += prependNonNegativeIntegerBlock(encoder, tlv::CachePolicyType, static_cast<uint32_t>(m_policy));
+    length += encoder.prependVarNumber(length);
+    length += encoder.prependVarNumber(tlv::CachePolicy);
+    return length;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(CachePolicy);
@@ -68,68 +68,68 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(CachePolicy);
 const Block&
 CachePolicy::wireEncode() const
 {
-  if (m_policy == CachePolicyType::NONE) {
-    NDN_THROW(Error("CachePolicyType must be set"));
-  }
+    if (m_policy == CachePolicyType::NONE) {
+        NDN_THROW(Error("CachePolicyType must be set"));
+    }
 
-  if (m_wire.hasWire()) {
+    if (m_wire.hasWire()) {
+        return m_wire;
+    }
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+
     return m_wire;
-  }
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-
-  return m_wire;
 }
 
 void
 CachePolicy::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::CachePolicy) {
-    NDN_THROW(Error("CachePolicy", wire.type()));
-  }
-
-  m_wire = wire;
-  m_wire.parse();
-
-  auto it = m_wire.elements_begin();
-  if (it == m_wire.elements_end()) {
-    NDN_THROW(Error("Empty CachePolicy"));
-  }
-
-  if (it->type() == tlv::CachePolicyType) {
-    m_policy = static_cast<CachePolicyType>(readNonNegativeInteger(*it));
-    if (this->getPolicy() == CachePolicyType::NONE) {
-      NDN_THROW(Error("Unknown CachePolicyType"));
+    if (wire.type() != tlv::CachePolicy) {
+        NDN_THROW(Error("CachePolicy", wire.type()));
     }
-  }
-  else {
-    NDN_THROW(Error("CachePolicyType", it->type()));
-  }
+
+    m_wire = wire;
+    m_wire.parse();
+
+    auto it = m_wire.elements_begin();
+    if (it == m_wire.elements_end()) {
+        NDN_THROW(Error("Empty CachePolicy"));
+    }
+
+    if (it->type() == tlv::CachePolicyType) {
+        m_policy = static_cast<CachePolicyType>(readNonNegativeInteger(*it));
+        if (this->getPolicy() == CachePolicyType::NONE) {
+            NDN_THROW(Error("Unknown CachePolicyType"));
+        }
+    }
+    else {
+        NDN_THROW(Error("CachePolicyType", it->type()));
+    }
 }
 
 CachePolicyType
 CachePolicy::getPolicy() const
 {
-  switch (m_policy) {
-  case CachePolicyType::NO_CACHE:
-    return m_policy;
-  default:
-    return CachePolicyType::NONE;
-  }
+    switch (m_policy) {
+        case CachePolicyType::NO_CACHE:
+            return m_policy;
+        default:
+            return CachePolicyType::NONE;
+    }
 }
 
 CachePolicy&
 CachePolicy::setPolicy(CachePolicyType policy)
 {
-  m_policy = policy;
-  m_wire.reset();
-  return *this;
+    m_policy = policy;
+    m_wire.reset();
+    return *this;
 }
 
 } // namespace lp

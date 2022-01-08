@@ -34,55 +34,51 @@ namespace ndnsec {
 int
 ndnsec_unlock_tpm(int argc, char** argv)
 {
-  namespace po = boost::program_options;
+    namespace po = boost::program_options;
 
-  po::options_description description(
-    "Usage: ndnsec unlock-tpm [-h]\n"
-    "\n"
-    "Options");
-  description.add_options()
-    ("help,h", "produce help message")
-    ;
+    po::options_description description("Usage: ndnsec unlock-tpm [-h]\n"
+                                        "\n"
+                                        "Options");
+    description.add_options()("help,h", "produce help message");
 
-  po::variables_map vm;
-  try {
-    po::store(po::parse_command_line(argc, argv, description), vm);
-    po::notify(vm);
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n\n"
-              << description << std::endl;
-    return 2;
-  }
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, description), vm);
+        po::notify(vm);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << "\n\n" << description << std::endl;
+        return 2;
+    }
 
-  if (vm.count("help") > 0) {
-    std::cout << description << std::endl;
-    return 0;
-  }
+    if (vm.count("help") > 0) {
+        std::cout << description << std::endl;
+        return 0;
+    }
 
 #ifdef NDN_CXX_HAVE_GETPASS
-  security::v2::KeyChain keyChain;
+    security::v2::KeyChain keyChain;
 
-  char* password = ::getpass("Password to unlock the TPM: ");
-  if (password == nullptr) {
-    std::cerr << "ERROR: getpass() failed: " << std::strerror(errno) << std::endl;
-    return 1;
-  }
+    char* password = ::getpass("Password to unlock the TPM: ");
+    if (password == nullptr) {
+        std::cerr << "ERROR: getpass() failed: " << std::strerror(errno) << std::endl;
+        return 1;
+    }
 
-  bool isUnlocked = keyChain.getTpm().unlockTpm(password, std::strlen(password));
-  OPENSSL_cleanse(password, std::strlen(password));
+    bool isUnlocked = keyChain.getTpm().unlockTpm(password, std::strlen(password));
+    OPENSSL_cleanse(password, std::strlen(password));
 
-  if (isUnlocked) {
-    std::cerr << "OK: TPM is unlocked" << std::endl;
-    return 0;
-  }
-  else {
-    std::cerr << "ERROR: TPM is still locked" << std::endl;
-    return 1;
-  }
+    if (isUnlocked) {
+        std::cerr << "OK: TPM is unlocked" << std::endl;
+        return 0;
+    }
+    else {
+        std::cerr << "ERROR: TPM is still locked" << std::endl;
+        return 1;
+    }
 #else
-  std::cerr << "ERROR: Command not supported on this platform" << std::endl;
-  return 1;
+    std::cerr << "ERROR: Command not supported on this platform" << std::endl;
+    return 1;
 #endif // NDN_CXX_HAVE_GETPASS
 }
 

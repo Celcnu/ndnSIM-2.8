@@ -44,33 +44,32 @@ namespace tests {
 
 /** \brief fixture to test command execution
  */
-class ExecuteCommandFixture : public MockNfdMgmtFixture
-{
-protected:
-  void
-  execute(const std::string& cmd)
-  {
-    std::vector<std::string> args;
-    boost::split(args, cmd, boost::is_any_of(" "));
+class ExecuteCommandFixture : public MockNfdMgmtFixture {
+  protected:
+    void
+    execute(const std::string& cmd)
+    {
+        std::vector<std::string> args;
+        boost::split(args, cmd, boost::is_any_of(" "));
 
-    CommandParser parser;
-    registerCommands(parser);
+        CommandParser parser;
+        registerCommands(parser);
 
-    std::string noun, verb;
-    CommandArguments ca;
-    ExecuteCommand execute;
-    std::tie(noun, verb, ca, execute) = parser.parse(args, ParseMode::ONE_SHOT);
+        std::string noun, verb;
+        CommandArguments ca;
+        ExecuteCommand execute;
+        std::tie(noun, verb, ca, execute) = parser.parse(args, ParseMode::ONE_SHOT);
 
-    Controller controller(face, m_keyChain);
-    ExecuteContext ctx{noun, verb, ca, 0, out, err, face, m_keyChain, controller};
-    execute(ctx);
-    exitCode = ctx.exitCode;
-  }
+        Controller controller(face, m_keyChain);
+        ExecuteContext ctx{noun, verb, ca, 0, out, err, face, m_keyChain, controller};
+        execute(ctx);
+        exitCode = ctx.exitCode;
+    }
 
-protected:
-  boost::test_tools::output_test_stream out;
-  boost::test_tools::output_test_stream err;
-  int exitCode = -1;
+  protected:
+    boost::test_tools::output_test_stream out;
+    boost::test_tools::output_test_stream err;
+    int exitCode = -1;
 };
 
 } // namespace tests

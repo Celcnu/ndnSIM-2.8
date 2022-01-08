@@ -30,48 +30,48 @@ namespace v2 {
 std::ostream&
 operator<<(std::ostream& os, ValidationError::Code code)
 {
-  switch (code) {
-    case ValidationError::Code::NO_ERROR:
-      return os << "No error";
-    case ValidationError::Code::INVALID_SIGNATURE:
-      return os << "Invalid signature";
-    case ValidationError::Code::NO_SIGNATURE:
-      return os << "Missing signature";
-    case ValidationError::Code::CANNOT_RETRIEVE_CERT:
-      return os << "Cannot retrieve certificate";
-    case ValidationError::Code::EXPIRED_CERT:
-      return os << "Certificate expired";
-    case ValidationError::Code::LOOP_DETECTED:
-      return os << "Loop detected in certification chain";
-    case ValidationError::Code::MALFORMED_CERT:
-      return os << "Malformed certificate";
-    case ValidationError::Code::EXCEEDED_DEPTH_LIMIT:
-      return os << "Exceeded validation depth limit";
-    case ValidationError::Code::INVALID_KEY_LOCATOR:
-      return os << "Key locator violates validation policy";
-    case ValidationError::Code::POLICY_ERROR:
-      return os << "Validation policy error";
-    case ValidationError::Code::IMPLEMENTATION_ERROR:
-      return os << "Internal implementation error";
-    case ValidationError::Code::USER_MIN:
-      break;
-  }
-  if (code >= ValidationError::Code::USER_MIN) {
-    return os << "Custom error code " << to_underlying(code);
-  }
-  else {
-    return os << "Unrecognized error code " << to_underlying(code);
-  }
+    switch (code) {
+        case ValidationError::Code::NO_ERROR:
+            return os << "No error";
+        case ValidationError::Code::INVALID_SIGNATURE:
+            return os << "Invalid signature";
+        case ValidationError::Code::NO_SIGNATURE:
+            return os << "Missing signature";
+        case ValidationError::Code::CANNOT_RETRIEVE_CERT:
+            return os << "Cannot retrieve certificate";
+        case ValidationError::Code::EXPIRED_CERT:
+            return os << "Certificate expired";
+        case ValidationError::Code::LOOP_DETECTED:
+            return os << "Loop detected in certification chain";
+        case ValidationError::Code::MALFORMED_CERT:
+            return os << "Malformed certificate";
+        case ValidationError::Code::EXCEEDED_DEPTH_LIMIT:
+            return os << "Exceeded validation depth limit";
+        case ValidationError::Code::INVALID_KEY_LOCATOR:
+            return os << "Key locator violates validation policy";
+        case ValidationError::Code::POLICY_ERROR:
+            return os << "Validation policy error";
+        case ValidationError::Code::IMPLEMENTATION_ERROR:
+            return os << "Internal implementation error";
+        case ValidationError::Code::USER_MIN:
+            break;
+    }
+    if (code >= ValidationError::Code::USER_MIN) {
+        return os << "Custom error code " << to_underlying(code);
+    }
+    else {
+        return os << "Unrecognized error code " << to_underlying(code);
+    }
 }
 
 std::ostream&
 operator<<(std::ostream& os, const ValidationError& error)
 {
-  os << static_cast<ValidationError::Code>(error.getCode());
-  if (!error.getInfo().empty()) {
-    os << " (" << error.getInfo() << ")";
-  }
-  return os;
+    os << static_cast<ValidationError::Code>(error.getCode());
+    if (!error.getInfo().empty()) {
+        os << " (" << error.getInfo() << ")";
+    }
+    return os;
 }
 
 } // namespace v2

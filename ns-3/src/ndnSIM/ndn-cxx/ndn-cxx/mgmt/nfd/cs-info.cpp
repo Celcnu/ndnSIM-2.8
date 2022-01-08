@@ -40,24 +40,24 @@ CsInfo::CsInfo()
 
 CsInfo::CsInfo(const Block& block)
 {
-  this->wireDecode(block);
+    this->wireDecode(block);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 CsInfo::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NMisses, m_nMisses);
-  totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NHits, m_nHits);
-  totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NCsEntries, m_nEntries);
-  totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::Flags, m_flags.to_ullong());
-  totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::Capacity, m_capacity);
+    totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NMisses, m_nMisses);
+    totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NHits, m_nHits);
+    totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::NCsEntries, m_nEntries);
+    totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::Flags, m_flags.to_ullong());
+    totalLength += prependNonNegativeIntegerBlock(encoder, tlv::nfd::Capacity, m_capacity);
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::nfd::CsInfo);
-  return totalLength;
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::nfd::CsInfo);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(CsInfo);
@@ -65,138 +65,134 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(CsInfo);
 const Block&
 CsInfo::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  return m_wire;
 }
 
 void
 CsInfo::wireDecode(const Block& block)
 {
-  if (block.type() != tlv::nfd::CsInfo) {
-    NDN_THROW(Error("CsInfo", block.type()));
-  }
-  m_wire = block;
-  m_wire.parse();
-  auto val = m_wire.elements_begin();
+    if (block.type() != tlv::nfd::CsInfo) {
+        NDN_THROW(Error("CsInfo", block.type()));
+    }
+    m_wire = block;
+    m_wire.parse();
+    auto val = m_wire.elements_begin();
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::Capacity) {
-    m_capacity = readNonNegativeInteger(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required Capacity field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::Capacity) {
+        m_capacity = readNonNegativeInteger(*val);
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required Capacity field"));
+    }
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::Flags) {
-    m_flags = FlagsBitSet(static_cast<unsigned long long>(readNonNegativeInteger(*val)));
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required Flags field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::Flags) {
+        m_flags = FlagsBitSet(static_cast<unsigned long long>(readNonNegativeInteger(*val)));
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required Flags field"));
+    }
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::NCsEntries) {
-    m_nEntries = readNonNegativeInteger(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required NCsEntries field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::NCsEntries) {
+        m_nEntries = readNonNegativeInteger(*val);
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required NCsEntries field"));
+    }
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::NHits) {
-    m_nHits = readNonNegativeInteger(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required NHits field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::NHits) {
+        m_nHits = readNonNegativeInteger(*val);
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required NHits field"));
+    }
 
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::NMisses) {
-    m_nMisses = readNonNegativeInteger(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required NMisses field"));
-  }
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::NMisses) {
+        m_nMisses = readNonNegativeInteger(*val);
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required NMisses field"));
+    }
 }
 
 CsInfo&
 CsInfo::setCapacity(uint64_t capacity)
 {
-  m_wire.reset();
-  m_capacity = capacity;
-  return *this;
+    m_wire.reset();
+    m_capacity = capacity;
+    return *this;
 }
 
 CsInfo&
 CsInfo::setEnableAdmit(bool enableAdmit)
 {
-  m_wire.reset();
-  m_flags[BIT_CS_ENABLE_ADMIT] = enableAdmit;
-  return *this;
+    m_wire.reset();
+    m_flags[BIT_CS_ENABLE_ADMIT] = enableAdmit;
+    return *this;
 }
 
 CsInfo&
 CsInfo::setEnableServe(bool enableServe)
 {
-  m_wire.reset();
-  m_flags[BIT_CS_ENABLE_SERVE] = enableServe;
-  return *this;
+    m_wire.reset();
+    m_flags[BIT_CS_ENABLE_SERVE] = enableServe;
+    return *this;
 }
 
 CsInfo&
 CsInfo::setNEntries(uint64_t nEntries)
 {
-  m_wire.reset();
-  m_nEntries = nEntries;
-  return *this;
+    m_wire.reset();
+    m_nEntries = nEntries;
+    return *this;
 }
 
 CsInfo&
 CsInfo::setNHits(uint64_t nHits)
 {
-  m_wire.reset();
-  m_nHits = nHits;
-  return *this;
+    m_wire.reset();
+    m_nHits = nHits;
+    return *this;
 }
 
 CsInfo&
 CsInfo::setNMisses(uint64_t nMisses)
 {
-  m_wire.reset();
-  m_nMisses = nMisses;
-  return *this;
+    m_wire.reset();
+    m_nMisses = nMisses;
+    return *this;
 }
 
 bool
 operator==(const CsInfo& a, const CsInfo& b)
 {
-  return a.getCapacity() == b.getCapacity() &&
-      a.getEnableAdmit() == b.getEnableAdmit() &&
-      a.getEnableServe() == b.getEnableServe() &&
-      a.getNEntries() == b.getNEntries() &&
-      a.getNHits() == b.getNHits() &&
-      a.getNMisses() == b.getNMisses();
+    return a.getCapacity() == b.getCapacity() && a.getEnableAdmit() == b.getEnableAdmit()
+           && a.getEnableServe() == b.getEnableServe() && a.getNEntries() == b.getNEntries()
+           && a.getNHits() == b.getNHits() && a.getNMisses() == b.getNMisses();
 }
 
 std::ostream&
 operator<<(std::ostream& os, const CsInfo& csi)
 {
-  return os << "CsInfo: "
-            << csi.getNEntries() << " entries, " << csi.getCapacity() << " max, "
-            << (csi.getEnableAdmit() ? "admit enabled, " : "admit disabled, ")
-            << (csi.getEnableServe() ? "serve enabled, " : "serve disabled, ")
-            << csi.getNHits() << (csi.getNHits() == 1 ? " hit, " : " hits, ")
-            << csi.getNMisses() << (csi.getNMisses() == 1 ? " miss" : " misses");
+    return os << "CsInfo: " << csi.getNEntries() << " entries, " << csi.getCapacity() << " max, "
+              << (csi.getEnableAdmit() ? "admit enabled, " : "admit disabled, ")
+              << (csi.getEnableServe() ? "serve enabled, " : "serve disabled, ") << csi.getNHits()
+              << (csi.getNHits() == 1 ? " hit, " : " hits, ") << csi.getNMisses()
+              << (csi.getNMisses() == 1 ? " miss" : " misses");
 }
 
 } // namespace nfd

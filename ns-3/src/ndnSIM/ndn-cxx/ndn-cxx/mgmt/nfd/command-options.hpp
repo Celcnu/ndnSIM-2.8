@@ -31,73 +31,69 @@ namespace nfd {
  *  \brief contains options for ControlCommand execution
  *  \note This type is intentionally copyable
  */
-class CommandOptions
-{
-public:
-  /** \brief constructs CommandOptions
-   *  \post getTimeout() == DEFAULT_TIMEOUT
-   *  \post getPrefix() == DEFAULT_PREFIX
-   *  \post getSigningInfo().getSignerType() == SIGNER_TYPE_NULL
-   */
-  CommandOptions();
+class CommandOptions {
+  public:
+    /** \brief constructs CommandOptions
+     *  \post getTimeout() == DEFAULT_TIMEOUT
+     *  \post getPrefix() == DEFAULT_PREFIX
+     *  \post getSigningInfo().getSignerType() == SIGNER_TYPE_NULL
+     */
+    CommandOptions();
 
-  /** \return command timeout
-   */
-  const time::milliseconds&
-  getTimeout() const
-  {
-    return m_timeout;
-  }
+    /** \return command timeout
+     */
+    const time::milliseconds&
+    getTimeout() const
+    {
+        return m_timeout;
+    }
 
-  /** \brief sets command timeout
-   *  \param timeout the new command timeout, must be positive
-   *  \throw std::out_of_range if timeout is non-positive
-   *  \return self
-   */
-  CommandOptions&
-  setTimeout(const time::milliseconds& timeout);
+    /** \brief sets command timeout
+     *  \param timeout the new command timeout, must be positive
+     *  \throw std::out_of_range if timeout is non-positive
+     *  \return self
+     */
+    CommandOptions& setTimeout(const time::milliseconds& timeout);
 
-  /** \return command prefix
-   */
-  const Name&
-  getPrefix() const
-  {
-    return m_prefix;
-  }
+    /** \return command prefix
+     */
+    const Name&
+    getPrefix() const
+    {
+        return m_prefix;
+    }
 
-  /** \brief sets command prefix
-   *  \return self
-   */
-  CommandOptions&
-  setPrefix(const Name& prefix);
+    /** \brief sets command prefix
+     *  \return self
+     */
+    CommandOptions& setPrefix(const Name& prefix);
 
-  /** \return signing parameters
-   */
-  const security::SigningInfo&
-  getSigningInfo() const
-  {
-    return m_signingInfo;
-  }
+    /** \return signing parameters
+     */
+    const security::SigningInfo&
+    getSigningInfo() const
+    {
+        return m_signingInfo;
+    }
 
-  /** \brief sets signing parameters
-   *  \return self
-   */
-  CommandOptions&
-  setSigningInfo(const security::SigningInfo& signingInfo);
+    /** \brief sets signing parameters
+     *  \return self
+     */
+    CommandOptions& setSigningInfo(const security::SigningInfo& signingInfo);
 
-public:
-  /** \brief gives the default command timeout: 10000ms
-   */
-  static const time::milliseconds DEFAULT_TIMEOUT;
+  public:
+    /** \brief gives the default command timeout: 10000ms
+     */
+    static const time::milliseconds DEFAULT_TIMEOUT;
 
-  /** \brief gives the default command prefix: ndn:/localhost/nfd
-   */
-  static const Name DEFAULT_PREFIX;
+    /** \brief gives the default command prefix: ndn:/localhost/nfd
+     */
+    static const Name DEFAULT_PREFIX;
 
-private:
-  time::milliseconds m_timeout;
-  Name m_prefix;
-  security::SigningInfo m_signingInfo;
+  private:
+    time::milliseconds m_timeout;
+    Name m_prefix;
+    security::SigningInfo m_signingInfo;
 };
 
 } // namespace nfd

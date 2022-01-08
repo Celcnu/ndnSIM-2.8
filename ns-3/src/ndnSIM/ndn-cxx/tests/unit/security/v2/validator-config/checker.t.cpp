@@ -40,206 +40,195 @@ BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 BOOST_AUTO_TEST_SUITE(ValidatorConfig)
 
-class CheckerFixture : public IdentityManagementFixture
-{
-public:
-  CheckerFixture()
-  {
-    names.push_back("/foo/bar");
-    names.push_back("/foo/bar/bar");
-    names.push_back("/foo");
-    names.push_back("/other/prefix");
-  }
+class CheckerFixture : public IdentityManagementFixture {
+  public:
+    CheckerFixture()
+    {
+        names.push_back("/foo/bar");
+        names.push_back("/foo/bar/bar");
+        names.push_back("/foo");
+        names.push_back("/other/prefix");
+    }
 
-  static Name
-  makeSignedInterestName(const Name& name)
-  {
-    return Name(name).append("SignatureInfo").append("SignatureValue");
-  }
+    static Name
+    makeSignedInterestName(const Name& name)
+    {
+        return Name(name).append("SignatureInfo").append("SignatureValue");
+    }
 
-  static Name
-  makeKeyLocatorName(const Name& name)
-  {
-    return Name(name).append("KEY").append("v=1");
-  }
+    static Name
+    makeKeyLocatorName(const Name& name)
+    {
+        return Name(name).append("KEY").append("v=1");
+    }
 
-public:
-  std::vector<Name> names;
+  public:
+    std::vector<Name> names;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestChecker, CheckerFixture)
 
-class NameRelationEqual : public CheckerFixture
-{
-public:
-  NameRelationEqual()
-    : checker("/foo/bar", NameRelation::EQUAL)
-  {
-  }
+class NameRelationEqual : public CheckerFixture {
+  public:
+    NameRelationEqual()
+      : checker("/foo/bar", NameRelation::EQUAL)
+    {
+    }
 
-public:
-  NameRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false}};
+  public:
+    NameRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false}};
 };
 
-class NameRelationIsPrefixOf : public CheckerFixture
-{
-public:
-  NameRelationIsPrefixOf()
-    : checker("/foo/bar", NameRelation::IS_PREFIX_OF)
-  {
-  }
+class NameRelationIsPrefixOf : public CheckerFixture {
+  public:
+    NameRelationIsPrefixOf()
+      : checker("/foo/bar", NameRelation::IS_PREFIX_OF)
+    {
+    }
 
-public:
-  NameRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true, true, false, false},
-                                             {true, true, false, false},
-                                             {true, true, false, false},
-                                             {true, true, false, false}};
+  public:
+    NameRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, true, false, false},
+                                               {true, true, false, false},
+                                               {true, true, false, false},
+                                               {true, true, false, false}};
 };
 
-class NameRelationIsStrictPrefixOf : public CheckerFixture
-{
-public:
-  NameRelationIsStrictPrefixOf()
-    : checker("/foo/bar", NameRelation::IS_STRICT_PREFIX_OF)
-  {
-  }
+class NameRelationIsStrictPrefixOf : public CheckerFixture {
+  public:
+    NameRelationIsStrictPrefixOf()
+      : checker("/foo/bar", NameRelation::IS_STRICT_PREFIX_OF)
+    {
+    }
 
-public:
-  NameRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{false, true, false, false},
-                                             {false, true, false, false},
-                                             {false, true, false, false},
-                                             {false, true, false, false}};
+  public:
+    NameRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{false, true, false, false},
+                                               {false, true, false, false},
+                                               {false, true, false, false},
+                                               {false, true, false, false}};
 };
 
-class RegexEqual : public CheckerFixture
-{
-public:
-  RegexEqual()
-    : checker(Regex("^<foo><bar><KEY><>$"))
-  {
-  }
+class RegexEqual : public CheckerFixture {
+  public:
+    RegexEqual()
+      : checker(Regex("^<foo><bar><KEY><>$"))
+    {
+    }
 
-public:
-  RegexChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false}};
+  public:
+    RegexChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false}};
 };
 
-class RegexIsPrefixOf : public CheckerFixture
-{
-public:
-  RegexIsPrefixOf()
-    : checker(Regex("^<foo><bar><>*<KEY><>$"))
-  {
-  }
+class RegexIsPrefixOf : public CheckerFixture {
+  public:
+    RegexIsPrefixOf()
+      : checker(Regex("^<foo><bar><>*<KEY><>$"))
+    {
+    }
 
-public:
-  RegexChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true, true, false, false},
-                                             {true, true, false, false},
-                                             {true, true, false, false},
-                                             {true, true, false, false}};
+  public:
+    RegexChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, true, false, false},
+                                               {true, true, false, false},
+                                               {true, true, false, false},
+                                               {true, true, false, false}};
 };
 
-class RegexIsStrictPrefixOf : public CheckerFixture
-{
-public:
-  RegexIsStrictPrefixOf()
-    : checker(Regex("^<foo><bar><>+<KEY><>$"))
-  {
-  }
+class RegexIsStrictPrefixOf : public CheckerFixture {
+  public:
+    RegexIsStrictPrefixOf()
+      : checker(Regex("^<foo><bar><>+<KEY><>$"))
+    {
+    }
 
-public:
-  RegexChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{false, true, false, false},
-                                             {false, true, false, false},
-                                             {false, true, false, false},
-                                             {false, true, false, false}};
+  public:
+    RegexChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{false, true, false, false},
+                                               {false, true, false, false},
+                                               {false, true, false, false},
+                                               {false, true, false, false}};
 };
 
-class HyperRelationEqual : public CheckerFixture
-{
-public:
-  HyperRelationEqual()
-    : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::EQUAL)
-  {
-  }
+class HyperRelationEqual : public CheckerFixture {
+  public:
+    HyperRelationEqual()
+      : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::EQUAL)
+    {
+    }
 
-public:
-  HyperRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true,  false, false, false},
-                                             {false, true,  false, false},
-                                             {false, false, true,  false},
-                                             {false, false, false, true}};
+  public:
+    HyperRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
+                                               {false, true, false, false},
+                                               {false, false, true, false},
+                                               {false, false, false, true}};
 };
 
-class HyperRelationIsPrefixOf : public CheckerFixture
-{
-public:
-  HyperRelationIsPrefixOf()
-    : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::IS_PREFIX_OF)
-  {
-  }
+class HyperRelationIsPrefixOf : public CheckerFixture {
+  public:
+    HyperRelationIsPrefixOf()
+      : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::IS_PREFIX_OF)
+    {
+    }
 
-public:
-  HyperRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{true,  false, true,  false},
-                                             {true,  true,  true,  false},
-                                             {false, false, true,  false},
-                                             {false, false, false, true}};
+  public:
+    HyperRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{true, false, true, false},
+                                               {true, true, true, false},
+                                               {false, false, true, false},
+                                               {false, false, false, true}};
 };
 
-class HyperRelationIsStrictPrefixOf : public CheckerFixture
-{
-public:
-  HyperRelationIsStrictPrefixOf()
-    : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::IS_STRICT_PREFIX_OF)
-  {
-  }
+class HyperRelationIsStrictPrefixOf : public CheckerFixture {
+  public:
+    HyperRelationIsStrictPrefixOf()
+      : checker("^(<>+)$", "\\1", "^(<>+)<KEY><>$", "\\1", NameRelation::IS_STRICT_PREFIX_OF)
+    {
+    }
 
-public:
-  HyperRelationChecker checker;
-  std::vector<std::vector<bool>> outcomes = {{false, false, true,  false},
-                                             {true,  false, true,  false},
-                                             {false, false, false, false},
-                                             {false, false, false, false}};
+  public:
+    HyperRelationChecker checker;
+    std::vector<std::vector<bool>> outcomes = {{false, false, true, false},
+                                               {true, false, true, false},
+                                               {false, false, false, false},
+                                               {false, false, false, false}};
 };
 
-class Hierarchical : public CheckerFixture
-{
-public:
-  Hierarchical()
-    : checkerPtr(Checker::create(makeSection(R"CONF(
+class Hierarchical : public CheckerFixture {
+  public:
+    Hierarchical()
+      : checkerPtr(Checker::create(makeSection(R"CONF(
           type hierarchical
           sig-type rsa-sha256
-        )CONF"), "test-config"))
-    , checker(*checkerPtr)
-  {
-  }
+        )CONF"),
+                                   "test-config"))
+      , checker(*checkerPtr)
+    {
+    }
 
-public:
-  std::unique_ptr<Checker> checkerPtr;
-  Checker& checker;
+  public:
+    std::unique_ptr<Checker> checkerPtr;
+    Checker& checker;
 
-  std::vector<std::vector<bool>> outcomes = {{true,  false, true,  false},
-                                             {true,  true,  true,  false},
-                                             {false, false, true,  false},
-                                             {false, false, false, true}};
+    std::vector<std::vector<bool>> outcomes = {{true, false, true, false},
+                                               {true, true, true, false},
+                                               {false, false, true, false},
+                                               {false, false, false, true}};
 };
 
-class CustomizedNameRelation : public CheckerFixture
-{
-public:
-  CustomizedNameRelation()
-    : checkerPtr(Checker::create(makeSection(R"CONF(
+class CustomizedNameRelation : public CheckerFixture {
+  public:
+    CustomizedNameRelation()
+      : checkerPtr(Checker::create(makeSection(R"CONF(
           type customized
           sig-type rsa-sha256
           key-locator
@@ -248,26 +237,26 @@ public:
             name /foo/bar
             relation equal
           }
-        )CONF"), "test-config"))
-    , checker(*checkerPtr)
-  {
-  }
+        )CONF"),
+                                   "test-config"))
+      , checker(*checkerPtr)
+    {
+    }
 
-public:
-  std::unique_ptr<Checker> checkerPtr;
-  Checker& checker;
+  public:
+    std::unique_ptr<Checker> checkerPtr;
+    Checker& checker;
 
-  std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false}};
+    std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false}};
 };
 
-class CustomizedRegex : public CheckerFixture
-{
-public:
-  CustomizedRegex()
-    : checkerPtr(Checker::create(makeSection(R"CONF(
+class CustomizedRegex : public CheckerFixture {
+  public:
+    CustomizedRegex()
+      : checkerPtr(Checker::create(makeSection(R"CONF(
           type customized
           sig-type rsa-sha256
           key-locator
@@ -275,26 +264,26 @@ public:
             type name
             regex ^<foo><bar><KEY><>$
           }
-        )CONF"), "test-config"))
-    , checker(*checkerPtr)
-  {
-  }
+        )CONF"),
+                                   "test-config"))
+      , checker(*checkerPtr)
+    {
+    }
 
-public:
-  std::unique_ptr<Checker> checkerPtr;
-  Checker& checker;
+  public:
+    std::unique_ptr<Checker> checkerPtr;
+    Checker& checker;
 
-  std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false},
-                                             {true, false, false, false}};
+    std::vector<std::vector<bool>> outcomes = {{true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false},
+                                               {true, false, false, false}};
 };
 
-class CustomizedHyperRelation : public CheckerFixture
-{
-public:
-  CustomizedHyperRelation()
-    : checkerPtr(Checker::create(makeSection(R"CONF(
+class CustomizedHyperRelation : public CheckerFixture {
+  public:
+    CustomizedHyperRelation()
+      : checkerPtr(Checker::create(makeSection(R"CONF(
           type customized
           sig-type rsa-sha256
           key-locator
@@ -309,51 +298,52 @@ public:
               p-expand \\1
             }
           }
-        )CONF"), "test-config"))
-    , checker(*checkerPtr)
-  {
-  }
+        )CONF"),
+                                   "test-config"))
+      , checker(*checkerPtr)
+    {
+    }
 
-public:
-  std::unique_ptr<Checker> checkerPtr;
-  Checker& checker;
+  public:
+    std::unique_ptr<Checker> checkerPtr;
+    Checker& checker;
 
-  std::vector<std::vector<bool>> outcomes = {{true,  false, true,  false},
-                                             {true,  true,  true,  false},
-                                             {false, false, true,  false},
-                                             {false, false, false, true}};
+    std::vector<std::vector<bool>> outcomes = {{true, false, true, false},
+                                               {true, true, true, false},
+                                               {false, false, true, false},
+                                               {false, false, false, true}};
 };
 
-using Tests = boost::mpl::vector<NameRelationEqual, NameRelationIsPrefixOf, NameRelationIsStrictPrefixOf,
-                                 RegexEqual, RegexIsPrefixOf, RegexIsStrictPrefixOf,
-                                 HyperRelationEqual, HyperRelationIsPrefixOf, HyperRelationIsStrictPrefixOf,
-                                 Hierarchical,
-                                 CustomizedNameRelation, CustomizedRegex, CustomizedHyperRelation>;
+using Tests = boost::mpl::vector<NameRelationEqual, NameRelationIsPrefixOf, NameRelationIsStrictPrefixOf, RegexEqual,
+                                 RegexIsPrefixOf, RegexIsStrictPrefixOf, HyperRelationEqual, HyperRelationIsPrefixOf,
+                                 HyperRelationIsStrictPrefixOf, Hierarchical, CustomizedNameRelation, CustomizedRegex,
+                                 CustomizedHyperRelation>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Checks, T, Tests, T)
 {
-  using namespace ndn::security::v2::tests;
+    using namespace ndn::security::v2::tests;
 
-  BOOST_REQUIRE_EQUAL(this->outcomes.size(), this->names.size());
-  for (size_t i = 0; i < this->names.size(); ++i) {
-    BOOST_REQUIRE_EQUAL(this->outcomes[i].size(), this->names.size());
-    for (size_t j = 0; j < this->names.size(); ++j) {
-      const Name& pktName = this->names[i];
-      Name klName = this->makeKeyLocatorName(this->names[j]);
-      bool expectedOutcome = this->outcomes[i][j];
+    BOOST_REQUIRE_EQUAL(this->outcomes.size(), this->names.size());
+    for (size_t i = 0; i < this->names.size(); ++i) {
+        BOOST_REQUIRE_EQUAL(this->outcomes[i].size(), this->names.size());
+        for (size_t j = 0; j < this->names.size(); ++j) {
+            const Name& pktName = this->names[i];
+            Name klName = this->makeKeyLocatorName(this->names[j]);
+            bool expectedOutcome = this->outcomes[i][j];
 
-      auto dataState = make_shared<DummyValidationState>();
-      BOOST_CHECK_EQUAL(this->checker.check(tlv::Data, pktName, klName, dataState), expectedOutcome);
-      BOOST_CHECK_EQUAL(boost::logic::indeterminate(dataState->getOutcome()), expectedOutcome);
-      BOOST_CHECK_EQUAL(bool(dataState->getOutcome()), false);
+            auto dataState = make_shared<DummyValidationState>();
+            BOOST_CHECK_EQUAL(this->checker.check(tlv::Data, pktName, klName, dataState), expectedOutcome);
+            BOOST_CHECK_EQUAL(boost::logic::indeterminate(dataState->getOutcome()), expectedOutcome);
+            BOOST_CHECK_EQUAL(bool(dataState->getOutcome()), false);
 
-      auto interestState = make_shared<DummyValidationState>();
-      BOOST_CHECK_EQUAL(this->checker.check(tlv::Interest, this->makeSignedInterestName(pktName),
-                                            klName, interestState), expectedOutcome);
-      BOOST_CHECK_EQUAL(boost::logic::indeterminate(interestState->getOutcome()), expectedOutcome);
-      BOOST_CHECK_EQUAL(bool(interestState->getOutcome()), false);
+            auto interestState = make_shared<DummyValidationState>();
+            BOOST_CHECK_EQUAL(this->checker.check(tlv::Interest, this->makeSignedInterestName(pktName), klName,
+                                                  interestState),
+                              expectedOutcome);
+            BOOST_CHECK_EQUAL(boost::logic::indeterminate(interestState->getOutcome()), expectedOutcome);
+            BOOST_CHECK_EQUAL(bool(interestState->getOutcome()), false);
+        }
     }
-  }
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestChecker

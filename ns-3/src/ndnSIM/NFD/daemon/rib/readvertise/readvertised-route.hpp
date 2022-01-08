@@ -36,29 +36,27 @@ namespace rib {
 
 /** \brief state of a readvertised route
  */
-class ReadvertisedRoute : noncopyable
-{
-public:
-  explicit
-  ReadvertisedRoute(const Name& prefix)
-    : prefix(prefix)
-    , nRibRoutes(0)
-    , retryDelay(0)
-  {
-  }
+class ReadvertisedRoute : noncopyable {
+  public:
+    explicit ReadvertisedRoute(const Name& prefix)
+      : prefix(prefix)
+      , nRibRoutes(0)
+      , retryDelay(0)
+    {
+    }
 
-public:
-  Name prefix; ///< readvertised prefix
-  mutable ndn::security::SigningInfo signer; ///< signer for commands
-  mutable size_t nRibRoutes; ///< number of RIB routes that cause the readvertisement
-  mutable time::milliseconds retryDelay; ///< retry interval (not used for refresh)
-  mutable scheduler::ScopedEventId retryEvt; ///< retry or refresh event
+  public:
+    Name prefix;                               ///< readvertised prefix
+    mutable ndn::security::SigningInfo signer; ///< signer for commands
+    mutable size_t nRibRoutes;                 ///< number of RIB routes that cause the readvertisement
+    mutable time::milliseconds retryDelay;     ///< retry interval (not used for refresh)
+    mutable scheduler::ScopedEventId retryEvt; ///< retry or refresh event
 };
 
 inline bool
 operator<(const ReadvertisedRoute& lhs, const ReadvertisedRoute& rhs)
 {
-  return lhs.prefix < rhs.prefix;
+    return lhs.prefix < rhs.prefix;
 }
 
 using ReadvertisedRouteContainer = std::set<ReadvertisedRoute>;

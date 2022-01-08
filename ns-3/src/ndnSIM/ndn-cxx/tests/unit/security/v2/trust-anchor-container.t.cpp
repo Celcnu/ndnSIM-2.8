@@ -41,47 +41,46 @@ BOOST_AUTO_TEST_SUITE(V2)
  * This fixture creates a directory and prepares two certificates.
  * cert1 is written to a file under the directory, while cert2 is not.
  */
-class AnchorContainerTestFixture : public IdentityManagementTimeFixture
-{
-public:
-  AnchorContainerTestFixture()
-  {
-    namespace fs = boost::filesystem;
+class AnchorContainerTestFixture : public IdentityManagementTimeFixture {
+  public:
+    AnchorContainerTestFixture()
+    {
+        namespace fs = boost::filesystem;
 
-    fs::create_directory(fs::path(UNIT_TEST_CONFIG_PATH));
+        fs::create_directory(fs::path(UNIT_TEST_CONFIG_PATH));
 
-    certDirPath = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir";
-    fs::create_directory(certDirPath);
+        certDirPath = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir";
+        fs::create_directory(certDirPath);
 
-    certPath1 = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir" / "trust-anchor-1.cert";
-    certPath2 = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir" / "trust-anchor-2.cert";
+        certPath1 = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir" / "trust-anchor-1.cert";
+        certPath2 = fs::path(UNIT_TEST_CONFIG_PATH) / "test-cert-dir" / "trust-anchor-2.cert";
 
-    identity1 = addIdentity("/TestAnchorContainer/First");
-    cert1 = identity1.getDefaultKey().getDefaultCertificate();
-    saveCertToFile(cert1, certPath1.string());
+        identity1 = addIdentity("/TestAnchorContainer/First");
+        cert1 = identity1.getDefaultKey().getDefaultCertificate();
+        saveCertToFile(cert1, certPath1.string());
 
-    identity2 = addIdentity("/TestAnchorContainer/Second");
-    cert2 = identity2.getDefaultKey().getDefaultCertificate();
-    saveCertToFile(cert2, certPath2.string());
-  }
+        identity2 = addIdentity("/TestAnchorContainer/Second");
+        cert2 = identity2.getDefaultKey().getDefaultCertificate();
+        saveCertToFile(cert2, certPath2.string());
+    }
 
-  ~AnchorContainerTestFixture()
-  {
-    boost::filesystem::remove_all(UNIT_TEST_CONFIG_PATH);
-  }
+    ~AnchorContainerTestFixture()
+    {
+        boost::filesystem::remove_all(UNIT_TEST_CONFIG_PATH);
+    }
 
-public:
-  TrustAnchorContainer anchorContainer;
+  public:
+    TrustAnchorContainer anchorContainer;
 
-  boost::filesystem::path certDirPath;
-  boost::filesystem::path certPath1;
-  boost::filesystem::path certPath2;
+    boost::filesystem::path certDirPath;
+    boost::filesystem::path certPath1;
+    boost::filesystem::path certPath2;
 
-  Identity identity1;
-  Identity identity2;
+    Identity identity1;
+    Identity identity2;
 
-  Certificate cert1;
-  Certificate cert2;
+    Certificate cert1;
+    Certificate cert2;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestTrustAnchorContainer, AnchorContainerTestFixture)
@@ -89,97 +88,97 @@ BOOST_FIXTURE_TEST_SUITE(TestTrustAnchorContainer, AnchorContainerTestFixture)
 // one static group and one dynamic group created from file
 BOOST_AUTO_TEST_CASE(Insert)
 {
-  // Static
-  anchorContainer.insert("group1", Certificate(cert1));
-  BOOST_CHECK(anchorContainer.find(cert1.getName()) != nullptr);
-  BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
-  const Certificate* cert = anchorContainer.find(cert1.getName());
-  BOOST_CHECK_NO_THROW(anchorContainer.insert("group1", Certificate(cert1)));
-  BOOST_CHECK_EQUAL(cert, anchorContainer.find(cert1.getName())); // still the same instance of the certificate
-  // cannot add dynamic group when static already exists
-  BOOST_CHECK_THROW(anchorContainer.insert("group1", certPath1.string(), 1_s), TrustAnchorContainer::Error);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group1").size(), 1);
-  BOOST_CHECK_EQUAL(anchorContainer.size(), 1);
+    // Static
+    anchorContainer.insert("group1", Certificate(cert1));
+    BOOST_CHECK(anchorContainer.find(cert1.getName()) != nullptr);
+    BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
+    const Certificate* cert = anchorContainer.find(cert1.getName());
+    BOOST_CHECK_NO_THROW(anchorContainer.insert("group1", Certificate(cert1)));
+    BOOST_CHECK_EQUAL(cert, anchorContainer.find(cert1.getName())); // still the same instance of the certificate
+    // cannot add dynamic group when static already exists
+    BOOST_CHECK_THROW(anchorContainer.insert("group1", certPath1.string(), 1_s), TrustAnchorContainer::Error);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group1").size(), 1);
+    BOOST_CHECK_EQUAL(anchorContainer.size(), 1);
 
-  // From file
-  anchorContainer.insert("group2", certPath2.string(), 1_s);
-  BOOST_CHECK(anchorContainer.find(cert2.getName()) != nullptr);
-  BOOST_CHECK(anchorContainer.find(identity2.getName()) != nullptr);
-  BOOST_CHECK_THROW(anchorContainer.insert("group2", Certificate(cert2)), TrustAnchorContainer::Error);
-  BOOST_CHECK_THROW(anchorContainer.insert("group2", certPath2.string(), 1_s), TrustAnchorContainer::Error);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group2").size(), 1);
-  BOOST_CHECK_EQUAL(anchorContainer.size(), 2);
+    // From file
+    anchorContainer.insert("group2", certPath2.string(), 1_s);
+    BOOST_CHECK(anchorContainer.find(cert2.getName()) != nullptr);
+    BOOST_CHECK(anchorContainer.find(identity2.getName()) != nullptr);
+    BOOST_CHECK_THROW(anchorContainer.insert("group2", Certificate(cert2)), TrustAnchorContainer::Error);
+    BOOST_CHECK_THROW(anchorContainer.insert("group2", certPath2.string(), 1_s), TrustAnchorContainer::Error);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group2").size(), 1);
+    BOOST_CHECK_EQUAL(anchorContainer.size(), 2);
 
-  boost::filesystem::remove(certPath2);
-  advanceClocks(1_s, 11);
+    boost::filesystem::remove(certPath2);
+    advanceClocks(1_s, 11);
 
-  BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
-  BOOST_CHECK(anchorContainer.find(cert2.getName()) == nullptr);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group2").size(), 0);
-  BOOST_CHECK_EQUAL(anchorContainer.size(), 1);
+    BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
+    BOOST_CHECK(anchorContainer.find(cert2.getName()) == nullptr);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group2").size(), 0);
+    BOOST_CHECK_EQUAL(anchorContainer.size(), 1);
 
-  TrustAnchorGroup& group = anchorContainer.getGroup("group1");
-  auto staticGroup = dynamic_cast<StaticTrustAnchorGroup*>(&group);
-  BOOST_REQUIRE(staticGroup != nullptr);
-  BOOST_CHECK_EQUAL(staticGroup->size(), 1);
-  staticGroup->remove(cert1.getName());
-  BOOST_CHECK_EQUAL(staticGroup->size(), 0);
-  BOOST_CHECK_EQUAL(anchorContainer.size(), 0);
+    TrustAnchorGroup& group = anchorContainer.getGroup("group1");
+    auto staticGroup = dynamic_cast<StaticTrustAnchorGroup*>(&group);
+    BOOST_REQUIRE(staticGroup != nullptr);
+    BOOST_CHECK_EQUAL(staticGroup->size(), 1);
+    staticGroup->remove(cert1.getName());
+    BOOST_CHECK_EQUAL(staticGroup->size(), 0);
+    BOOST_CHECK_EQUAL(anchorContainer.size(), 0);
 
-  BOOST_CHECK_THROW(anchorContainer.getGroup("non-existing-group"), TrustAnchorContainer::Error);
+    BOOST_CHECK_THROW(anchorContainer.getGroup("non-existing-group"), TrustAnchorContainer::Error);
 }
 
 BOOST_AUTO_TEST_CASE(DynamicAnchorFromDir)
 {
-  boost::filesystem::remove(certPath2);
+    boost::filesystem::remove(certPath2);
 
-  anchorContainer.insert("group", certDirPath.string(), 1_s, true /* isDir */);
+    anchorContainer.insert("group", certDirPath.string(), 1_s, true /* isDir */);
 
-  BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
-  BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 1);
+    BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
+    BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 1);
 
-  saveCertToFile(cert2, certPath2.string());
+    saveCertToFile(cert2, certPath2.string());
 
-  advanceClocks(100_ms, 11);
+    advanceClocks(100_ms, 11);
 
-  BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
-  BOOST_CHECK(anchorContainer.find(identity2.getName()) != nullptr);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 2);
+    BOOST_CHECK(anchorContainer.find(identity1.getName()) != nullptr);
+    BOOST_CHECK(anchorContainer.find(identity2.getName()) != nullptr);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 2);
 
-  boost::filesystem::remove_all(certDirPath);
+    boost::filesystem::remove_all(certDirPath);
 
-  advanceClocks(100_ms, 11);
+    advanceClocks(100_ms, 11);
 
-  BOOST_CHECK(anchorContainer.find(identity1.getName()) == nullptr);
-  BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
-  BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 0);
+    BOOST_CHECK(anchorContainer.find(identity1.getName()) == nullptr);
+    BOOST_CHECK(anchorContainer.find(identity2.getName()) == nullptr);
+    BOOST_CHECK_EQUAL(anchorContainer.getGroup("group").size(), 0);
 }
 
 BOOST_FIXTURE_TEST_CASE(FindByInterest, AnchorContainerTestFixture)
 {
-  anchorContainer.insert("group1", certPath1.string(), 1_s);
-  Interest interest(identity1.getName());
-  BOOST_CHECK(anchorContainer.find(interest) != nullptr);
-  Interest interest1(identity1.getName().getPrefix(-1));
-  BOOST_CHECK(anchorContainer.find(interest1) != nullptr);
-  Interest interest2(Name(identity1.getName()).appendVersion());
-  BOOST_CHECK(anchorContainer.find(interest2) == nullptr);
+    anchorContainer.insert("group1", certPath1.string(), 1_s);
+    Interest interest(identity1.getName());
+    BOOST_CHECK(anchorContainer.find(interest) != nullptr);
+    Interest interest1(identity1.getName().getPrefix(-1));
+    BOOST_CHECK(anchorContainer.find(interest1) != nullptr);
+    Interest interest2(Name(identity1.getName()).appendVersion());
+    BOOST_CHECK(anchorContainer.find(interest2) == nullptr);
 
-  Certificate cert3 = addCertificate(identity1.getDefaultKey(), "3");
-  Certificate cert4 = addCertificate(identity1.getDefaultKey(), "4");
-  Certificate cert5 = addCertificate(identity1.getDefaultKey(), "5");
+    Certificate cert3 = addCertificate(identity1.getDefaultKey(), "3");
+    Certificate cert4 = addCertificate(identity1.getDefaultKey(), "4");
+    Certificate cert5 = addCertificate(identity1.getDefaultKey(), "5");
 
-  Certificate cert3Copy = cert3;
-  anchorContainer.insert("group2", std::move(cert3Copy));
-  anchorContainer.insert("group3", std::move(cert4));
-  anchorContainer.insert("group4", std::move(cert5));
+    Certificate cert3Copy = cert3;
+    anchorContainer.insert("group2", std::move(cert3Copy));
+    anchorContainer.insert("group3", std::move(cert4));
+    anchorContainer.insert("group4", std::move(cert5));
 
-  Interest interest3(cert3.getKeyName());
-  const Certificate* foundCert = anchorContainer.find(interest3);
-  BOOST_REQUIRE(foundCert != nullptr);
-  BOOST_CHECK(interest3.getName().isPrefixOf(foundCert->getName()));
-  BOOST_CHECK_EQUAL(foundCert->getName(), cert3.getName());
+    Interest interest3(cert3.getKeyName());
+    const Certificate* foundCert = anchorContainer.find(interest3);
+    BOOST_REQUIRE(foundCert != nullptr);
+    BOOST_CHECK(interest3.getName().isPrefixOf(foundCert->getName()));
+    BOOST_CHECK_EQUAL(foundCert->getName(), cert3.getName());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTrustAnchorContainer

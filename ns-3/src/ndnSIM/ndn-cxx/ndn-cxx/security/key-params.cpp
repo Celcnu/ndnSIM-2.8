@@ -27,7 +27,7 @@ KeyParams::KeyParams(KeyType keyType, KeyIdType keyIdType)
   : m_keyType(keyType)
   , m_keyIdType(keyIdType)
 {
-  BOOST_ASSERT(keyIdType != KeyIdType::USER_SPECIFIED);
+    BOOST_ASSERT(keyIdType != KeyIdType::USER_SPECIFIED);
 }
 
 KeyParams::KeyParams(KeyType keyType, const name::Component& keyId)
@@ -35,7 +35,7 @@ KeyParams::KeyParams(KeyType keyType, const name::Component& keyId)
   , m_keyIdType(KeyIdType::USER_SPECIFIED)
   , m_keyId(keyId)
 {
-  BOOST_ASSERT(!keyId.empty());
+    BOOST_ASSERT(!keyId.empty());
 }
 
 KeyParams::~KeyParams() = default;
@@ -53,61 +53,61 @@ const uint32_t DEFAULT_HMAC_KEY_SIZE = 256;
 uint32_t
 RsaKeyParamsInfo::checkKeySize(uint32_t size)
 {
-  if (size < MIN_RSA_KEY_SIZE)
-    NDN_THROW(KeyParams::Error("Unsupported RSA key size " + to_string(size)));
-  return size;
+    if (size < MIN_RSA_KEY_SIZE)
+        NDN_THROW(KeyParams::Error("Unsupported RSA key size " + to_string(size)));
+    return size;
 }
 
 uint32_t
 RsaKeyParamsInfo::getDefaultSize()
 {
-  return DEFAULT_RSA_KEY_SIZE;
+    return DEFAULT_RSA_KEY_SIZE;
 }
 
 uint32_t
 EcKeyParamsInfo::checkKeySize(uint32_t size)
 {
-  for (size_t i = 0; i < (sizeof(EC_KEY_SIZES) / sizeof(EC_KEY_SIZES[0])); i++) {
-    if (EC_KEY_SIZES[i] == size)
-      return size;
-  }
-  NDN_THROW(KeyParams::Error("Unsupported EC key size " + to_string(size)));
+    for (size_t i = 0; i < (sizeof(EC_KEY_SIZES) / sizeof(EC_KEY_SIZES[0])); i++) {
+        if (EC_KEY_SIZES[i] == size)
+            return size;
+    }
+    NDN_THROW(KeyParams::Error("Unsupported EC key size " + to_string(size)));
 }
 
 uint32_t
 EcKeyParamsInfo::getDefaultSize()
 {
-  return DEFAULT_EC_KEY_SIZE;
+    return DEFAULT_EC_KEY_SIZE;
 }
 
 uint32_t
 AesKeyParamsInfo::checkKeySize(uint32_t size)
 {
-  for (size_t i = 0; i < (sizeof(AES_KEY_SIZES) / sizeof(AES_KEY_SIZES[0])); i++) {
-    if (AES_KEY_SIZES[i] == size)
-      return size;
-  }
-  NDN_THROW(KeyParams::Error("Unsupported AES key size " + to_string(size)));
+    for (size_t i = 0; i < (sizeof(AES_KEY_SIZES) / sizeof(AES_KEY_SIZES[0])); i++) {
+        if (AES_KEY_SIZES[i] == size)
+            return size;
+    }
+    NDN_THROW(KeyParams::Error("Unsupported AES key size " + to_string(size)));
 }
 
 uint32_t
 AesKeyParamsInfo::getDefaultSize()
 {
-  return DEFAULT_AES_KEY_SIZE;
+    return DEFAULT_AES_KEY_SIZE;
 }
 
 uint32_t
 HmacKeyParamsInfo::checkKeySize(uint32_t size)
 {
-  if (size == 0 || size % 8 != 0)
-    NDN_THROW(KeyParams::Error("Unsupported HMAC key size " + to_string(size)));
-  return size;
+    if (size == 0 || size % 8 != 0)
+        NDN_THROW(KeyParams::Error("Unsupported HMAC key size " + to_string(size)));
+    return size;
 }
 
 uint32_t
 HmacKeyParamsInfo::getDefaultSize()
 {
-  return DEFAULT_HMAC_KEY_SIZE;
+    return DEFAULT_HMAC_KEY_SIZE;
 }
 
 } // namespace detail

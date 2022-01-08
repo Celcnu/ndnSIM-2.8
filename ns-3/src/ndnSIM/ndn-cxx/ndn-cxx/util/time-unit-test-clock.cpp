@@ -28,74 +28,73 @@
 namespace ndn {
 namespace time {
 
-template<class BaseClock, class ClockTraits>
+template <class BaseClock, class ClockTraits>
 UnitTestClock<BaseClock, ClockTraits>::UnitTestClock(nanoseconds startTime)
   : m_currentTime(startTime)
 {
 }
 
-template<class BaseClock, class ClockTraits>
+template <class BaseClock, class ClockTraits>
 std::string
 UnitTestClock<BaseClock, ClockTraits>::getSince() const
 {
-  return " since unit test beginning";
+    return " since unit test beginning";
 }
 
-template<class BaseClock, class ClockTraits>
+template <class BaseClock, class ClockTraits>
 typename BaseClock::time_point
 UnitTestClock<BaseClock, ClockTraits>::getNow() const
 {
-  return typename BaseClock::time_point(duration_cast<typename BaseClock::duration>(m_currentTime));
+    return typename BaseClock::time_point(duration_cast<typename BaseClock::duration>(m_currentTime));
 }
 
-template<class BaseClock, class ClockTraits>
-typename BaseClock::duration
-UnitTestClock<BaseClock, ClockTraits>::toWaitDuration(typename BaseClock::duration) const
+template <class BaseClock, class ClockTraits>
+typename BaseClock::duration UnitTestClock<BaseClock, ClockTraits>::toWaitDuration(typename BaseClock::duration) const
 {
-  return typename BaseClock::duration(1);
+    return typename BaseClock::duration(1);
 }
 
-template<class BaseClock, class ClockTraits>
+template <class BaseClock, class ClockTraits>
 void
 UnitTestClock<BaseClock, ClockTraits>::advance(nanoseconds duration)
 {
-  m_currentTime += duration;
+    m_currentTime += duration;
 
-  // When UnitTestClock is used with Asio timers (e.g. basic_waitable_timer), and
-  // an async wait operation on a timer is already in progress, Asio won't look
-  // at the clock again until the earliest timer has expired, so it won't know that
-  // the current time has changed.
-  //
-  // Therefore, in order for the clock advancement to be effective, we must sleep
-  // for a period greater than wait_traits::to_wait_duration().
-  //
-  // See also http://blog.think-async.com/2007/08/time-travel.html - "Jumping Through Time"
-  //
-  std::this_thread::sleep_for(std::chrono::nanoseconds(duration_cast<nanoseconds>(
-                                boost::asio::wait_traits<steady_clock>::to_wait_duration(duration) +
-                                typename BaseClock::duration(1)).count()));
+    // When UnitTestClock is used with Asio timers (e.g. basic_waitable_timer), and
+    // an async wait operation on a timer is already in progress, Asio won't look
+    // at the clock again until the earliest timer has expired, so it won't know that
+    // the current time has changed.
+    //
+    // Therefore, in order for the clock advancement to be effective, we must sleep
+    // for a period greater than wait_traits::to_wait_duration().
+    //
+    // See also http://blog.think-async.com/2007/08/time-travel.html - "Jumping Through Time"
+    //
+    std::this_thread::sleep_for(std::chrono::nanoseconds(
+      duration_cast<nanoseconds>(boost::asio::wait_traits<steady_clock>::to_wait_duration(duration) +
+                                 typename BaseClock::duration(1))
+        .count()));
 }
 
-template<class BaseClock, class ClockTraits>
+template <class BaseClock, class ClockTraits>
 void
 UnitTestClock<BaseClock, ClockTraits>::setNow(nanoseconds timeSinceEpoch)
 {
-  BOOST_ASSERT(!BaseClock::is_steady || timeSinceEpoch >= m_currentTime);
+    BOOST_ASSERT(!BaseClock::is_steady || timeSinceEpoch >= m_currentTime);
 
-  m_currentTime = timeSinceEpoch;
+    m_currentTime = timeSinceEpoch;
 
-  // See comment in advance()
-  auto delta = timeSinceEpoch - m_currentTime;
-  std::this_thread::sleep_for(std::chrono::nanoseconds(duration_cast<nanoseconds>(
-                                boost::asio::wait_traits<steady_clock>::to_wait_duration(delta) +
-                                typename BaseClock::duration(1)).count()));
+    // See comment in advance()
+    auto delta = timeSinceEpoch - m_currentTime;
+    std::this_thread::sleep_for(std::chrono::nanoseconds(
+      duration_cast<nanoseconds>(boost::asio::wait_traits<steady_clock>::to_wait_duration(delta) +
+                                 typename BaseClock::duration(1))
+        .count()));
 }
 
-template
-class UnitTestClock<system_clock>;
+template class UnitTestClock<system_clock>;
 
-template
-class UnitTestClock<steady_clock>;
+template class UnitTestClock<steady_clock>;
 
 } // namespace time
 } // namespace ndn

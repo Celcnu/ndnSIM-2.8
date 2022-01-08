@@ -53,130 +53,129 @@ BOOST_AUTO_TEST_SUITE(TestForwardingHint)
  *                     /net/ndnsim
  *                      (serverQ)
  */
-class NdnsimTeliaUclaTopologyFixture : public GlobalIoTimeFixture
-{
-public:
-  NdnsimTeliaUclaTopologyFixture()
-  {
-    topo.enablePcap();
+class NdnsimTeliaUclaTopologyFixture : public GlobalIoTimeFixture {
+  public:
+    NdnsimTeliaUclaTopologyFixture()
+    {
+        topo.enablePcap();
 
-    nodeA = topo.addForwarder("avenir");
-    nodeH = topo.addForwarder("hobo");
-    nodeT = topo.addForwarder("terabits");
-    nodeP = topo.addForwarder("serverP");
-    nodeC = topo.addForwarder("click");
-    nodeS = topo.addForwarder("spurs");
-    nodeQ = topo.addForwarder("serverQ");
-    for (TopologyNode node : {nodeA, nodeH, nodeT, nodeP, nodeC, nodeS, nodeQ}) {
-      topo.setStrategy<BestRouteStrategy2>(node);
+        nodeA = topo.addForwarder("avenir");
+        nodeH = topo.addForwarder("hobo");
+        nodeT = topo.addForwarder("terabits");
+        nodeP = topo.addForwarder("serverP");
+        nodeC = topo.addForwarder("click");
+        nodeS = topo.addForwarder("spurs");
+        nodeQ = topo.addForwarder("serverQ");
+        for (TopologyNode node : {nodeA, nodeH, nodeT, nodeP, nodeC, nodeS, nodeQ}) {
+            topo.setStrategy<BestRouteStrategy2>(node);
+        }
+
+        topo.getForwarder(nodeH).getNetworkRegionTable().insert("/arizona/cs/hobo");
+        topo.getForwarder(nodeT).getNetworkRegionTable().insert("/telia/terabits/router");
+        topo.getForwarder(nodeC).getNetworkRegionTable().insert("/ucsd/caida/click");
+        topo.getForwarder(nodeS).getNetworkRegionTable().insert("/ucla/cs/spurs");
+        // NetworkRegionTable configuration is unnecessary on end hosts
+
+        linkAH = topo.addLink("AH", 10_ms, {nodeA, nodeH});
+        linkHT = topo.addLink("HT", 10_ms, {nodeH, nodeT});
+        linkTP = topo.addLink("TP", 10_ms, {nodeT, nodeP});
+        linkHC = topo.addLink("HC", 10_ms, {nodeH, nodeC});
+        linkCS = topo.addLink("CS", 10_ms, {nodeC, nodeS});
+        linkSQ = topo.addLink("SQ", 10_ms, {nodeS, nodeQ});
+        consumerA = topo.addAppFace("avenir", nodeA);
+        producerP = topo.addAppFace("ndnsimP", nodeP, "/net/ndnsim");
+        producerQ = topo.addAppFace("ndnsimQ", nodeQ, "/net/ndnsim");
+
+        topo.addEchoProducer(producerP->getClientFace());
+        topo.addEchoProducer(producerQ->getClientFace());
+
+        topo.registerPrefix(nodeA, linkAH->getFace(nodeA), "/", 10);
+        topo.registerPrefix(nodeH, linkHT->getFace(nodeH), "/telia", 10);
+        topo.registerPrefix(nodeT, linkTP->getFace(nodeT), "/net/ndnsim", 10);
+        topo.registerPrefix(nodeH, linkHC->getFace(nodeH), "/ucla", 20);
+        topo.registerPrefix(nodeC, linkCS->getFace(nodeC), "/ucla", 10);
+        topo.registerPrefix(nodeS, linkSQ->getFace(nodeS), "/net/ndnsim", 10);
     }
 
-    topo.getForwarder(nodeH).getNetworkRegionTable().insert("/arizona/cs/hobo");
-    topo.getForwarder(nodeT).getNetworkRegionTable().insert("/telia/terabits/router");
-    topo.getForwarder(nodeC).getNetworkRegionTable().insert("/ucsd/caida/click");
-    topo.getForwarder(nodeS).getNetworkRegionTable().insert("/ucla/cs/spurs");
-    // NetworkRegionTable configuration is unnecessary on end hosts
+    /** \brief express an Interest with Link object from consumerA
+     */
+    void
+    consumerExpressInterest(int seq)
+    {
+        auto interest = makeInterest(Name("/net/ndnsim").appendNumber(seq));
+        interest->setForwardingHint({delTelia, delUcla});
+        consumerA->getClientFace().expressInterest(*interest, nullptr, nullptr, nullptr);
+    }
 
-    linkAH = topo.addLink("AH", 10_ms, {nodeA, nodeH});
-    linkHT = topo.addLink("HT", 10_ms, {nodeH, nodeT});
-    linkTP = topo.addLink("TP", 10_ms, {nodeT, nodeP});
-    linkHC = topo.addLink("HC", 10_ms, {nodeH, nodeC});
-    linkCS = topo.addLink("CS", 10_ms, {nodeC, nodeS});
-    linkSQ = topo.addLink("SQ", 10_ms, {nodeS, nodeQ});
-    consumerA = topo.addAppFace("avenir", nodeA);
-    producerP = topo.addAppFace("ndnsimP", nodeP, "/net/ndnsim");
-    producerQ = topo.addAppFace("ndnsimQ", nodeQ, "/net/ndnsim");
+  public:
+    TopologyTester topo;
+    TopologyNode nodeA, nodeH, nodeT, nodeP, nodeC, nodeS, nodeQ;
+    shared_ptr<TopologyLink> linkAH, linkHT, linkTP, linkHC, linkCS, linkSQ;
+    shared_ptr<TopologyAppLink> consumerA, producerP, producerQ;
 
-    topo.addEchoProducer(producerP->getClientFace());
-    topo.addEchoProducer(producerQ->getClientFace());
-
-    topo.registerPrefix(nodeA, linkAH->getFace(nodeA), "/", 10);
-    topo.registerPrefix(nodeH, linkHT->getFace(nodeH), "/telia", 10);
-    topo.registerPrefix(nodeT, linkTP->getFace(nodeT), "/net/ndnsim", 10);
-    topo.registerPrefix(nodeH, linkHC->getFace(nodeH), "/ucla", 20);
-    topo.registerPrefix(nodeC, linkCS->getFace(nodeC), "/ucla", 10);
-    topo.registerPrefix(nodeS, linkSQ->getFace(nodeS), "/net/ndnsim", 10);
-  }
-
-  /** \brief express an Interest with Link object from consumerA
-   */
-  void
-  consumerExpressInterest(int seq)
-  {
-    auto interest = makeInterest(Name("/net/ndnsim").appendNumber(seq));
-    interest->setForwardingHint({delTelia, delUcla});
-    consumerA->getClientFace().expressInterest(*interest, nullptr, nullptr, nullptr);
-  }
-
-public:
-  TopologyTester topo;
-  TopologyNode nodeA, nodeH, nodeT, nodeP, nodeC, nodeS, nodeQ;
-  shared_ptr<TopologyLink> linkAH, linkHT, linkTP, linkHC, linkCS, linkSQ;
-  shared_ptr<TopologyAppLink> consumerA, producerP, producerQ;
-
-  Delegation delTelia = {10, "/telia/terabits"};
-  Delegation delUcla = {20, "/ucla/cs"};
+    Delegation delTelia = {10, "/telia/terabits"};
+    Delegation delUcla = {20, "/ucla/cs"};
 };
 
 BOOST_FIXTURE_TEST_SUITE(NdnsimTeliaUclaTopology, NdnsimTeliaUclaTopologyFixture)
 
 BOOST_AUTO_TEST_CASE(FetchTelia)
 {
-  this->consumerExpressInterest(1);
-  this->advanceClocks(11_ms, 20);
+    this->consumerExpressInterest(1);
+    this->advanceClocks(11_ms, 20);
 
-  // A forwards Interest according to default route, no change to forwarding hint
-  BOOST_CHECK_EQUAL(linkAH->getFace(nodeA).getCounters().nOutInterests, 1);
-  const Interest& interestAH = topo.getPcap(linkAH->getFace(nodeA)).sentInterests.at(0);
-  BOOST_CHECK_EQUAL(interestAH.getForwardingHint(), DelegationList({delTelia, delUcla}));
+    // A forwards Interest according to default route, no change to forwarding hint
+    BOOST_CHECK_EQUAL(linkAH->getFace(nodeA).getCounters().nOutInterests, 1);
+    const Interest& interestAH = topo.getPcap(linkAH->getFace(nodeA)).sentInterests.at(0);
+    BOOST_CHECK_EQUAL(interestAH.getForwardingHint(), DelegationList({delTelia, delUcla}));
 
-  // H prefers T, no change to forwarding hint
-  BOOST_CHECK_EQUAL(linkHT->getFace(nodeH).getCounters().nOutInterests, 1);
-  const Interest& interestHT = topo.getPcap(linkHT->getFace(nodeH)).sentInterests.at(0);
-  BOOST_CHECK_EQUAL(interestHT.getForwardingHint(), DelegationList({delTelia, delUcla}));
+    // H prefers T, no change to forwarding hint
+    BOOST_CHECK_EQUAL(linkHT->getFace(nodeH).getCounters().nOutInterests, 1);
+    const Interest& interestHT = topo.getPcap(linkHT->getFace(nodeH)).sentInterests.at(0);
+    BOOST_CHECK_EQUAL(interestHT.getForwardingHint(), DelegationList({delTelia, delUcla}));
 
-  // T forwards to P, forwarding hint stripped when Interest reaches producer region
-  BOOST_CHECK_EQUAL(linkTP->getFace(nodeT).getCounters().nOutInterests, 1);
-  const Interest& interestTP = topo.getPcap(linkTP->getFace(nodeT)).sentInterests.at(0);
-  BOOST_CHECK(interestTP.getForwardingHint().empty());
+    // T forwards to P, forwarding hint stripped when Interest reaches producer region
+    BOOST_CHECK_EQUAL(linkTP->getFace(nodeT).getCounters().nOutInterests, 1);
+    const Interest& interestTP = topo.getPcap(linkTP->getFace(nodeT)).sentInterests.at(0);
+    BOOST_CHECK(interestTP.getForwardingHint().empty());
 
-  // Data is served by P and reaches A
-  BOOST_CHECK_EQUAL(producerP->getForwarderFace().getCounters().nInData, 1);
-  BOOST_CHECK_EQUAL(consumerA->getForwarderFace().getCounters().nOutData, 1);
+    // Data is served by P and reaches A
+    BOOST_CHECK_EQUAL(producerP->getForwarderFace().getCounters().nInData, 1);
+    BOOST_CHECK_EQUAL(consumerA->getForwarderFace().getCounters().nOutData, 1);
 }
 
 BOOST_AUTO_TEST_CASE(FetchUcla)
 {
-  // disconnect H-T and delete FIB entry
-  linkHT->fail();
-  topo.getForwarder(nodeH).getFib().erase("/telia");
+    // disconnect H-T and delete FIB entry
+    linkHT->fail();
+    topo.getForwarder(nodeH).getFib().erase("/telia");
 
-  this->consumerExpressInterest(1);
-  this->advanceClocks(11_ms, 20);
+    this->consumerExpressInterest(1);
+    this->advanceClocks(11_ms, 20);
 
-  // A forwards Interest according to default route, no change to forwarding hint
-  BOOST_CHECK_EQUAL(linkAH->getFace(nodeA).getCounters().nOutInterests, 1);
-  const Interest& interestAH = topo.getPcap(linkAH->getFace(nodeA)).sentInterests.at(0);
-  BOOST_CHECK_EQUAL(interestAH.getForwardingHint(), DelegationList({delTelia, delUcla}));
+    // A forwards Interest according to default route, no change to forwarding hint
+    BOOST_CHECK_EQUAL(linkAH->getFace(nodeA).getCounters().nOutInterests, 1);
+    const Interest& interestAH = topo.getPcap(linkAH->getFace(nodeA)).sentInterests.at(0);
+    BOOST_CHECK_EQUAL(interestAH.getForwardingHint(), DelegationList({delTelia, delUcla}));
 
-  // H forwards to C, no change to forwarding hint
-  BOOST_CHECK_EQUAL(linkHC->getFace(nodeH).getCounters().nOutInterests, 1);
-  const Interest& interestHC = topo.getPcap(linkHC->getFace(nodeH)).sentInterests.at(0);
-  BOOST_CHECK_EQUAL(interestHC.getForwardingHint(), DelegationList({delTelia, delUcla}));
+    // H forwards to C, no change to forwarding hint
+    BOOST_CHECK_EQUAL(linkHC->getFace(nodeH).getCounters().nOutInterests, 1);
+    const Interest& interestHC = topo.getPcap(linkHC->getFace(nodeH)).sentInterests.at(0);
+    BOOST_CHECK_EQUAL(interestHC.getForwardingHint(), DelegationList({delTelia, delUcla}));
 
-  // C forwards to S, no change to forwarding hint
-  BOOST_CHECK_EQUAL(linkCS->getFace(nodeC).getCounters().nOutInterests, 1);
-  const Interest& interestCS = topo.getPcap(linkCS->getFace(nodeC)).sentInterests.at(0);
-  BOOST_CHECK_EQUAL(interestCS.getForwardingHint(), DelegationList({delTelia, delUcla}));
+    // C forwards to S, no change to forwarding hint
+    BOOST_CHECK_EQUAL(linkCS->getFace(nodeC).getCounters().nOutInterests, 1);
+    const Interest& interestCS = topo.getPcap(linkCS->getFace(nodeC)).sentInterests.at(0);
+    BOOST_CHECK_EQUAL(interestCS.getForwardingHint(), DelegationList({delTelia, delUcla}));
 
-  // S forwards to Q, forwarding hint stripped when Interest reaches producer region
-  BOOST_CHECK_EQUAL(linkSQ->getFace(nodeS).getCounters().nOutInterests, 1);
-  const Interest& interestSQ = topo.getPcap(linkSQ->getFace(nodeS)).sentInterests.at(0);
-  BOOST_CHECK(interestSQ.getForwardingHint().empty());
+    // S forwards to Q, forwarding hint stripped when Interest reaches producer region
+    BOOST_CHECK_EQUAL(linkSQ->getFace(nodeS).getCounters().nOutInterests, 1);
+    const Interest& interestSQ = topo.getPcap(linkSQ->getFace(nodeS)).sentInterests.at(0);
+    BOOST_CHECK(interestSQ.getForwardingHint().empty());
 
-  // Data is served by Q and reaches A
-  BOOST_CHECK_EQUAL(producerQ->getForwarderFace().getCounters().nInData, 1);
-  BOOST_CHECK_EQUAL(consumerA->getForwarderFace().getCounters().nOutData, 1);
+    // Data is served by Q and reaches A
+    BOOST_CHECK_EQUAL(producerQ->getForwarderFace().getCounters().nInData, 1);
+    BOOST_CHECK_EQUAL(consumerA->getForwarderFace().getCounters().nOutData, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // NdnsimTeliaUclaTopology

@@ -36,22 +36,18 @@ namespace rib {
 
 /** \brief a policy to readvertise routes registered by local applications into remote gateway
  */
-class HostToGatewayReadvertisePolicy : public ReadvertisePolicy
-{
-public:
-  HostToGatewayReadvertisePolicy(const ndn::KeyChain& keyChain,
-                                 const ConfigSection& section);
+class HostToGatewayReadvertisePolicy : public ReadvertisePolicy {
+  public:
+    HostToGatewayReadvertisePolicy(const ndn::KeyChain& keyChain, const ConfigSection& section);
 
-public:
-  optional<ReadvertiseAction>
-  handleNewRoute(const RibRouteRef& ribRoute) const override;
+  public:
+    optional<ReadvertiseAction> handleNewRoute(const RibRouteRef& ribRoute) const override;
 
-  time::milliseconds
-  getRefreshInterval() const override;
+    time::milliseconds getRefreshInterval() const override;
 
-private:
-  const ndn::KeyChain& m_keyChain;
-  time::seconds m_refreshInterval;
+  private:
+    const ndn::KeyChain& m_keyChain;
+    time::seconds m_refreshInterval;
 };
 
 } // namespace rib

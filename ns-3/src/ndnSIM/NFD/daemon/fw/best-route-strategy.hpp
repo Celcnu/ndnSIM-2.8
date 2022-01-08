@@ -31,15 +31,13 @@
 namespace nfd {
 namespace fw {
 
-class BestRouteStrategyBase : public Strategy
-{
-public:
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+class BestRouteStrategyBase : public Strategy {
+  public:
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-protected:
-  BestRouteStrategyBase(Forwarder& forwarder);
+  protected:
+    BestRouteStrategyBase(Forwarder& forwarder);
 };
 
 /** \brief Best Route strategy version 1
@@ -55,14 +53,11 @@ protected:
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class BestRouteStrategy : public BestRouteStrategyBase
-{
-public:
-  explicit
-  BestRouteStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+class BestRouteStrategy : public BestRouteStrategyBase {
+  public:
+    explicit BestRouteStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 };
 
 } // namespace fw

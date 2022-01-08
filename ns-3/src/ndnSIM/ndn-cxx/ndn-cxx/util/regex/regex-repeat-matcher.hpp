@@ -28,31 +28,24 @@
 
 namespace ndn {
 
-class RegexRepeatMatcher : public RegexMatcher
-{
-public:
-  RegexRepeatMatcher(const std::string& expr,
-                     shared_ptr<RegexBackrefManager> backrefManager,
-                     size_t indicator);
+class RegexRepeatMatcher : public RegexMatcher {
+  public:
+    RegexRepeatMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager, size_t indicator);
 
-  bool
-  match(const Name& name, size_t offset, size_t len) override;
+    bool match(const Name& name, size_t offset, size_t len) override;
 
-protected:
-  void
-  compile() override;
+  protected:
+    void compile() override;
 
-private:
-  bool
-  parseRepetition();
+  private:
+    bool parseRepetition();
 
-  bool
-  recursiveMatch(size_t repeat, const Name& name, size_t offset, size_t len);
+    bool recursiveMatch(size_t repeat, const Name& name, size_t offset, size_t len);
 
-private:
-  size_t m_indicator;
-  size_t m_repeatMin;
-  size_t m_repeatMax;
+  private:
+    size_t m_indicator;
+    size_t m_repeatMin;
+    size_t m_repeatMax;
 };
 
 } // namespace ndn

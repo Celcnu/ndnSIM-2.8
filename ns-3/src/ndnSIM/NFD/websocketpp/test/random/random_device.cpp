@@ -34,17 +34,19 @@
 #include <websocketpp/random/random_device.hpp>
 #include <websocketpp/concurrency/none.hpp>
 
-BOOST_AUTO_TEST_CASE( compiles ) {
-    websocketpp::random::random_device::int_generator<int32_t,websocketpp::concurrency::none> rng;
+BOOST_AUTO_TEST_CASE(compiles)
+{
+    websocketpp::random::random_device::int_generator<int32_t, websocketpp::concurrency::none> rng;
 
     bool e = false;
 
     try {
         int32_t foo = rng();
         std::cout << foo << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
         e = true;
     }
 
-    BOOST_CHECK( e == false );
+    BOOST_CHECK(e == false);
 }

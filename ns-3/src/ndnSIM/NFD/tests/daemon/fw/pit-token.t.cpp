@@ -41,34 +41,34 @@ BOOST_AUTO_TEST_SUITE(TestPitToken)
 // Downstream requires PIT token.
 BOOST_FIXTURE_TEST_CASE(Downstream, GlobalIoTimeFixture)
 {
-  TopologyTester topo;
-  TopologyNode nodeR = topo.addForwarder("R");
-  auto linkC = topo.addBareLink("C", nodeR, ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  auto linkS = topo.addBareLink("S", nodeR, ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  topo.registerPrefix(nodeR, linkS->getForwarderFace(), "/U", 5);
-  // Client --- Router --- Server
-  // Client requires PIT token; Router supports PIT token; Server disallows PIT token.
+    TopologyTester topo;
+    TopologyNode nodeR = topo.addForwarder("R");
+    auto linkC = topo.addBareLink("C", nodeR, ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    auto linkS = topo.addBareLink("S", nodeR, ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    topo.registerPrefix(nodeR, linkS->getForwarderFace(), "/U", 5);
+    // Client --- Router --- Server
+    // Client requires PIT token; Router supports PIT token; Server disallows PIT token.
 
-  // C sends Interest /U/0 with PIT token
-  lp::Packet lppI("6414 pit-token=6206A0A1A2A3A4A5 payload=500A interest=0508 0706080155080130"_block);
-  lp::PitToken tokenI(lppI.get<lp::PitTokenField>());
-  linkC->receivePacket(lppI.wireEncode());
-  advanceClocks(5_ms, 30_ms);
+    // C sends Interest /U/0 with PIT token
+    lp::Packet lppI("6414 pit-token=6206A0A1A2A3A4A5 payload=500A interest=0508 0706080155080130"_block);
+    lp::PitToken tokenI(lppI.get<lp::PitTokenField>());
+    linkC->receivePacket(lppI.wireEncode());
+    advanceClocks(5_ms, 30_ms);
 
-  // S should receive Interest without PIT token
-  BOOST_REQUIRE_EQUAL(linkS->sentPackets.size(), 1);
-  lp::Packet lppS(linkS->sentPackets.front());
-  BOOST_CHECK_EQUAL(lppS.count<lp::PitTokenField>(), 0);
+    // S should receive Interest without PIT token
+    BOOST_REQUIRE_EQUAL(linkS->sentPackets.size(), 1);
+    lp::Packet lppS(linkS->sentPackets.front());
+    BOOST_CHECK_EQUAL(lppS.count<lp::PitTokenField>(), 0);
 
-  // S responds Data
-  linkS->receivePacket(makeData("/U/0")->wireEncode());
-  advanceClocks(5_ms, 30_ms);
+    // S responds Data
+    linkS->receivePacket(makeData("/U/0")->wireEncode());
+    advanceClocks(5_ms, 30_ms);
 
-  // C should receive Data with same PIT token
-  BOOST_REQUIRE_EQUAL(linkC->sentPackets.size(), 1);
-  lp::Packet lppD(linkC->sentPackets.front());
-  lp::PitToken tokenD(lppD.get<lp::PitTokenField>());
-  BOOST_CHECK(tokenD == tokenI);
+    // C should receive Data with same PIT token
+    BOOST_REQUIRE_EQUAL(linkC->sentPackets.size(), 1);
+    lp::Packet lppD(linkC->sentPackets.front());
+    lp::PitToken tokenD(lppD.get<lp::PitTokenField>());
+    BOOST_CHECK(tokenD == tokenI);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPitToken

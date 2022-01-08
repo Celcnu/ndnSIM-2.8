@@ -51,9 +51,9 @@ namespace permessage_deflate {
  */
 template <typename config>
 class disabled {
-    typedef std::pair<lib::error_code,std::string> err_str_pair;
+    typedef std::pair<lib::error_code, std::string> err_str_pair;
 
-public:
+  public:
     /// Negotiate extension
     /**
      * The disabled extension always fails the negotiation with a disabled
@@ -62,8 +62,10 @@ public:
      * @param offer Attribute from client's offer
      * @return Status code and value to return to remote endpoint
      */
-    err_str_pair negotiate(http::attribute_list const &) {
-        return make_pair(make_error_code(error::disabled),std::string());
+    err_str_pair
+    negotiate(http::attribute_list const&)
+    {
+        return make_pair(make_error_code(error::disabled), std::string());
     }
 
     /// Initialize state
@@ -73,19 +75,25 @@ public:
      * @param is_server True to initialize as a server, false for a client.
      * @return A code representing the error that occurred, if any
      */
-    lib::error_code init(bool) {
+    lib::error_code
+    init(bool)
+    {
         return lib::error_code();
     }
 
     /// Returns true if the extension is capable of providing
     /// permessage_deflate functionality
-    bool is_implemented() const {
+    bool
+    is_implemented() const
+    {
         return false;
     }
 
     /// Returns true if permessage_deflate functionality is active for this
     /// connection
-    bool is_enabled() const {
+    bool
+    is_enabled() const
+    {
         return false;
     }
 
@@ -96,7 +104,9 @@ public:
      *
      * @return A WebSocket extension offer string for this extension
      */
-    std::string generate_offer() const {
+    std::string
+    generate_offer() const
+    {
         return "";
     }
 
@@ -106,7 +116,9 @@ public:
      * @param [out] out String to append compressed bytes to
      * @return Error or status code
      */
-    lib::error_code compress(std::string const &, std::string &) {
+    lib::error_code
+    compress(std::string const&, std::string&)
+    {
         return make_error_code(error::disabled);
     }
 
@@ -117,7 +129,9 @@ public:
      * @param out String to append decompressed bytes to
      * @return Error or status code
      */
-    lib::error_code decompress(uint8_t const *, size_t, std::string &) {
+    lib::error_code
+    decompress(uint8_t const*, size_t, std::string&)
+    {
         return make_error_code(error::disabled);
     }
 };

@@ -36,116 +36,115 @@ ScenarioHelper::ScenarioHelper()
 }
 
 void
-ScenarioHelper::createTopology(std::initializer_list<std::initializer_list<std::string>/*node clique*/> topology,
+ScenarioHelper::createTopology(std::initializer_list<std::initializer_list<std::string> /*node clique*/> topology,
                                bool shouldInstallNdnStack)
 {
-  if (m_isTopologyInitialized) {
-    throw std::logic_error("Topology cannot be created twice");
-  }
-
-  PointToPointHelper p2p;
-
-  for (auto&& clique : topology) {
-    for (auto i = clique.begin(); i != clique.end(); ++i) {
-      auto node1 = getOrCreateNode(*i);
-      for (auto j = i + 1; j != clique.end(); ++j) {
-        auto node2 = getOrCreateNode(*j);
-
-        auto link = p2p.Install(node1, node2);
-        links[*i][*j] = link.Get(0);
-        links[*j][*i] = link.Get(1);
-      }
+    if (m_isTopologyInitialized) {
+        throw std::logic_error("Topology cannot be created twice");
     }
-  }
 
-  if (shouldInstallNdnStack) {
-    ndnHelper.InstallAll();
-  }
-  m_isTopologyInitialized = true;
+    PointToPointHelper p2p;
+
+    for (auto&& clique : topology) {
+        for (auto i = clique.begin(); i != clique.end(); ++i) {
+            auto node1 = getOrCreateNode(*i);
+            for (auto j = i + 1; j != clique.end(); ++j) {
+                auto node2 = getOrCreateNode(*j);
+
+                auto link = p2p.Install(node1, node2);
+                links[*i][*j] = link.Get(0);
+                links[*j][*i] = link.Get(1);
+            }
+        }
+    }
+
+    if (shouldInstallNdnStack) {
+        ndnHelper.InstallAll();
+    }
+    m_isTopologyInitialized = true;
 }
 
 void
 ScenarioHelper::disableStrategyChoiceManager()
 {
-  ndnHelper.disableStrategyChoiceManager();
+    ndnHelper.disableStrategyChoiceManager();
 }
 
 void
 ScenarioHelper::disableForwarderStatusManager()
 {
-  ndnHelper.disableForwarderStatusManager();
+    ndnHelper.disableForwarderStatusManager();
 }
 
 void
 ScenarioHelper::addRoutes(std::initializer_list<ScenarioHelper::RouteInfo> routes)
 {
-  for (auto&& route : routes) {
-    FibHelper::AddRoute(getNode(route.node1), route.prefix,
-                        getFace(route.node1, route.node2), route.metric);
-  }
+    for (auto&& route : routes) {
+        FibHelper::AddRoute(getNode(route.node1), route.prefix, getFace(route.node1, route.node2), route.metric);
+    }
 }
 
 void
 ScenarioHelper::addApps(std::initializer_list<ScenarioHelper::AppInfo> apps)
 {
-  for (auto&& app : apps) {
-    AppHelper appHelper(app.name);
-    for (auto&& param : app.params) {
-      appHelper.SetAttribute(param.first, StringValue(param.second));
+    for (auto&& app : apps) {
+        AppHelper appHelper(app.name);
+        for (auto&& param : app.params) {
+            appHelper.SetAttribute(param.first, StringValue(param.second));
+        }
+        auto installedApp = appHelper.Install(getNode(app.node));
+        installedApp.Start(Time(app.start));
+        installedApp.Stop(Time(app.end));
     }
-    auto installedApp = appHelper.Install(getNode(app.node));
-    installedApp.Start(Time(app.start));
-    installedApp.Stop(Time(app.end));
-  }
 }
 
 Ptr<Node>
 ScenarioHelper::getOrCreateNode(const std::string& nodeName)
 {
-  auto node = nodes.find(nodeName);
-  if (node == nodes.end()) {
-    std::tie(node, std::ignore) = nodes.insert(std::make_pair(nodeName, CreateObject<Node>()));
-    Names::Add(nodeName, node->second);
-  }
-  return node->second;
+    auto node = nodes.find(nodeName);
+    if (node == nodes.end()) {
+        std::tie(node, std::ignore) = nodes.insert(std::make_pair(nodeName, CreateObject<Node>()));
+        Names::Add(nodeName, node->second);
+    }
+    return node->second;
 }
 
 Ptr<Node>
 ScenarioHelper::getNode(const std::string& nodeName)
 {
-  auto node = nodes.find(nodeName);
-  if (node != nodes.end()) {
-    return node->second;
-  }
+    auto node = nodes.find(nodeName);
+    if (node != nodes.end()) {
+        return node->second;
+    }
 
-  throw std::invalid_argument("Node " + nodeName + " does not exist");
+    throw std::invalid_argument("Node " + nodeName + " does not exist");
 }
 
 shared_ptr<Face>
 ScenarioHelper::getFace(const std::string& node1, const std::string& node2)
 {
-  Ptr<NetDevice> netDevice = getNetDevice(node1, node2);
-  return netDevice->GetNode()->GetObject<L3Protocol>()->getFaceByNetDevice(netDevice);
+    Ptr<NetDevice> netDevice = getNetDevice(node1, node2);
+    return netDevice->GetNode()->GetObject<L3Protocol>()->getFaceByNetDevice(netDevice);
 }
 
 Ptr<NetDevice>
 ScenarioHelper::getNetDevice(const std::string& node1, const std::string& node2)
 {
-  auto i = links.find(node1);
-  if (i != links.end()) {
-    auto j = i->second.find(node2);
-    if (j != i->second.end()) {
-      return j->second;
+    auto i = links.find(node1);
+    if (i != links.end()) {
+        auto j = i->second.find(node2);
+        if (j != i->second.end()) {
+            return j->second;
+        }
     }
-  }
 
-  throw std::invalid_argument("Link between " + node1 + " and " + node2 + " does not exist");
+    throw std::invalid_argument("Link between " + node1 + " and " + node2 + " does not exist");
 }
 
 StackHelper&
 ScenarioHelper::getStackHelper()
 {
-  return ndnHelper;
+    return ndnHelper;
 }
 
 } // namespace ndn

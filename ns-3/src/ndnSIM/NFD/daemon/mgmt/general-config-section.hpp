@@ -31,8 +31,7 @@
 namespace nfd {
 namespace general {
 
-void
-setConfigFile(ConfigFile& config);
+void setConfigFile(ConfigFile& config);
 
 } // namespace general
 } // namespace nfd

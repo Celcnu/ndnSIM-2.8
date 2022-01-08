@@ -28,20 +28,18 @@
 
 namespace ndn {
 
-class RegexBackrefMatcher : public RegexMatcher
-{
-public:
-  RegexBackrefMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
+class RegexBackrefMatcher : public RegexMatcher {
+  public:
+    RegexBackrefMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
 
-  void
-  lateCompile()
-  {
-    compile();
-  }
+    void
+    lateCompile()
+    {
+        compile();
+    }
 
-protected:
-  void
-  compile() override;
+  protected:
+    void compile() override;
 };
 
 } // namespace ndn

@@ -47,130 +47,110 @@ namespace fw {
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class AccessStrategy : public Strategy
-{
-public:
-  explicit
-  AccessStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
-
-  static const Name&
-  getStrategyName();
-
-public: // triggers
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
-
-  void
-  beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry,
-                        const FaceEndpoint& ingress, const Data& data) override;
-
-private: // StrategyInfo
-  using RttEstimator = ndn::util::RttEstimator;
-
-  /** \brief StrategyInfo on PIT entry
-   */
-  class PitInfo : public StrategyInfo
-  {
+class AccessStrategy : public Strategy {
   public:
-    static constexpr int
-    getTypeId()
-    {
-      return 1010;
-    }
+    explicit AccessStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  public:
-    scheduler::ScopedEventId rtoTimer;
-  };
+    static const Name& getStrategyName();
 
-  /** \brief StrategyInfo in measurements table
-   */
-  class MtInfo : public StrategyInfo
-  {
-  public:
-    static constexpr int
-    getTypeId()
-    {
-      return 1011;
-    }
+  public: // triggers
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-    explicit
-    MtInfo(shared_ptr<const RttEstimator::Options> opts)
-      : rtt(std::move(opts))
-    {
-    }
+    void beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
+                               const Data& data) override;
 
-  public:
-    FaceId lastNexthop = face::INVALID_FACEID;
-    RttEstimator rtt;
-  };
+  private: // StrategyInfo
+    using RttEstimator = ndn::util::RttEstimator;
 
-  /** \brief find per-prefix measurements for Interest
-   */
-  std::tuple<Name, MtInfo*>
-  findPrefixMeasurements(const pit::Entry& pitEntry);
+    /** \brief StrategyInfo on PIT entry
+     */
+    class PitInfo : public StrategyInfo {
+      public:
+        static constexpr int
+        getTypeId()
+        {
+            return 1010;
+        }
 
-  /** \brief get or create pre-prefix measurements for incoming Data
-   *  \note This function creates MtInfo but doesn't update it.
-   */
-  MtInfo*
-  addPrefixMeasurements(const Data& data);
+      public:
+        scheduler::ScopedEventId rtoTimer;
+    };
 
-  /** \brief global per-face StrategyInfo
-   *  \todo Currently stored inside AccessStrategy instance; should be moved
-   *        to measurements table or somewhere else.
-   */
-  class FaceInfo
-  {
-  public:
-    explicit
-    FaceInfo(shared_ptr<const RttEstimator::Options> opts)
-      : rtt(std::move(opts))
-    {
-    }
+    /** \brief StrategyInfo in measurements table
+     */
+    class MtInfo : public StrategyInfo {
+      public:
+        static constexpr int
+        getTypeId()
+        {
+            return 1011;
+        }
 
-  public:
-    RttEstimator rtt;
-  };
+        explicit MtInfo(shared_ptr<const RttEstimator::Options> opts)
+          : rtt(std::move(opts))
+        {
+        }
 
-private: // forwarding procedures
-  void
-  afterReceiveNewInterest(const FaceEndpoint& ingress, const Interest& interest,
-                          const shared_ptr<pit::Entry>& pitEntry);
+      public:
+        FaceId lastNexthop = face::INVALID_FACEID;
+        RttEstimator rtt;
+    };
 
-  void
-  afterReceiveRetxInterest(const FaceEndpoint& ingress, const Interest& interest,
-                           const shared_ptr<pit::Entry>& pitEntry);
+    /** \brief find per-prefix measurements for Interest
+     */
+    std::tuple<Name, MtInfo*> findPrefixMeasurements(const pit::Entry& pitEntry);
 
-  /** \brief send to last working nexthop
-   *  \return whether an Interest is sent
-   */
-  bool
-  sendToLastNexthop(const FaceEndpoint& ingress, const Interest& interest,
-                    const shared_ptr<pit::Entry>& pitEntry, MtInfo& mi,
-                    const fib::Entry& fibEntry);
+    /** \brief get or create pre-prefix measurements for incoming Data
+     *  \note This function creates MtInfo but doesn't update it.
+     */
+    MtInfo* addPrefixMeasurements(const Data& data);
 
-  void
-  afterRtoTimeout(const weak_ptr<pit::Entry>& pitWeak,
-                  FaceId inFaceId, EndpointId inEndpointId, FaceId firstOutFaceId);
+    /** \brief global per-face StrategyInfo
+     *  \todo Currently stored inside AccessStrategy instance; should be moved
+     *        to measurements table or somewhere else.
+     */
+    class FaceInfo {
+      public:
+        explicit FaceInfo(shared_ptr<const RttEstimator::Options> opts)
+          : rtt(std::move(opts))
+        {
+        }
 
-  /** \brief multicast to all nexthops
-   *  \param exceptFace don't forward to this face; also, \p inFace is always excluded
-   *  \return number of Interests that were sent
-   */
-  size_t
-  multicast(const Face& inFace, const Interest& interest,
-            const shared_ptr<pit::Entry>& pitEntry, const fib::Entry& fibEntry,
-            FaceId exceptFace = face::INVALID_FACEID);
+      public:
+        RttEstimator rtt;
+    };
 
-  void
-  updateMeasurements(const Face& inFace, const Data& data, time::nanoseconds rtt);
+  private: // forwarding procedures
+    void afterReceiveNewInterest(const FaceEndpoint& ingress, const Interest& interest,
+                                 const shared_ptr<pit::Entry>& pitEntry);
 
-private:
-  const shared_ptr<const RttEstimator::Options> m_rttEstimatorOpts;
-  std::unordered_map<FaceId, FaceInfo> m_fit;
-  RetxSuppressionFixed m_retxSuppression;
-  signal::ScopedConnection m_removeFaceConn;
+    void afterReceiveRetxInterest(const FaceEndpoint& ingress, const Interest& interest,
+                                  const shared_ptr<pit::Entry>& pitEntry);
+
+    /** \brief send to last working nexthop
+     *  \return whether an Interest is sent
+     */
+    bool sendToLastNexthop(const FaceEndpoint& ingress, const Interest& interest,
+                           const shared_ptr<pit::Entry>& pitEntry, MtInfo& mi, const fib::Entry& fibEntry);
+
+    void afterRtoTimeout(const weak_ptr<pit::Entry>& pitWeak, FaceId inFaceId, EndpointId inEndpointId,
+                         FaceId firstOutFaceId);
+
+    /** \brief multicast to all nexthops
+     *  \param exceptFace don't forward to this face; also, \p inFace is always excluded
+     *  \return number of Interests that were sent
+     */
+    size_t multicast(const Face& inFace, const Interest& interest, const shared_ptr<pit::Entry>& pitEntry,
+                     const fib::Entry& fibEntry, FaceId exceptFace = face::INVALID_FACEID);
+
+    void updateMeasurements(const Face& inFace, const Data& data, time::nanoseconds rtt);
+
+  private:
+    const shared_ptr<const RttEstimator::Options> m_rttEstimatorOpts;
+    std::unordered_map<FaceId, FaceInfo> m_fit;
+    RetxSuppressionFixed m_retxSuppression;
+    signal::ScopedConnection m_removeFaceConn;
 };
 
 } // namespace fw

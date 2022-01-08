@@ -51,52 +51,52 @@ Iterator::Iterator(shared_ptr<EnumerationImpl> impl, const Entry* ref)
   , m_ref(ref)
   , m_state(0)
 {
-  m_impl->advance(*this);
-  NFD_LOG_TRACE("initialized " << *this);
+    m_impl->advance(*this);
+    NFD_LOG_TRACE("initialized " << *this);
 }
 
 Iterator&
 Iterator::operator++()
 {
-  BOOST_ASSERT(m_impl != nullptr);
-  m_impl->advance(*this);
-  NFD_LOG_TRACE("advanced " << *this);
-  return *this;
+    BOOST_ASSERT(m_impl != nullptr);
+    m_impl->advance(*this);
+    NFD_LOG_TRACE("advanced " << *this);
+    return *this;
 }
 
 Iterator
 Iterator::operator++(int)
 {
-  Iterator copy = *this;
-  this->operator++();
-  return copy;
+    Iterator copy = *this;
+    this->operator++();
+    return copy;
 }
 
 bool
 Iterator::operator==(const Iterator& other) const
 {
-  return m_entry == other.m_entry;
+    return m_entry == other.m_entry;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Iterator& i)
 {
-  if (i.m_impl == nullptr) {
-    return os << "end";
-  }
-  if (i.m_entry == nullptr) {
-    return os << "uninitialized";
-  }
+    if (i.m_impl == nullptr) {
+        return os << "end";
+    }
+    if (i.m_entry == nullptr) {
+        return os << "uninitialized";
+    }
 
-  os << "entry=" << i.m_entry->getName();
-  if (i.m_ref == nullptr) {
-    os << " ref=null";
-  }
-  else {
-    os << " ref=" << i.m_ref->getName();
-  }
-  os << " state=" << i.m_state;
-  return os;
+    os << "entry=" << i.m_entry->getName();
+    if (i.m_ref == nullptr) {
+        os << " ref=null";
+    }
+    else {
+        os << " ref=" << i.m_ref->getName();
+    }
+    os << " state=" << i.m_state;
+    return os;
 }
 
 EnumerationImpl::EnumerationImpl(const NameTree& nt)
@@ -114,45 +114,45 @@ FullEnumerationImpl::FullEnumerationImpl(const NameTree& nt, const EntrySelector
 void
 FullEnumerationImpl::advance(Iterator& i)
 {
-  // find first entry
-  if (i.m_entry == nullptr) {
-    for (size_t bucket = 0; bucket < ht.getNBuckets(); ++bucket) {
-      const Node* node = ht.getBucket(bucket);
-      if (node != nullptr) {
-        i.m_entry = &node->entry;
-        break;
-      }
+    // find first entry
+    if (i.m_entry == nullptr) {
+        for (size_t bucket = 0; bucket < ht.getNBuckets(); ++bucket) {
+            const Node* node = ht.getBucket(bucket);
+            if (node != nullptr) {
+                i.m_entry = &node->entry;
+                break;
+            }
+        }
+        if (i.m_entry == nullptr) { // empty enumerable
+            i = Iterator();
+            return;
+        }
+        if (m_pred(*i.m_entry)) { // visit first entry
+            return;
+        }
     }
-    if (i.m_entry == nullptr) { // empty enumerable
-      i = Iterator();
-      return;
-    }
-    if (m_pred(*i.m_entry)) { // visit first entry
-      return;
-    }
-  }
 
-  // process entries in same bucket
-  for (const Node* node = getNode(*i.m_entry)->next; node != nullptr; node = node->next) {
-    if (m_pred(node->entry)) {
-      i.m_entry = &node->entry;
-      return;
+    // process entries in same bucket
+    for (const Node* node = getNode(*i.m_entry)->next; node != nullptr; node = node->next) {
+        if (m_pred(node->entry)) {
+            i.m_entry = &node->entry;
+            return;
+        }
     }
-  }
 
-  // process other buckets
-  size_t currentBucket = ht.computeBucketIndex(getNode(*i.m_entry)->hash);
-  for (size_t bucket = currentBucket + 1; bucket < ht.getNBuckets(); ++bucket) {
-    for (const Node* node = ht.getBucket(bucket); node != nullptr; node = node->next) {
-      if (m_pred(node->entry)) {
-        i.m_entry = &node->entry;
-        return;
-      }
+    // process other buckets
+    size_t currentBucket = ht.computeBucketIndex(getNode(*i.m_entry)->hash);
+    for (size_t bucket = currentBucket + 1; bucket < ht.getNBuckets(); ++bucket) {
+        for (const Node* node = ht.getBucket(bucket); node != nullptr; node = node->next) {
+            if (m_pred(node->entry)) {
+                i.m_entry = &node->entry;
+                return;
+            }
+        }
     }
-  }
 
-  // reach the end
-  i = Iterator();
+    // reach the end
+    i = Iterator();
 }
 
 PartialEnumerationImpl::PartialEnumerationImpl(const NameTree& nt, const EntrySubTreeSelector& pred)
@@ -164,65 +164,65 @@ PartialEnumerationImpl::PartialEnumerationImpl(const NameTree& nt, const EntrySu
 void
 PartialEnumerationImpl::advance(Iterator& i)
 {
-  bool wantSelf = false;
-  bool wantChildren = false;
+    bool wantSelf = false;
+    bool wantChildren = false;
 
-  // initialize: start from root
-  if (i.m_entry == nullptr) {
-    if (i.m_ref == nullptr) { // root does not exist
-      i = Iterator();
-      return;
-    }
+    // initialize: start from root
+    if (i.m_entry == nullptr) {
+        if (i.m_ref == nullptr) { // root does not exist
+            i = Iterator();
+            return;
+        }
 
-    i.m_entry = i.m_ref;
-    std::tie(wantSelf, wantChildren) = m_pred(*i.m_entry);
-    if (wantSelf) { // visit root
-      i.m_state = wantChildren;
-      return;
-    }
-  }
-  else {
-    wantChildren = static_cast<bool>(i.m_state);
-  }
-  BOOST_ASSERT(i.m_ref != nullptr);
-
-  // pre-order traversal
-  while (i.m_entry != i.m_ref || (wantChildren && i.m_entry->hasChildren())) {
-    if (wantChildren && i.m_entry->hasChildren()) { // process children of m_entry
-      i.m_entry = i.m_entry->getChildren().front();
-      std::tie(wantSelf, wantChildren) = m_pred(*i.m_entry);
-      if (wantSelf) { // visit first child
-        i.m_state = wantChildren;
-        return;
-      }
-      // first child rejected, let while loop process other children (siblings of new m_entry)
-    }
-    else { // process siblings of m_entry
-      const Entry* parent = i.m_entry->getParent();
-      const std::vector<Entry*>& siblings = parent->getChildren();
-      auto sibling = std::find(siblings.begin(), siblings.end(), i.m_entry);
-      BOOST_ASSERT(sibling != siblings.end());
-      while (++sibling != siblings.end()) {
-        i.m_entry = *sibling;
+        i.m_entry = i.m_ref;
         std::tie(wantSelf, wantChildren) = m_pred(*i.m_entry);
-        if (wantSelf) { // visit sibling
-          i.m_state = wantChildren;
-          return;
+        if (wantSelf) { // visit root
+            i.m_state = wantChildren;
+            return;
         }
-        if (wantChildren) {
-          break; // let outer while loop process children of m_entry
-        }
-        // process next sibling
-      }
-      if (sibling == siblings.end()) { // no more sibling
-        i.m_entry = parent;
-        wantChildren = false;
-      }
     }
-  }
+    else {
+        wantChildren = static_cast<bool>(i.m_state);
+    }
+    BOOST_ASSERT(i.m_ref != nullptr);
 
-  // reach the end
-  i = Iterator();
+    // pre-order traversal
+    while (i.m_entry != i.m_ref || (wantChildren && i.m_entry->hasChildren())) {
+        if (wantChildren && i.m_entry->hasChildren()) { // process children of m_entry
+            i.m_entry = i.m_entry->getChildren().front();
+            std::tie(wantSelf, wantChildren) = m_pred(*i.m_entry);
+            if (wantSelf) { // visit first child
+                i.m_state = wantChildren;
+                return;
+            }
+            // first child rejected, let while loop process other children (siblings of new m_entry)
+        }
+        else { // process siblings of m_entry
+            const Entry* parent = i.m_entry->getParent();
+            const std::vector<Entry*>& siblings = parent->getChildren();
+            auto sibling = std::find(siblings.begin(), siblings.end(), i.m_entry);
+            BOOST_ASSERT(sibling != siblings.end());
+            while (++sibling != siblings.end()) {
+                i.m_entry = *sibling;
+                std::tie(wantSelf, wantChildren) = m_pred(*i.m_entry);
+                if (wantSelf) { // visit sibling
+                    i.m_state = wantChildren;
+                    return;
+                }
+                if (wantChildren) {
+                    break; // let outer while loop process children of m_entry
+                }
+                // process next sibling
+            }
+            if (sibling == siblings.end()) { // no more sibling
+                i.m_entry = parent;
+                wantChildren = false;
+            }
+        }
+    }
+
+    // reach the end
+    i = Iterator();
 }
 
 PrefixMatchImpl::PrefixMatchImpl(const NameTree& nt, const EntrySelector& pred)
@@ -234,27 +234,27 @@ PrefixMatchImpl::PrefixMatchImpl(const NameTree& nt, const EntrySelector& pred)
 void
 PrefixMatchImpl::advance(Iterator& i)
 {
-  if (i.m_entry == nullptr) {
-    if (i.m_ref == nullptr) { // empty enumerable
-      i = Iterator();
-      return;
+    if (i.m_entry == nullptr) {
+        if (i.m_ref == nullptr) { // empty enumerable
+            i = Iterator();
+            return;
+        }
+
+        i.m_entry = i.m_ref;
+        if (m_pred(*i.m_entry)) { // visit starting node
+            return;
+        }
     }
 
-    i.m_entry = i.m_ref;
-    if (m_pred(*i.m_entry)) { // visit starting node
-      return;
+    // traverse up the tree
+    while ((i.m_entry = i.m_entry->getParent()) != nullptr) {
+        if (m_pred(*i.m_entry)) {
+            return;
+        }
     }
-  }
 
-  // traverse up the tree
-  while ((i.m_entry = i.m_entry->getParent()) != nullptr) {
-    if (m_pred(*i.m_entry)) {
-      return;
-    }
-  }
-
-  // reach the end
-  i = Iterator();
+    // reach the end
+    i = Iterator();
 }
 
 } // namespace name_tree

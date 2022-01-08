@@ -38,22 +38,21 @@ void
 BestRouteStrategyBase::afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
                                             const shared_ptr<pit::Entry>& pitEntry)
 {
-  if (hasPendingOutRecords(*pitEntry)) {
-    // not a new Interest, don't forward
-    return;
-  }
-
-  const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
-  for (const auto& nexthop : fibEntry.getNextHops()) {
-    Face& outFace = nexthop.getFace();
-    if (!wouldViolateScope(ingress.face, interest, outFace) &&
-        canForwardToLegacy(*pitEntry, outFace)) {
-      this->sendInterest(pitEntry, FaceEndpoint(outFace, 0), interest);
-      return;
+    if (hasPendingOutRecords(*pitEntry)) {
+        // not a new Interest, don't forward
+        return;
     }
-  }
 
-  this->rejectPendingInterest(pitEntry);
+    const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
+    for (const auto& nexthop : fibEntry.getNextHops()) {
+        Face& outFace = nexthop.getFace();
+        if (!wouldViolateScope(ingress.face, interest, outFace) && canForwardToLegacy(*pitEntry, outFace)) {
+            this->sendInterest(pitEntry, FaceEndpoint(outFace, 0), interest);
+            return;
+        }
+    }
+
+    this->rejectPendingInterest(pitEntry);
 }
 
 NFD_REGISTER_STRATEGY(BestRouteStrategy);
@@ -61,22 +60,21 @@ NFD_REGISTER_STRATEGY(BestRouteStrategy);
 BestRouteStrategy::BestRouteStrategy(Forwarder& forwarder, const Name& name)
   : BestRouteStrategyBase(forwarder)
 {
-  ParsedInstanceName parsed = parseInstanceName(name);
-  if (!parsed.parameters.empty()) {
-    NDN_THROW(std::invalid_argument("BestRouteStrategy does not accept parameters"));
-  }
-  if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
-    NDN_THROW(std::invalid_argument(
-      "BestRouteStrategy does not support version " + to_string(*parsed.version)));
-  }
-  this->setInstanceName(makeInstanceName(name, getStrategyName()));
+    ParsedInstanceName parsed = parseInstanceName(name);
+    if (!parsed.parameters.empty()) {
+        NDN_THROW(std::invalid_argument("BestRouteStrategy does not accept parameters"));
+    }
+    if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
+        NDN_THROW(std::invalid_argument("BestRouteStrategy does not support version " + to_string(*parsed.version)));
+    }
+    this->setInstanceName(makeInstanceName(name, getStrategyName()));
 }
 
 const Name&
 BestRouteStrategy::getStrategyName()
 {
-  static Name strategyName("/localhost/nfd/strategy/best-route/%FD%01");
-  return strategyName;
+    static Name strategyName("/localhost/nfd/strategy/best-route/%FD%01");
+    return strategyName;
 }
 
 } // namespace fw

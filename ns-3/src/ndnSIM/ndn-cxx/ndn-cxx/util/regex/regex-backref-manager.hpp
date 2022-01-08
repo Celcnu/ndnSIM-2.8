@@ -32,29 +32,26 @@ namespace ndn {
 
 class RegexMatcher;
 
-class RegexBackrefManager
-{
-public:
-  size_t
-  pushRef(const shared_ptr<RegexMatcher>& matcher);
+class RegexBackrefManager {
+  public:
+    size_t pushRef(const shared_ptr<RegexMatcher>& matcher);
 
-  void
-  popRef()
-  {
-    m_backrefs.pop_back();
-  }
+    void
+    popRef()
+    {
+        m_backrefs.pop_back();
+    }
 
-  size_t
-  size() const
-  {
-    return m_backrefs.size();
-  }
+    size_t
+    size() const
+    {
+        return m_backrefs.size();
+    }
 
-  shared_ptr<RegexMatcher>
-  getBackref(size_t i) const;
+    shared_ptr<RegexMatcher> getBackref(size_t i) const;
 
-private:
-  std::vector<weak_ptr<RegexMatcher>> m_backrefs;
+  private:
+    std::vector<weak_ptr<RegexMatcher>> m_backrefs;
 };
 
 } // namespace ndn

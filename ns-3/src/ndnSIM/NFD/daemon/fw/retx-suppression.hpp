@@ -32,17 +32,17 @@ namespace nfd {
 namespace fw {
 
 enum class RetxSuppressionResult {
-  /** \brief Interest is new (not a retransmission)
-   */
-  NEW,
+    /** \brief Interest is new (not a retransmission)
+     */
+    NEW,
 
-  /** \brief Interest is retransmission and should be forwarded
-   */
-  FORWARD,
+    /** \brief Interest is retransmission and should be forwarded
+     */
+    FORWARD,
 
-  /** \brief Interest is retransmission and should be suppressed
-   */
-  SUPPRESS
+    /** \brief Interest is retransmission and should be suppressed
+     */
+    SUPPRESS
 };
 
 } // namespace fw

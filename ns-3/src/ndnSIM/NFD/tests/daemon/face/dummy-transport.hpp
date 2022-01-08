@@ -34,10 +34,9 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-struct TxPacket
-{
-  Block packet;
-  EndpointId endpoint;
+struct TxPacket {
+    Block packet;
+    EndpointId endpoint;
 };
 
 /** \brief Dummy Transport type used in unit tests.
@@ -46,72 +45,67 @@ struct TxPacket
  *  Reception of a packet can be simulated by invoking `receivePacket()`.
  *  All persistency changes are recorded in `persistencyHistory`.
  */
-template<bool CAN_CHANGE_PERSISTENCY>
-class DummyTransportBase : public NullTransport
-{
-public:
-  explicit
-  DummyTransportBase(const std::string& localUri = "dummy://",
-                     const std::string& remoteUri = "dummy://",
-                     ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
-                     ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
-                     ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT,
-                     ssize_t mtu = MTU_UNLIMITED,
-                     ssize_t sendQueueCapacity = QUEUE_UNSUPPORTED)
-    : NullTransport(FaceUri(localUri), FaceUri(remoteUri), scope, persistency)
-  {
-    this->setLinkType(linkType);
-    this->setMtu(mtu);
-    this->setSendQueueCapacity(sendQueueCapacity);
-  }
+template <bool CAN_CHANGE_PERSISTENCY>
+class DummyTransportBase : public NullTransport {
+  public:
+    explicit DummyTransportBase(const std::string& localUri = "dummy://", const std::string& remoteUri = "dummy://",
+                                ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
+                                ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
+                                ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT,
+                                ssize_t mtu = MTU_UNLIMITED, ssize_t sendQueueCapacity = QUEUE_UNSUPPORTED)
+      : NullTransport(FaceUri(localUri), FaceUri(remoteUri), scope, persistency)
+    {
+        this->setLinkType(linkType);
+        this->setMtu(mtu);
+        this->setSendQueueCapacity(sendQueueCapacity);
+    }
 
-  using NullTransport::setMtu;
-  using NullTransport::setState;
+    using NullTransport::setMtu;
+    using NullTransport::setState;
 
-  ssize_t
-  getSendQueueLength() override
-  {
-    return m_sendQueueLength;
-  }
+    ssize_t
+    getSendQueueLength() override
+    {
+        return m_sendQueueLength;
+    }
 
-  void
-  setSendQueueLength(ssize_t sendQueueLength)
-  {
-    m_sendQueueLength = sendQueueLength;
-  }
+    void
+    setSendQueueLength(ssize_t sendQueueLength)
+    {
+        m_sendQueueLength = sendQueueLength;
+    }
 
-  void
-  receivePacket(const Block& block)
-  {
-    receive(block);
-  }
+    void
+    receivePacket(const Block& block)
+    {
+        receive(block);
+    }
 
-protected:
-  bool
-  canChangePersistencyToImpl(ndn::nfd::FacePersistency) const override
-  {
-    return CAN_CHANGE_PERSISTENCY;
-  }
+  protected:
+    bool canChangePersistencyToImpl(ndn::nfd::FacePersistency) const override
+    {
+        return CAN_CHANGE_PERSISTENCY;
+    }
 
-  void
-  afterChangePersistency(ndn::nfd::FacePersistency old) override
-  {
-    persistencyHistory.push_back(old);
-  }
+    void
+    afterChangePersistency(ndn::nfd::FacePersistency old) override
+    {
+        persistencyHistory.push_back(old);
+    }
 
-private:
-  void
-  doSend(const Block& packet, const EndpointId& endpoint) override
-  {
-    sentPackets.push_back({packet, endpoint});
-  }
+  private:
+    void
+    doSend(const Block& packet, const EndpointId& endpoint) override
+    {
+        sentPackets.push_back({packet, endpoint});
+    }
 
-public:
-  std::vector<ndn::nfd::FacePersistency> persistencyHistory;
-  std::vector<TxPacket> sentPackets;
+  public:
+    std::vector<ndn::nfd::FacePersistency> persistencyHistory;
+    std::vector<TxPacket> sentPackets;
 
-private:
-  ssize_t m_sendQueueLength = 0;
+  private:
+    ssize_t m_sendQueueLength = 0;
 };
 
 using DummyTransport = DummyTransportBase<true>;

@@ -35,72 +35,72 @@ BOOST_AUTO_TEST_SUITE(TestException)
 
 BOOST_AUTO_TEST_CASE(Throw)
 {
-  auto f = [] { NDN_THROW(std::invalid_argument("test")); };
+    auto f = [] { NDN_THROW(std::invalid_argument("test")); };
 
-  BOOST_CHECK_THROW(f(), boost::exception);
-  BOOST_CHECK_THROW(f(), std::exception);
-  BOOST_CHECK_THROW(f(), std::invalid_argument);
+    BOOST_CHECK_THROW(f(), boost::exception);
+    BOOST_CHECK_THROW(f(), std::exception);
+    BOOST_CHECK_THROW(f(), std::invalid_argument);
 
-  try {
-    f();
-  }
-  catch (const boost::exception& ex) {
-    BOOST_CHECK(boost::get_error_info<boost::throw_file>(ex) != nullptr);
-    BOOST_CHECK(boost::get_error_info<boost::throw_line>(ex) != nullptr);
-    BOOST_CHECK(boost::get_error_info<boost::throw_function>(ex) != nullptr);
+    try {
+        f();
+    }
+    catch (const boost::exception& ex) {
+        BOOST_CHECK(boost::get_error_info<boost::throw_file>(ex) != nullptr);
+        BOOST_CHECK(boost::get_error_info<boost::throw_line>(ex) != nullptr);
+        BOOST_CHECK(boost::get_error_info<boost::throw_function>(ex) != nullptr);
 
 #ifdef NDN_CXX_HAVE_STACKTRACE
-    auto stack = boost::get_error_info<errinfo_stacktrace>(ex);
-    BOOST_REQUIRE(stack != nullptr);
-    auto info = boost::diagnostic_information(ex);
-    BOOST_TEST_MESSAGE(info);
-    BOOST_CHECK(stack->empty() || info.find("===== Stacktrace =====") != std::string::npos);
+        auto stack = boost::get_error_info<errinfo_stacktrace>(ex);
+        BOOST_REQUIRE(stack != nullptr);
+        auto info = boost::diagnostic_information(ex);
+        BOOST_TEST_MESSAGE(info);
+        BOOST_CHECK(stack->empty() || info.find("===== Stacktrace =====") != std::string::npos);
 #endif
-  }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(ThrowErrno)
 {
-  auto f = [] {
-    errno = ERANGE;
-    NDN_THROW_ERRNO(std::out_of_range("test"));
-  };
+    auto f = [] {
+        errno = ERANGE;
+        NDN_THROW_ERRNO(std::out_of_range("test"));
+    };
 
-  BOOST_CHECK_THROW(f(), boost::exception);
-  BOOST_CHECK_THROW(f(), std::exception);
-  BOOST_CHECK_THROW(f(), std::out_of_range);
+    BOOST_CHECK_THROW(f(), boost::exception);
+    BOOST_CHECK_THROW(f(), std::exception);
+    BOOST_CHECK_THROW(f(), std::out_of_range);
 
-  try {
-    f();
-  }
-  catch (const boost::exception& ex) {
-    auto errPtr = boost::get_error_info<boost::errinfo_errno>(ex);
-    BOOST_REQUIRE(errPtr != nullptr);
-    BOOST_CHECK_EQUAL(*errPtr, ERANGE);
-  }
+    try {
+        f();
+    }
+    catch (const boost::exception& ex) {
+        auto errPtr = boost::get_error_info<boost::errinfo_errno>(ex);
+        BOOST_REQUIRE(errPtr != nullptr);
+        BOOST_CHECK_EQUAL(*errPtr, ERANGE);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(ThrowNested)
 {
-  auto f = [] {
+    auto f = [] {
+        try {
+            NDN_THROW(std::overflow_error("inner"));
+        }
+        catch (...) {
+            NDN_THROW_NESTED(std::domain_error("outer"));
+        }
+    };
+
+    BOOST_CHECK_THROW(f(), boost::exception);
+    BOOST_CHECK_THROW(f(), std::exception);
+    BOOST_CHECK_THROW(f(), std::domain_error);
+
     try {
-      NDN_THROW(std::overflow_error("inner"));
+        f();
     }
-    catch (...) {
-      NDN_THROW_NESTED(std::domain_error("outer"));
+    catch (const boost::exception& ex) {
+        BOOST_CHECK(boost::get_error_info<boost::errinfo_nested_exception>(ex) != nullptr);
     }
-  };
-
-  BOOST_CHECK_THROW(f(), boost::exception);
-  BOOST_CHECK_THROW(f(), std::exception);
-  BOOST_CHECK_THROW(f(), std::domain_error);
-
-  try {
-    f();
-  }
-  catch (const boost::exception& ex) {
-    BOOST_CHECK(boost::get_error_info<boost::errinfo_nested_exception>(ex) != nullptr);
-  }
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestException

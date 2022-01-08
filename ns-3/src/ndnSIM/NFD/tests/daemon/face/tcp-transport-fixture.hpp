@@ -41,93 +41,90 @@ using namespace nfd::tests;
 namespace ip = boost::asio::ip;
 using ip::tcp;
 
-class TcpTransportFixture : public GlobalIoFixture
-{
-protected:
-  TcpTransportFixture()
-    : transport(nullptr)
-    , remoteSocket(g_io)
-    , receivedPackets(nullptr)
-    , acceptor(g_io)
-  {
-  }
-
-  void
-  startAccept(const tcp::endpoint& remoteEp)
-  {
-    BOOST_REQUIRE(!acceptor.is_open());
-    acceptor.open(remoteEp.protocol());
-    acceptor.set_option(tcp::acceptor::reuse_address(true));
-    acceptor.bind(remoteEp);
-    acceptor.listen(1);
-    acceptor.async_accept(remoteSocket, [this] (const boost::system::error_code& error) {
-      BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-      limitedIo.afterOp();
-    });
-  }
-
-  void
-  stopAccept()
-  {
-    BOOST_REQUIRE(acceptor.is_open());
-    acceptor.close();
-  }
-
-  void
-  initialize(ip::address address,
-             ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT)
-  {
-    tcp::endpoint remoteEp(address, 7070);
-    startAccept(remoteEp);
-
-    tcp::socket sock(g_io);
-    sock.async_connect(remoteEp, [this] (const boost::system::error_code& error) {
-      BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-      limitedIo.afterOp();
-    });
-
-    BOOST_REQUIRE_EQUAL(limitedIo.run(2, 1_s), LimitedIo::EXCEED_OPS);
-
-    localEp = sock.local_endpoint();
-
-    ndn::nfd::FaceScope scope;
-    if (sock.local_endpoint().address().is_loopback() && sock.remote_endpoint().address().is_loopback()) {
-      scope = ndn::nfd::FACE_SCOPE_LOCAL;
-    }
-    else {
-      scope = ndn::nfd::FACE_SCOPE_NON_LOCAL;
+class TcpTransportFixture : public GlobalIoFixture {
+  protected:
+    TcpTransportFixture()
+      : transport(nullptr)
+      , remoteSocket(g_io)
+      , receivedPackets(nullptr)
+      , acceptor(g_io)
+    {
     }
 
-    face = make_unique<Face>(make_unique<DummyLinkService>(),
-                             make_unique<TcpTransport>(std::move(sock), persistency, scope));
-    transport = static_cast<TcpTransport*>(face->getTransport());
-    receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+    void
+    startAccept(const tcp::endpoint& remoteEp)
+    {
+        BOOST_REQUIRE(!acceptor.is_open());
+        acceptor.open(remoteEp.protocol());
+        acceptor.set_option(tcp::acceptor::reuse_address(true));
+        acceptor.bind(remoteEp);
+        acceptor.listen(1);
+        acceptor.async_accept(remoteSocket, [this](const boost::system::error_code& error) {
+            BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+            limitedIo.afterOp();
+        });
+    }
 
-    BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
-  }
+    void
+    stopAccept()
+    {
+        BOOST_REQUIRE(acceptor.is_open());
+        acceptor.close();
+    }
 
-  void
-  remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
-  {
-    boost::asio::async_write(remoteSocket, boost::asio::buffer(buf),
-      [needToCheck] (const auto& error, size_t) {
-        if (needToCheck) {
-          BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+    void
+    initialize(ip::address address, ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT)
+    {
+        tcp::endpoint remoteEp(address, 7070);
+        startAccept(remoteEp);
+
+        tcp::socket sock(g_io);
+        sock.async_connect(remoteEp, [this](const boost::system::error_code& error) {
+            BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+            limitedIo.afterOp();
+        });
+
+        BOOST_REQUIRE_EQUAL(limitedIo.run(2, 1_s), LimitedIo::EXCEED_OPS);
+
+        localEp = sock.local_endpoint();
+
+        ndn::nfd::FaceScope scope;
+        if (sock.local_endpoint().address().is_loopback() && sock.remote_endpoint().address().is_loopback()) {
+            scope = ndn::nfd::FACE_SCOPE_LOCAL;
         }
-      });
-    limitedIo.defer(1_s);
-  }
+        else {
+            scope = ndn::nfd::FACE_SCOPE_NON_LOCAL;
+        }
 
-protected:
-  LimitedIo limitedIo;
-  TcpTransport* transport;
-  tcp::endpoint localEp;
-  tcp::socket remoteSocket;
-  std::vector<RxPacket>* receivedPackets;
+        face = make_unique<Face>(make_unique<DummyLinkService>(),
+                                 make_unique<TcpTransport>(std::move(sock), persistency, scope));
+        transport = static_cast<TcpTransport*>(face->getTransport());
+        receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
 
-private:
-  tcp::acceptor acceptor;
-  unique_ptr<Face> face;
+        BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
+    }
+
+    void
+    remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
+    {
+        boost::asio::async_write(remoteSocket, boost::asio::buffer(buf), [needToCheck](const auto& error, size_t) {
+            if (needToCheck) {
+                BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+            }
+        });
+        limitedIo.defer(1_s);
+    }
+
+  protected:
+    LimitedIo limitedIo;
+    TcpTransport* transport;
+    tcp::endpoint localEp;
+    tcp::socket remoteSocket;
+    std::vector<RxPacket>* receivedPackets;
+
+  private:
+    tcp::acceptor acceptor;
+    unique_ptr<Face> face;
 };
 
 } // namespace tests

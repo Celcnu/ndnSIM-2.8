@@ -38,70 +38,54 @@
 namespace ndn {
 namespace net {
 
-class NetworkMonitorImplNetlink : public NetworkMonitorImpl
-{
-public:
-  /** \brief initialize netlink socket and start enumerating interfaces
-   */
-  explicit
-  NetworkMonitorImplNetlink(boost::asio::io_service& io);
+class NetworkMonitorImplNetlink : public NetworkMonitorImpl {
+  public:
+    /** \brief initialize netlink socket and start enumerating interfaces
+     */
+    explicit NetworkMonitorImplNetlink(boost::asio::io_service& io);
 
-  uint32_t
-  getCapabilities() const final
-  {
-    return NetworkMonitor::CAP_ENUM |
-           NetworkMonitor::CAP_IF_ADD_REMOVE |
-           NetworkMonitor::CAP_STATE_CHANGE |
-           NetworkMonitor::CAP_MTU_CHANGE |
-           NetworkMonitor::CAP_ADDR_ADD_REMOVE;
-  }
+    uint32_t
+    getCapabilities() const final
+    {
+        return NetworkMonitor::CAP_ENUM | NetworkMonitor::CAP_IF_ADD_REMOVE | NetworkMonitor::CAP_STATE_CHANGE
+               | NetworkMonitor::CAP_MTU_CHANGE | NetworkMonitor::CAP_ADDR_ADD_REMOVE;
+    }
 
-  shared_ptr<const NetworkInterface>
-  getNetworkInterface(const std::string& ifname) const final;
+    shared_ptr<const NetworkInterface> getNetworkInterface(const std::string& ifname) const final;
 
-  std::vector<shared_ptr<const NetworkInterface>>
-  listNetworkInterfaces() const final;
+    std::vector<shared_ptr<const NetworkInterface>> listNetworkInterfaces() const final;
 
-private:
-  void
-  enumerateLinks();
+  private:
+    void enumerateLinks();
 
-  void
-  enumerateAddrs();
+    void enumerateAddrs();
 
-  void
-  enumerateRoutes();
+    void enumerateRoutes();
 
-  void
-  parseRtnlMessage(const NetlinkMessage& nlmsg);
+    void parseRtnlMessage(const NetlinkMessage& nlmsg);
 
-  void
-  parseLinkMessage(const NetlinkMessage& nlmsg);
+    void parseLinkMessage(const NetlinkMessage& nlmsg);
 
-  void
-  parseAddressMessage(const NetlinkMessage& nlmsg);
+    void parseAddressMessage(const NetlinkMessage& nlmsg);
 
-  void
-  parseRouteMessage(const NetlinkMessage& nlmsg);
+    void parseRouteMessage(const NetlinkMessage& nlmsg);
 
-  void
-  parseDoneMessage(const NetlinkMessage& nlmsg);
+    void parseDoneMessage(const NetlinkMessage& nlmsg);
 
-  void
-  parseErrorMessage(const NetlinkMessage& nlmsg);
+    void parseErrorMessage(const NetlinkMessage& nlmsg);
 
-private:
-  std::map<int, shared_ptr<NetworkInterface>> m_interfaces; ///< ifindex => interface
-  RtnlSocket m_rtnlSocket; ///< rtnetlink socket
-  GenlSocket m_genlSocket; ///< generic netlink socket to communicate with nl80211
+  private:
+    std::map<int, shared_ptr<NetworkInterface>> m_interfaces; ///< ifindex => interface
+    RtnlSocket m_rtnlSocket;                                  ///< rtnetlink socket
+    GenlSocket m_genlSocket;                                  ///< generic netlink socket to communicate with nl80211
 
-  enum {
-    ENUMERATION_NOT_STARTED,
-    ENUMERATING_LINKS,    ///< a dump of all links (RTM_GETLINK) is in progress
-    ENUMERATING_ADDRS,    ///< a dump of all addresses (RTM_GETADDR) is in progress
-    ENUMERATING_ROUTES,   ///< a dump of all routes (RTM_GETROUTE) is in progress (unimplemented)
-    ENUMERATION_COMPLETE,
-  } m_phase = ENUMERATION_NOT_STARTED;
+    enum {
+        ENUMERATION_NOT_STARTED,
+        ENUMERATING_LINKS,  ///< a dump of all links (RTM_GETLINK) is in progress
+        ENUMERATING_ADDRS,  ///< a dump of all addresses (RTM_GETADDR) is in progress
+        ENUMERATING_ROUTES, ///< a dump of all routes (RTM_GETROUTE) is in progress (unimplemented)
+        ENUMERATION_COMPLETE,
+    } m_phase = ENUMERATION_NOT_STARTED;
 };
 
 } // namespace net

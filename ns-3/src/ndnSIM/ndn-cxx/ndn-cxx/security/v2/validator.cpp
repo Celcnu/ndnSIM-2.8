@@ -39,10 +39,10 @@ Validator::Validator(unique_ptr<ValidationPolicy> policy, unique_ptr<Certificate
   , m_certFetcher(std::move(certFetcher))
   , m_maxDepth(25)
 {
-  BOOST_ASSERT(m_policy != nullptr);
-  BOOST_ASSERT(m_certFetcher != nullptr);
-  m_policy->setValidator(*this);
-  m_certFetcher->setCertificateStorage(*this);
+    BOOST_ASSERT(m_policy != nullptr);
+    BOOST_ASSERT(m_certFetcher != nullptr);
+    m_policy->setValidator(*this);
+    m_certFetcher->setCertificateStorage(*this);
 }
 
 Validator::~Validator() = default;
@@ -50,128 +50,130 @@ Validator::~Validator() = default;
 ValidationPolicy&
 Validator::getPolicy()
 {
-  return *m_policy;
+    return *m_policy;
 }
 
 CertificateFetcher&
 Validator::getFetcher()
 {
-  return *m_certFetcher;
+    return *m_certFetcher;
 }
 
 void
 Validator::setMaxDepth(size_t depth)
 {
-  m_maxDepth = depth;
+    m_maxDepth = depth;
 }
 
 size_t
 Validator::getMaxDepth() const
 {
-  return m_maxDepth;
+    return m_maxDepth;
 }
 
 void
-Validator::validate(const Data& data,
-                    const DataValidationSuccessCallback& successCb,
+Validator::validate(const Data& data, const DataValidationSuccessCallback& successCb,
                     const DataValidationFailureCallback& failureCb)
 {
-  auto state = make_shared<DataValidationState>(data, successCb, failureCb);
-  NDN_LOG_DEBUG_DEPTH("Start validating data " << data.getName());
+    auto state = make_shared<DataValidationState>(data, successCb, failureCb);
+    NDN_LOG_DEBUG_DEPTH("Start validating data " << data.getName());
 
-  m_policy->checkPolicy(data, state,
-      [this] (const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state) {
-      if (certRequest == nullptr) {
-        state->bypassValidation();
-      }
-      else {
-        // need to fetch key and validate it
-        requestCertificate(certRequest, state);
-      }
-    });
+    m_policy->checkPolicy(data, state,
+                          [this](const shared_ptr<CertificateRequest>& certRequest,
+                                 const shared_ptr<ValidationState>& state) {
+                              if (certRequest == nullptr) {
+                                  state->bypassValidation();
+                              }
+                              else {
+                                  // need to fetch key and validate it
+                                  requestCertificate(certRequest, state);
+                              }
+                          });
 }
 
 void
-Validator::validate(const Interest& interest,
-                    const InterestValidationSuccessCallback& successCb,
+Validator::validate(const Interest& interest, const InterestValidationSuccessCallback& successCb,
                     const InterestValidationFailureCallback& failureCb)
 {
-  auto state = make_shared<InterestValidationState>(interest, successCb, failureCb);
-  NDN_LOG_DEBUG_DEPTH("Start validating interest " << interest.getName());
+    auto state = make_shared<InterestValidationState>(interest, successCb, failureCb);
+    NDN_LOG_DEBUG_DEPTH("Start validating interest " << interest.getName());
 
-  m_policy->checkPolicy(interest, state,
-      [this] (const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state) {
-      if (certRequest == nullptr) {
-        state->bypassValidation();
-      }
-      else {
-        // need to fetch key and validate it
-        requestCertificate(certRequest, state);
-      }
-    });
+    m_policy->checkPolicy(interest, state,
+                          [this](const shared_ptr<CertificateRequest>& certRequest,
+                                 const shared_ptr<ValidationState>& state) {
+                              if (certRequest == nullptr) {
+                                  state->bypassValidation();
+                              }
+                              else {
+                                  // need to fetch key and validate it
+                                  requestCertificate(certRequest, state);
+                              }
+                          });
 }
 
 void
 Validator::validate(const Certificate& cert, const shared_ptr<ValidationState>& state)
 {
-  NDN_LOG_DEBUG_DEPTH("Start validating certificate " << cert.getName());
+    NDN_LOG_DEBUG_DEPTH("Start validating certificate " << cert.getName());
 
-  if (!cert.isValid()) {
-    return state->fail({ValidationError::Code::EXPIRED_CERT, "Retrieved certificate is not yet valid or expired "
-          "`" + cert.getName().toUri() + "`"});
-  }
+    if (!cert.isValid()) {
+        return state->fail({ValidationError::Code::EXPIRED_CERT, "Retrieved certificate is not yet valid or expired "
+                                                                 "`"
+                                                                   + cert.getName().toUri() + "`"});
+    }
 
-  m_policy->checkPolicy(cert, state,
-      [this, cert] (const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state) {
-      if (certRequest == nullptr) {
-        state->fail({ValidationError::POLICY_ERROR, "Validation policy is not allowed to designate `" +
-                     cert.getName().toUri() + "` as a trust anchor"});
-      }
-      else {
-        // need to fetch key and validate it
-        state->addCertificate(cert);
-        requestCertificate(certRequest, state);
-      }
-    });
+    m_policy->checkPolicy(cert, state,
+                          [this, cert](const shared_ptr<CertificateRequest>& certRequest,
+                                       const shared_ptr<ValidationState>& state) {
+                              if (certRequest == nullptr) {
+                                  state->fail({ValidationError::POLICY_ERROR,
+                                               "Validation policy is not allowed to designate `"
+                                                 + cert.getName().toUri() + "` as a trust anchor"});
+                              }
+                              else {
+                                  // need to fetch key and validate it
+                                  state->addCertificate(cert);
+                                  requestCertificate(certRequest, state);
+                              }
+                          });
 }
 
 void
 Validator::requestCertificate(const shared_ptr<CertificateRequest>& certRequest,
                               const shared_ptr<ValidationState>& state)
 {
-  // TODO configurable check for the maximum number of steps
-  if (state->getDepth() >= m_maxDepth) {
-    state->fail({ValidationError::Code::EXCEEDED_DEPTH_LIMIT,
-                 "Exceeded validation depth limit (" + to_string(m_maxDepth) + ")"});
-    return;
-  }
+    // TODO configurable check for the maximum number of steps
+    if (state->getDepth() >= m_maxDepth) {
+        state->fail({ValidationError::Code::EXCEEDED_DEPTH_LIMIT,
+                     "Exceeded validation depth limit (" + to_string(m_maxDepth) + ")"});
+        return;
+    }
 
-  if (state->hasSeenCertificateName(certRequest->interest.getName())) {
-    state->fail({ValidationError::Code::LOOP_DETECTED,
-                 "Validation loop detected for certificate `" + certRequest->interest.getName().toUri() + "`"});
-    return;
-  }
+    if (state->hasSeenCertificateName(certRequest->interest.getName())) {
+        state->fail({ValidationError::Code::LOOP_DETECTED,
+                     "Validation loop detected for certificate `" + certRequest->interest.getName().toUri() + "`"});
+        return;
+    }
 
-  NDN_LOG_DEBUG_DEPTH("Retrieving " << certRequest->interest.getName());
+    NDN_LOG_DEBUG_DEPTH("Retrieving " << certRequest->interest.getName());
 
-  auto cert = findTrustedCert(certRequest->interest);
-  if (cert != nullptr) {
-    NDN_LOG_TRACE_DEPTH("Found trusted certificate " << cert->getName());
-
-    cert = state->verifyCertificateChain(*cert);
+    auto cert = findTrustedCert(certRequest->interest);
     if (cert != nullptr) {
-      state->verifyOriginalPacket(*cert);
-    }
-    for (auto trustedCert = std::make_move_iterator(state->m_certificateChain.begin());
-         trustedCert != std::make_move_iterator(state->m_certificateChain.end());
-         ++trustedCert) {
-      cacheVerifiedCertificate(*trustedCert);
-    }
-    return;
-  }
+        NDN_LOG_TRACE_DEPTH("Found trusted certificate " << cert->getName());
 
-  m_certFetcher->fetch(certRequest, state, [this] (const Certificate& cert, const shared_ptr<ValidationState>& state) {
-      validate(cert, state);
+        cert = state->verifyCertificateChain(*cert);
+        if (cert != nullptr) {
+            state->verifyOriginalPacket(*cert);
+        }
+        for (auto trustedCert = std::make_move_iterator(state->m_certificateChain.begin());
+             trustedCert != std::make_move_iterator(state->m_certificateChain.end()); ++trustedCert) {
+            cacheVerifiedCertificate(*trustedCert);
+        }
+        return;
+    }
+
+    m_certFetcher->fetch(certRequest, state, [this](const Certificate& cert, const shared_ptr<ValidationState>& state) {
+        validate(cert, state);
     });
 }
 
@@ -184,32 +186,32 @@ Validator::requestCertificate(const shared_ptr<CertificateRequest>& certRequest,
 void
 Validator::loadAnchor(const std::string& groupId, Certificate&& cert)
 {
-  CertificateStorage::loadAnchor(groupId, std::move(cert));
+    CertificateStorage::loadAnchor(groupId, std::move(cert));
 }
 
 void
-Validator::loadAnchor(const std::string& groupId, const std::string& certfilePath,
-                      time::nanoseconds refreshPeriod, bool isDir)
+Validator::loadAnchor(const std::string& groupId, const std::string& certfilePath, time::nanoseconds refreshPeriod,
+                      bool isDir)
 {
-  CertificateStorage::loadAnchor(groupId, certfilePath, refreshPeriod, isDir);
+    CertificateStorage::loadAnchor(groupId, certfilePath, refreshPeriod, isDir);
 }
 
 void
 Validator::resetAnchors()
 {
-  CertificateStorage::resetAnchors();
+    CertificateStorage::resetAnchors();
 }
 
 void
 Validator::cacheVerifiedCertificate(Certificate&& cert)
 {
-  CertificateStorage::cacheVerifiedCert(std::move(cert));
+    CertificateStorage::cacheVerifiedCert(std::move(cert));
 }
 
 void
 Validator::resetVerifiedCertificates()
 {
-  CertificateStorage::resetVerifiedCerts();
+    CertificateStorage::resetVerifiedCerts();
 }
 
 } // namespace v2

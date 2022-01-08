@@ -40,36 +40,35 @@ static const size_t NOT_AFTER_OFFSET = 1;
 using boost::chrono::time_point_cast;
 
 ValidityPeriod::ValidityPeriod()
-  : ValidityPeriod(time::system_clock::TimePoint() + 1_ns,
-                   time::system_clock::TimePoint())
+  : ValidityPeriod(time::system_clock::TimePoint() + 1_ns, time::system_clock::TimePoint())
 {
 }
 
 ValidityPeriod::ValidityPeriod(const time::system_clock::TimePoint& notBefore,
                                const time::system_clock::TimePoint& notAfter)
-  : m_notBefore(time_point_cast<TimePoint::duration>(notBefore + TimePoint::duration(1) -
-                                                     time::system_clock::TimePoint::duration(1)))
+  : m_notBefore(time_point_cast<TimePoint::duration>(notBefore + TimePoint::duration(1)
+                                                     - time::system_clock::TimePoint::duration(1)))
   , m_notAfter(time_point_cast<TimePoint::duration>(notAfter))
 {
 }
 
 ValidityPeriod::ValidityPeriod(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 ValidityPeriod::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  totalLength += prependStringBlock(encoder, tlv::NotAfter, time::toIsoString(m_notAfter));
-  totalLength += prependStringBlock(encoder, tlv::NotBefore, time::toIsoString(m_notBefore));
+    totalLength += prependStringBlock(encoder, tlv::NotAfter, time::toIsoString(m_notAfter));
+    totalLength += prependStringBlock(encoder, tlv::NotBefore, time::toIsoString(m_notBefore));
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::ValidityPeriod);
-  return totalLength;
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::ValidityPeriod);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ValidityPeriod);
@@ -77,84 +76,83 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(ValidityPeriod);
 const Block&
 ValidityPeriod::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+    m_wire.parse();
+
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  m_wire.parse();
-
-  return m_wire;
 }
 
 void
 ValidityPeriod::wireDecode(const Block& wire)
 {
-  if (!wire.hasWire()) {
-    NDN_THROW(Error("The supplied block does not contain wire format"));
-  }
+    if (!wire.hasWire()) {
+        NDN_THROW(Error("The supplied block does not contain wire format"));
+    }
 
-  m_wire = wire;
-  m_wire.parse();
+    m_wire = wire;
+    m_wire.parse();
 
-  if (m_wire.type() != tlv::ValidityPeriod)
-    NDN_THROW(Error("ValidityPeriod", m_wire.type()));
+    if (m_wire.type() != tlv::ValidityPeriod)
+        NDN_THROW(Error("ValidityPeriod", m_wire.type()));
 
-  if (m_wire.elements_size() != 2)
-    NDN_THROW(Error("ValidityPeriod does not have two sub-TLVs"));
+    if (m_wire.elements_size() != 2)
+        NDN_THROW(Error("ValidityPeriod does not have two sub-TLVs"));
 
-  if (m_wire.elements()[NOT_BEFORE_OFFSET].type() != tlv::NotBefore ||
-      m_wire.elements()[NOT_BEFORE_OFFSET].value_size() != ISO_DATETIME_SIZE ||
-      m_wire.elements()[NOT_AFTER_OFFSET].type() != tlv::NotAfter ||
-      m_wire.elements()[NOT_AFTER_OFFSET].value_size() != ISO_DATETIME_SIZE) {
-    NDN_THROW(Error("Invalid NotBefore or NotAfter field"));
-  }
+    if (m_wire.elements()[NOT_BEFORE_OFFSET].type() != tlv::NotBefore
+        || m_wire.elements()[NOT_BEFORE_OFFSET].value_size() != ISO_DATETIME_SIZE
+        || m_wire.elements()[NOT_AFTER_OFFSET].type() != tlv::NotAfter
+        || m_wire.elements()[NOT_AFTER_OFFSET].value_size() != ISO_DATETIME_SIZE) {
+        NDN_THROW(Error("Invalid NotBefore or NotAfter field"));
+    }
 
-  try {
-    m_notBefore = time_point_cast<TimePoint::duration>(
-                    time::fromIsoString(readString(m_wire.elements()[NOT_BEFORE_OFFSET])));
-    m_notAfter = time_point_cast<TimePoint::duration>(
-                   time::fromIsoString(readString(m_wire.elements()[NOT_AFTER_OFFSET])));
-  }
-  catch (const std::bad_cast&) {
-    NDN_THROW(Error("Invalid date format in NOT-BEFORE or NOT-AFTER field"));
-  }
+    try {
+        m_notBefore =
+          time_point_cast<TimePoint::duration>(time::fromIsoString(readString(m_wire.elements()[NOT_BEFORE_OFFSET])));
+        m_notAfter =
+          time_point_cast<TimePoint::duration>(time::fromIsoString(readString(m_wire.elements()[NOT_AFTER_OFFSET])));
+    }
+    catch (const std::bad_cast&) {
+        NDN_THROW(Error("Invalid date format in NOT-BEFORE or NOT-AFTER field"));
+    }
 }
 
 ValidityPeriod&
-ValidityPeriod::setPeriod(const time::system_clock::TimePoint& notBefore,
-                          const time::system_clock::TimePoint& notAfter)
+ValidityPeriod::setPeriod(const time::system_clock::TimePoint& notBefore, const time::system_clock::TimePoint& notAfter)
 {
-  m_wire.reset();
-  m_notBefore = time_point_cast<TimePoint::duration>(notBefore + TimePoint::duration(1) -
-                                                     time::system_clock::TimePoint::duration(1));
-  m_notAfter = time_point_cast<TimePoint::duration>(notAfter);
-  return *this;
+    m_wire.reset();
+    m_notBefore = time_point_cast<TimePoint::duration>(notBefore + TimePoint::duration(1)
+                                                       - time::system_clock::TimePoint::duration(1));
+    m_notAfter = time_point_cast<TimePoint::duration>(notAfter);
+    return *this;
 }
 
 std::pair<time::system_clock::TimePoint, time::system_clock::TimePoint>
 ValidityPeriod::getPeriod() const
 {
-  return std::make_pair(m_notBefore, m_notAfter);
+    return std::make_pair(m_notBefore, m_notAfter);
 }
 
 bool
 ValidityPeriod::isValid(const time::system_clock::TimePoint& now) const
 {
-  return m_notBefore <= now && now <= m_notAfter;
+    return m_notBefore <= now && now <= m_notAfter;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const ValidityPeriod& period)
 {
-  os << "(" << time::toIsoString(period.getPeriod().first)
-     << ", " << time::toIsoString(period.getPeriod().second) << ")";
-  return os;
+    os << "(" << time::toIsoString(period.getPeriod().first) << ", " << time::toIsoString(period.getPeriod().second)
+       << ")";
+    return os;
 }
 
 } // namespace security

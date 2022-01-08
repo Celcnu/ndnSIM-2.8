@@ -35,73 +35,70 @@ namespace lp {
  *
  *  This type binds a NackHeader and an Interest, and is intended for use in network layer.
  */
-class Nack : public PacketBase
-{
-public:
-  Nack();
+class Nack : public PacketBase {
+  public:
+    Nack();
 
-  explicit
-  Nack(const Interest& interest);
+    explicit Nack(const Interest& interest);
 
-  explicit
-  Nack(Interest&& interest);
+    explicit Nack(Interest&& interest);
 
-public: // getter/setter
-  const Interest&
-  getInterest() const
-  {
-    return m_interest;
-  }
+  public: // getter/setter
+    const Interest&
+    getInterest() const
+    {
+        return m_interest;
+    }
 
-  Interest&
-  getInterest()
-  {
-    return m_interest;
-  }
+    Interest&
+    getInterest()
+    {
+        return m_interest;
+    }
 
-  const NackHeader&
-  getHeader() const
-  {
-    return m_header;
-  }
+    const NackHeader&
+    getHeader() const
+    {
+        return m_header;
+    }
 
-  NackHeader&
-  getHeader()
-  {
-    return m_header;
-  }
+    NackHeader&
+    getHeader()
+    {
+        return m_header;
+    }
 
-  Nack&
-  setHeader(const NackHeader& header)
-  {
-    m_header = header;
-    return *this;
-  }
+    Nack&
+    setHeader(const NackHeader& header)
+    {
+        m_header = header;
+        return *this;
+    }
 
-  Nack&
-  setHeader(NackHeader&& header)
-  {
-    m_header = header;
-    return *this;
-  }
+    Nack&
+    setHeader(NackHeader&& header)
+    {
+        m_header = header;
+        return *this;
+    }
 
-public: // NackHeader proxy
-  NackReason
-  getReason() const
-  {
-    return m_header.getReason();
-  }
+  public: // NackHeader proxy
+    NackReason
+    getReason() const
+    {
+        return m_header.getReason();
+    }
 
-  Nack&
-  setReason(NackReason reason)
-  {
-    m_header.setReason(reason);
-    return *this;
-  }
+    Nack&
+    setReason(NackReason reason)
+    {
+        m_header.setReason(reason);
+        return *this;
+    }
 
-private:
-  Interest m_interest;
-  NackHeader m_header;
+  private:
+    Interest m_interest;
+    NackHeader m_header;
 };
 
 } // namespace lp

@@ -36,20 +36,20 @@ GlobalIoFixture::GlobalIoFixture()
 
 GlobalIoFixture::~GlobalIoFixture()
 {
-  resetGlobalIoService();
+    resetGlobalIoService();
 }
 
 size_t
 GlobalIoFixture::pollIo()
 {
-  if (g_io.stopped()) {
+    if (g_io.stopped()) {
 #if BOOST_VERSION >= 106600
-    g_io.restart();
+        g_io.restart();
 #else
-    g_io.reset();
+        g_io.reset();
 #endif
-  }
-  return g_io.poll();
+    }
+    return g_io.poll();
 }
 
 GlobalIoTimeFixture::GlobalIoTimeFixture()

@@ -51,142 +51,141 @@ NotificationSubscriberBase::~NotificationSubscriberBase() = default;
 void
 NotificationSubscriberBase::start()
 {
-  if (m_isRunning) // already running
-    return;
-  m_isRunning = true;
+    if (m_isRunning) // already running
+        return;
+    m_isRunning = true;
 
-  sendInitialInterest();
+    sendInitialInterest();
 }
 
 void
 NotificationSubscriberBase::stop()
 {
-  if (!m_isRunning) // not running
-    return;
-  m_isRunning = false;
+    if (!m_isRunning) // not running
+        return;
+    m_isRunning = false;
 
-  m_lastInterest.cancel();
+    m_lastInterest.cancel();
 }
 
 void
 NotificationSubscriberBase::sendInitialInterest()
 {
-  if (shouldStop())
-    return;
+    if (shouldStop())
+        return;
 
-  auto interest = make_shared<Interest>(m_prefix);
-  interest->setCanBePrefix(true);
-  interest->setMustBeFresh(true);
-  interest->setInterestLifetime(m_interestLifetime);
-  sendInterest(*interest);
+    auto interest = make_shared<Interest>(m_prefix);
+    interest->setCanBePrefix(true);
+    interest->setMustBeFresh(true);
+    interest->setInterestLifetime(m_interestLifetime);
+    sendInterest(*interest);
 }
 
 void
 NotificationSubscriberBase::sendNextInterest()
 {
-  if (shouldStop())
-    return;
+    if (shouldStop())
+        return;
 
-  Name nextName = m_prefix;
-  nextName.appendSequenceNumber(m_lastSequenceNum + 1);
+    Name nextName = m_prefix;
+    nextName.appendSequenceNumber(m_lastSequenceNum + 1);
 
-  auto interest = make_shared<Interest>(nextName);
-  interest->setCanBePrefix(false);
-  interest->setInterestLifetime(m_interestLifetime);
-  sendInterest(*interest);
+    auto interest = make_shared<Interest>(nextName);
+    interest->setCanBePrefix(false);
+    interest->setInterestLifetime(m_interestLifetime);
+    sendInterest(*interest);
 }
 
 void
 NotificationSubscriberBase::sendInterest(const Interest& interest)
 {
-  m_lastInterest = m_face.expressInterest(interest,
-                                          [this] (const auto&, const auto& d) { this->afterReceiveData(d); },
-                                          [this] (const auto&, const auto& n) { this->afterReceiveNack(n); },
-                                          [this] (const auto&) { this->afterTimeout(); });
+    m_lastInterest = m_face.expressInterest(
+      interest, [this](const auto&, const auto& d) { this->afterReceiveData(d); },
+      [this](const auto&, const auto& n) { this->afterReceiveNack(n); }, [this](const auto&) { this->afterTimeout(); });
 }
 
 bool
 NotificationSubscriberBase::shouldStop()
 {
-  if (!m_isRunning)
-    return true;
+    if (!m_isRunning)
+        return true;
 
-  if (!hasSubscriber() && onNack.isEmpty()) {
-    stop();
-    return true;
-  }
-  return false;
+    if (!hasSubscriber() && onNack.isEmpty()) {
+        stop();
+        return true;
+    }
+    return false;
 }
 
 void
 NotificationSubscriberBase::afterReceiveData(const Data& data)
 {
-  if (shouldStop())
-    return;
+    if (shouldStop())
+        return;
 
-  try {
-    m_lastSequenceNum = data.getName().get(-1).toSequenceNumber();
-  }
-  catch (const tlv::Error&) {
-    onDecodeError(data);
-    sendInitialInterest();
-    return;
-  }
+    try {
+        m_lastSequenceNum = data.getName().get(-1).toSequenceNumber();
+    }
+    catch (const tlv::Error&) {
+        onDecodeError(data);
+        sendInitialInterest();
+        return;
+    }
 
-  if (!decodeAndDeliver(data)) {
-    onDecodeError(data);
-    sendInitialInterest();
-    return;
-  }
+    if (!decodeAndDeliver(data)) {
+        onDecodeError(data);
+        sendInitialInterest();
+        return;
+    }
 
-  sendNextInterest();
+    sendNextInterest();
 }
 
 void
 NotificationSubscriberBase::afterReceiveNack(const lp::Nack& nack)
 {
-  if (shouldStop())
-    return;
+    if (shouldStop())
+        return;
 
-  onNack(nack);
+    onNack(nack);
 
-  time::milliseconds delay = exponentialBackoff(nack);
-  m_nackEvent = m_scheduler.schedule(delay, [this] { sendInitialInterest(); });
+    time::milliseconds delay = exponentialBackoff(nack);
+    m_nackEvent = m_scheduler.schedule(delay, [this] { sendInitialInterest(); });
 }
 
 void
 NotificationSubscriberBase::afterTimeout()
 {
-  if (shouldStop())
-    return;
+    if (shouldStop())
+        return;
 
-  onTimeout();
+    onTimeout();
 
-  sendInitialInterest();
+    sendInitialInterest();
 }
 
 time::milliseconds
 NotificationSubscriberBase::exponentialBackoff(lp::Nack nack)
 {
-  uint64_t nackSequenceNum;
-  try {
-    nackSequenceNum = nack.getInterest().getName().get(-1).toSequenceNumber();
-  }
-  catch (const tlv::Error&) {
-    nackSequenceNum = 0;
-  }
+    uint64_t nackSequenceNum;
+    try {
+        nackSequenceNum = nack.getInterest().getName().get(-1).toSequenceNumber();
+    }
+    catch (const tlv::Error&) {
+        nackSequenceNum = 0;
+    }
 
-  if (m_lastNackSequenceNum == nackSequenceNum) {
-    ++m_attempts;
-  }
-  else {
-    m_attempts = 1;
-  }
+    if (m_lastNackSequenceNum == nackSequenceNum) {
+        ++m_attempts;
+    }
+    else {
+        m_attempts = 1;
+    }
 
-  m_lastNackSequenceNum = nackSequenceNum;
+    m_lastNackSequenceNum = nackSequenceNum;
 
-  return time::milliseconds(static_cast<time::milliseconds::rep>(std::pow(2, m_attempts) * 100 +
-                                                                 random::generateWord32() % 100));
+    return time::milliseconds(
+      static_cast<time::milliseconds::rep>(std::pow(2, m_attempts) * 100 + random::generateWord32() % 100));
 }
 
 } // namespace util

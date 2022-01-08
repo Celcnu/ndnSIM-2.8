@@ -38,332 +38,331 @@ InMemoryStorage::const_iterator::const_iterator(const Data* ptr, const Cache* ca
 InMemoryStorage::const_iterator&
 InMemoryStorage::const_iterator::operator++()
 {
-  m_it++;
-  if (m_it != m_cache->get<byFullName>().end()) {
-    m_ptr = &((*m_it)->getData());
-  }
-  else {
-    m_ptr = nullptr;
-  }
+    m_it++;
+    if (m_it != m_cache->get<byFullName>().end()) {
+        m_ptr = &((*m_it)->getData());
+    }
+    else {
+        m_ptr = nullptr;
+    }
 
-  return *this;
+    return *this;
 }
 
 InMemoryStorage::const_iterator
 InMemoryStorage::const_iterator::operator++(int)
 {
-  InMemoryStorage::const_iterator i(*this);
-  this->operator++();
-  return i;
+    InMemoryStorage::const_iterator i(*this);
+    this->operator++();
+    return i;
 }
 
 InMemoryStorage::const_iterator::reference
 InMemoryStorage::const_iterator::operator*()
 {
-  return *m_ptr;
+    return *m_ptr;
 }
 
 InMemoryStorage::const_iterator::pointer
 InMemoryStorage::const_iterator::operator->()
 {
-  return m_ptr;
+    return m_ptr;
 }
 
 bool
 InMemoryStorage::const_iterator::operator==(const const_iterator& rhs)
 {
-  return m_it == rhs.m_it;
+    return m_it == rhs.m_it;
 }
 
 bool
 InMemoryStorage::const_iterator::operator!=(const const_iterator& rhs)
 {
-  return m_it != rhs.m_it;
+    return m_it != rhs.m_it;
 }
 
 InMemoryStorage::InMemoryStorage(size_t limit)
   : m_limit(limit)
   , m_nPackets(0)
 {
-  init();
+    init();
 }
 
 InMemoryStorage::InMemoryStorage(DummyIoService& ioService, size_t limit)
   : m_limit(limit)
   , m_nPackets(0)
 {
-  m_scheduler = make_unique<Scheduler>(ioService);
-  init();
+    m_scheduler = make_unique<Scheduler>(ioService);
+    init();
 }
 
 void
 InMemoryStorage::init()
 {
-  // TODO consider a more suitable initial value
-  m_capacity = m_initCapacity;
+    // TODO consider a more suitable initial value
+    m_capacity = m_initCapacity;
 
-  if (m_limit != std::numeric_limits<size_t>::max() && m_capacity > m_limit) {
-    m_capacity = m_limit;
-  }
+    if (m_limit != std::numeric_limits<size_t>::max() && m_capacity > m_limit) {
+        m_capacity = m_limit;
+    }
 
-  for (size_t i = 0; i < m_capacity; i++) {
-    m_freeEntries.push(new InMemoryStorageEntry());
-  }
+    for (size_t i = 0; i < m_capacity; i++) {
+        m_freeEntries.push(new InMemoryStorageEntry());
+    }
 }
 
 InMemoryStorage::~InMemoryStorage()
 {
-  // evict all items from cache
-  auto it = m_cache.begin();
-  while (it != m_cache.end()) {
-    it = freeEntry(it);
-  }
+    // evict all items from cache
+    auto it = m_cache.begin();
+    while (it != m_cache.end()) {
+        it = freeEntry(it);
+    }
 
-  BOOST_ASSERT(m_freeEntries.size() == m_capacity);
+    BOOST_ASSERT(m_freeEntries.size() == m_capacity);
 
-  while (!m_freeEntries.empty()) {
-    delete m_freeEntries.top();
-    m_freeEntries.pop();
-  }
+    while (!m_freeEntries.empty()) {
+        delete m_freeEntries.top();
+        m_freeEntries.pop();
+    }
 }
 
 void
 InMemoryStorage::setCapacity(size_t capacity)
 {
-  size_t oldCapacity = m_capacity;
-  m_capacity = std::max(capacity, m_initCapacity);
+    size_t oldCapacity = m_capacity;
+    m_capacity = std::max(capacity, m_initCapacity);
 
-  if (size() > m_capacity) {
-    ssize_t nAllowedFailures = size() - m_capacity;
-    while (size() > m_capacity) {
-      if (!evictItem() && --nAllowedFailures < 0) {
-        NDN_THROW(Error());
-      }
+    if (size() > m_capacity) {
+        ssize_t nAllowedFailures = size() - m_capacity;
+        while (size() > m_capacity) {
+            if (!evictItem() && --nAllowedFailures < 0) {
+                NDN_THROW(Error());
+            }
+        }
     }
-  }
 
-  if (m_capacity >= oldCapacity) {
-    for (size_t i = oldCapacity; i < m_capacity; i++) {
-      m_freeEntries.push(new InMemoryStorageEntry());
+    if (m_capacity >= oldCapacity) {
+        for (size_t i = oldCapacity; i < m_capacity; i++) {
+            m_freeEntries.push(new InMemoryStorageEntry());
+        }
     }
-  }
-  else {
-    for (size_t i = oldCapacity; i > m_capacity; i--) {
-      delete m_freeEntries.top();
-      m_freeEntries.pop();
+    else {
+        for (size_t i = oldCapacity; i > m_capacity; i--) {
+            delete m_freeEntries.top();
+            m_freeEntries.pop();
+        }
     }
-  }
 
-  BOOST_ASSERT(size() + m_freeEntries.size() == m_capacity);
+    BOOST_ASSERT(size() + m_freeEntries.size() == m_capacity);
 }
 
 void
 InMemoryStorage::insert(const Data& data, const time::milliseconds& mustBeFreshProcessingWindow)
 {
-  // check if identical Data/Name already exists
-  auto it = m_cache.get<byFullName>().find(data.getFullName());
-  if (it != m_cache.get<byFullName>().end())
-    return;
+    // check if identical Data/Name already exists
+    auto it = m_cache.get<byFullName>().find(data.getFullName());
+    if (it != m_cache.get<byFullName>().end())
+        return;
 
-  //if full, double the capacity
-  bool doesReachLimit = (getLimit() == getCapacity());
-  if (isFull() && !doesReachLimit) {
-    // note: This is incorrect if 2*capacity overflows, but memory should run out before that
-    size_t newCapacity = std::min(2 * getCapacity(), getLimit());
-    setCapacity(newCapacity);
-  }
+    // if full, double the capacity
+    bool doesReachLimit = (getLimit() == getCapacity());
+    if (isFull() && !doesReachLimit) {
+        // note: This is incorrect if 2*capacity overflows, but memory should run out before that
+        size_t newCapacity = std::min(2 * getCapacity(), getLimit());
+        setCapacity(newCapacity);
+    }
 
-  //if full and reach limitation of the capacity, employ replacement policy
-  if (isFull() && doesReachLimit) {
-    evictItem();
-  }
+    // if full and reach limitation of the capacity, employ replacement policy
+    if (isFull() && doesReachLimit) {
+        evictItem();
+    }
 
-  //insert to cache
-  BOOST_ASSERT(m_freeEntries.size() > 0);
-  // take entry for the memory pool
-  InMemoryStorageEntry* entry = m_freeEntries.top();
-  m_freeEntries.pop();
-  m_nPackets++;
-  entry->setData(data);
-  if (m_scheduler != nullptr && mustBeFreshProcessingWindow > ZERO_WINDOW) {
-    entry->scheduleMarkStale(*m_scheduler, mustBeFreshProcessingWindow);
-  }
-  m_cache.insert(entry);
+    // insert to cache
+    BOOST_ASSERT(m_freeEntries.size() > 0);
+    // take entry for the memory pool
+    InMemoryStorageEntry* entry = m_freeEntries.top();
+    m_freeEntries.pop();
+    m_nPackets++;
+    entry->setData(data);
+    if (m_scheduler != nullptr && mustBeFreshProcessingWindow > ZERO_WINDOW) {
+        entry->scheduleMarkStale(*m_scheduler, mustBeFreshProcessingWindow);
+    }
+    m_cache.insert(entry);
 
-  //let derived class do something with the entry
-  afterInsert(entry);
+    // let derived class do something with the entry
+    afterInsert(entry);
 }
 
 shared_ptr<const Data>
 InMemoryStorage::find(const Name& name)
 {
-  auto it = m_cache.get<byFullName>().lower_bound(name);
+    auto it = m_cache.get<byFullName>().lower_bound(name);
 
-  // if not found, return null
-  if (it == m_cache.get<byFullName>().end()) {
-    return nullptr;
-  }
+    // if not found, return null
+    if (it == m_cache.get<byFullName>().end()) {
+        return nullptr;
+    }
 
-  // if the given name is not the prefix of the lower_bound, return null
-  if (!name.isPrefixOf((*it)->getFullName())) {
-    return nullptr;
-  }
+    // if the given name is not the prefix of the lower_bound, return null
+    if (!name.isPrefixOf((*it)->getFullName())) {
+        return nullptr;
+    }
 
-  afterAccess(*it);
-  return ((*it)->getData()).shared_from_this();
+    afterAccess(*it);
+    return ((*it)->getData()).shared_from_this();
 }
 
 shared_ptr<const Data>
 InMemoryStorage::find(const Interest& interest)
 {
-  // if the interest contains implicit digest, it is possible to directly locate a packet.
-  auto it = m_cache.get<byFullName>().find(interest.getName());
+    // if the interest contains implicit digest, it is possible to directly locate a packet.
+    auto it = m_cache.get<byFullName>().find(interest.getName());
 
-  // if a packet is located by its full name, it must be the packet to return.
-  if (it != m_cache.get<byFullName>().end()) {
-    return ((*it)->getData()).shared_from_this();
-  }
+    // if a packet is located by its full name, it must be the packet to return.
+    if (it != m_cache.get<byFullName>().end()) {
+        return ((*it)->getData()).shared_from_this();
+    }
 
-  // if the packet is not discovered by last step, either the packet is not in the storage or
-  // the interest doesn't contains implicit digest.
-  it = m_cache.get<byFullName>().lower_bound(interest.getName());
+    // if the packet is not discovered by last step, either the packet is not in the storage or
+    // the interest doesn't contains implicit digest.
+    it = m_cache.get<byFullName>().lower_bound(interest.getName());
 
-  if (it == m_cache.get<byFullName>().end()) {
-    return nullptr;
-  }
+    if (it == m_cache.get<byFullName>().end()) {
+        return nullptr;
+    }
 
-  // to locate the element that has a just smaller name than the interest's
-  if (it != m_cache.get<byFullName>().begin()) {
-    it--;
-  }
+    // to locate the element that has a just smaller name than the interest's
+    if (it != m_cache.get<byFullName>().begin()) {
+        it--;
+    }
 
-  InMemoryStorageEntry* ret = selectChild(interest, it);
-  if (ret == nullptr) {
-    return nullptr;
-  }
+    InMemoryStorageEntry* ret = selectChild(interest, it);
+    if (ret == nullptr) {
+        return nullptr;
+    }
 
-  // let derived class do something with the entry
-  afterAccess(ret);
-  return ret->getData().shared_from_this();
+    // let derived class do something with the entry
+    afterAccess(ret);
+    return ret->getData().shared_from_this();
 }
 
 InMemoryStorage::Cache::index<InMemoryStorage::byFullName>::type::iterator
 InMemoryStorage::findNextFresh(Cache::index<byFullName>::type::iterator it) const
 {
-  for (; it != m_cache.get<byFullName>().end(); it++) {
-    if ((*it)->isFresh())
-      return it;
-  }
+    for (; it != m_cache.get<byFullName>().end(); it++) {
+        if ((*it)->isFresh())
+            return it;
+    }
 
-  return it;
+    return it;
 }
 
 InMemoryStorageEntry*
-InMemoryStorage::selectChild(const Interest& interest,
-                             Cache::index<byFullName>::type::iterator startingPoint) const
+InMemoryStorage::selectChild(const Interest& interest, Cache::index<byFullName>::type::iterator startingPoint) const
 {
-  BOOST_ASSERT(startingPoint != m_cache.get<byFullName>().end());
+    BOOST_ASSERT(startingPoint != m_cache.get<byFullName>().end());
 
-  if (startingPoint != m_cache.get<byFullName>().begin()) {
-    BOOST_ASSERT((*startingPoint)->getFullName() < interest.getName());
-  }
+    if (startingPoint != m_cache.get<byFullName>().begin()) {
+        BOOST_ASSERT((*startingPoint)->getFullName() < interest.getName());
+    }
 
-  // filter out non-fresh data
-  if (interest.getMustBeFresh()) {
-    startingPoint = findNextFresh(startingPoint);
-  }
-
-  if (startingPoint == m_cache.get<byFullName>().end()) {
-    return nullptr;
-  }
-
-  if (interest.matchesData((*startingPoint)->getData())) {
-    return *startingPoint;
-  }
-
-  // iterate to the right
-  auto rightmostCandidate = startingPoint;
-  while (true) {
-    ++rightmostCandidate;
     // filter out non-fresh data
     if (interest.getMustBeFresh()) {
-      rightmostCandidate = findNextFresh(rightmostCandidate);
+        startingPoint = findNextFresh(startingPoint);
     }
 
-    bool isInPrefix = false;
-    if (rightmostCandidate != m_cache.get<byFullName>().end()) {
-      isInPrefix = interest.getName().isPrefixOf((*rightmostCandidate)->getFullName());
+    if (startingPoint == m_cache.get<byFullName>().end()) {
+        return nullptr;
     }
-    if (isInPrefix) {
-      if (interest.matchesData((*rightmostCandidate)->getData())) {
-        return *rightmostCandidate;
-      }
-    }
-    else {
-      break;
-    }
-  }
 
-  return nullptr;
+    if (interest.matchesData((*startingPoint)->getData())) {
+        return *startingPoint;
+    }
+
+    // iterate to the right
+    auto rightmostCandidate = startingPoint;
+    while (true) {
+        ++rightmostCandidate;
+        // filter out non-fresh data
+        if (interest.getMustBeFresh()) {
+            rightmostCandidate = findNextFresh(rightmostCandidate);
+        }
+
+        bool isInPrefix = false;
+        if (rightmostCandidate != m_cache.get<byFullName>().end()) {
+            isInPrefix = interest.getName().isPrefixOf((*rightmostCandidate)->getFullName());
+        }
+        if (isInPrefix) {
+            if (interest.matchesData((*rightmostCandidate)->getData())) {
+                return *rightmostCandidate;
+            }
+        }
+        else {
+            break;
+        }
+    }
+
+    return nullptr;
 }
 
 InMemoryStorage::Cache::iterator
 InMemoryStorage::freeEntry(Cache::iterator it)
 {
-  // push the *empty* entry into mem pool
-  (*it)->release();
-  m_freeEntries.push(*it);
-  m_nPackets--;
-  return m_cache.erase(it);
+    // push the *empty* entry into mem pool
+    (*it)->release();
+    m_freeEntries.push(*it);
+    m_nPackets--;
+    return m_cache.erase(it);
 }
 
 void
 InMemoryStorage::erase(const Name& prefix, const bool isPrefix)
 {
-  if (isPrefix) {
-    auto it = m_cache.get<byFullName>().lower_bound(prefix);
-    while (it != m_cache.get<byFullName>().end() && prefix.isPrefixOf((*it)->getName())) {
-      // let derived class do something with the entry
-      beforeErase(*it);
-      it = freeEntry(it);
+    if (isPrefix) {
+        auto it = m_cache.get<byFullName>().lower_bound(prefix);
+        while (it != m_cache.get<byFullName>().end() && prefix.isPrefixOf((*it)->getName())) {
+            // let derived class do something with the entry
+            beforeErase(*it);
+            it = freeEntry(it);
+        }
     }
-  }
-  else {
-    auto it = m_cache.get<byFullName>().find(prefix);
-    if (it == m_cache.get<byFullName>().end())
-      return;
+    else {
+        auto it = m_cache.get<byFullName>().find(prefix);
+        if (it == m_cache.get<byFullName>().end())
+            return;
 
-    // let derived class do something with the entry
-    beforeErase(*it);
-    freeEntry(it);
-  }
+        // let derived class do something with the entry
+        beforeErase(*it);
+        freeEntry(it);
+    }
 
-  if (m_freeEntries.size() > (2 * size()))
-    setCapacity(getCapacity() / 2);
+    if (m_freeEntries.size() > (2 * size()))
+        setCapacity(getCapacity() / 2);
 }
 
 void
 InMemoryStorage::eraseImpl(const Name& name)
 {
-  auto it = m_cache.get<byFullName>().find(name);
-  if (it == m_cache.get<byFullName>().end())
-    return;
+    auto it = m_cache.get<byFullName>().find(name);
+    if (it == m_cache.get<byFullName>().end())
+        return;
 
-  freeEntry(it);
+    freeEntry(it);
 }
 
 InMemoryStorage::const_iterator
 InMemoryStorage::begin() const
 {
-  auto it = m_cache.get<byFullName>().begin();
-  return const_iterator(&((*it)->getData()), &m_cache, it);
+    auto it = m_cache.get<byFullName>().begin();
+    return const_iterator(&((*it)->getData()), &m_cache, it);
 }
 
 InMemoryStorage::const_iterator
 InMemoryStorage::end() const
 {
-  auto it = m_cache.get<byFullName>().end();
-  return const_iterator(nullptr, &m_cache, it);
+    auto it = m_cache.get<byFullName>().end();
+    return const_iterator(nullptr, &m_cache, it);
 }
 
 void
@@ -384,9 +383,9 @@ InMemoryStorage::afterAccess(InMemoryStorageEntry* entry)
 void
 InMemoryStorage::printCache(std::ostream& os) const
 {
-  // start from the upper layer towards bottom
-  for (const auto& elem : m_cache.get<byFullName>())
-    os << elem->getFullName() << std::endl;
+    // start from the upper layer towards bottom
+    for (const auto& elem : m_cache.get<byFullName>())
+        os << elem->getFullName() << std::endl;
 }
 
 } // namespace ndn

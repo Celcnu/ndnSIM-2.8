@@ -32,39 +32,33 @@ namespace ndn {
 
 class RegexComponentMatcher;
 
-class RegexComponentSetMatcher : public RegexMatcher
-{
-public:
-  /**
-   * @brief Create a RegexComponentSetMatcher matcher from expr
-   * @param expr The standard regular expression to match a component
-   * @param backrefManager Shared pointer to back-reference manager
-   */
-  RegexComponentSetMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
+class RegexComponentSetMatcher : public RegexMatcher {
+  public:
+    /**
+     * @brief Create a RegexComponentSetMatcher matcher from expr
+     * @param expr The standard regular expression to match a component
+     * @param backrefManager Shared pointer to back-reference manager
+     */
+    RegexComponentSetMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
 
-  bool
-  match(const Name& name, size_t offset, size_t len = 1) override;
+    bool match(const Name& name, size_t offset, size_t len = 1) override;
 
-protected:
-  /**
-   * @brief Compile the regular expression to generate the more matchers when necessary
-   */
-  void
-  compile() override;
+  protected:
+    /**
+     * @brief Compile the regular expression to generate the more matchers when necessary
+     */
+    void compile() override;
 
-private:
-  void
-  compileSingleComponent();
+  private:
+    void compileSingleComponent();
 
-  void
-  compileMultipleComponents(size_t start, size_t lastIndex);
+    void compileMultipleComponents(size_t start, size_t lastIndex);
 
-  size_t
-  extractComponent(size_t index) const;
+    size_t extractComponent(size_t index) const;
 
-private:
-  std::vector<shared_ptr<RegexComponentMatcher>> m_components;
-  bool m_isInclusion;
+  private:
+    std::vector<shared_ptr<RegexComponentMatcher>> m_components;
+    bool m_isInclusion;
 };
 
 } // namespace ndn

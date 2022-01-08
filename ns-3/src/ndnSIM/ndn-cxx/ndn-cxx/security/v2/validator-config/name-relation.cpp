@@ -31,46 +31,46 @@ namespace validator_config {
 std::ostream&
 operator<<(std::ostream& os, NameRelation relation)
 {
-  switch (relation)  {
-    case NameRelation::EQUAL:
-      return os << "equal";
-    case NameRelation::IS_PREFIX_OF:
-      return os << "is-prefix-of";
-    case NameRelation::IS_STRICT_PREFIX_OF:
-      return os << "is-strict-prefix-of";
-  }
-  return os;
+    switch (relation) {
+        case NameRelation::EQUAL:
+            return os << "equal";
+        case NameRelation::IS_PREFIX_OF:
+            return os << "is-prefix-of";
+        case NameRelation::IS_STRICT_PREFIX_OF:
+            return os << "is-strict-prefix-of";
+    }
+    return os;
 }
 
 bool
 checkNameRelation(NameRelation relation, const Name& name1, const Name& name2)
 {
-  switch (relation)  {
-    case NameRelation::EQUAL:
-      return name1 == name2;
-    case NameRelation::IS_PREFIX_OF:
-      return name1.isPrefixOf(name2);
-    case NameRelation::IS_STRICT_PREFIX_OF:
-      return name1.isPrefixOf(name2) && name1.size() < name2.size();
-  }
-  return false;
+    switch (relation) {
+        case NameRelation::EQUAL:
+            return name1 == name2;
+        case NameRelation::IS_PREFIX_OF:
+            return name1.isPrefixOf(name2);
+        case NameRelation::IS_STRICT_PREFIX_OF:
+            return name1.isPrefixOf(name2) && name1.size() < name2.size();
+    }
+    return false;
 }
 
 NameRelation
 getNameRelationFromString(const std::string& relationString)
 {
-  if (boost::iequals(relationString, "equal")) {
-    return NameRelation::EQUAL;
-  }
-  else if (boost::iequals(relationString, "is-prefix-of")) {
-    return NameRelation::IS_PREFIX_OF;
-  }
-  else if (boost::iequals(relationString, "is-strict-prefix-of")) {
-    return NameRelation::IS_STRICT_PREFIX_OF;
-  }
-  else {
-    NDN_THROW(Error("Unsupported relation: " + relationString));
-  }
+    if (boost::iequals(relationString, "equal")) {
+        return NameRelation::EQUAL;
+    }
+    else if (boost::iequals(relationString, "is-prefix-of")) {
+        return NameRelation::IS_PREFIX_OF;
+    }
+    else if (boost::iequals(relationString, "is-strict-prefix-of")) {
+        return NameRelation::IS_STRICT_PREFIX_OF;
+    }
+    else {
+        NDN_THROW(Error("Unsupported relation: " + relationString));
+    }
 }
 
 } // namespace validator_config

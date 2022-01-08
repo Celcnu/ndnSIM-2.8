@@ -31,7 +31,8 @@
 namespace websocketpp {
 
 /// Stub for user supplied base class.
-class endpoint_base {};
+class endpoint_base {
+};
 
 } // namespace websocketpp
 

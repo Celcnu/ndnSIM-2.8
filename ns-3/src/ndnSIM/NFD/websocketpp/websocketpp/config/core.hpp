@@ -76,18 +76,13 @@ struct core {
     typedef http::parser::response response_type;
 
     // Message Policies
-    typedef message_buffer::message<message_buffer::alloc::con_msg_manager>
-        message_type;
-    typedef message_buffer::alloc::con_msg_manager<message_type>
-        con_msg_manager_type;
-    typedef message_buffer::alloc::endpoint_msg_manager<con_msg_manager_type>
-        endpoint_msg_manager_type;
+    typedef message_buffer::message<message_buffer::alloc::con_msg_manager> message_type;
+    typedef message_buffer::alloc::con_msg_manager<message_type> con_msg_manager_type;
+    typedef message_buffer::alloc::endpoint_msg_manager<con_msg_manager_type> endpoint_msg_manager_type;
 
     /// Logging policies
-    typedef websocketpp::log::basic<concurrency_type,
-        websocketpp::log::elevel> elog_type;
-    typedef websocketpp::log::basic<concurrency_type,
-        websocketpp::log::alevel> alog_type;
+    typedef websocketpp::log::basic<concurrency_type, websocketpp::log::elevel> elog_type;
+    typedef websocketpp::log::basic<concurrency_type, websocketpp::log::alevel> alog_type;
 
     /// RNG policies
     typedef websocketpp::random::none::int_generator<uint32_t> rng_type;
@@ -138,8 +133,7 @@ struct core {
     };
 
     /// Transport Endpoint Component
-    typedef websocketpp::transport::iostream::endpoint<transport_config>
-        transport_type;
+    typedef websocketpp::transport::iostream::endpoint<transport_config> transport_type;
 
     /// User overridable Endpoint base class
     typedef websocketpp::endpoint_base endpoint_base;
@@ -173,8 +167,7 @@ struct core {
      *
      * Default is all except for development/debug level errors
      */
-    static const websocketpp::log::level elog_level =
-        websocketpp::log::elevel::all ^ websocketpp::log::elevel::devel;
+    static const websocketpp::log::level elog_level = websocketpp::log::elevel::all ^ websocketpp::log::elevel::devel;
 
     /// Default static access logging channels
     /**
@@ -186,8 +179,7 @@ struct core {
      *
      * Default is all except for development/debug level access messages
      */
-    static const websocketpp::log::level alog_level =
-        websocketpp::log::alevel::all ^ websocketpp::log::alevel::devel;
+    static const websocketpp::log::level alog_level = websocketpp::log::alevel::all ^ websocketpp::log::alevel::devel;
 
     /// Size of the per-connection read buffer
     /**
@@ -230,7 +222,7 @@ struct core {
     /// Default maximum message size
     /**
      * Default value for the processor's maximum message size. Maximum message size
-     * determines the point at which the library will fail a connection with the 
+     * determines the point at which the library will fail a connection with the
      * message_too_big protocol error.
      *
      * The default is 32MB
@@ -238,7 +230,7 @@ struct core {
      * @since 0.3.0
      */
     static const size_t max_message_size = 32000000;
-    
+
     /// Default maximum http body size
     /**
      * Default value for the http parser's maximum body size. Maximum body size
@@ -272,8 +264,7 @@ struct core {
         static const uint8_t minimum_outgoing_window_bits = 8;
     };
 
-    typedef websocketpp::extensions::permessage_deflate::disabled
-        <permessage_deflate_config> permessage_deflate_type;
+    typedef websocketpp::extensions::permessage_deflate::disabled<permessage_deflate_config> permessage_deflate_type;
 
     /// Autonegotiate permessage-deflate
     /**
@@ -288,7 +279,7 @@ struct core {
      * auto-negotiate on, you may still override the auto-negotiate manually if
      * needed.
      */
-    //static const bool autonegotiate_compression = false;
+    // static const bool autonegotiate_compression = false;
 };
 
 } // namespace config

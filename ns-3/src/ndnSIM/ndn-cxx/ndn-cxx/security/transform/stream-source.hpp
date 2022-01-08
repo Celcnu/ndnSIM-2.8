@@ -31,32 +31,29 @@ namespace transform {
 /**
  * @brief A source taking an std::istream as input
  */
-class StreamSource : public Source
-{
-public:
-  /**
-   * @brief Construst a source using @p is as input.
-   *
-   * @param is The input stream
-   * @param bufLen The internal buffer size. The default size is 1024.
-   * @pre bufLen must be larger than 0.
-   */
-  explicit
-  StreamSource(std::istream& is, size_t bufLen = DEFAULT_BUFFER_LEN);
+class StreamSource : public Source {
+  public:
+    /**
+     * @brief Construst a source using @p is as input.
+     *
+     * @param is The input stream
+     * @param bufLen The internal buffer size. The default size is 1024.
+     * @pre bufLen must be larger than 0.
+     */
+    explicit StreamSource(std::istream& is, size_t bufLen = DEFAULT_BUFFER_LEN);
 
-private:
-  /**
-   * @brief Read bytes from the input stream until EOF is reached and write them into the next module.
-   */
-  void
-  doPump() final;
+  private:
+    /**
+     * @brief Read bytes from the input stream until EOF is reached and write them into the next module.
+     */
+    void doPump() final;
 
-public:
-  static const std::size_t DEFAULT_BUFFER_LEN;
+  public:
+    static const std::size_t DEFAULT_BUFFER_LEN;
 
-private:
-  std::istream& m_is;
-  size_t m_bufferSize;
+  private:
+    std::istream& m_is;
+    size_t m_bufferSize;
 };
 
 typedef StreamSource streamSource;

@@ -28,7 +28,6 @@
 #ifndef WEBSOCKETPP_PROCESSOR_EXTENSION_PERMESSAGEDEFLATE_HPP
 #define WEBSOCKETPP_PROCESSOR_EXTENSION_PERMESSAGEDEFLATE_HPP
 
-
 #include <websocketpp/common/cpp11.hpp>
 #include <websocketpp/common/memory.hpp>
 #include <websocketpp/common/platforms.hpp>
@@ -117,15 +116,21 @@ enum value {
 
 /// Permessage-deflate error category
 class category : public lib::error_category {
-public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.extension.permessage-deflate";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case general:
                 return "Generic permessage-compress error";
             case invalid_attributes:
@@ -149,13 +154,17 @@ public:
 };
 
 /// Get a reference to a static copy of the permessage-deflate error category
-inline lib::error_category const & get_category() {
+inline lib::error_category const&
+get_category()
+{
     static category instance;
     return instance;
 }
 
 /// Create an error code in the permessage-deflate category
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -165,9 +174,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace websocketpp
 
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum
-    <websocketpp::extensions::permessage_deflate::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::extensions::permessage_deflate::error::value> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_
@@ -216,7 +224,7 @@ enum value {
 
 template <typename config>
 class enabled {
-public:
+  public:
     enabled()
       : m_enabled(false)
       , m_server_no_context_takeover(false)
@@ -239,7 +247,8 @@ public:
         m_istate.next_in = Z_NULL;
     }
 
-    ~enabled() {
+    ~enabled()
+    {
         if (!m_initialized) {
             return;
         }
@@ -247,14 +256,14 @@ public:
         int ret = deflateEnd(&m_dstate);
 
         if (ret != Z_OK) {
-            //std::cout << "error cleaning up zlib compression state"
+            // std::cout << "error cleaning up zlib compression state"
             //          << std::endl;
         }
 
         ret = inflateEnd(&m_istate);
 
         if (ret != Z_OK) {
-            //std::cout << "error cleaning up zlib decompression state"
+            // std::cout << "error cleaning up zlib decompression state"
             //          << std::endl;
         }
     }
@@ -270,35 +279,30 @@ public:
      * @param is_server True to initialize as a server, false for a client.
      * @return A code representing the error that occurred, if any
      */
-    lib::error_code init(bool is_server) {
+    lib::error_code
+    init(bool is_server)
+    {
         uint8_t deflate_bits;
         uint8_t inflate_bits;
 
         if (is_server) {
             deflate_bits = m_server_max_window_bits;
             inflate_bits = m_client_max_window_bits;
-        } else {
+        }
+        else {
             deflate_bits = m_client_max_window_bits;
             inflate_bits = m_server_max_window_bits;
         }
 
-        int ret = deflateInit2(
-            &m_dstate,
-            Z_DEFAULT_COMPRESSION,
-            Z_DEFLATED,
-            -1*deflate_bits,
-            4, // memory level 1-9
-            Z_DEFAULT_STRATEGY
-        );
+        int ret = deflateInit2(&m_dstate, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -1 * deflate_bits,
+                               4, // memory level 1-9
+                               Z_DEFAULT_STRATEGY);
 
         if (ret != Z_OK) {
             return make_error_code(error::zlib_error);
         }
 
-        ret = inflateInit2(
-            &m_istate,
-            -1*inflate_bits
-        );
+        ret = inflateInit2(&m_istate, -1 * inflate_bits);
 
         if (ret != Z_OK) {
             return make_error_code(error::zlib_error);
@@ -306,11 +310,10 @@ public:
 
         m_compress_buffer.reset(new unsigned char[m_compress_buffer_size]);
         m_decompress_buffer.reset(new unsigned char[m_compress_buffer_size]);
-        if ((m_server_no_context_takeover && is_server) ||
-            (m_client_no_context_takeover && !is_server))
-        {
+        if ((m_server_no_context_takeover && is_server) || (m_client_no_context_takeover && !is_server)) {
             m_flush = Z_FULL_FLUSH;
-        } else {
+        }
+        else {
             m_flush = Z_SYNC_FLUSH;
         }
         m_initialized = true;
@@ -323,7 +326,9 @@ public:
      *
      * @return Whether or not this object implements permessage-deflate
      */
-    bool is_implemented() const {
+    bool
+    is_implemented() const
+    {
         return true;
     }
 
@@ -334,7 +339,9 @@ public:
      *
      * @return Whether or not the extension is in use
      */
-    bool is_enabled() const {
+    bool
+    is_enabled() const
+    {
         return m_enabled;
     }
 
@@ -359,7 +366,9 @@ public:
      * the option will be in use so they can optimize resource usage if they
      * are able.
      */
-    void enable_server_no_context_takeover() {
+    void
+    enable_server_no_context_takeover()
+    {
         m_server_no_context_takeover = true;
     }
 
@@ -378,7 +387,9 @@ public:
      * This option is supported by all compliant clients and servers. Enabling
      * it via either endpoint should be sufficient to ensure it is used.
      */
-    void enable_client_no_context_takeover() {
+    void
+    enable_client_no_context_takeover()
+    {
         m_client_no_context_takeover = true;
     }
 
@@ -403,7 +414,7 @@ public:
      * NOTE: The permessage-deflate spec specifies that a value of 8 is allowed.
      * Prior to version 0.8.0 a value of 8 was also allowed by this library.
      * zlib, the deflate compression library that WebSocket++ uses has always
-     * silently adjusted a value of 8 to 9. In recent versions of zlib (1.2.9 
+     * silently adjusted a value of 8 to 9. In recent versions of zlib (1.2.9
      * and greater) a value of 8 is now explicitly rejected. WebSocket++ 0.8.0
      * continues to perform the 8->9 conversion for backwards compatibility
      * purposes but this should be considered deprecated functionality.
@@ -412,7 +423,9 @@ public:
      * @param mode The mode to use for negotiating this parameter
      * @return A status code
      */
-    lib::error_code set_server_max_window_bits(uint8_t bits, mode::value mode) {
+    lib::error_code
+    set_server_max_window_bits(uint8_t bits, mode::value mode)
+    {
         if (bits < min_server_max_window_bits || bits > max_server_max_window_bits) {
             return error::make_error_code(error::invalid_max_window_bits);
         }
@@ -448,7 +461,7 @@ public:
      * NOTE: The permessage-deflate spec specifies that a value of 8 is allowed.
      * Prior to version 0.8.0 a value of 8 was also allowed by this library.
      * zlib, the deflate compression library that WebSocket++ uses has always
-     * silently adjusted a value of 8 to 9. In recent versions of zlib (1.2.9 
+     * silently adjusted a value of 8 to 9. In recent versions of zlib (1.2.9
      * and greater) a value of 8 is now explicitly rejected. WebSocket++ 0.8.0
      * continues to perform the 8->9 conversion for backwards compatibility
      * purposes but this should be considered deprecated functionality.
@@ -457,7 +470,9 @@ public:
      * @param mode The mode to use for negotiating this parameter
      * @return A status code
      */
-    lib::error_code set_client_max_window_bits(uint8_t bits, mode::value mode) {
+    lib::error_code
+    set_client_max_window_bits(uint8_t bits, mode::value mode)
+    {
         if (bits < min_client_max_window_bits || bits > max_client_max_window_bits) {
             return error::make_error_code(error::invalid_max_window_bits);
         }
@@ -480,7 +495,9 @@ public:
      *
      * @return A WebSocket extension offer string for this extension
      */
-    std::string generate_offer() const {
+    std::string
+    generate_offer() const
+    {
         // TODO: this should be dynamically generated based on user settings
         return "permessage-deflate; client_no_context_takeover; client_max_window_bits";
     }
@@ -493,7 +510,9 @@ public:
      * @param response The server response attribute list to validate
      * @return Validation error or 0 on success
      */
-    lib::error_code validate_offer(http::attribute_list const &) {
+    lib::error_code
+    validate_offer(http::attribute_list const&)
+    {
         return lib::error_code();
     }
 
@@ -506,20 +525,26 @@ public:
      * @param offer Attribute from client's offer
      * @return Status code and value to return to remote endpoint
      */
-    err_str_pair negotiate(http::attribute_list const & offer) {
+    err_str_pair
+    negotiate(http::attribute_list const& offer)
+    {
         err_str_pair ret;
 
         http::attribute_list::const_iterator it;
         for (it = offer.begin(); it != offer.end(); ++it) {
             if (it->first == "server_no_context_takeover") {
-                negotiate_server_no_context_takeover(it->second,ret.first);
-            } else if (it->first == "client_no_context_takeover") {
-                negotiate_client_no_context_takeover(it->second,ret.first);
-            } else if (it->first == "server_max_window_bits") {
-                negotiate_server_max_window_bits(it->second,ret.first);
-            } else if (it->first == "client_max_window_bits") {
-                negotiate_client_max_window_bits(it->second,ret.first);
-            } else {
+                negotiate_server_no_context_takeover(it->second, ret.first);
+            }
+            else if (it->first == "client_no_context_takeover") {
+                negotiate_client_no_context_takeover(it->second, ret.first);
+            }
+            else if (it->first == "server_max_window_bits") {
+                negotiate_server_max_window_bits(it->second, ret.first);
+            }
+            else if (it->first == "client_max_window_bits") {
+                negotiate_client_max_window_bits(it->second, ret.first);
+            }
+            else {
                 ret.first = make_error_code(error::invalid_attributes);
             }
 
@@ -545,7 +570,9 @@ public:
      * @param [out] out String to append compressed bytes to
      * @return Error or status code
      */
-    lib::error_code compress(std::string const & in, std::string & out) {
+    lib::error_code
+    compress(std::string const& in, std::string& out)
+    {
         if (!m_initialized) {
             return make_error_code(error::uninitialized);
         }
@@ -554,12 +581,12 @@ public:
 
         if (in.empty()) {
             uint8_t buf[6] = {0x02, 0x00, 0x00, 0x00, 0xff, 0xff};
-            out.append((char *)(buf),6);
+            out.append((char*)(buf), 6);
             return lib::error_code();
         }
 
         m_dstate.avail_in = in.size();
-        m_dstate.next_in = (unsigned char *)(const_cast<char *>(in.data()));
+        m_dstate.next_in = (unsigned char*)(const_cast<char*>(in.data()));
 
         do {
             // Output to local buffer
@@ -570,7 +597,7 @@ public:
 
             output = m_compress_buffer_size - m_dstate.avail_out;
 
-            out.append((char *)(m_compress_buffer.get()),output);
+            out.append((char*)(m_compress_buffer.get()), output);
         } while (m_dstate.avail_out == 0);
 
         return lib::error_code();
@@ -583,8 +610,8 @@ public:
      * @param out String to append decompressed bytes to
      * @return Error or status code
      */
-    lib::error_code decompress(uint8_t const * buf, size_t len, std::string &
-        out)
+    lib::error_code
+    decompress(uint8_t const* buf, size_t len, std::string& out)
     {
         if (!m_initialized) {
             return make_error_code(error::uninitialized);
@@ -593,7 +620,7 @@ public:
         int ret;
 
         m_istate.avail_in = len;
-        m_istate.next_in = const_cast<unsigned char *>(buf);
+        m_istate.next_in = const_cast<unsigned char*>(buf);
 
         do {
             m_istate.avail_out = m_compress_buffer_size;
@@ -605,20 +632,20 @@ public:
                 return make_error_code(error::zlib_error);
             }
 
-            out.append(
-                reinterpret_cast<char *>(m_decompress_buffer.get()),
-                m_compress_buffer_size - m_istate.avail_out
-            );
+            out.append(reinterpret_cast<char*>(m_decompress_buffer.get()), m_compress_buffer_size - m_istate.avail_out);
         } while (m_istate.avail_out == 0);
 
         return lib::error_code();
     }
-private:
+
+  private:
     /// Generate negotiation response
     /**
      * @return Generate extension negotiation reponse string to send to client
      */
-    std::string generate_response() {
+    std::string
+    generate_response()
+    {
         std::string ret = "permessage-deflate";
 
         if (m_server_no_context_takeover) {
@@ -632,13 +659,13 @@ private:
         if (m_server_max_window_bits < default_server_max_window_bits) {
             std::stringstream s;
             s << int(m_server_max_window_bits);
-            ret += "; server_max_window_bits="+s.str();
+            ret += "; server_max_window_bits=" + s.str();
         }
 
         if (m_client_max_window_bits < default_client_max_window_bits) {
             std::stringstream s;
             s << int(m_client_max_window_bits);
-            ret += "; client_max_window_bits="+s.str();
+            ret += "; client_max_window_bits=" + s.str();
         }
 
         return ret;
@@ -649,8 +676,8 @@ private:
      * @param [in] value The value of the attribute from the offer
      * @param [out] ec A reference to the error code to return errors via
      */
-    void negotiate_server_no_context_takeover(std::string const & value,
-        lib::error_code & ec)
+    void
+    negotiate_server_no_context_takeover(std::string const& value, lib::error_code& ec)
     {
         if (!value.empty()) {
             ec = make_error_code(error::invalid_attribute_value);
@@ -665,8 +692,8 @@ private:
      * @param [in] value The value of the attribute from the offer
      * @param [out] ec A reference to the error code to return errors via
      */
-    void negotiate_client_no_context_takeover(std::string const & value,
-        lib::error_code & ec)
+    void
+    negotiate_client_no_context_takeover(std::string const& value, lib::error_code& ec)
     {
         if (!value.empty()) {
             ec = make_error_code(error::invalid_attribute_value);
@@ -698,8 +725,8 @@ private:
      * @param [in] value The value of the attribute from the offer
      * @param [out] ec A reference to the error code to return errors via
      */
-    void negotiate_server_max_window_bits(std::string const & value,
-        lib::error_code & ec)
+    void
+    negotiate_server_max_window_bits(std::string const& value, lib::error_code& ec)
     {
         uint8_t bits = uint8_t(atoi(value.c_str()));
 
@@ -717,7 +744,7 @@ private:
                 m_server_max_window_bits = bits;
                 break;
             case mode::largest:
-                m_server_max_window_bits = std::min(bits,m_server_max_window_bits);
+                m_server_max_window_bits = std::min(bits, m_server_max_window_bits);
                 break;
             case mode::smallest:
                 m_server_max_window_bits = min_server_max_window_bits;
@@ -754,16 +781,15 @@ private:
      * @param [in] value The value of the attribute from the offer
      * @param [out] ec A reference to the error code to return errors via
      */
-    void negotiate_client_max_window_bits(std::string const & value,
-            lib::error_code & ec)
+    void
+    negotiate_client_max_window_bits(std::string const& value, lib::error_code& ec)
     {
         uint8_t bits = uint8_t(atoi(value.c_str()));
 
         if (value.empty()) {
             bits = default_client_max_window_bits;
-        } else if (bits < min_client_max_window_bits ||
-                   bits > max_client_max_window_bits)
-        {
+        }
+        else if (bits < min_client_max_window_bits || bits > max_client_max_window_bits) {
             ec = make_error_code(error::invalid_attribute_value);
             m_client_max_window_bits = default_client_max_window_bits;
             return;
@@ -777,7 +803,7 @@ private:
                 m_client_max_window_bits = bits;
                 break;
             case mode::largest:
-                m_client_max_window_bits = std::min(bits,m_client_max_window_bits);
+                m_client_max_window_bits = std::min(bits, m_client_max_window_bits);
                 break;
             case mode::smallest:
                 m_client_max_window_bits = min_client_max_window_bits;

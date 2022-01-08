@@ -39,64 +39,55 @@ namespace autoconfig {
 
 /** \brief a discovery stage
  */
-class Stage : boost::noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class Stage : boost::noncopyable {
   public:
-    explicit
-    Error(const std::string& what)
-      : std::runtime_error(what)
-    {
-    }
-  };
+    class Error : public std::runtime_error {
+      public:
+        explicit Error(const std::string& what)
+          : std::runtime_error(what)
+        {
+        }
+    };
 
-  virtual ~Stage() = default;
+    virtual ~Stage() = default;
 
-  /** \brief get stage name
-   *  \return stage name as a phrase, typically starting with lower case
-   */
-  virtual const std::string&
-  getName() const = 0;
+    /** \brief get stage name
+     *  \return stage name as a phrase, typically starting with lower case
+     */
+    virtual const std::string& getName() const = 0;
 
-  /** \brief start running this stage
-   *  \throw Error stage is already running
-   */
-  void
-  start();
+    /** \brief start running this stage
+     *  \throw Error stage is already running
+     */
+    void start();
 
-protected:
-  /** \brief parse HUB FaceUri from string and declare success
-   */
-  void
-  provideHubFaceUri(const std::string& s);
+  protected:
+    /** \brief parse HUB FaceUri from string and declare success
+     */
+    void provideHubFaceUri(const std::string& s);
 
-  void
-  succeed(const FaceUri& hubFaceUri);
+    void succeed(const FaceUri& hubFaceUri);
 
-  void
-  fail(const std::string& msg);
+    void fail(const std::string& msg);
 
-private:
-  virtual void
-  doStart() = 0;
+  private:
+    virtual void doStart() = 0;
 
-public:
-  /** \brief signal when a HUB FaceUri is found
-   *
-   *  Argument is HUB FaceUri, may not be canonical.
-   */
-  util::Signal<Stage, FaceUri> onSuccess;
+  public:
+    /** \brief signal when a HUB FaceUri is found
+     *
+     *  Argument is HUB FaceUri, may not be canonical.
+     */
+    util::Signal<Stage, FaceUri> onSuccess;
 
-  /** \brief signal when discovery fails
-   *
-   *  Argument is error message.
-   */
-  util::Signal<Stage, std::string> onFailure;
+    /** \brief signal when discovery fails
+     *
+     *  Argument is error message.
+     */
+    util::Signal<Stage, std::string> onFailure;
 
-private:
-  bool m_isInProgress = false;
+  private:
+    bool m_isInProgress = false;
 };
 
 } // namespace autoconfig

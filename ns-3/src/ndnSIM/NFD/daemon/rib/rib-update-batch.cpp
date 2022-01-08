@@ -36,27 +36,27 @@ RibUpdateBatch::RibUpdateBatch(uint64_t faceId)
 void
 RibUpdateBatch::add(const RibUpdate& update)
 {
-  BOOST_ASSERT(m_faceId == update.getRoute().faceId);
+    BOOST_ASSERT(m_faceId == update.getRoute().faceId);
 
-  m_updates.push_back(update);
+    m_updates.push_back(update);
 }
 
 RibUpdateBatch::const_iterator
 RibUpdateBatch::begin() const
 {
-  return m_updates.begin();
+    return m_updates.begin();
 }
 
 RibUpdateBatch::const_iterator
 RibUpdateBatch::end() const
 {
-  return m_updates.end();
+    return m_updates.end();
 }
 
 size_t
 RibUpdateBatch::size() const
 {
-  return m_updates.size();
+    return m_updates.size();
 }
 
 } // namespace rib

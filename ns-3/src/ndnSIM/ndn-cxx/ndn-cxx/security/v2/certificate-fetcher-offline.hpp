@@ -31,12 +31,10 @@ namespace v2 {
 /**
  * @brief Certificate fetcher realization that does not fetch keys (always offline)
  */
-class CertificateFetcherOffline : public CertificateFetcher
-{
-protected:
-  void
-  doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-          const ValidationContinuation& continueValidation) override;
+class CertificateFetcherOffline : public CertificateFetcher {
+  protected:
+    void doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
+                 const ValidationContinuation& continueValidation) override;
 };
 
 } // namespace v2

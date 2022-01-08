@@ -49,192 +49,185 @@ EthernetChannel::EthernetChannel(shared_ptr<const ndn::net::NetworkInterface> lo
   , m_nDropped(0)
 #endif
 {
-  setUri(FaceUri::fromDev(m_localEndpoint->getName()));
-  NFD_LOG_CHAN_INFO("Creating channel");
+    setUri(FaceUri::fromDev(m_localEndpoint->getName()));
+    NFD_LOG_CHAN_INFO("Creating channel");
 }
 
 void
-EthernetChannel::connect(const ethernet::Address& remoteEndpoint,
-                         const FaceParams& params,
-                         const FaceCreatedCallback& onFaceCreated,
-                         const FaceCreationFailedCallback& onConnectFailed)
+EthernetChannel::connect(const ethernet::Address& remoteEndpoint, const FaceParams& params,
+                         const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onConnectFailed)
 {
-  shared_ptr<Face> face;
-  try {
-    face = createFace(remoteEndpoint, params).second;
-  }
-  catch (const boost::system::system_error& e) {
-    NFD_LOG_CHAN_DEBUG("Face creation for " << remoteEndpoint << " failed: " << e.what());
-    if (onConnectFailed)
-      onConnectFailed(504, "Face creation failed: "s + e.what());
-    return;
-  }
+    shared_ptr<Face> face;
+    try {
+        face = createFace(remoteEndpoint, params).second;
+    }
+    catch (const boost::system::system_error& e) {
+        NFD_LOG_CHAN_DEBUG("Face creation for " << remoteEndpoint << " failed: " << e.what());
+        if (onConnectFailed)
+            onConnectFailed(504, "Face creation failed: "s + e.what());
+        return;
+    }
 
-  // Need to invoke the callback regardless of whether or not we had already
-  // created the face so that control responses and such can be sent
-  onFaceCreated(face);
+    // Need to invoke the callback regardless of whether or not we had already
+    // created the face so that control responses and such can be sent
+    onFaceCreated(face);
 }
 
 void
 EthernetChannel::listen(const FaceCreatedCallback& onFaceCreated,
                         const FaceCreationFailedCallback& onFaceCreationFailed)
 {
-  if (isListening()) {
-    NFD_LOG_CHAN_WARN("Already listening");
-    return;
-  }
-  m_isListening = true;
+    if (isListening()) {
+        NFD_LOG_CHAN_WARN("Already listening");
+        return;
+    }
+    m_isListening = true;
 
-  try {
-    m_pcap.activate(DLT_EN10MB);
-    m_socket.assign(m_pcap.getFd());
-  }
-  catch (const PcapHelper::Error& e) {
-    NDN_THROW_NESTED(Error(e.what()));
-  }
-  updateFilter();
+    try {
+        m_pcap.activate(DLT_EN10MB);
+        m_socket.assign(m_pcap.getFd());
+    }
+    catch (const PcapHelper::Error& e) {
+        NDN_THROW_NESTED(Error(e.what()));
+    }
+    updateFilter();
 
-  asyncRead(onFaceCreated, onFaceCreationFailed);
-  NFD_LOG_CHAN_DEBUG("Started listening");
+    asyncRead(onFaceCreated, onFaceCreationFailed);
+    NFD_LOG_CHAN_DEBUG("Started listening");
 }
 
 void
-EthernetChannel::asyncRead(const FaceCreatedCallback& onFaceCreated,
-                           const FaceCreationFailedCallback& onReceiveFailed)
+EthernetChannel::asyncRead(const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onReceiveFailed)
 {
-  m_socket.async_read_some(boost::asio::null_buffers(),
-                           [=] (const auto& e, auto) { this->handleRead(e, onFaceCreated, onReceiveFailed); });
+    m_socket.async_read_some(boost::asio::null_buffers(),
+                             [=](const auto& e, auto) { this->handleRead(e, onFaceCreated, onReceiveFailed); });
 }
 
 void
-EthernetChannel::handleRead(const boost::system::error_code& error,
-                            const FaceCreatedCallback& onFaceCreated,
+EthernetChannel::handleRead(const boost::system::error_code& error, const FaceCreatedCallback& onFaceCreated,
                             const FaceCreationFailedCallback& onReceiveFailed)
 {
-  if (error) {
-    if (error != boost::asio::error::operation_aborted) {
-      NFD_LOG_CHAN_DEBUG("Receive failed: " << error.message());
-      if (onReceiveFailed)
-        onReceiveFailed(500, "Receive failed: " + error.message());
+    if (error) {
+        if (error != boost::asio::error::operation_aborted) {
+            NFD_LOG_CHAN_DEBUG("Receive failed: " << error.message());
+            if (onReceiveFailed)
+                onReceiveFailed(500, "Receive failed: " + error.message());
+        }
+        return;
     }
-    return;
-  }
 
-  const uint8_t* pkt;
-  size_t len;
-  std::string err;
-  std::tie(pkt, len, err) = m_pcap.readNextPacket();
+    const uint8_t* pkt;
+    size_t len;
+    std::string err;
+    std::tie(pkt, len, err) = m_pcap.readNextPacket();
 
-  if (pkt == nullptr) {
-    NFD_LOG_CHAN_WARN("Read error: " << err);
-  }
-  else {
-    const ether_header* eh;
-    std::tie(eh, err) = ethernet::checkFrameHeader(pkt, len, m_localEndpoint->getEthernetAddress(),
-                                                   m_localEndpoint->getEthernetAddress());
-    if (eh == nullptr) {
-      NFD_LOG_CHAN_DEBUG(err);
+    if (pkt == nullptr) {
+        NFD_LOG_CHAN_WARN("Read error: " << err);
     }
     else {
-      ethernet::Address sender(eh->ether_shost);
-      pkt += ethernet::HDR_LEN;
-      len -= ethernet::HDR_LEN;
-      processIncomingPacket(pkt, len, sender, onFaceCreated, onReceiveFailed);
+        const ether_header* eh;
+        std::tie(eh, err) = ethernet::checkFrameHeader(pkt, len, m_localEndpoint->getEthernetAddress(),
+                                                       m_localEndpoint->getEthernetAddress());
+        if (eh == nullptr) {
+            NFD_LOG_CHAN_DEBUG(err);
+        }
+        else {
+            ethernet::Address sender(eh->ether_shost);
+            pkt += ethernet::HDR_LEN;
+            len -= ethernet::HDR_LEN;
+            processIncomingPacket(pkt, len, sender, onFaceCreated, onReceiveFailed);
+        }
     }
-  }
 
 #ifdef _DEBUG
-  size_t nDropped = m_pcap.getNDropped();
-  if (nDropped - m_nDropped > 0)
-    NFD_LOG_CHAN_DEBUG("Detected " << nDropped - m_nDropped << " dropped frame(s)");
-  m_nDropped = nDropped;
+    size_t nDropped = m_pcap.getNDropped();
+    if (nDropped - m_nDropped > 0)
+        NFD_LOG_CHAN_DEBUG("Detected " << nDropped - m_nDropped << " dropped frame(s)");
+    m_nDropped = nDropped;
 #endif
 
-  asyncRead(onFaceCreated, onReceiveFailed);
+    asyncRead(onFaceCreated, onReceiveFailed);
 }
 
 void
-EthernetChannel::processIncomingPacket(const uint8_t* packet, size_t length,
-                                       const ethernet::Address& sender,
+EthernetChannel::processIncomingPacket(const uint8_t* packet, size_t length, const ethernet::Address& sender,
                                        const FaceCreatedCallback& onFaceCreated,
                                        const FaceCreationFailedCallback& onReceiveFailed)
 {
-  NFD_LOG_CHAN_TRACE("New peer " << sender);
+    NFD_LOG_CHAN_TRACE("New peer " << sender);
 
-  bool isCreated = false;
-  shared_ptr<Face> face;
-  try {
-    FaceParams params;
-    params.persistency = ndn::nfd::FACE_PERSISTENCY_ON_DEMAND;
-    std::tie(isCreated, face) = createFace(sender, params);
-  }
-  catch (const EthernetTransport::Error& e) {
-    NFD_LOG_CHAN_DEBUG("Face creation for " << sender << " failed: " << e.what());
-    if (onReceiveFailed)
-      onReceiveFailed(504, "Face creation failed: "s + e.what());
-    return;
-  }
+    bool isCreated = false;
+    shared_ptr<Face> face;
+    try {
+        FaceParams params;
+        params.persistency = ndn::nfd::FACE_PERSISTENCY_ON_DEMAND;
+        std::tie(isCreated, face) = createFace(sender, params);
+    }
+    catch (const EthernetTransport::Error& e) {
+        NFD_LOG_CHAN_DEBUG("Face creation for " << sender << " failed: " << e.what());
+        if (onReceiveFailed)
+            onReceiveFailed(504, "Face creation failed: "s + e.what());
+        return;
+    }
 
-  if (isCreated)
-    onFaceCreated(face);
-  else
-    NFD_LOG_CHAN_DEBUG("Received frame for existing face");
+    if (isCreated)
+        onFaceCreated(face);
+    else
+        NFD_LOG_CHAN_DEBUG("Received frame for existing face");
 
-  // dispatch the packet to the face for processing
-  auto* transport = static_cast<UnicastEthernetTransport*>(face->getTransport());
-  transport->receivePayload(packet, length, sender);
+    // dispatch the packet to the face for processing
+    auto* transport = static_cast<UnicastEthernetTransport*>(face->getTransport());
+    transport->receivePayload(packet, length, sender);
 }
 
 std::pair<bool, shared_ptr<Face>>
-EthernetChannel::createFace(const ethernet::Address& remoteEndpoint,
-                            const FaceParams& params)
+EthernetChannel::createFace(const ethernet::Address& remoteEndpoint, const FaceParams& params)
 {
-  auto it = m_channelFaces.find(remoteEndpoint);
-  if (it != m_channelFaces.end()) {
-    // we already have a face for this endpoint, so reuse it
-    NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
-    return {false, it->second};
-  }
+    auto it = m_channelFaces.find(remoteEndpoint);
+    if (it != m_channelFaces.end()) {
+        // we already have a face for this endpoint, so reuse it
+        NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
+        return {false, it->second};
+    }
 
-  // else, create a new face
-  GenericLinkService::Options options;
-  options.allowFragmentation = true;
-  options.allowReassembly = true;
-  options.reliabilityOptions.isEnabled = params.wantLpReliability;
+    // else, create a new face
+    GenericLinkService::Options options;
+    options.allowFragmentation = true;
+    options.allowReassembly = true;
+    options.reliabilityOptions.isEnabled = params.wantLpReliability;
 
-  auto linkService = make_unique<GenericLinkService>(options);
-  auto transport = make_unique<UnicastEthernetTransport>(*m_localEndpoint, remoteEndpoint,
-                                                         params.persistency, m_idleFaceTimeout,
-                                                         params.mtu);
-  auto face = make_shared<Face>(std::move(linkService), std::move(transport));
+    auto linkService = make_unique<GenericLinkService>(options);
+    auto transport = make_unique<UnicastEthernetTransport>(*m_localEndpoint, remoteEndpoint, params.persistency,
+                                                           m_idleFaceTimeout, params.mtu);
+    auto face = make_shared<Face>(std::move(linkService), std::move(transport));
 
-  m_channelFaces[remoteEndpoint] = face;
-  connectFaceClosedSignal(*face, [this, remoteEndpoint] {
-    m_channelFaces.erase(remoteEndpoint);
+    m_channelFaces[remoteEndpoint] = face;
+    connectFaceClosedSignal(*face, [this, remoteEndpoint] {
+        m_channelFaces.erase(remoteEndpoint);
+        updateFilter();
+    });
     updateFilter();
-  });
-  updateFilter();
 
-  return {true, face};
+    return {true, face};
 }
 
 void
 EthernetChannel::updateFilter()
 {
-  if (!isListening())
-    return;
+    if (!isListening())
+        return;
 
-  std::string filter = "(ether proto " + to_string(ethernet::ETHERTYPE_NDN) +
-                       ") && (ether dst " + m_localEndpoint->getEthernetAddress().toString() + ")";
-  for (const auto& addr : m_channelFaces | boost::adaptors::map_keys) {
-    filter += " && (not ether src " + addr.toString() + ")";
-  }
-  // "not vlan" must appear last in the filter expression, or the
-  // rest of the filter won't work as intended, see pcap-filter(7)
-  filter += " && (not vlan)";
+    std::string filter = "(ether proto " + to_string(ethernet::ETHERTYPE_NDN) + ") && (ether dst "
+                         + m_localEndpoint->getEthernetAddress().toString() + ")";
+    for (const auto& addr : m_channelFaces | boost::adaptors::map_keys) {
+        filter += " && (not ether src " + addr.toString() + ")";
+    }
+    // "not vlan" must appear last in the filter expression, or the
+    // rest of the filter won't work as intended, see pcap-filter(7)
+    filter += " && (not vlan)";
 
-  NFD_LOG_CHAN_TRACE("Updating filter: " << filter);
-  m_pcap.setPacketFilter(filter.data());
+    NFD_LOG_CHAN_TRACE("Updating filter: " << filter);
+    m_pcap.setPacketFilter(filter.data());
 }
 
 } // namespace face

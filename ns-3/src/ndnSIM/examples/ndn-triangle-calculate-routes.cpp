@@ -30,87 +30,87 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
+    // setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
+    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
 
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  ofstream file1("/tmp/topo1.txt");
-  file1 << "router\n\n"
-        << "#node	city	y	x	mpi-partition\n"
-        << "A1	NA	1	1	1\n"
-        << "B1	NA	80	-40	1\n"
-        << "C1	NA	80	40	1\n"
-        << "A2	NA	1	1	1\n"
-        << "B2	NA	80	-40	1\n"
-        << "C2	NA	80	40	1\n\n"
-        << "link\n\n"
-        << "# from  to  capacity	metric	delay	queue\n"
-        << "A1	    B1	10Mbps		100	1ms	100\n"
-        << "A1	    C1	10Mbps		50	1ms	100\n"
-        << "B1	    C1	10Mbps		1	1ms	100\n"
-        << "A2	    B2	10Mbps		50	1ms	100\n"
-        << "A2	    C2	10Mbps		100	1ms	100\n"
-        << "B2	    C2	10Mbps		1	1ms	100\n";
-  file1.close();
+    ofstream file1("/tmp/topo1.txt");
+    file1 << "router\n\n"
+          << "#node	city	y	x	mpi-partition\n"
+          << "A1	NA	1	1	1\n"
+          << "B1	NA	80	-40	1\n"
+          << "C1	NA	80	40	1\n"
+          << "A2	NA	1	1	1\n"
+          << "B2	NA	80	-40	1\n"
+          << "C2	NA	80	40	1\n\n"
+          << "link\n\n"
+          << "# from  to  capacity	metric	delay	queue\n"
+          << "A1	    B1	10Mbps		100	1ms	100\n"
+          << "A1	    C1	10Mbps		50	1ms	100\n"
+          << "B1	    C1	10Mbps		1	1ms	100\n"
+          << "A2	    B2	10Mbps		50	1ms	100\n"
+          << "A2	    C2	10Mbps		100	1ms	100\n"
+          << "B2	    C2	10Mbps		1	1ms	100\n";
+    file1.close();
 
-  AnnotatedTopologyReader topologyReader("");
-  topologyReader.SetFileName("/tmp/topo1.txt");
-  topologyReader.Read();
+    AnnotatedTopologyReader topologyReader("");
+    topologyReader.SetFileName("/tmp/topo1.txt");
+    topologyReader.Read();
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.InstallAll();
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.InstallAll();
 
-  topologyReader.ApplyOspfMetric();
+    topologyReader.ApplyOspfMetric();
 
-  ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
-  ndnGlobalRoutingHelper.InstallAll();
+    ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
+    ndnGlobalRoutingHelper.InstallAll();
 
-  ndnGlobalRoutingHelper.AddOrigins("/test/prefix", Names::Find<Node>("C1"));
-  ndnGlobalRoutingHelper.AddOrigins("/test/prefix", Names::Find<Node>("C2"));
-  ndn::GlobalRoutingHelper::CalculateRoutes();
+    ndnGlobalRoutingHelper.AddOrigins("/test/prefix", Names::Find<Node>("C1"));
+    ndnGlobalRoutingHelper.AddOrigins("/test/prefix", Names::Find<Node>("C2"));
+    ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  auto printFib = [](Ptr<Node> node) {
-    auto ndn = node->GetObject<ndn::L3Protocol>();
-    for (const auto& entry : ndn->getForwarder()->getFib()) {
-      cout << entry.getPrefix() << " (";
+    auto printFib = [](Ptr<Node> node) {
+        auto ndn = node->GetObject<ndn::L3Protocol>();
+        for (const auto& entry : ndn->getForwarder()->getFib()) {
+            cout << entry.getPrefix() << " (";
 
-      bool isFirst = true;
-      for (auto& nextHop : entry.getNextHops()) {
-        cout << nextHop.getFace();
-        auto& face = nextHop.getFace();
-        auto transport = dynamic_cast<ndn::NetDeviceTransport*>(face.getTransport());
-        if (transport == nullptr) {
-          continue;
+            bool isFirst = true;
+            for (auto& nextHop : entry.getNextHops()) {
+                cout << nextHop.getFace();
+                auto& face = nextHop.getFace();
+                auto transport = dynamic_cast<ndn::NetDeviceTransport*>(face.getTransport());
+                if (transport == nullptr) {
+                    continue;
+                }
+
+                cout << " towards ";
+
+                if (!isFirst)
+                    cout << ", ";
+                cout << Names::FindName(transport->GetNetDevice()->GetChannel()->GetDevice(1)->GetNode());
+                isFirst = false;
+            }
+            cout << ")" << endl;
         }
+    };
 
-        cout << " towards ";
+    cout << "FIB content on node A1" << endl;
+    printFib(Names::Find<Node>("A1"));
 
-        if (!isFirst)
-          cout << ", ";
-        cout << Names::FindName(transport->GetNetDevice()->GetChannel()->GetDevice(1)->GetNode());
-        isFirst = false;
-      }
-      cout << ")" << endl;
-    }
-  };
+    cout << "FIB content on node A2" << endl;
+    printFib(Names::Find<Node>("A2"));
 
-  cout << "FIB content on node A1" << endl;
-  printFib(Names::Find<Node>("A1"));
+    Simulator::Stop(Seconds(20.0));
+    Simulator::Run();
+    Simulator::Destroy();
 
-  cout << "FIB content on node A2" << endl;
-  printFib(Names::Find<Node>("A2"));
-
-  Simulator::Stop(Seconds(20.0));
-  Simulator::Run();
-  Simulator::Destroy();
-
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -118,5 +118,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

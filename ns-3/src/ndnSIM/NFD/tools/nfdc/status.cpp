@@ -41,57 +41,56 @@ namespace nfdc {
 void
 reportStatus(ExecuteContext& ctx, const StatusReportOptions& options)
 {
-  StatusReport report;
+    StatusReport report;
 
-  if (options.wantForwarderGeneral) {
-    report.sections.push_back(make_unique<ForwarderGeneralModule>());
-  }
+    if (options.wantForwarderGeneral) {
+        report.sections.push_back(make_unique<ForwarderGeneralModule>());
+    }
 
-  if (options.wantChannels) {
-    report.sections.push_back(make_unique<ChannelModule>());
-  }
+    if (options.wantChannels) {
+        report.sections.push_back(make_unique<ChannelModule>());
+    }
 
-  if (options.wantFaces) {
-    report.sections.push_back(make_unique<FaceModule>());
-  }
+    if (options.wantFaces) {
+        report.sections.push_back(make_unique<FaceModule>());
+    }
 
-  if (options.wantFib) {
-    report.sections.push_back(make_unique<FibModule>());
-  }
+    if (options.wantFib) {
+        report.sections.push_back(make_unique<FibModule>());
+    }
 
-  if (options.wantRib) {
-    report.sections.push_back(make_unique<RibModule>());
-  }
+    if (options.wantRib) {
+        report.sections.push_back(make_unique<RibModule>());
+    }
 
-  if (options.wantCs) {
-    report.sections.push_back(make_unique<CsModule>());
-  }
+    if (options.wantCs) {
+        report.sections.push_back(make_unique<CsModule>());
+    }
 
-  if (options.wantStrategyChoice) {
-    report.sections.push_back(make_unique<StrategyChoiceModule>());
-  }
+    if (options.wantStrategyChoice) {
+        report.sections.push_back(make_unique<StrategyChoiceModule>());
+    }
 
-  uint32_t code = report.collect(ctx.face, ctx.keyChain,
-                                 ndn::security::v2::getAcceptAllValidator(),
-                                 CommandOptions());
-  if (code != 0) {
-    ctx.exitCode = 1;
-    // Give a simple error code for end user.
-    // Technical support personnel:
-    // 1. get the exact command from end user
-    // 2. code div 1000000 is zero-based section index
-    // 3. code mod 1000000 is a Controller.fetch error code
-    ctx.err << "Error while collecting status report (" << code << ").\n";
-  }
+    uint32_t code =
+      report.collect(ctx.face, ctx.keyChain, ndn::security::v2::getAcceptAllValidator(), CommandOptions());
+    if (code != 0) {
+        ctx.exitCode = 1;
+        // Give a simple error code for end user.
+        // Technical support personnel:
+        // 1. get the exact command from end user
+        // 2. code div 1000000 is zero-based section index
+        // 3. code mod 1000000 is a Controller.fetch error code
+        ctx.err << "Error while collecting status report (" << code << ").\n";
+    }
 
-  switch (options.output) {
-    case ReportFormat::XML:
-      report.formatXml(ctx.out);
-      break;
-    case ReportFormat::TEXT:
-      report.formatText(ctx.out);
-      break;
-  }
+    switch (options.output) {
+        case ReportFormat::XML:
+            report.formatXml(ctx.out);
+            break;
+        case ReportFormat::TEXT:
+            report.formatText(ctx.out);
+            break;
+    }
 }
 
 /** \brief single-section status command
@@ -99,9 +98,9 @@ reportStatus(ExecuteContext& ctx, const StatusReportOptions& options)
 static void
 reportStatusSingleSection(ExecuteContext& ctx, bool StatusReportOptions::*wantSection)
 {
-  StatusReportOptions options;
-  options.*wantSection = true;
-  reportStatus(ctx, options);
+    StatusReportOptions options;
+    options.*wantSection = true;
+    reportStatus(ctx, options);
 }
 
 /** \brief the 'status report' command
@@ -109,45 +108,40 @@ reportStatusSingleSection(ExecuteContext& ctx, bool StatusReportOptions::*wantSe
 static void
 reportStatusComprehensive(ExecuteContext& ctx)
 {
-  StatusReportOptions options;
-  options.output = ctx.args.get<ReportFormat>("format", ReportFormat::TEXT);
-  options.wantForwarderGeneral = options.wantChannels = options.wantFaces = options.wantFib =
-    options.wantRib = options.wantCs = options.wantStrategyChoice = true;
-  reportStatus(ctx, options);
+    StatusReportOptions options;
+    options.output = ctx.args.get<ReportFormat>("format", ReportFormat::TEXT);
+    options.wantForwarderGeneral = options.wantChannels = options.wantFaces = options.wantFib = options.wantRib =
+      options.wantCs = options.wantStrategyChoice = true;
+    reportStatus(ctx, options);
 }
 
 void
 registerStatusCommands(CommandParser& parser)
 {
-  CommandDefinition defStatusReport("status", "report");
-  defStatusReport
-    .setTitle("print full status report")
-    .addArg("format", ArgValueType::REPORT_FORMAT, Required::NO, Positional::YES);
-  parser.addCommand(defStatusReport, &reportStatusComprehensive);
+    CommandDefinition defStatusReport("status", "report");
+    defStatusReport.setTitle("print full status report")
+      .addArg("format", ArgValueType::REPORT_FORMAT, Required::NO, Positional::YES);
+    parser.addCommand(defStatusReport, &reportStatusComprehensive);
 
-  CommandDefinition defStatusShow("status", "show");
-  defStatusShow
-    .setTitle("print general status");
-  parser.addCommand(defStatusShow, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantForwarderGeneral));
-  parser.addAlias("status", "show", "");
+    CommandDefinition defStatusShow("status", "show");
+    defStatusShow.setTitle("print general status");
+    parser.addCommand(defStatusShow, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantForwarderGeneral));
+    parser.addAlias("status", "show", "");
 
-  CommandDefinition defChannelList("channel", "list");
-  defChannelList
-    .setTitle("print channel list");
-  parser.addCommand(defChannelList, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantChannels));
-  parser.addAlias("channel", "list", "");
+    CommandDefinition defChannelList("channel", "list");
+    defChannelList.setTitle("print channel list");
+    parser.addCommand(defChannelList, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantChannels));
+    parser.addAlias("channel", "list", "");
 
-  CommandDefinition defFibList("fib", "list");
-  defFibList
-    .setTitle("print FIB entries");
-  parser.addCommand(defFibList, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantFib));
-  parser.addAlias("fib", "list", "");
+    CommandDefinition defFibList("fib", "list");
+    defFibList.setTitle("print FIB entries");
+    parser.addCommand(defFibList, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantFib));
+    parser.addAlias("fib", "list", "");
 
-  CommandDefinition defCsInfo("cs", "info");
-  defCsInfo
-    .setTitle("print CS information");
-  parser.addCommand(defCsInfo, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantCs));
-  parser.addAlias("cs", "info", "");
+    CommandDefinition defCsInfo("cs", "info");
+    defCsInfo.setTitle("print CS information");
+    parser.addCommand(defCsInfo, bind(&reportStatusSingleSection, _1, &StatusReportOptions::wantCs));
+    parser.addAlias("cs", "info", "");
 }
 
 } // namespace nfdc

@@ -33,69 +33,59 @@ namespace nfd {
  * \brief represents an item in NFD StrategyChoice dataset
  * \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyChoice#Strategy-Choice-Dataset
  */
-class StrategyChoice
-{
-public:
-  class Error : public tlv::Error
-  {
+class StrategyChoice {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  StrategyChoice();
+    StrategyChoice();
 
-  explicit
-  StrategyChoice(const Block& payload);
+    explicit StrategyChoice(const Block& payload);
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& wire);
+    void wireDecode(const Block& wire);
 
-public: // getters & setters
-  const Name&
-  getName() const
-  {
-    return m_name;
-  }
+  public: // getters & setters
+    const Name&
+    getName() const
+    {
+        return m_name;
+    }
 
-  StrategyChoice&
-  setName(const Name& name);
+    StrategyChoice& setName(const Name& name);
 
-  const Name&
-  getStrategy() const
-  {
-    return m_strategy;
-  }
+    const Name&
+    getStrategy() const
+    {
+        return m_strategy;
+    }
 
-  StrategyChoice&
-  setStrategy(const Name& strategy);
+    StrategyChoice& setStrategy(const Name& strategy);
 
-private:
-  Name m_name; // namespace
-  Name m_strategy; // strategy for the namespace
+  private:
+    Name m_name;     // namespace
+    Name m_strategy; // strategy for the namespace
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(StrategyChoice);
 
-bool
-operator==(const StrategyChoice& a, const StrategyChoice& b);
+bool operator==(const StrategyChoice& a, const StrategyChoice& b);
 
 inline bool
 operator!=(const StrategyChoice& a, const StrategyChoice& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const StrategyChoice& sc);
+std::ostream& operator<<(std::ostream& os, const StrategyChoice& sc);
 
 } // namespace nfd
 } // namespace ndn

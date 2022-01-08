@@ -45,60 +45,60 @@ ControlResponse::ControlResponse(uint32_t code, const std::string& text)
 
 ControlResponse::ControlResponse(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
 const Block&
 ControlResponse::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    m_wire = Block(tlv::nfd::ControlResponse);
+    m_wire.push_back(makeNonNegativeIntegerBlock(tlv::nfd::StatusCode, m_code));
+    m_wire.push_back(makeStringBlock(tlv::nfd::StatusText, m_text));
+
+    if (m_body.hasWire()) {
+        m_wire.push_back(m_body);
+    }
+
+    m_wire.encode();
     return m_wire;
-
-  m_wire = Block(tlv::nfd::ControlResponse);
-  m_wire.push_back(makeNonNegativeIntegerBlock(tlv::nfd::StatusCode, m_code));
-  m_wire.push_back(makeStringBlock(tlv::nfd::StatusText, m_text));
-
-  if (m_body.hasWire()) {
-    m_wire.push_back(m_body);
-  }
-
-  m_wire.encode();
-  return m_wire;
 }
 
 void
 ControlResponse::wireDecode(const Block& wire)
 {
-  m_wire = wire;
-  m_wire.parse();
+    m_wire = wire;
+    m_wire.parse();
 
-  if (m_wire.type() != tlv::nfd::ControlResponse)
-    NDN_THROW(Error("ControlResponse", m_wire.type()));
+    if (m_wire.type() != tlv::nfd::ControlResponse)
+        NDN_THROW(Error("ControlResponse", m_wire.type()));
 
-  auto val = m_wire.elements_begin();
-  if (val == m_wire.elements_end() || val->type() != tlv::nfd::StatusCode) {
-    NDN_THROW(Error("missing StatusCode sub-element"));
-  }
-  m_code = readNonNegativeIntegerAs<uint32_t>(*val);
-  ++val;
+    auto val = m_wire.elements_begin();
+    if (val == m_wire.elements_end() || val->type() != tlv::nfd::StatusCode) {
+        NDN_THROW(Error("missing StatusCode sub-element"));
+    }
+    m_code = readNonNegativeIntegerAs<uint32_t>(*val);
+    ++val;
 
-  if (val == m_wire.elements_end() || val->type() != tlv::nfd::StatusText) {
-    NDN_THROW(Error("missing StatusText sub-element"));
-  }
-  m_text = readString(*val);
-  ++val;
+    if (val == m_wire.elements_end() || val->type() != tlv::nfd::StatusText) {
+        NDN_THROW(Error("missing StatusText sub-element"));
+    }
+    m_text = readString(*val);
+    ++val;
 
-  if (val != m_wire.elements_end())
-    m_body = *val;
-  else
-    m_body = {};
+    if (val != m_wire.elements_end())
+        m_body = *val;
+    else
+        m_body = {};
 }
 
 std::ostream&
 operator<<(std::ostream& os, const ControlResponse& response)
 {
-  os << response.getCode() << " " << response.getText();
-  return os;
+    os << response.getCode() << " " << response.getText();
+    return os;
 }
 
 } // namespace mgmt

@@ -42,10 +42,10 @@ typedef websocketpp::server<websocketpp::config::core> server;
 typedef websocketpp::client<websocketpp::config::core> client;
 typedef websocketpp::config::core::message_type::ptr message_ptr;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 void echo_func(server* s, websocketpp::connection_hdl hdl, message_ptr msg);
 std::string run_server_test(std::string input, bool log = false);
-std::string run_server_test(server & s, std::string input, bool log = false);
+std::string run_server_test(server& s, std::string input, bool log = false);

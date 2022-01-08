@@ -37,28 +37,22 @@ namespace tpm {
 /**
  * @brief Abstraction of TPM key handle used by the TPM based on macOS Keychain Services.
  */
-class KeyHandleOsx : public KeyHandle
-{
-public:
-  explicit
-  KeyHandleOsx(const KeyRefOsx& key);
+class KeyHandleOsx : public KeyHandle {
+  public:
+    explicit KeyHandleOsx(const KeyRefOsx& key);
 
-private:
-  ConstBufferPtr
-  doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const final;
+  private:
+    ConstBufferPtr doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const final;
 
-  bool
-  doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size,
-           const uint8_t* sig, size_t sigLen) const final;
+    bool doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size, const uint8_t* sig,
+                  size_t sigLen) const final;
 
-  ConstBufferPtr
-  doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const final;
+    ConstBufferPtr doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const final;
 
-  ConstBufferPtr
-  doDerivePublicKey() const final;
+    ConstBufferPtr doDerivePublicKey() const final;
 
-private:
-  KeyRefOsx m_key;
+  private:
+    KeyRefOsx m_key;
 };
 
 } // namespace tpm

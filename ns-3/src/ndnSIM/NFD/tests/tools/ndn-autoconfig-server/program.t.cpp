@@ -37,25 +37,24 @@ namespace tools {
 namespace autoconfig_server {
 namespace tests {
 
-class AutoconfigServerFixture : public ::nfd::tests::KeyChainFixture
-{
-public:
-  AutoconfigServerFixture()
-    : face({true, true})
-  {
-  }
+class AutoconfigServerFixture : public ::nfd::tests::KeyChainFixture {
+  public:
+    AutoconfigServerFixture()
+      : face({true, true})
+    {
+    }
 
-  void
-  initialize(const Options& options)
-  {
-    program = make_unique<Program>(options, face, m_keyChain);
-    face.processEvents(500_ms);
-    face.sentInterests.clear();
-  }
+    void
+    initialize(const Options& options)
+    {
+        program = make_unique<Program>(options, face, m_keyChain);
+        face.processEvents(500_ms);
+        face.sentInterests.clear();
+    }
 
-protected:
-  util::DummyClientFace face;
-  unique_ptr<Program> program;
+  protected:
+    util::DummyClientFace face;
+    unique_ptr<Program> program;
 };
 
 BOOST_AUTO_TEST_SUITE(NdnAutoconfigServer)
@@ -63,81 +62,78 @@ BOOST_FIXTURE_TEST_SUITE(TestProgram, AutoconfigServerFixture)
 
 BOOST_AUTO_TEST_CASE(HubData)
 {
-  Options options;
-  options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
-  this->initialize(options);
+    Options options;
+    options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
+    this->initialize(options);
 
-  Interest interest("/localhop/ndn-autoconf/hub");
-  interest.setCanBePrefix(true);
-  interest.setMustBeFresh(true);
-  face.receive(interest);
-  face.processEvents(500_ms);
+    Interest interest("/localhop/ndn-autoconf/hub");
+    interest.setCanBePrefix(true);
+    interest.setMustBeFresh(true);
+    face.receive(interest);
+    face.processEvents(500_ms);
 
-  BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
-  const Name& dataName = face.sentData[0].getName();
-  BOOST_CHECK_EQUAL(dataName.size(), interest.getName().size() + 1);
-  BOOST_CHECK(interest.getName().isPrefixOf(dataName));
-  BOOST_CHECK(dataName.at(-1).isVersion());
+    BOOST_REQUIRE_EQUAL(face.sentData.size(), 1);
+    const Name& dataName = face.sentData[0].getName();
+    BOOST_CHECK_EQUAL(dataName.size(), interest.getName().size() + 1);
+    BOOST_CHECK(interest.getName().isPrefixOf(dataName));
+    BOOST_CHECK(dataName.at(-1).isVersion());
 
-  // interest2 asks for a different version, and should not be responded
-  Interest interest2(Name(interest.getName()).appendVersion(dataName.at(-1).toVersion() - 1));
-  interest2.setCanBePrefix(false);
-  face.receive(interest2);
-  face.processEvents(500_ms);
-  BOOST_CHECK_EQUAL(face.sentData.size(), 1);
+    // interest2 asks for a different version, and should not be responded
+    Interest interest2(Name(interest.getName()).appendVersion(dataName.at(-1).toVersion() - 1));
+    interest2.setCanBePrefix(false);
+    face.receive(interest2);
+    face.processEvents(500_ms);
+    BOOST_CHECK_EQUAL(face.sentData.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(RoutablePrefixesDataset)
 {
-  Options options;
-  options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
-  const size_t nRoutablePrefixes = 2000;
-  for (size_t i = 0; i < nRoutablePrefixes; ++i) {
-    options.routablePrefixes.push_back(Name("/PREFIX").appendNumber(i));
-  }
-  this->initialize(options);
-
-  util::DummyClientFace clientFace(face.getIoService());
-  clientFace.linkTo(face);
-
-  Name baseName("/localhop/nfd/rib/routable-prefixes");
-  auto fetcher = util::SegmentFetcher::start(clientFace, Interest(baseName),
-                                             security::v2::getAcceptAllValidator());
-  fetcher->afterSegmentReceived.connect([baseName] (const Data& data) {
-    const Name& dataName = data.getName();
-    BOOST_CHECK_EQUAL(dataName.size(), baseName.size() + 2);
-    BOOST_CHECK(dataName.at(-2).isVersion());
-    BOOST_CHECK(dataName.at(-1).isSegment());
-  });
-  fetcher->onError.connect([] (uint32_t code, const std::string& msg) {
-    BOOST_FAIL(msg);
-  });
-  bool isComplete = false;
-  fetcher->onComplete.connect([&isComplete, nRoutablePrefixes, options] (ConstBufferPtr buffer) {
-    Block payload(tlv::Content, buffer);
-    payload.parse();
-    BOOST_REQUIRE_EQUAL(payload.elements_size(), nRoutablePrefixes);
+    Options options;
+    options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
+    const size_t nRoutablePrefixes = 2000;
     for (size_t i = 0; i < nRoutablePrefixes; ++i) {
-      BOOST_CHECK_EQUAL(Name(payload.elements()[i]), options.routablePrefixes[i]);
+        options.routablePrefixes.push_back(Name("/PREFIX").appendNumber(i));
     }
-    isComplete = true;
-  });
+    this->initialize(options);
 
-  face.processEvents(100_ms, 2000);
-  BOOST_CHECK(isComplete);
+    util::DummyClientFace clientFace(face.getIoService());
+    clientFace.linkTo(face);
+
+    Name baseName("/localhop/nfd/rib/routable-prefixes");
+    auto fetcher = util::SegmentFetcher::start(clientFace, Interest(baseName), security::v2::getAcceptAllValidator());
+    fetcher->afterSegmentReceived.connect([baseName](const Data& data) {
+        const Name& dataName = data.getName();
+        BOOST_CHECK_EQUAL(dataName.size(), baseName.size() + 2);
+        BOOST_CHECK(dataName.at(-2).isVersion());
+        BOOST_CHECK(dataName.at(-1).isSegment());
+    });
+    fetcher->onError.connect([](uint32_t code, const std::string& msg) { BOOST_FAIL(msg); });
+    bool isComplete = false;
+    fetcher->onComplete.connect([&isComplete, nRoutablePrefixes, options](ConstBufferPtr buffer) {
+        Block payload(tlv::Content, buffer);
+        payload.parse();
+        BOOST_REQUIRE_EQUAL(payload.elements_size(), nRoutablePrefixes);
+        for (size_t i = 0; i < nRoutablePrefixes; ++i) {
+            BOOST_CHECK_EQUAL(Name(payload.elements()[i]), options.routablePrefixes[i]);
+        }
+        isComplete = true;
+    });
+
+    face.processEvents(100_ms, 2000);
+    BOOST_CHECK(isComplete);
 }
 
 BOOST_AUTO_TEST_CASE(RoutablePrefixesDisabled)
 {
-  Options options;
-  options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
-  this->initialize(options);
+    Options options;
+    options.hubFaceUri = FaceUri("udp4://192.0.2.1:6363");
+    this->initialize(options);
 
-  Interest interest("/localhop/nfd/rib/routable-prefixes");
-  interest.setCanBePrefix(true);
-  face.receive(interest);
-  face.processEvents(500_ms);
-  BOOST_CHECK_EQUAL(face.sentData.size(), 0);
+    Interest interest("/localhop/nfd/rib/routable-prefixes");
+    interest.setCanBePrefix(true);
+    face.receive(interest);
+    face.processEvents(500_ms);
+    BOOST_CHECK_EQUAL(face.sentData.size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestProgram

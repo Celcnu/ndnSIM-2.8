@@ -34,32 +34,27 @@ namespace ns3 {
  * This app keeps requesting every second the same content object
  */
 class OneInterestRequester : public ndn::App {
-public:
-  // register NS-3 type "OneInterestRequester"
-  static TypeId
-  GetTypeId();
+  public:
+    // register NS-3 type "OneInterestRequester"
+    static TypeId GetTypeId();
 
-  OneInterestRequester();
+    OneInterestRequester();
 
-  // (overridden from ndn::App) Processing upon start of the application
-  virtual void
-  StartApplication();
+    // (overridden from ndn::App) Processing upon start of the application
+    virtual void StartApplication();
 
-  // (overridden from ndn::App) Processing when application is stopped
-  virtual void
-  StopApplication();
+    // (overridden from ndn::App) Processing when application is stopped
+    virtual void StopApplication();
 
-  // (overridden from ndn::App) Callback that will be called when Data arrives
-  virtual void
-  OnData(std::shared_ptr<const ndn::Data> data);
+    // (overridden from ndn::App) Callback that will be called when Data arrives
+    virtual void OnData(std::shared_ptr<const ndn::Data> data);
 
-private:
-  void
-  SendInterest();
+  private:
+    void SendInterest();
 
-private:
-  bool m_isRunning;
-  ndn::Name m_name;
+  private:
+    bool m_isRunning;
+    ndn::Name m_name;
 };
 
 } // namespace ns3

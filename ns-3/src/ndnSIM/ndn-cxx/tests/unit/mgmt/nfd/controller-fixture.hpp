@@ -35,51 +35,50 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class ControllerFixture : public IdentityManagementTimeFixture
-{
-protected:
-  ControllerFixture()
-    : face(io, m_keyChain)
-    , m_validator(true)
-    , controller(face, m_keyChain, m_validator)
-    , commandFailCallback(bind(&ControllerFixture::recordCommandFail, this, _1))
-    , datasetFailCallback(bind(&ControllerFixture::recordDatasetFail, this, _1, _2))
-  {
-    Name identityName("/localhost/ControllerFixture");
-    m_keyChain.setDefaultIdentity(this->addIdentity(identityName));
-  }
+class ControllerFixture : public IdentityManagementTimeFixture {
+  protected:
+    ControllerFixture()
+      : face(io, m_keyChain)
+      , m_validator(true)
+      , controller(face, m_keyChain, m_validator)
+      , commandFailCallback(bind(&ControllerFixture::recordCommandFail, this, _1))
+      , datasetFailCallback(bind(&ControllerFixture::recordDatasetFail, this, _1, _2))
+    {
+        Name identityName("/localhost/ControllerFixture");
+        m_keyChain.setDefaultIdentity(this->addIdentity(identityName));
+    }
 
-  /** \brief controls whether Controller's validator should accept or reject validation requests
-   *
-   *  Initially, the validator accepts all requests.
-   *  Setting \p false causes validator to reject all requests.
-   */
-  void
-  setValidationResult(bool shouldAccept)
-  {
-    m_validator.getPolicy().setResult(shouldAccept);
-  }
+    /** \brief controls whether Controller's validator should accept or reject validation requests
+     *
+     *  Initially, the validator accepts all requests.
+     *  Setting \p false causes validator to reject all requests.
+     */
+    void
+    setValidationResult(bool shouldAccept)
+    {
+        m_validator.getPolicy().setResult(shouldAccept);
+    }
 
-private:
-  void
-  recordCommandFail(const ControlResponse& response)
-  {
-    failCodes.push_back(response.getCode());
-  }
+  private:
+    void
+    recordCommandFail(const ControlResponse& response)
+    {
+        failCodes.push_back(response.getCode());
+    }
 
-  void
-  recordDatasetFail(uint32_t code, const std::string& reason)
-  {
-    failCodes.push_back(code);
-  }
+    void
+    recordDatasetFail(uint32_t code, const std::string& reason)
+    {
+        failCodes.push_back(code);
+    }
 
-protected:
-  ndn::util::DummyClientFace face;
-  DummyValidator m_validator;
-  Controller controller;
-  Controller::CommandFailCallback commandFailCallback;
-  Controller::DatasetFailCallback datasetFailCallback;
-  std::vector<uint32_t> failCodes;
+  protected:
+    ndn::util::DummyClientFace face;
+    DummyValidator m_validator;
+    Controller controller;
+    Controller::CommandFailCallback commandFailCallback;
+    Controller::DatasetFailCallback datasetFailCallback;
+    std::vector<uint32_t> failCodes;
 };
 
 } // namespace tests

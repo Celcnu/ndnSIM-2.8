@@ -42,106 +42,89 @@ namespace fw {
  *
  *  \note This strategy is not EndpointId-aware
  */
-class SelfLearningStrategy : public Strategy
-{
-public:
-  explicit
-  SelfLearningStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
-
-  static const Name&
-  getStrategyName();
-
-  /// StrategyInfo on pit::InRecord
-  class InRecordInfo : public StrategyInfo
-  {
+class SelfLearningStrategy : public Strategy {
   public:
-    static constexpr int
-    getTypeId()
-    {
-      return 1040;
-    }
+    explicit SelfLearningStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  public:
-    bool isNonDiscoveryInterest = false;
-  };
+    static const Name& getStrategyName();
 
-  /// StrategyInfo on pit::OutRecord
-  class OutRecordInfo : public StrategyInfo
-  {
-  public:
-    static constexpr int
-    getTypeId()
-    {
-      return 1041;
-    }
+    /// StrategyInfo on pit::InRecord
+    class InRecordInfo : public StrategyInfo {
+      public:
+        static constexpr int
+        getTypeId()
+        {
+            return 1040;
+        }
 
-  public:
-    bool isNonDiscoveryInterest = false;
-  };
+      public:
+        bool isNonDiscoveryInterest = false;
+    };
 
-public: // triggers
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    /// StrategyInfo on pit::OutRecord
+    class OutRecordInfo : public StrategyInfo {
+      public:
+        static constexpr int
+        getTypeId()
+        {
+            return 1041;
+        }
 
-  void
-  afterReceiveData(const shared_ptr<pit::Entry>& pitEntry,
-                   const FaceEndpoint& ingress, const Data& data) override;
+      public:
+        bool isNonDiscoveryInterest = false;
+    };
 
-  void
-  afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                   const shared_ptr<pit::Entry>& pitEntry) override;
+  public: // triggers
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-private: // operations
+    void
+    afterReceiveData(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data) override;
 
-  /** \brief Send an Interest to all possible faces
-   *
-   *  This function is invoked when the forwarder has no matching FIB entries for
-   *  an incoming discovery Interest, which will be forwarded to faces that
-   *    - do not violate the Interest scope
-   *    - are non-local
-   *    - are not the face from which the Interest arrived, unless the face is ad-hoc
-   */
-  void
-  broadcastInterest(const Interest& interest, const Face& inFace,
-                    const shared_ptr<pit::Entry>& pitEntry);
+    void afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
+                          const shared_ptr<pit::Entry>& pitEntry) override;
 
-  /** \brief Send an Interest to \p nexthops
-   */
-  void
-  multicastInterest(const Interest& interest, const Face& inFace,
-                    const shared_ptr<pit::Entry>& pitEntry,
-                    const fib::NextHopList& nexthops);
+  private: // operations
+    /** \brief Send an Interest to all possible faces
+     *
+     *  This function is invoked when the forwarder has no matching FIB entries for
+     *  an incoming discovery Interest, which will be forwarded to faces that
+     *    - do not violate the Interest scope
+     *    - are non-local
+     *    - are not the face from which the Interest arrived, unless the face is ad-hoc
+     */
+    void broadcastInterest(const Interest& interest, const Face& inFace, const shared_ptr<pit::Entry>& pitEntry);
 
-  /** \brief Find a Prefix Announcement for the Data on the RIB thread, and forward
-   *         the Data with the Prefix Announcement on the main thread
-   */
-  void
-  asyncProcessData(const shared_ptr<pit::Entry>& pitEntry, const Face& inFace, const Data& data);
+    /** \brief Send an Interest to \p nexthops
+     */
+    void multicastInterest(const Interest& interest, const Face& inFace, const shared_ptr<pit::Entry>& pitEntry,
+                           const fib::NextHopList& nexthops);
 
-  /** \brief Check whether a PrefixAnnouncement needs to be attached to an incoming Data
-   *
-   *  The conditions that a Data packet requires a PrefixAnnouncement are
-   *    - the incoming Interest was discovery and
-   *    - the outgoing Interest was non-discovery and
-   *    - this forwarder does not directly connect to the consumer
-   */
-  static bool
-  needPrefixAnn(const shared_ptr<pit::Entry>& pitEntry);
+    /** \brief Find a Prefix Announcement for the Data on the RIB thread, and forward
+     *         the Data with the Prefix Announcement on the main thread
+     */
+    void asyncProcessData(const shared_ptr<pit::Entry>& pitEntry, const Face& inFace, const Data& data);
 
-  /** \brief Add a route using RibManager::slAnnounce on the RIB thread
-   */
-  void
-  addRoute(const shared_ptr<pit::Entry>& pitEntry, const Face& inFace,
-           const Data& data, const ndn::PrefixAnnouncement& pa);
+    /** \brief Check whether a PrefixAnnouncement needs to be attached to an incoming Data
+     *
+     *  The conditions that a Data packet requires a PrefixAnnouncement are
+     *    - the incoming Interest was discovery and
+     *    - the outgoing Interest was non-discovery and
+     *    - this forwarder does not directly connect to the consumer
+     */
+    static bool needPrefixAnn(const shared_ptr<pit::Entry>& pitEntry);
 
-  /** \brief renew a route using RibManager::slRenew on the RIB thread
-   */
-  void
-  renewRoute(const Name& name, FaceId inFaceId, time::milliseconds maxLifetime);
+    /** \brief Add a route using RibManager::slAnnounce on the RIB thread
+     */
+    void addRoute(const shared_ptr<pit::Entry>& pitEntry, const Face& inFace, const Data& data,
+                  const ndn::PrefixAnnouncement& pa);
 
-private:
-  static const time::milliseconds ROUTE_RENEW_LIFETIME;
+    /** \brief renew a route using RibManager::slRenew on the RIB thread
+     */
+    void renewRoute(const Name& name, FaceId inFaceId, time::milliseconds maxLifetime);
+
+  private:
+    static const time::milliseconds ROUTE_RENEW_LIFETIME;
 };
 
 } // namespace fw

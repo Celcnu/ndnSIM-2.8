@@ -38,25 +38,24 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class GeneralConfigSectionFixture : public GlobalIoFixture
-{
-public:
-  GeneralConfigSectionFixture()
-  {
-    setConfigFile(configFile);
-  }
+class GeneralConfigSectionFixture : public GlobalIoFixture {
+  public:
+    GeneralConfigSectionFixture()
+    {
+        setConfigFile(configFile);
+    }
 
 #ifdef HAVE_PRIVILEGE_DROP_AND_ELEVATE
-  ~GeneralConfigSectionFixture()
-  {
-    // revert changes to s_normalUid/s_normalGid, if any
-    PrivilegeHelper::s_normalUid = ::geteuid();
-    PrivilegeHelper::s_normalGid = ::getegid();
-  }
+    ~GeneralConfigSectionFixture()
+    {
+        // revert changes to s_normalUid/s_normalGid, if any
+        PrivilegeHelper::s_normalUid = ::geteuid();
+        PrivilegeHelper::s_normalGid = ::getegid();
+    }
 #endif // HAVE_PRIVILEGE_DROP_AND_ELEVATE
 
-protected:
-  ConfigFile configFile;
+  protected:
+    ConfigFile configFile;
 };
 
 BOOST_AUTO_TEST_SUITE(Mgmt)
@@ -64,53 +63,53 @@ BOOST_FIXTURE_TEST_SUITE(TestGeneralConfigSection, GeneralConfigSectionFixture)
 
 BOOST_AUTO_TEST_CASE(EmptyConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
     }
   )CONFIG";
 
-  configFile.parse(CONFIG, true, "test-general-config-section");
+    configFile.parse(CONFIG, true, "test-general-config-section");
 
-  BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
-  BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
+    BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
+    BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
 }
 
 #ifdef HAVE_PRIVILEGE_DROP_AND_ELEVATE
 
 BOOST_AUTO_TEST_CASE(UserConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
       user daemon
     }
   )CONFIG";
 
-  configFile.parse(CONFIG, true, "test-general-config-section");
+    configFile.parse(CONFIG, true, "test-general-config-section");
 
-  BOOST_CHECK_NE(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
-  BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
+    BOOST_CHECK_NE(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
+    BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
 }
 
 BOOST_AUTO_TEST_CASE(GroupConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
       group daemon
     }
   )CONFIG";
 
-  configFile.parse(CONFIG, true, "test-general-config-section");
+    configFile.parse(CONFIG, true, "test-general-config-section");
 
-  BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
-  BOOST_CHECK_NE(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
+    BOOST_CHECK_EQUAL(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
+    BOOST_CHECK_NE(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
 }
 
 BOOST_AUTO_TEST_CASE(UserAndGroupConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
       user daemon
@@ -118,46 +117,42 @@ BOOST_AUTO_TEST_CASE(UserAndGroupConfig)
     }
   )CONFIG";
 
-  configFile.parse(CONFIG, true, "test-general-config-section");
+    configFile.parse(CONFIG, true, "test-general-config-section");
 
-  BOOST_CHECK_NE(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
-  BOOST_CHECK_NE(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
+    BOOST_CHECK_NE(PrivilegeHelper::s_normalUid, PrivilegeHelper::s_privilegedUid);
+    BOOST_CHECK_NE(PrivilegeHelper::s_normalGid, PrivilegeHelper::s_privilegedGid);
 }
 
 #endif // HAVE_PRIVILEGE_DROP_AND_ELEVATE
 
 BOOST_AUTO_TEST_CASE(InvalidUserConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
       user
     }
   )CONFIG";
 
-  BOOST_CHECK_EXCEPTION(configFile.parse(CONFIG, true, "test-general-config-section"),
-                        ConfigFile::Error,
-                        [] (const ConfigFile::Error& e) {
-                          return std::strcmp(e.what(),
-                                             "Invalid value for 'user' in section 'general'") == 0;
-                        });
+    BOOST_CHECK_EXCEPTION(configFile.parse(CONFIG, true, "test-general-config-section"), ConfigFile::Error,
+                          [](const ConfigFile::Error& e) {
+                              return std::strcmp(e.what(), "Invalid value for 'user' in section 'general'") == 0;
+                          });
 }
 
 BOOST_AUTO_TEST_CASE(InvalidGroupConfig)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     general
     {
       group
     }
   )CONFIG";
 
-  BOOST_CHECK_EXCEPTION(configFile.parse(CONFIG, true, "test-general-config-section"),
-                        ConfigFile::Error,
-                        [] (const ConfigFile::Error& e) {
-                          return std::strcmp(e.what(),
-                                             "Invalid value for 'group' in section 'general'") == 0;
-                        });
+    BOOST_CHECK_EXCEPTION(configFile.parse(CONFIG, true, "test-general-config-section"), ConfigFile::Error,
+                          [](const ConfigFile::Error& e) {
+                              return std::strcmp(e.what(), "Invalid value for 'group' in section 'general'") == 0;
+                          });
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestGeneralConfigSection

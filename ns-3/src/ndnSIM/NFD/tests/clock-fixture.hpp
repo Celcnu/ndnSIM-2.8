@@ -35,54 +35,49 @@ namespace tests {
 
 /** \brief A test fixture that overrides steady clock and system clock.
  */
-class ClockFixture
-{
-public:
-  virtual
-  ~ClockFixture();
+class ClockFixture {
+  public:
+    virtual ~ClockFixture();
 
-  /** \brief Advance steady and system clocks.
-   *
-   *  Clocks are advanced in increments of \p tick for \p nTicks ticks.
-   *  After each tick, global io_service is polled to process pending I/O events.
-   *
-   *  Exceptions thrown during I/O events are propagated to the caller.
-   *  Clock advancing would stop in case of an exception.
-   */
-  void
-  advanceClocks(time::nanoseconds tick, size_t nTicks = 1)
-  {
-    advanceClocks(tick, tick * nTicks);
-  }
+    /** \brief Advance steady and system clocks.
+     *
+     *  Clocks are advanced in increments of \p tick for \p nTicks ticks.
+     *  After each tick, global io_service is polled to process pending I/O events.
+     *
+     *  Exceptions thrown during I/O events are propagated to the caller.
+     *  Clock advancing would stop in case of an exception.
+     */
+    void
+    advanceClocks(time::nanoseconds tick, size_t nTicks = 1)
+    {
+        advanceClocks(tick, tick * nTicks);
+    }
 
-  /** \brief Advance steady and system clocks.
-   *
-   *  Clocks are advanced in increments of \p tick for \p total time.
-   *  The last increment might be shorter than \p tick.
-   *  After each tick, global io_service is polled to process pending I/O events.
-   *
-   *  Exceptions thrown during I/O events are propagated to the caller.
-   *  Clock advancing would stop in case of an exception.
-   */
-  void
-  advanceClocks(time::nanoseconds tick, time::nanoseconds total);
+    /** \brief Advance steady and system clocks.
+     *
+     *  Clocks are advanced in increments of \p tick for \p total time.
+     *  The last increment might be shorter than \p tick.
+     *  After each tick, global io_service is polled to process pending I/O events.
+     *
+     *  Exceptions thrown during I/O events are propagated to the caller.
+     *  Clock advancing would stop in case of an exception.
+     */
+    void advanceClocks(time::nanoseconds tick, time::nanoseconds total);
 
-protected:
-  explicit
-  ClockFixture(boost::asio::io_service& io);
+  protected:
+    explicit ClockFixture(boost::asio::io_service& io);
 
-private:
-  /** \brief Called by advanceClocks() after each clock advancement (tick).
-   */
-  virtual void
-  pollAfterClockTick();
+  private:
+    /** \brief Called by advanceClocks() after each clock advancement (tick).
+     */
+    virtual void pollAfterClockTick();
 
-protected:
-  shared_ptr<time::UnitTestSteadyClock> m_steadyClock;
-  shared_ptr<time::UnitTestSystemClock> m_systemClock;
+  protected:
+    shared_ptr<time::UnitTestSteadyClock> m_steadyClock;
+    shared_ptr<time::UnitTestSystemClock> m_systemClock;
 
-private:
-  boost::asio::io_service& m_io;
+  private:
+    boost::asio::io_service& m_io;
 };
 
 } // namespace tests

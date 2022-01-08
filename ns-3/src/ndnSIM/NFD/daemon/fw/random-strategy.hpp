@@ -38,26 +38,20 @@ namespace fw {
  * excluding the incoming face.
  *
  */
-class RandomStrategy : public Strategy
-                     , public ProcessNackTraits<RandomStrategy>
-{
-public:
-  explicit
-  RandomStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+class RandomStrategy : public Strategy, public ProcessNackTraits<RandomStrategy> {
+  public:
+    explicit RandomStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-  void
-  afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                   const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
+                          const shared_ptr<pit::Entry>& pitEntry) override;
 
-private:
-  friend ProcessNackTraits<RandomStrategy>;
+  private:
+    friend ProcessNackTraits<RandomStrategy>;
 };
 
 } // namespace fw

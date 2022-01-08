@@ -29,36 +29,36 @@ void
 ValidationPolicySimpleHierarchy::checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
                                              const ValidationContinuation& continueValidation)
 {
-  Name klName = getKeyLocatorName(data, *state);
-  if (!state->getOutcome()) { // already failed
-    return;
-  }
+    Name klName = getKeyLocatorName(data, *state);
+    if (!state->getOutcome()) { // already failed
+        return;
+    }
 
-  if (klName.getPrefix(-2).isPrefixOf(data.getName())) {
-    continueValidation(make_shared<CertificateRequest>(klName), state);
-  }
-  else {
-    state->fail({ValidationError::Code::INVALID_KEY_LOCATOR, "Data signing policy violation for " +
-                 data.getName().toUri() + " by " + klName.toUri()});
-  }
+    if (klName.getPrefix(-2).isPrefixOf(data.getName())) {
+        continueValidation(make_shared<CertificateRequest>(klName), state);
+    }
+    else {
+        state->fail({ValidationError::Code::INVALID_KEY_LOCATOR,
+                     "Data signing policy violation for " + data.getName().toUri() + " by " + klName.toUri()});
+    }
 }
 
 void
 ValidationPolicySimpleHierarchy::checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
                                              const ValidationContinuation& continueValidation)
 {
-  Name klName = getKeyLocatorName(interest, *state);
-  if (!state->getOutcome()) { // already failed
-    return;
-  }
+    Name klName = getKeyLocatorName(interest, *state);
+    if (!state->getOutcome()) { // already failed
+        return;
+    }
 
-  if (klName.getPrefix(-2).isPrefixOf(interest.getName())) {
-    continueValidation(make_shared<CertificateRequest>(klName), state);
-  }
-  else {
-    state->fail({ValidationError::Code::INVALID_KEY_LOCATOR, "Interest signing policy violation for " +
-                 interest.getName().toUri() + " by " + klName.toUri()});
-  }
+    if (klName.getPrefix(-2).isPrefixOf(interest.getName())) {
+        continueValidation(make_shared<CertificateRequest>(klName), state);
+    }
+    else {
+        state->fail({ValidationError::Code::INVALID_KEY_LOCATOR,
+                     "Interest signing policy violation for " + interest.getName().toUri() + " by " + klName.toUri()});
+    }
 }
 
 } // namespace v2

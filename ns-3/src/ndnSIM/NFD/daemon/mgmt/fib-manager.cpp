@@ -38,119 +38,112 @@ namespace nfd {
 
 NFD_LOG_INIT(FibManager);
 
-FibManager::FibManager(Fib& fib, const FaceTable& faceTable,
-                       Dispatcher& dispatcher, CommandAuthenticator& authenticator)
+FibManager::FibManager(Fib& fib, const FaceTable& faceTable, Dispatcher& dispatcher,
+                       CommandAuthenticator& authenticator)
   : ManagerBase("fib", dispatcher, authenticator)
   , m_fib(fib)
   , m_faceTable(faceTable)
 {
-  registerCommandHandler<ndn::nfd::FibAddNextHopCommand>("add-nexthop",
-    bind(&FibManager::addNextHop, this, _2, _3, _4, _5));
-  registerCommandHandler<ndn::nfd::FibRemoveNextHopCommand>("remove-nexthop",
-    bind(&FibManager::removeNextHop, this, _2, _3, _4, _5));
+    registerCommandHandler<ndn::nfd::FibAddNextHopCommand>("add-nexthop",
+                                                           bind(&FibManager::addNextHop, this, _2, _3, _4, _5));
+    registerCommandHandler<ndn::nfd::FibRemoveNextHopCommand>("remove-nexthop",
+                                                              bind(&FibManager::removeNextHop, this, _2, _3, _4, _5));
 
-  registerStatusDatasetHandler("list", bind(&FibManager::listEntries, this, _1, _2, _3));
+    registerStatusDatasetHandler("list", bind(&FibManager::listEntries, this, _1, _2, _3));
 }
 
 void
-FibManager::addNextHop(const Name& topPrefix, const Interest& interest,
-                       ControlParameters parameters,
+FibManager::addNextHop(const Name& topPrefix, const Interest& interest, ControlParameters parameters,
                        const ndn::mgmt::CommandContinuation& done)
 {
-  setFaceForSelfRegistration(interest, parameters);
-  const Name& prefix = parameters.getName();
-  FaceId faceId = parameters.getFaceId();
-  uint64_t cost = parameters.getCost();
+    setFaceForSelfRegistration(interest, parameters);
+    const Name& prefix = parameters.getName();
+    FaceId faceId = parameters.getFaceId();
+    uint64_t cost = parameters.getCost();
 
-  if (prefix.size() > Fib::getMaxDepth()) {
-    NFD_LOG_DEBUG("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost <<
-                  "): FAIL prefix-too-long");
-    return done(ControlResponse(414, "FIB entry prefix cannot exceed " +
-                                to_string(Fib::getMaxDepth()) + " components"));
-  }
+    if (prefix.size() > Fib::getMaxDepth()) {
+        NFD_LOG_DEBUG("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost << "): FAIL prefix-too-long");
+        return done(
+          ControlResponse(414, "FIB entry prefix cannot exceed " + to_string(Fib::getMaxDepth()) + " components"));
+    }
 
-  Face* face = m_faceTable.get(faceId);
-  if (face == nullptr) {
-    NFD_LOG_DEBUG("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost <<
-                  "): FAIL unknown-faceid");
-    return done(ControlResponse(410, "Face not found"));
-  }
+    Face* face = m_faceTable.get(faceId);
+    if (face == nullptr) {
+        NFD_LOG_DEBUG("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost << "): FAIL unknown-faceid");
+        return done(ControlResponse(410, "Face not found"));
+    }
 
-  fib::Entry* entry = m_fib.insert(prefix).first;
-  m_fib.addOrUpdateNextHop(*entry, *face, cost);
+    fib::Entry* entry = m_fib.insert(prefix).first;
+    m_fib.addOrUpdateNextHop(*entry, *face, cost);
 
-  NFD_LOG_TRACE("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost << "): OK");
-  return done(ControlResponse(200, "Success").setBody(parameters.wireEncode()));
+    NFD_LOG_TRACE("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost << "): OK");
+    return done(ControlResponse(200, "Success").setBody(parameters.wireEncode()));
 }
 
 void
-FibManager::removeNextHop(const Name& topPrefix, const Interest& interest,
-                          ControlParameters parameters,
+FibManager::removeNextHop(const Name& topPrefix, const Interest& interest, ControlParameters parameters,
                           const ndn::mgmt::CommandContinuation& done)
 {
-  setFaceForSelfRegistration(interest, parameters);
-  const Name& prefix = parameters.getName();
-  FaceId faceId = parameters.getFaceId();
+    setFaceForSelfRegistration(interest, parameters);
+    const Name& prefix = parameters.getName();
+    FaceId faceId = parameters.getFaceId();
 
-  done(ControlResponse(200, "Success").setBody(parameters.wireEncode()));
+    done(ControlResponse(200, "Success").setBody(parameters.wireEncode()));
 
-  Face* face = m_faceTable.get(faceId);
-  if (face == nullptr) {
-    NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-face");
-    return;
-  }
+    Face* face = m_faceTable.get(faceId);
+    if (face == nullptr) {
+        NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-face");
+        return;
+    }
 
-  fib::Entry* entry = m_fib.findExactMatch(parameters.getName());
-  if (entry == nullptr) {
-    NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-entry");
-    return;
-  }
+    fib::Entry* entry = m_fib.findExactMatch(parameters.getName());
+    if (entry == nullptr) {
+        NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-entry");
+        return;
+    }
 
-  auto status = m_fib.removeNextHop(*entry, *face);
-  switch (status) {
-    case Fib::RemoveNextHopResult::NO_SUCH_NEXTHOP:
-      NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-nexthop");
-      break;
-    case Fib::RemoveNextHopResult::FIB_ENTRY_REMOVED:
-      NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK entry-erased");
-      break;
-    case Fib::RemoveNextHopResult::NEXTHOP_REMOVED:
-      NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK nexthop-removed");
-      break;
-  }
+    auto status = m_fib.removeNextHop(*entry, *face);
+    switch (status) {
+        case Fib::RemoveNextHopResult::NO_SUCH_NEXTHOP:
+            NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK no-nexthop");
+            break;
+        case Fib::RemoveNextHopResult::FIB_ENTRY_REMOVED:
+            NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK entry-erased");
+            break;
+        case Fib::RemoveNextHopResult::NEXTHOP_REMOVED:
+            NFD_LOG_TRACE("fib/remove-nexthop(" << prefix << ',' << faceId << "): OK nexthop-removed");
+            break;
+    }
 }
 
 void
-FibManager::listEntries(const Name& topPrefix, const Interest& interest,
-                        ndn::mgmt::StatusDatasetContext& context)
+FibManager::listEntries(const Name& topPrefix, const Interest& interest, ndn::mgmt::StatusDatasetContext& context)
 {
-  for (const auto& entry : m_fib) {
-    const auto& nexthops = entry.getNextHops() |
-                           boost::adaptors::transformed([] (const fib::NextHop& nh) {
-                             return ndn::nfd::NextHopRecord()
-                                 .setFaceId(nh.getFace().getId())
-                                 .setCost(nh.getCost());
-                           });
-    context.append(ndn::nfd::FibEntry()
-                   .setPrefix(entry.getPrefix())
-                   .setNextHopRecords(std::begin(nexthops), std::end(nexthops))
-                   .wireEncode());
-  }
-  context.end();
+    for (const auto& entry : m_fib) {
+        const auto& nexthops =
+          entry.getNextHops() | boost::adaptors::transformed([](const fib::NextHop& nh) {
+              return ndn::nfd::NextHopRecord().setFaceId(nh.getFace().getId()).setCost(nh.getCost());
+          });
+        context.append(ndn::nfd::FibEntry()
+                         .setPrefix(entry.getPrefix())
+                         .setNextHopRecords(std::begin(nexthops), std::end(nexthops))
+                         .wireEncode());
+    }
+    context.end();
 }
 
 void
 FibManager::setFaceForSelfRegistration(const Interest& request, ControlParameters& parameters)
 {
-  bool isSelfRegistration = (parameters.getFaceId() == 0);
-  if (isSelfRegistration) {
-    shared_ptr<lp::IncomingFaceIdTag> incomingFaceIdTag = request.getTag<lp::IncomingFaceIdTag>();
-    // NDNLPv2 says "application MUST be prepared to receive a packet without IncomingFaceId field",
-    // but it's fine to assert IncomingFaceId is available, because InternalFace lives inside NFD
-    // and is initialized synchronously with IncomingFaceId field enabled.
-    BOOST_ASSERT(incomingFaceIdTag != nullptr);
-    parameters.setFaceId(*incomingFaceIdTag);
-  }
+    bool isSelfRegistration = (parameters.getFaceId() == 0);
+    if (isSelfRegistration) {
+        shared_ptr<lp::IncomingFaceIdTag> incomingFaceIdTag = request.getTag<lp::IncomingFaceIdTag>();
+        // NDNLPv2 says "application MUST be prepared to receive a packet without IncomingFaceId field",
+        // but it's fine to assert IncomingFaceId is available, because InternalFace lives inside NFD
+        // and is initialized synchronously with IncomingFaceId field enabled.
+        BOOST_ASSERT(incomingFaceIdTag != nullptr);
+        parameters.setFaceId(*incomingFaceIdTag);
+    }
 }
 
 } // namespace nfd

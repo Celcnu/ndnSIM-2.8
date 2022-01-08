@@ -33,21 +33,16 @@ namespace time {
  * Instance of specialization of this class may be passed to setCustomClocks() free function
  * in order to change global behavior of system or steady clock.
  */
-template<typename BaseClock>
-class CustomClock
-{
-public:
-  virtual
-  ~CustomClock() = default;
+template <typename BaseClock>
+class CustomClock {
+  public:
+    virtual ~CustomClock() = default;
 
-  virtual typename BaseClock::time_point
-  getNow() const = 0;
+    virtual typename BaseClock::time_point getNow() const = 0;
 
-  virtual std::string
-  getSince() const = 0;
+    virtual std::string getSince() const = 0;
 
-  virtual typename BaseClock::duration
-  toWaitDuration(typename BaseClock::duration d) const = 0;
+    virtual typename BaseClock::duration toWaitDuration(typename BaseClock::duration d) const = 0;
 };
 
 using CustomSystemClock = CustomClock<system_clock>;
@@ -59,9 +54,8 @@ using CustomSteadyClock = CustomClock<steady_clock>;
  * When \p steadyClock or \p systemClock set to nullptr, the default implementation
  * of the corresponding clock will be used
  */
-void
-setCustomClocks(shared_ptr<CustomSteadyClock> steadyClock = nullptr,
-                shared_ptr<CustomSystemClock> systemClock = nullptr);
+void setCustomClocks(shared_ptr<CustomSteadyClock> steadyClock = nullptr,
+                     shared_ptr<CustomSystemClock> systemClock = nullptr);
 
 } // namespace time
 } // namespace ndn

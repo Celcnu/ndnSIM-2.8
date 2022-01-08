@@ -35,97 +35,93 @@ BOOST_AUTO_TEST_SUITE(TestRandom)
 
 BOOST_AUTO_TEST_CASE(ThreadLocalEngine)
 {
-  random::RandomNumberEngine* r1 = &random::getRandomNumberEngine();
-  random::RandomNumberEngine* r2 = nullptr;
-  std::thread t([&r2] { r2 = &random::getRandomNumberEngine(); });
-  t.join();
-  random::RandomNumberEngine* r3 = &random::getRandomNumberEngine();
+    random::RandomNumberEngine* r1 = &random::getRandomNumberEngine();
+    random::RandomNumberEngine* r2 = nullptr;
+    std::thread t([&r2] { r2 = &random::getRandomNumberEngine(); });
+    t.join();
+    random::RandomNumberEngine* r3 = &random::getRandomNumberEngine();
 
-  BOOST_CHECK(r2 != nullptr);
-  BOOST_CHECK_NE(r1, r2);
-  BOOST_CHECK_EQUAL(r1, r3);
+    BOOST_CHECK(r2 != nullptr);
+    BOOST_CHECK_NE(r1, r2);
+    BOOST_CHECK_EQUAL(r1, r3);
 }
 
 // This fixture uses OpenSSL routines to set a dummy random generator that always fails
-class FailRandMethodFixture
-{
-public:
-  FailRandMethodFixture()
-    : m_dummyRandMethod{&FailRandMethodFixture::seed,
-                        &FailRandMethodFixture::bytes,
-                        &FailRandMethodFixture::cleanup,
-                        &FailRandMethodFixture::add,
-                        &FailRandMethodFixture::pseudorand,
-                        &FailRandMethodFixture::status}
-  {
-    m_origRandMethod = RAND_get_rand_method();
-    RAND_set_rand_method(&m_dummyRandMethod);
-  }
+class FailRandMethodFixture {
+  public:
+    FailRandMethodFixture()
+      : m_dummyRandMethod{&FailRandMethodFixture::seed,       &FailRandMethodFixture::bytes,
+                          &FailRandMethodFixture::cleanup,    &FailRandMethodFixture::add,
+                          &FailRandMethodFixture::pseudorand, &FailRandMethodFixture::status}
+    {
+        m_origRandMethod = RAND_get_rand_method();
+        RAND_set_rand_method(&m_dummyRandMethod);
+    }
 
-  ~FailRandMethodFixture()
-  {
-    RAND_set_rand_method(m_origRandMethod);
-  }
+    ~FailRandMethodFixture()
+    {
+        RAND_set_rand_method(m_origRandMethod);
+    }
 
-private: // RAND_METHOD callbacks
+  private: // RAND_METHOD callbacks
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  static void
-  seed(const void* buf, int num)
-  {
-  }
+    static void
+    seed(const void* buf, int num)
+    {
+    }
 #else
-  static int
-  seed(const void* buf, int num)
-  {
-    return 0;
-  }
+    static int
+    seed(const void* buf, int num)
+    {
+        return 0;
+    }
 #endif // OPENSSL_VERSION_NUMBER < 0x1010000fL
 
-  static int
-  bytes(unsigned char* buf, int num)
-  {
-    return 0;
-  }
+    static int
+    bytes(unsigned char* buf, int num)
+    {
+        return 0;
+    }
 
-  static void
-  cleanup()
-  {
-  }
+    static void
+    cleanup()
+    {
+    }
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  static void
-  add(const void* buf, int num, double entropy)
-  {
-  }
+    static void
+    add(const void* buf, int num, double entropy)
+    {
+    }
 #else
-  static int
-  add(const void* buf, int num, double entropy)
-  {
-    return 0;
-  }
+    static int
+    add(const void* buf, int num, double entropy)
+    {
+        return 0;
+    }
 #endif // OPENSSL_VERSION_NUMBER < 0x1010000fL
 
-  static int
-  pseudorand(unsigned char* buf, int num)
-  {
-    return 0;
-  }
+    static int
+    pseudorand(unsigned char* buf, int num)
+    {
+        return 0;
+    }
 
-  static int
-  status()
-  {
-    return 0;
-  }
+    static int
+    status()
+    {
+        return 0;
+    }
 
-private:
-  const RAND_METHOD* m_origRandMethod;
-  RAND_METHOD m_dummyRandMethod;
+  private:
+    const RAND_METHOD* m_origRandMethod;
+    RAND_METHOD m_dummyRandMethod;
 };
 
 BOOST_FIXTURE_TEST_CASE(Error, FailRandMethodFixture)
 {
-  std::array<uint8_t, 1024> buf;
-  BOOST_CHECK_THROW(random::generateSecureBytes(buf.data(), buf.size()), std::runtime_error);
+    std::array<uint8_t, 1024> buf;
+    BOOST_CHECK_THROW(random::generateSecureBytes(buf.data(), buf.size()), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestRandom

@@ -34,33 +34,30 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-struct CreateFaceExpectedResult
-{
-  enum { FAILURE, SUCCESS } result;
-  uint32_t status;
-  std::string reason;
+struct CreateFaceExpectedResult {
+    enum { FAILURE, SUCCESS } result;
+    uint32_t status;
+    std::string reason;
 };
 
 inline void
-createFace(ProtocolFactory& factory,
-           const FaceUri& remoteUri,
-           const optional<FaceUri>& localUri,
-           const FaceParams& params,
-           const CreateFaceExpectedResult& expected,
+createFace(ProtocolFactory& factory, const FaceUri& remoteUri, const optional<FaceUri>& localUri,
+           const FaceParams& params, const CreateFaceExpectedResult& expected,
            const std::function<void(const Face&)>& extraChecks = nullptr)
 {
-  factory.createFace({remoteUri, localUri, params},
-                     [expected, extraChecks] (const shared_ptr<Face>& face) {
-                       BOOST_CHECK_EQUAL(CreateFaceExpectedResult::SUCCESS, expected.result);
-                       if (extraChecks) {
-                         extraChecks(*face);
-                       }
-                     },
-                     [expected] (uint32_t actualStatus, const std::string& actualReason) {
-                       BOOST_CHECK_EQUAL(CreateFaceExpectedResult::FAILURE, expected.result);
-                       BOOST_CHECK_EQUAL(actualStatus, expected.status);
-                       BOOST_CHECK_EQUAL(actualReason, expected.reason);
-                     });
+    factory.createFace(
+      {remoteUri, localUri, params},
+      [expected, extraChecks](const shared_ptr<Face>& face) {
+          BOOST_CHECK_EQUAL(CreateFaceExpectedResult::SUCCESS, expected.result);
+          if (extraChecks) {
+              extraChecks(*face);
+          }
+      },
+      [expected](uint32_t actualStatus, const std::string& actualReason) {
+          BOOST_CHECK_EQUAL(CreateFaceExpectedResult::FAILURE, expected.result);
+          BOOST_CHECK_EQUAL(actualStatus, expected.status);
+          BOOST_CHECK_EQUAL(actualReason, expected.reason);
+      });
 }
 
 /** \brief check that channels in a factory equal given channel URIs
@@ -68,16 +65,16 @@ createFace(ProtocolFactory& factory,
 inline void
 checkChannelListEqual(const ProtocolFactory& factory, const std::set<std::string>& channelUris)
 {
-  std::set<std::string> expected(channelUris); // make a copy so we can erase as we go
-  for (const auto& channel : factory.getChannels()) {
-    std::string uri = channel->getUri().toString();
-    if (expected.erase(uri) == 0) {
-      BOOST_ERROR("Unexpected channel " << uri);
+    std::set<std::string> expected(channelUris); // make a copy so we can erase as we go
+    for (const auto& channel : factory.getChannels()) {
+        std::string uri = channel->getUri().toString();
+        if (expected.erase(uri) == 0) {
+            BOOST_ERROR("Unexpected channel " << uri);
+        }
     }
-  }
-  for (const auto& uri : expected) {
-    BOOST_ERROR("Missing channel " << uri);
-  }
+    for (const auto& uri : expected) {
+        BOOST_ERROR("Missing channel " << uri);
+    }
 }
 
 } // namespace tests

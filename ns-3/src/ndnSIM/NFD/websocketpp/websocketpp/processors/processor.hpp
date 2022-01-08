@@ -65,22 +65,22 @@ namespace processor {
  * @return True if the request is a WebSocket handshake, false otherwise
  */
 template <typename request_type>
-bool is_websocket_handshake(request_type& r) {
+bool
+is_websocket_handshake(request_type& r)
+{
     using utility::ci_find_substr;
 
-    std::string const & upgrade_header = r.get_header("Upgrade");
+    std::string const& upgrade_header = r.get_header("Upgrade");
 
-    if (ci_find_substr(upgrade_header, constants::upgrade_token,
-        sizeof(constants::upgrade_token)-1) == upgrade_header.end())
-    {
+    if (ci_find_substr(upgrade_header, constants::upgrade_token, sizeof(constants::upgrade_token) - 1)
+        == upgrade_header.end()) {
         return false;
     }
 
-    std::string const & con_header = r.get_header("Connection");
+    std::string const& con_header = r.get_header("Connection");
 
-    if (ci_find_substr(con_header, constants::connection_token,
-        sizeof(constants::connection_token)-1) == con_header.end())
-    {
+    if (ci_find_substr(con_header, constants::connection_token, sizeof(constants::connection_token) - 1)
+        == con_header.end()) {
         return false;
     }
 
@@ -104,11 +104,13 @@ bool is_websocket_handshake(request_type& r) {
  * error.
  */
 template <typename request_type>
-int get_websocket_version(request_type& r) {
+int
+get_websocket_version(request_type& r)
+{
     if (!r.ready()) {
         return -2;
     }
-    
+
     if (r.get_header("Sec-WebSocket-Version").empty()) {
         return 0;
     }
@@ -133,7 +135,9 @@ int get_websocket_version(request_type& r) {
  * @return A uri_pointer that encodes the value of the host header.
  */
 template <typename request_type>
-uri_ptr get_uri_from_host(request_type & request, std::string scheme) {
+uri_ptr
+get_uri_from_host(request_type& request, std::string scheme)
+{
     std::string h = request.get_header("Host");
 
     size_t last_colon = h.rfind(":");
@@ -143,35 +147,34 @@ uri_ptr get_uri_from_host(request_type & request, std::string scheme) {
     // last : before ] = ipv6 literal with no port
     // : with no ] = hostname with port
     // : after ] = ipv6 literal with port
-    if (last_colon == std::string::npos ||
-        (last_sbrace != std::string::npos && last_sbrace > last_colon))
-    {
+    if (last_colon == std::string::npos || (last_sbrace != std::string::npos && last_sbrace > last_colon)) {
         return lib::make_shared<uri>(scheme, h, request.get_uri());
-    } else {
-        return lib::make_shared<uri>(scheme,
-                               h.substr(0,last_colon),
-                               h.substr(last_colon+1),
-                               request.get_uri());
+    }
+    else {
+        return lib::make_shared<uri>(scheme, h.substr(0, last_colon), h.substr(last_colon + 1), request.get_uri());
     }
 }
 
 /// WebSocket protocol processor abstract base class
 template <typename config>
 class processor {
-public:
+  public:
     typedef processor<config> type;
     typedef typename config::request_type request_type;
     typedef typename config::response_type response_type;
     typedef typename config::message_type::ptr message_ptr;
-    typedef std::pair<lib::error_code,std::string> err_str_pair;
+    typedef std::pair<lib::error_code, std::string> err_str_pair;
 
     explicit processor(bool secure, bool p_is_server)
       : m_secure(secure)
       , m_server(p_is_server)
       , m_max_message_size(config::max_message_size)
-    {}
+    {
+    }
 
-    virtual ~processor() {}
+    virtual ~processor()
+    {
+    }
 
     /// Get the protocol version of this processor
     virtual int get_version() const = 0;
@@ -185,10 +188,12 @@ public:
      *
      * @since 0.3.0
      */
-    size_t get_max_message_size() const {
+    size_t
+    get_max_message_size() const
+    {
         return m_max_message_size;
     }
-    
+
     /// Set maximum message size
     /**
      * Set maximum message size. Maximum message size determines the point at which the
@@ -200,7 +205,9 @@ public:
      *
      * @param new_value The value to set as the maximum message size.
      */
-    void set_max_message_size(size_t new_value) {
+    void
+    set_max_message_size(size_t new_value)
+    {
         m_max_message_size = new_value;
     }
 
@@ -209,7 +216,9 @@ public:
      * Compile time flag that indicates whether this processor has implemented
      * the permessage_compress extension. By default this is false.
      */
-    virtual bool has_permessage_compress() const {
+    virtual bool
+    has_permessage_compress() const
+    {
         return false;
     }
 
@@ -222,10 +231,12 @@ public:
      *
      * @param request The request or response headers to look at.
      */
-    virtual err_str_pair negotiate_extensions(request_type const &) {
+    virtual err_str_pair
+    negotiate_extensions(request_type const&)
+    {
         return err_str_pair();
     }
-    
+
     /// Initializes extensions based on the Sec-WebSocket-Extensions header
     /**
      * Reads the Sec-WebSocket-Extensions header and determines if any of the
@@ -236,7 +247,9 @@ public:
      *
      * @param response The request or response headers to look at.
      */
-    virtual err_str_pair negotiate_extensions(response_type const &) {
+    virtual err_str_pair
+    negotiate_extensions(response_type const&)
+    {
         return err_str_pair();
     }
 
@@ -249,7 +262,7 @@ public:
      * @return A status code, 0 on success, non-zero for specific sorts of
      * failure
      */
-    virtual lib::error_code validate_handshake(request_type const & request) const = 0;
+    virtual lib::error_code validate_handshake(request_type const& request) const = 0;
 
     /// Calculate the appropriate response for this websocket request
     /**
@@ -261,8 +274,8 @@ public:
      *
      * @return An error code, 0 on success, non-zero for other errors
      */
-    virtual lib::error_code process_handshake(request_type const & req,
-        std::string const & subprotocol, response_type& res) const = 0;
+    virtual lib::error_code
+    process_handshake(request_type const& req, std::string const& subprotocol, response_type& res) const = 0;
 
     /// Fill in an HTTP request for an outgoing connection handshake
     /**
@@ -270,8 +283,8 @@ public:
      *
      * @return An error code, 0 on success, non-zero for other errors
      */
-    virtual lib::error_code client_handshake_request(request_type & req,
-        uri_ptr uri, std::vector<std::string> const & subprotocols) const = 0;
+    virtual lib::error_code
+    client_handshake_request(request_type& req, uri_ptr uri, std::vector<std::string> const& subprotocols) const = 0;
 
     /// Validate the server's response to an outgoing handshake request
     /**
@@ -279,14 +292,13 @@ public:
      * @param res The reponse to generate
      * @return An error code, 0 on success, non-zero for other errors
      */
-    virtual lib::error_code validate_server_handshake_response(request_type
-        const & req, response_type & res) const = 0;
+    virtual lib::error_code validate_server_handshake_response(request_type const& req, response_type& res) const = 0;
 
     /// Given a completed response, get the raw bytes to put on the wire
-    virtual std::string get_raw(response_type const & request) const = 0;
+    virtual std::string get_raw(response_type const& request) const = 0;
 
     /// Return the value of the header containing the CORS origin.
-    virtual std::string const & get_origin(request_type const & request) const = 0;
+    virtual std::string const& get_origin(request_type const& request) const = 0;
 
     /// Extracts requested subprotocols from a handshake request
     /**
@@ -297,11 +309,11 @@ public:
      * @param [out] subprotocol_list A reference to a vector of strings to store
      * the results in.
      */
-    virtual lib::error_code extract_subprotocols(const request_type & req,
-        std::vector<std::string> & subprotocol_list) = 0;
+    virtual lib::error_code
+    extract_subprotocols(const request_type& req, std::vector<std::string>& subprotocol_list) = 0;
 
     /// Extracts client uri from a handshake request
-    virtual uri_ptr get_uri(request_type const & request) const = 0;
+    virtual uri_ptr get_uri(request_type const& request) const = 0;
 
     /// process new websocket connection bytes
     /**
@@ -313,7 +325,7 @@ public:
      * @param ec Reference to an error code to return any errors in
      * @return Number of bytes processed
      */
-    virtual size_t consume(uint8_t *buf, size_t len, lib::error_code & ec) = 0;
+    virtual size_t consume(uint8_t* buf, size_t len, lib::error_code& ec) = 0;
 
     /// Checks if there is a message ready
     /**
@@ -346,7 +358,9 @@ public:
     /// Retrieves the number of bytes presently needed by the processor
     /// This value may be used as a hint to the transport layer as to how many
     /// bytes to wait for before running consume again.
-    virtual size_t get_bytes_needed() const {
+    virtual size_t
+    get_bytes_needed() const
+    {
         return 1;
     }
 
@@ -366,8 +380,7 @@ public:
      * @param out The message buffer to prepare the ping in.
      * @return Status code, zero on success, non-zero on failure
      */
-    virtual lib::error_code prepare_ping(std::string const & in, message_ptr out) const 
-        = 0;
+    virtual lib::error_code prepare_ping(std::string const& in, message_ptr out) const = 0;
 
     /// Prepare a pong frame
     /**
@@ -378,8 +391,7 @@ public:
      * @param out The message buffer to prepare the pong in.
      * @return Status code, zero on success, non-zero on failure
      */
-    virtual lib::error_code prepare_pong(std::string const & in, message_ptr out) const 
-        = 0;
+    virtual lib::error_code prepare_pong(std::string const& in, message_ptr out) const = 0;
 
     /// Prepare a close frame
     /**
@@ -393,9 +405,10 @@ public:
      * @param out The message buffer to prepare the fame in
      * @return Status code, zero on success, non-zero on failure
      */
-    virtual lib::error_code prepare_close(close::status::value code,
-        std::string const & reason, message_ptr out) const = 0;
-protected:
+    virtual lib::error_code
+    prepare_close(close::status::value code, std::string const& reason, message_ptr out) const = 0;
+
+  protected:
     bool const m_secure;
     bool const m_server;
     size_t m_max_message_size;
@@ -404,4 +417,4 @@ protected:
 } // namespace processor
 } // namespace websocketpp
 
-#endif //WEBSOCKETPP_PROCESSOR_HPP
+#endif // WEBSOCKETPP_PROCESSOR_HPP

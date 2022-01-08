@@ -31,57 +31,50 @@ namespace transform {
 /**
  * @brief The module to perform Base64 decoding transformation.
  */
-class Base64Decode : public Transform
-{
-public:
-  /**
-   * @brief Create a base64 decoding module
-   *
-   * @p expectNewlineEvery64Bytes if true, expect newline after every 64 bytes, otherwise expect
-   *                              all input to be in a single line. Output is undefined if input
-   *                              does not conform to the requirement.
-   */
-  explicit
-  Base64Decode(bool expectNewlineEvery64Bytes = true);
+class Base64Decode : public Transform {
+  public:
+    /**
+     * @brief Create a base64 decoding module
+     *
+     * @p expectNewlineEvery64Bytes if true, expect newline after every 64 bytes, otherwise expect
+     *                              all input to be in a single line. Output is undefined if input
+     *                              does not conform to the requirement.
+     */
+    explicit Base64Decode(bool expectNewlineEvery64Bytes = true);
 
-  ~Base64Decode();
+    ~Base64Decode();
 
-private:
-  /**
-   * @brief Read partial transformation results into output buffer and write them into next module.
-   */
-  void
-  preTransform() final;
+  private:
+    /**
+     * @brief Read partial transformation results into output buffer and write them into next module.
+     */
+    void preTransform() final;
 
-  /**
-   * @brief Decode data @p buf in base64 format
-   *
-   * @return number of bytes that have been accepted by the converter
-   */
-  size_t
-  convert(const uint8_t* buf, size_t size) final;
+    /**
+     * @brief Decode data @p buf in base64 format
+     *
+     * @return number of bytes that have been accepted by the converter
+     */
+    size_t convert(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize base64 decoding
-   *
-   * This method with read all decoding results from the converter and write them into next module.
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize base64 decoding
+     *
+     * This method with read all decoding results from the converter and write them into next module.
+     */
+    void finalize() final;
 
-  /**
-   * @brief Try to fill partial decoding result into output buffer.
-   */
-  void
-  fillOutputBuffer();
+    /**
+     * @brief Try to fill partial decoding result into output buffer.
+     */
+    void fillOutputBuffer();
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
-unique_ptr<Transform>
-base64Decode(bool expectNewlineEvery64Bytes = true);
+unique_ptr<Transform> base64Decode(bool expectNewlineEvery64Bytes = true);
 
 } // namespace transform
 } // namespace security

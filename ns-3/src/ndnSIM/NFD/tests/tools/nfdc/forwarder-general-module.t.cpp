@@ -84,42 +84,43 @@ General NFD status:
               nOutNacks=26762
     nSatisfiedInterests=123
   nUnsatisfiedInterests=321
-)TEXT").substr(1);
+)TEXT")
+                                  .substr(1);
 
 BOOST_AUTO_TEST_CASE(Status)
 {
-  this->fetchStatus();
-  ForwarderStatus payload;
-  payload.setNfdVersion("0.4.1-1-g704430c")
-         .setStartTimestamp(time::fromUnixTimestamp(1466781226856_ms))
-         .setCurrentTimestamp(time::fromUnixTimestamp(1468778154109_ms))
-         .setNNameTreeEntries(668)
-         .setNFibEntries(70)
-         .setNPitEntries(7)
-         .setNMeasurementsEntries(1)
-         .setNCsEntries(65536)
-         .setNInInterests(20699052)
-         .setNInData(5598070)
-         .setNInNacks(7230)
-         .setNOutInterests(36501092)
-         .setNOutData(5671942)
-         .setNOutNacks(26762)
-         .setNSatisfiedInterests(123)
-         .setNUnsatisfiedInterests(321);
-  this->sendDataset("/localhost/nfd/status/general", payload);
-  this->prepareStatusOutput();
+    this->fetchStatus();
+    ForwarderStatus payload;
+    payload.setNfdVersion("0.4.1-1-g704430c")
+      .setStartTimestamp(time::fromUnixTimestamp(1466781226856_ms))
+      .setCurrentTimestamp(time::fromUnixTimestamp(1468778154109_ms))
+      .setNNameTreeEntries(668)
+      .setNFibEntries(70)
+      .setNPitEntries(7)
+      .setNMeasurementsEntries(1)
+      .setNCsEntries(65536)
+      .setNInInterests(20699052)
+      .setNInData(5598070)
+      .setNInNacks(7230)
+      .setNOutInterests(36501092)
+      .setNOutData(5671942)
+      .setNOutNacks(26762)
+      .setNSatisfiedInterests(123)
+      .setNUnsatisfiedInterests(321);
+    this->sendDataset("/localhost/nfd/status/general", payload);
+    this->prepareStatusOutput();
 
-  BOOST_CHECK(statusXml.is_equal(STATUS_XML));
-  BOOST_CHECK(statusText.is_equal(STATUS_TEXT));
+    BOOST_CHECK(statusXml.is_equal(STATUS_XML));
+    BOOST_CHECK(statusText.is_equal(STATUS_TEXT));
 }
 
 BOOST_AUTO_TEST_CASE(StatusNoNfdId)
 {
-  this->fetchStatus();
-  ForwarderStatus payload;
-  payload.setNfdVersion("0.4.1-1-g704430c");
-  this->sendDataset("/localhost/nfd/status/general", payload);
-  BOOST_CHECK_NO_THROW(this->prepareStatusOutput());
+    this->fetchStatus();
+    ForwarderStatus payload;
+    payload.setNfdVersion("0.4.1-1-g704430c");
+    this->sendDataset("/localhost/nfd/status/general", payload);
+    BOOST_CHECK_NO_THROW(this->prepareStatusOutput());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestForwarderGeneralModule

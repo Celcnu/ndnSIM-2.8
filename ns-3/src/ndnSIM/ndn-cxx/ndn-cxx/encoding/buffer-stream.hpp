@@ -35,20 +35,17 @@ namespace detail {
 
 /** @brief (implementation detail) a Boost.Iostreams.Sink which appends to an \p ndn::Buffer
  */
-class BufferAppendDevice
-{
-public:
-  typedef char char_type;
-  typedef boost::iostreams::sink_tag category;
+class BufferAppendDevice {
+  public:
+    typedef char char_type;
+    typedef boost::iostreams::sink_tag category;
 
-  explicit
-  BufferAppendDevice(Buffer& container);
+    explicit BufferAppendDevice(Buffer& container);
 
-  std::streamsize
-  write(const char_type* s, std::streamsize n);
+    std::streamsize write(const char_type* s, std::streamsize n);
 
-protected:
-  Buffer& m_container;
+  protected:
+    Buffer& m_container;
 };
 
 } // namespace detail
@@ -67,22 +64,20 @@ protected:
  *  shared_ptr<Buffer> buf = obuf.buf();
  *  @endcode
  */
-class OBufferStream : public boost::iostreams::stream<detail::BufferAppendDevice>
-{
-public:
-  OBufferStream();
+class OBufferStream : public boost::iostreams::stream<detail::BufferAppendDevice> {
+  public:
+    OBufferStream();
 
-  ~OBufferStream();
+    ~OBufferStream();
 
-  /**
-   * Flush written data to the stream and return shared pointer to the underlying buffer
-   */
-  shared_ptr<Buffer>
-  buf();
+    /**
+     * Flush written data to the stream and return shared pointer to the underlying buffer
+     */
+    shared_ptr<Buffer> buf();
 
-private:
-  BufferPtr m_buffer;
-  detail::BufferAppendDevice m_device;
+  private:
+    BufferPtr m_buffer;
+    detail::BufferAppendDevice m_device;
 };
 
 } // namespace ndn

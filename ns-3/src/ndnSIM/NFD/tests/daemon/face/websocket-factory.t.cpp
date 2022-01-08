@@ -32,16 +32,15 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-class WebSocketFactoryFixture : public FaceSystemFactoryFixture<WebSocketFactory>
-{
-protected:
-  shared_ptr<WebSocketChannel>
-  createChannel(const std::string& localIp, const std::string& localPort)
-  {
-    websocket::Endpoint endpoint(boost::asio::ip::address::from_string(localIp),
-                                 boost::lexical_cast<uint16_t>(localPort));
-    return factory.createChannel(endpoint);
-  }
+class WebSocketFactoryFixture : public FaceSystemFactoryFixture<WebSocketFactory> {
+  protected:
+    shared_ptr<WebSocketChannel>
+    createChannel(const std::string& localIp, const std::string& localPort)
+    {
+        websocket::Endpoint endpoint(boost::asio::ip::address::from_string(localIp),
+                                     boost::lexical_cast<uint16_t>(localPort));
+        return factory.createChannel(endpoint);
+    }
 };
 
 BOOST_AUTO_TEST_SUITE(Face)
@@ -51,25 +50,24 @@ BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(Defaults)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  checkChannelListEqual(factory, {"ws://0.0.0.0:9696", "ws://[::]:9696"});
-  auto channels = factory.getChannels();
-  BOOST_CHECK(std::all_of(channels.begin(), channels.end(),
-                          [] (const auto& ch) { return ch->isListening(); }));
+    checkChannelListEqual(factory, {"ws://0.0.0.0:9696", "ws://[::]:9696"});
+    auto channels = factory.getChannels();
+    BOOST_CHECK(std::all_of(channels.begin(), channels.end(), [](const auto& ch) { return ch->isListening(); }));
 }
 
 BOOST_AUTO_TEST_CASE(DisableListen)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -80,15 +78,15 @@ BOOST_AUTO_TEST_CASE(DisableListen)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
+    BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(DisableV4)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -100,15 +98,15 @@ BOOST_AUTO_TEST_CASE(DisableV4)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  checkChannelListEqual(factory, {"ws://[::]:7001"});
+    checkChannelListEqual(factory, {"ws://[::]:7001"});
 }
 
 BOOST_AUTO_TEST_CASE(DisableV6)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -120,15 +118,15 @@ BOOST_AUTO_TEST_CASE(DisableV6)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  checkChannelListEqual(factory, {"ws://0.0.0.0:7001"});
+    checkChannelListEqual(factory, {"ws://0.0.0.0:7001"});
 }
 
 BOOST_AUTO_TEST_CASE(ChangePort)
 {
-  const std::string CONFIG1 = R"CONFIG(
+    const std::string CONFIG1 = R"CONFIG(
     face_system
     {
       websocket
@@ -138,10 +136,10 @@ BOOST_AUTO_TEST_CASE(ChangePort)
     }
   )CONFIG";
 
-  parseConfig(CONFIG1, false);
-  checkChannelListEqual(factory, {"ws://0.0.0.0:9001", "ws://[::]:9001"});
+    parseConfig(CONFIG1, false);
+    checkChannelListEqual(factory, {"ws://0.0.0.0:9001", "ws://[::]:9001"});
 
-  const std::string CONFIG2 = R"CONFIG(
+    const std::string CONFIG2 = R"CONFIG(
     face_system
     {
       websocket
@@ -151,28 +149,27 @@ BOOST_AUTO_TEST_CASE(ChangePort)
     }
   )CONFIG";
 
-  parseConfig(CONFIG2, false);
-  checkChannelListEqual(factory, {"ws://0.0.0.0:9001", "ws://[::]:9001",
-                                  "ws://0.0.0.0:9002", "ws://[::]:9002"});
+    parseConfig(CONFIG2, false);
+    checkChannelListEqual(factory, {"ws://0.0.0.0:9001", "ws://[::]:9001", "ws://0.0.0.0:9002", "ws://[::]:9002"});
 }
 
 BOOST_AUTO_TEST_CASE(Omitted)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
+    BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(AllDisabled)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -183,13 +180,13 @@ BOOST_AUTO_TEST_CASE(AllDisabled)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(BadListen)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -199,15 +196,15 @@ BOOST_AUTO_TEST_CASE(BadListen)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(BadPort, 2) // Bug #4489
 BOOST_AUTO_TEST_CASE(BadPort)
 {
-  // not a number
-  const std::string CONFIG1 = R"CONFIG(
+    // not a number
+    const std::string CONFIG1 = R"CONFIG(
     face_system
     {
       websocket
@@ -217,11 +214,11 @@ BOOST_AUTO_TEST_CASE(BadPort)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
 
-  // negative number
-  const std::string CONFIG2 = R"CONFIG(
+    // negative number
+    const std::string CONFIG2 = R"CONFIG(
     face_system
     {
       websocket
@@ -231,11 +228,11 @@ BOOST_AUTO_TEST_CASE(BadPort)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
 
-  // out of range
-  const std::string CONFIG3 = R"CONFIG(
+    // out of range
+    const std::string CONFIG3 = R"CONFIG(
     face_system
     {
       websocket
@@ -245,13 +242,13 @@ BOOST_AUTO_TEST_CASE(BadPort)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG3, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG3, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG3, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG3, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(UnknownOption)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       websocket
@@ -261,57 +258,51 @@ BOOST_AUTO_TEST_CASE(UnknownOption)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig
 
 BOOST_AUTO_TEST_CASE(GetChannels)
 {
-  BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
+    BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
 
-  std::set<std::string> expected;
-  expected.insert(createChannel("127.0.0.1", "20070")->getUri().toString());
-  expected.insert(createChannel("127.0.0.1", "20071")->getUri().toString());
-  expected.insert(createChannel("::1", "20071")->getUri().toString());
-  checkChannelListEqual(factory, expected);
+    std::set<std::string> expected;
+    expected.insert(createChannel("127.0.0.1", "20070")->getUri().toString());
+    expected.insert(createChannel("127.0.0.1", "20071")->getUri().toString());
+    expected.insert(createChannel("::1", "20071")->getUri().toString());
+    checkChannelListEqual(factory, expected);
 }
 
 BOOST_AUTO_TEST_CASE(CreateChannel)
 {
-  auto channel1 = createChannel("127.0.0.1", "20070");
-  auto channel1a = createChannel("127.0.0.1", "20070");
-  BOOST_CHECK_EQUAL(channel1, channel1a);
-  BOOST_CHECK_EQUAL(channel1->getUri().toString(), "ws://127.0.0.1:20070");
+    auto channel1 = createChannel("127.0.0.1", "20070");
+    auto channel1a = createChannel("127.0.0.1", "20070");
+    BOOST_CHECK_EQUAL(channel1, channel1a);
+    BOOST_CHECK_EQUAL(channel1->getUri().toString(), "ws://127.0.0.1:20070");
 
-  auto channel2 = createChannel("127.0.0.1", "20071");
-  BOOST_CHECK_NE(channel1, channel2);
+    auto channel2 = createChannel("127.0.0.1", "20071");
+    BOOST_CHECK_NE(channel1, channel2);
 
-  auto channel3 = createChannel("::1", "20071");
-  BOOST_CHECK_NE(channel2, channel3);
-  BOOST_CHECK_EQUAL(channel3->getUri().toString(), "ws://[::1]:20071");
+    auto channel3 = createChannel("::1", "20071");
+    BOOST_CHECK_NE(channel2, channel3);
+    BOOST_CHECK_EQUAL(channel3->getUri().toString(), "ws://[::1]:20071");
 }
 
 BOOST_AUTO_TEST_CASE(UnsupportedCreateFace)
 {
-  createFace(factory,
-             FaceUri("ws://127.0.0.1:20070"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("ws://127.0.0.1:20070"), {},
+               {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 
-  createFace(factory,
-             FaceUri("ws://127.0.0.1:20070"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("ws://127.0.0.1:20070"), {},
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 
-  createFace(factory,
-             FaceUri("ws://127.0.0.1:20070"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("ws://127.0.0.1:20070"), {},
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestWebSocketFactory

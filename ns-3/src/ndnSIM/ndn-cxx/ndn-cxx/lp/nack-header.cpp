@@ -29,29 +29,29 @@ namespace lp {
 std::ostream&
 operator<<(std::ostream& os, NackReason reason)
 {
-  switch (reason) {
-  case NackReason::CONGESTION:
-    return os << "Congestion";
-  case NackReason::DUPLICATE:
-    return os << "Duplicate";
-  case NackReason::NO_ROUTE:
-    return os << "NoRoute";
-  default:
-    return os << "None";
-  }
+    switch (reason) {
+        case NackReason::CONGESTION:
+            return os << "Congestion";
+        case NackReason::DUPLICATE:
+            return os << "Duplicate";
+        case NackReason::NO_ROUTE:
+            return os << "NoRoute";
+        default:
+            return os << "None";
+    }
 }
 
 bool
 isLessSevere(lp::NackReason x, lp::NackReason y)
 {
-  if (x == lp::NackReason::NONE) {
-    return false;
-  }
-  if (y == lp::NackReason::NONE) {
-    return true;
-  }
+    if (x == lp::NackReason::NONE) {
+        return false;
+    }
+    if (y == lp::NackReason::NONE) {
+        return true;
+    }
 
-  return to_underlying(x) < to_underlying(y);
+    return to_underlying(x) < to_underlying(y);
 }
 
 NackHeader::NackHeader()
@@ -61,18 +61,18 @@ NackHeader::NackHeader()
 
 NackHeader::NackHeader(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 NackHeader::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t length = 0;
-  length += prependNonNegativeIntegerBlock(encoder, tlv::NackReason, static_cast<uint32_t>(m_reason));
-  length += encoder.prependVarNumber(length);
-  length += encoder.prependVarNumber(tlv::Nack);
-  return length;
+    size_t length = 0;
+    length += prependNonNegativeIntegerBlock(encoder, tlv::NackReason, static_cast<uint32_t>(m_reason));
+    length += encoder.prependVarNumber(length);
+    length += encoder.prependVarNumber(tlv::Nack);
+    return length;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(NackHeader);
@@ -80,63 +80,63 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(NackHeader);
 const Block&
 NackHeader::wireEncode() const
 {
-  if (m_wire.hasWire()) {
+    if (m_wire.hasWire()) {
+        return m_wire;
+    }
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+
     return m_wire;
-  }
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-
-  return m_wire;
 }
 
 void
 NackHeader::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::Nack) {
-    NDN_THROW(ndn::tlv::Error("Nack", wire.type()));
-  }
-
-  m_wire = wire;
-  m_wire.parse();
-  m_reason = NackReason::NONE;
-
-  if (m_wire.elements_size() > 0) {
-    Block::element_const_iterator it = m_wire.elements_begin();
-
-    if (it->type() == tlv::NackReason) {
-      m_reason = static_cast<NackReason>(readNonNegativeInteger(*it));
+    if (wire.type() != tlv::Nack) {
+        NDN_THROW(ndn::tlv::Error("Nack", wire.type()));
     }
-    else {
-      NDN_THROW(ndn::tlv::Error("NackReason", it->type()));
+
+    m_wire = wire;
+    m_wire.parse();
+    m_reason = NackReason::NONE;
+
+    if (m_wire.elements_size() > 0) {
+        Block::element_const_iterator it = m_wire.elements_begin();
+
+        if (it->type() == tlv::NackReason) {
+            m_reason = static_cast<NackReason>(readNonNegativeInteger(*it));
+        }
+        else {
+            NDN_THROW(ndn::tlv::Error("NackReason", it->type()));
+        }
     }
-  }
 }
 
 NackReason
 NackHeader::getReason() const
 {
-  switch (m_reason) {
-  case NackReason::CONGESTION:
-  case NackReason::DUPLICATE:
-  case NackReason::NO_ROUTE:
-    return m_reason;
-  default:
-    return NackReason::NONE;
-  }
+    switch (m_reason) {
+        case NackReason::CONGESTION:
+        case NackReason::DUPLICATE:
+        case NackReason::NO_ROUTE:
+            return m_reason;
+        default:
+            return NackReason::NONE;
+    }
 }
 
 NackHeader&
 NackHeader::setReason(NackReason reason)
 {
-  m_reason = reason;
-  m_wire.reset();
-  return *this;
+    m_reason = reason;
+    m_wire.reset();
+    return *this;
 }
 
 } // namespace lp

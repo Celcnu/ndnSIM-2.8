@@ -34,32 +34,26 @@ namespace face {
 /**
  * @brief A unicast Transport that uses raw Ethernet II frames
  */
-class UnicastEthernetTransport final : public EthernetTransport
-{
-public:
-  /**
-   * @brief Creates an Ethernet-based transport for unicast communication
-   */
-  UnicastEthernetTransport(const ndn::net::NetworkInterface& localEndpoint,
-                           const ethernet::Address& remoteEndpoint,
-                           ndn::nfd::FacePersistency persistency,
-                           time::nanoseconds idleTimeout,
-                           optional<ssize_t> overrideMtu = {});
+class UnicastEthernetTransport final : public EthernetTransport {
+  public:
+    /**
+     * @brief Creates an Ethernet-based transport for unicast communication
+     */
+    UnicastEthernetTransport(const ndn::net::NetworkInterface& localEndpoint, const ethernet::Address& remoteEndpoint,
+                             ndn::nfd::FacePersistency persistency, time::nanoseconds idleTimeout,
+                             optional<ssize_t> overrideMtu = {});
 
-protected:
-  bool
-  canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
+  protected:
+    bool canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
 
-  void
-  afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
+    void afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
 
-private:
-  void
-  scheduleClosureWhenIdle();
+  private:
+    void scheduleClosureWhenIdle();
 
-private:
-  const time::nanoseconds m_idleTimeout;
-  scheduler::ScopedEventId m_closeIfIdleEvent;
+  private:
+    const time::nanoseconds m_idleTimeout;
+    scheduler::ScopedEventId m_closeIfIdleEvent;
 };
 
 } // namespace face

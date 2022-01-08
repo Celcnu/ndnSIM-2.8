@@ -67,36 +67,29 @@ namespace nfd {
  *  configuration reload, so that the correct defaults are applied in case
  *  tables section is omitted.
  */
-class TablesConfigSection : noncopyable
-{
-public:
-  explicit
-  TablesConfigSection(Forwarder& forwarder);
+class TablesConfigSection : noncopyable {
+  public:
+    explicit TablesConfigSection(Forwarder& forwarder);
 
-  void
-  setConfigFile(ConfigFile& configFile);
+    void setConfigFile(ConfigFile& configFile);
 
-  /** \brief apply default configuration, if tables section was omitted in configuration file
-   */
-  void
-  ensureConfigured();
+    /** \brief apply default configuration, if tables section was omitted in configuration file
+     */
+    void ensureConfigured();
 
-private:
-  void
-  processConfig(const ConfigSection& section, bool isDryRun);
+  private:
+    void processConfig(const ConfigSection& section, bool isDryRun);
 
-  void
-  processStrategyChoiceSection(const ConfigSection& section, bool isDryRun);
+    void processStrategyChoiceSection(const ConfigSection& section, bool isDryRun);
 
-  void
-  processNetworkRegionSection(const ConfigSection& section, bool isDryRun);
+    void processNetworkRegionSection(const ConfigSection& section, bool isDryRun);
 
-private:
-  static const size_t DEFAULT_CS_MAX_PACKETS;
+  private:
+    static const size_t DEFAULT_CS_MAX_PACKETS;
 
-  Forwarder& m_forwarder;
+    Forwarder& m_forwarder;
 
-  bool m_isConfigured;
+    bool m_isConfigured;
 };
 
 } // namespace nfd

@@ -45,120 +45,105 @@ class IdentityImpl;
  * The container is used to search/enumerate keys of an identity.
  * The container can be created only by detail::IdentityImpl.
  */
-class KeyContainer : noncopyable
-{
-public:
-  class const_iterator
-  {
+class KeyContainer : noncopyable {
   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = const Key;
-    using difference_type   = std::ptrdiff_t;
-    using pointer           = value_type*;
-    using reference         = value_type&;
+    class const_iterator {
+      public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = const Key;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
 
-    const_iterator();
+        const_iterator();
 
-    Key
-    operator*();
+        Key operator*();
 
-    const_iterator&
-    operator++();
+        const_iterator& operator++();
 
-    const_iterator
-    operator++(int);
+        const_iterator operator++(int);
 
-    bool
-    operator==(const const_iterator& other);
+        bool operator==(const const_iterator& other);
 
-    bool
-    operator!=(const const_iterator& other);
+        bool operator!=(const const_iterator& other);
+
+      private:
+        const_iterator(std::set<Name>::const_iterator it, const KeyContainer& container);
+
+      private:
+        std::set<Name>::const_iterator m_it;
+        const KeyContainer* m_container;
+
+        friend class KeyContainer;
+    };
+
+    typedef const_iterator iterator;
+
+  public:
+    const_iterator begin() const;
+
+    const_iterator end() const;
+
+    const_iterator find(const Name& keyName) const;
+
+    size_t size() const;
+
+    /**
+     * @brief Add @p key of @p keyLen bytes with @p keyName into the container
+     * @throw std::invalid_argument @p keyName does not match the identity
+     *
+     * If a key with the same name already exists, overwrite the key.
+     */
+    Key add(const uint8_t* key, size_t keyLen, const Name& keyName);
+
+    /**
+     * @brief Remove a key with @p keyName from the container
+     * @throw std::invalid_argument @p keyName does not match the identity
+     */
+    void remove(const Name& keyName);
+
+    /**
+     * @brief Get a key with @p keyName from the container
+     * @throw std::invalid_argument @p keyName does not match the identity
+     * @throw Pib::Error the key does not exist
+     */
+    Key get(const Name& keyName) const;
+
+    /**
+     * @brief Check if the container is consistent with the backend storage
+     *
+     * @note this method is heavyweight and should be used in debugging mode only.
+     */
+    bool isConsistent() const;
+
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /**
+       * @brief Create key container for @p identity
+       * @param pibImpl The PIB backend implementation.
+       */
+      KeyContainer(const Name& identity, shared_ptr<PibImpl> pibImpl);
+
+    const std::set<Name>&
+    getKeyNames() const
+    {
+        return m_keyNames;
+    }
+
+    const std::unordered_map<Name, shared_ptr<detail::KeyImpl>>&
+    getLoadedKeys() const
+    {
+        return m_keys;
+    }
 
   private:
-    const_iterator(std::set<Name>::const_iterator it, const KeyContainer& container);
+    Name m_identity;
+    std::set<Name> m_keyNames;
+    /// @brief Cache of loaded detail::KeyImpl.
+    mutable std::unordered_map<Name, shared_ptr<detail::KeyImpl>> m_keys;
 
-  private:
-    std::set<Name>::const_iterator m_it;
-    const KeyContainer* m_container;
+    shared_ptr<PibImpl> m_pib;
 
-    friend class KeyContainer;
-  };
-
-  typedef const_iterator iterator;
-
-public:
-  const_iterator
-  begin() const;
-
-  const_iterator
-  end() const;
-
-  const_iterator
-  find(const Name& keyName) const;
-
-  size_t
-  size() const;
-
-  /**
-   * @brief Add @p key of @p keyLen bytes with @p keyName into the container
-   * @throw std::invalid_argument @p keyName does not match the identity
-   *
-   * If a key with the same name already exists, overwrite the key.
-   */
-  Key
-  add(const uint8_t* key, size_t keyLen, const Name& keyName);
-
-  /**
-   * @brief Remove a key with @p keyName from the container
-   * @throw std::invalid_argument @p keyName does not match the identity
-   */
-  void
-  remove(const Name& keyName);
-
-  /**
-   * @brief Get a key with @p keyName from the container
-   * @throw std::invalid_argument @p keyName does not match the identity
-   * @throw Pib::Error the key does not exist
-   */
-  Key
-  get(const Name& keyName) const;
-
-  /**
-   * @brief Check if the container is consistent with the backend storage
-   *
-   * @note this method is heavyweight and should be used in debugging mode only.
-   */
-  bool
-  isConsistent() const;
-
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /**
-   * @brief Create key container for @p identity
-   * @param pibImpl The PIB backend implementation.
-   */
-  KeyContainer(const Name& identity, shared_ptr<PibImpl> pibImpl);
-
-  const std::set<Name>&
-  getKeyNames() const
-  {
-    return m_keyNames;
-  }
-
-  const std::unordered_map<Name, shared_ptr<detail::KeyImpl>>&
-  getLoadedKeys() const
-  {
-    return m_keys;
-  }
-
-private:
-  Name m_identity;
-  std::set<Name> m_keyNames;
-  /// @brief Cache of loaded detail::KeyImpl.
-  mutable std::unordered_map<Name, shared_ptr<detail::KeyImpl>> m_keys;
-
-  shared_ptr<PibImpl> m_pib;
-
-  friend class detail::IdentityImpl;
+    friend class detail::IdentityImpl;
 };
 
 } // namespace pib

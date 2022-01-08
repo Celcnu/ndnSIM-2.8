@@ -62,187 +62,168 @@ class BackEnd;
  *       check existence of private keys, get public keys for the private keys, sign, and decrypt
  *       the supplied buffers using managed private keys.
  */
-class Tpm : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class Tpm : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  ~Tpm();
+    ~Tpm();
 
-  std::string
-  getTpmLocator() const;
+    std::string getTpmLocator() const;
 
-  /**
-   * @brief Check if a private key exists.
-   *
-   * @param keyName The key name
-   * @return true if the key exists
-   */
-  bool
-  hasKey(const Name& keyName) const;
+    /**
+     * @brief Check if a private key exists.
+     *
+     * @param keyName The key name
+     * @return true if the key exists
+     */
+    bool hasKey(const Name& keyName) const;
 
-  /**
-   * @return The public portion of an asymmetric key with name @p keyName,
-   *         or nullptr if the key does not exist,
-   *
-   * The public key is in PKCS#8 format.
-   */
-  ConstBufferPtr
-  getPublicKey(const Name& keyName) const;
+    /**
+     * @return The public portion of an asymmetric key with name @p keyName,
+     *         or nullptr if the key does not exist,
+     *
+     * The public key is in PKCS#8 format.
+     */
+    ConstBufferPtr getPublicKey(const Name& keyName) const;
 
-  /**
-   * @brief Sign blob using the key with name @p keyName and using the digest @p digestAlgorithm.
-   *
-   * @return The signature, or nullptr if the key does not exist.
-   */
-  ConstBufferPtr
-  sign(const uint8_t* buf, size_t size, const Name& keyName, DigestAlgorithm digestAlgorithm) const;
+    /**
+     * @brief Sign blob using the key with name @p keyName and using the digest @p digestAlgorithm.
+     *
+     * @return The signature, or nullptr if the key does not exist.
+     */
+    ConstBufferPtr sign(const uint8_t* buf, size_t size, const Name& keyName, DigestAlgorithm digestAlgorithm) const;
 
-  /**
-   * @brief Verify blob using the key with name @p keyName and using the digest @p digestAlgorithm.
-   *
-   * @retval true the signature is valid
-   * @retval false the signature is not valid
-   * @retval indeterminate the key does not exist
-   */
-  boost::logic::tribool
-  verify(const uint8_t* buf, size_t bufLen, const uint8_t* sig, size_t sigLen,
-         const Name& keyName, DigestAlgorithm digestAlgorithm) const;
+    /**
+     * @brief Verify blob using the key with name @p keyName and using the digest @p digestAlgorithm.
+     *
+     * @retval true the signature is valid
+     * @retval false the signature is not valid
+     * @retval indeterminate the key does not exist
+     */
+    boost::logic::tribool verify(const uint8_t* buf, size_t bufLen, const uint8_t* sig, size_t sigLen,
+                                 const Name& keyName, DigestAlgorithm digestAlgorithm) const;
 
-  /**
-   * @brief Decrypt blob using the key with name @p keyName.
-   *
-   * @return The decrypted data, or nullptr if the key does not exist.
-   */
-  ConstBufferPtr
-  decrypt(const uint8_t* buf, size_t size, const Name& keyName) const;
+    /**
+     * @brief Decrypt blob using the key with name @p keyName.
+     *
+     * @return The decrypted data, or nullptr if the key does not exist.
+     */
+    ConstBufferPtr decrypt(const uint8_t* buf, size_t size, const Name& keyName) const;
 
-public: // Management
-  /**
-   * @brief Check if the TPM is in terminal mode.
-   */
-  bool
-  isTerminalMode() const;
+  public: // Management
+    /**
+     * @brief Check if the TPM is in terminal mode.
+     */
+    bool isTerminalMode() const;
 
-  /**
-   * @brief Set the terminal mode of the TPM.
-   *
-   * When in terminal mode, the TPM will not ask user permission from GUI.
-   */
-  void
-  setTerminalMode(bool isTerminal) const;
+    /**
+     * @brief Set the terminal mode of the TPM.
+     *
+     * When in terminal mode, the TPM will not ask user permission from GUI.
+     */
+    void setTerminalMode(bool isTerminal) const;
 
-  /**
-   * @return true if the TPM is locked, otherwise false.
-   */
-  bool
-  isTpmLocked() const;
+    /**
+     * @return true if the TPM is locked, otherwise false.
+     */
+    bool isTpmLocked() const;
 
-  /**
-   * @brief Unlock the TPM.
-   *
-   * @param password The password to unlock the TPM.
-   * @param passwordLength The password size.
-   */
-  NDN_CXX_NODISCARD bool
-  unlockTpm(const char* password, size_t passwordLength) const;
+    /**
+     * @brief Unlock the TPM.
+     *
+     * @param password The password to unlock the TPM.
+     * @param passwordLength The password size.
+     */
+    NDN_CXX_NODISCARD bool unlockTpm(const char* password, size_t passwordLength) const;
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /**
-   * @brief Create a new TPM instance with the specified @p location.
-   *
-   * @param scheme The scheme for the TPM
-   * @param location The location for the TPM
-   * @param impl The back-end implementation
-   */
-  Tpm(const std::string& scheme, const std::string& location, unique_ptr<BackEnd> impl);
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /**
+       * @brief Create a new TPM instance with the specified @p location.
+       *
+       * @param scheme The scheme for the TPM
+       * @param location The location for the TPM
+       * @param impl The back-end implementation
+       */
+      Tpm(const std::string& scheme, const std::string& location, unique_ptr<BackEnd> impl);
 
-  /**
-   * @brief Create key for @p identityName according to @p params.
-   *
-   * The created key is named as follows:
-   * - RSA and EC keys: `/<identityName>/KEY/<keyId>`
-   * - HMAC keys: `/<identityName>/<keyDigest>`
-   *
-   * @return The key name.
-   * @throw Error The key already exists or @p params is invalid.
-   */
-  Name
-  createKey(const Name& identityName, const KeyParams& params);
+    /**
+     * @brief Create key for @p identityName according to @p params.
+     *
+     * The created key is named as follows:
+     * - RSA and EC keys: `/<identityName>/KEY/<keyId>`
+     * - HMAC keys: `/<identityName>/<keyDigest>`
+     *
+     * @return The key name.
+     * @throw Error The key already exists or @p params is invalid.
+     */
+    Name createKey(const Name& identityName, const KeyParams& params);
 
-  /**
-   * @brief Delete a key pair with name @p keyName.
-   */
-  void
-  deleteKey(const Name& keyName);
+    /**
+     * @brief Delete a key pair with name @p keyName.
+     */
+    void deleteKey(const Name& keyName);
 
-  /**
-   * @brief Export a private key.
-   *
-   * Export a private key in encrypted PKCS #8 format.
-   *
-   * @param keyName The private key name
-   * @param pw The password to encrypt the private key
-   * @param pwLen The length of the password
-   * @return The encoded private key wrapper.
-   * @throw Error The key does not exist or it could not be exported.
-   */
-  ConstBufferPtr
-  exportPrivateKey(const Name& keyName, const char* pw, size_t pwLen) const;
+    /**
+     * @brief Export a private key.
+     *
+     * Export a private key in encrypted PKCS #8 format.
+     *
+     * @param keyName The private key name
+     * @param pw The password to encrypt the private key
+     * @param pwLen The length of the password
+     * @return The encoded private key wrapper.
+     * @throw Error The key does not exist or it could not be exported.
+     */
+    ConstBufferPtr exportPrivateKey(const Name& keyName, const char* pw, size_t pwLen) const;
 
-  /**
-   * @brief Import a private key.
-   *
-   * @param keyName The private key name
-   * @param pkcs8 The private key wrapper
-   * @param pkcs8Len The length of the private key wrapper
-   * @param pw The password to encrypt the private key
-   * @param pwLen The length of the password
-   * @throw Error The key could not be imported.
-   */
-  void
-  importPrivateKey(const Name& keyName, const uint8_t* pkcs8, size_t pkcs8Len,
-                   const char* pw, size_t pwLen);
+    /**
+     * @brief Import a private key.
+     *
+     * @param keyName The private key name
+     * @param pkcs8 The private key wrapper
+     * @param pkcs8Len The length of the private key wrapper
+     * @param pw The password to encrypt the private key
+     * @param pwLen The length of the password
+     * @throw Error The key could not be imported.
+     */
+    void importPrivateKey(const Name& keyName, const uint8_t* pkcs8, size_t pkcs8Len, const char* pw, size_t pwLen);
 
-  /**
-   * @brief Import a private key.
-   */
-  void
-  importPrivateKey(const Name& keyName, shared_ptr<transform::PrivateKey> key);
+    /**
+     * @brief Import a private key.
+     */
+    void importPrivateKey(const Name& keyName, shared_ptr<transform::PrivateKey> key);
 
-  /**
-   * @brief Clear the key cache.
-   *
-   * An empty cache can force Tpm to do key lookup in the back-end.
-   */
-  void
-  clearKeyCache()
-  {
-    m_keys.clear();
-  }
+    /**
+     * @brief Clear the key cache.
+     *
+     * An empty cache can force Tpm to do key lookup in the back-end.
+     */
+    void
+    clearKeyCache()
+    {
+        m_keys.clear();
+    }
 
-private:
-  /**
-   * @brief Internal KeyHandle lookup.
-   *
-   * @return A pointer to the handle of key @p keyName if it exists, otherwise nullptr.
-   */
-  const KeyHandle*
-  findKey(const Name& keyName) const;
+  private:
+    /**
+     * @brief Internal KeyHandle lookup.
+     *
+     * @return A pointer to the handle of key @p keyName if it exists, otherwise nullptr.
+     */
+    const KeyHandle* findKey(const Name& keyName) const;
 
-private:
-  std::string m_scheme;
-  std::string m_location;
+  private:
+    std::string m_scheme;
+    std::string m_location;
 
-  mutable std::unordered_map<Name, unique_ptr<KeyHandle>> m_keys;
+    mutable std::unordered_map<Name, unique_ptr<KeyHandle>> m_keys;
 
-  const unique_ptr<BackEnd> m_backEnd;
+    const unique_ptr<BackEnd> m_backEnd;
 
-  friend class v2::KeyChain;
+    friend class v2::KeyChain;
 };
 
 } // namespace tpm

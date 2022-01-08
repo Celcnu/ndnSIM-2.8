@@ -28,20 +28,16 @@
 
 namespace ndn {
 
-class RegexPseudoMatcher : public RegexMatcher
-{
-public:
-  RegexPseudoMatcher();
+class RegexPseudoMatcher : public RegexMatcher {
+  public:
+    RegexPseudoMatcher();
 
-  void
-  setMatchResult(const std::string& str);
+    void setMatchResult(const std::string& str);
 
-  void
-  resetMatchResult();
+    void resetMatchResult();
 
-protected:
-  void
-  compile() override;
+  protected:
+    void compile() override;
 };
 
 } // namespace ndn

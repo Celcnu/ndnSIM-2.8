@@ -47,17 +47,16 @@ namespace tests {
  *  \throw std::bad_cast strategy type is incompatible with S
  *  \return a reference to the strategy
  */
-template<typename S>
+template <typename S>
 typename std::enable_if<std::is_base_of<fw::Strategy, S>::value, S&>::type
-choose(Forwarder& forwarder, const Name& prefix = "/",
-       const Name& instanceName = S::getStrategyName())
+choose(Forwarder& forwarder, const Name& prefix = "/", const Name& instanceName = S::getStrategyName())
 {
-  StrategyChoice& sc = forwarder.getStrategyChoice();
-  auto insertRes = sc.insert(prefix, instanceName);
-  if (!insertRes) {
-    NDN_THROW(std::invalid_argument(boost::lexical_cast<std::string>(insertRes)));
-  }
-  return dynamic_cast<S&>(sc.findEffectiveStrategy(prefix));
+    StrategyChoice& sc = forwarder.getStrategyChoice();
+    auto insertRes = sc.insert(prefix, instanceName);
+    if (!insertRes) {
+        NDN_THROW(std::invalid_argument(boost::lexical_cast<std::string>(insertRes)));
+    }
+    return dynamic_cast<S&>(sc.findEffectiveStrategy(prefix));
 }
 
 } // namespace tests

@@ -48,12 +48,15 @@ namespace stub {
 /// Empty timer class to stub out for timer functionality that stub
 /// transport doesn't support
 struct timer {
-    void cancel() {}
+    void
+    cancel()
+    {
+    }
 };
 
 template <typename config>
-class connection : public lib::enable_shared_from_this< connection<config> > {
-public:
+class connection : public lib::enable_shared_from_this<connection<config>> {
+  public:
     /// Type of this connection transport component
     typedef connection<config> type;
     /// Type of a shared pointer to this connection transport component
@@ -72,14 +75,17 @@ public:
 
     typedef lib::shared_ptr<timer> timer_ptr;
 
-    explicit connection(bool is_server, const lib::shared_ptr<alog_type> & alog, const lib::shared_ptr<elog_type> & elog)
-      : m_alog(alog), m_elog(elog)
+    explicit connection(bool is_server, const lib::shared_ptr<alog_type>& alog, const lib::shared_ptr<elog_type>& elog)
+      : m_alog(alog)
+      , m_elog(elog)
     {
-        m_alog->write(log::alevel::devel,"stub con transport constructor");
+        m_alog->write(log::alevel::devel, "stub con transport constructor");
     }
 
     /// Get a shared pointer to this component
-    ptr get_shared() {
+    ptr
+    get_shared()
+    {
         return type::shared_from_this();
     }
 
@@ -91,7 +97,10 @@ public:
      *
      * @param value Whether or not this connection is secure.
      */
-    void set_secure(bool value) {}
+    void
+    set_secure(bool value)
+    {
+    }
 
     /// Tests whether or not the underlying transport is secure
     /**
@@ -99,7 +108,9 @@ public:
      *
      * @return Whether or not the underlying transport is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return false;
     }
 
@@ -115,7 +126,9 @@ public:
      *
      * @param u The uri to set
      */
-    void set_uri(uri_ptr) {}
+    void set_uri(uri_ptr)
+    {
+    }
 
     /// Set human readable remote endpoint address
     /**
@@ -131,7 +144,10 @@ public:
      *
      * @param value The remote endpoint address to set.
      */
-    void set_remote_endpoint(std::string value) {}
+    void
+    set_remote_endpoint(std::string value)
+    {
+    }
 
     /// Get human readable remote endpoint address
     /**
@@ -142,7 +158,9 @@ public:
      *
      * @return A string identifying the address of the remote endpoint
      */
-    std::string get_remote_endpoint() const {
+    std::string
+    get_remote_endpoint() const
+    {
         return "unknown (stub transport)";
     }
 
@@ -150,7 +168,9 @@ public:
     /**
      * @return The handle for this connection.
      */
-    connection_hdl get_handle() const {
+    connection_hdl
+    get_handle() const
+    {
         return connection_hdl();
     }
 
@@ -164,18 +184,23 @@ public:
      * @return A handle that can be used to cancel the timer if it is no longer
      * needed.
      */
-    timer_ptr set_timer(long duration, timer_handler handler) {
+    timer_ptr
+    set_timer(long duration, timer_handler handler)
+    {
         return timer_ptr();
     }
-protected:
+
+  protected:
     /// Initialize the connection transport
     /**
      * Initialize the connection's transport component.
      *
      * @param handler The `init_handler` to call when initialization is done
      */
-    void init(init_handler handler) {
-        m_alog->write(log::alevel::devel,"stub connection init");
+    void
+    init(init_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "stub connection init");
         handler(make_error_code(error::not_implemented));
     }
 
@@ -203,8 +228,8 @@ protected:
      * @param handler The callback to invoke when the operation is complete or
      * ends in an error
      */
-    void async_read_at_least(size_t num_bytes, char * buf, size_t len,
-        read_handler handler)
+    void
+    async_read_at_least(size_t num_bytes, char* buf, size_t len, read_handler handler)
     {
         m_alog->write(log::alevel::devel, "stub_con async_read_at_least");
         handler(make_error_code(error::not_implemented), 0);
@@ -222,8 +247,10 @@ protected:
      * @param len number of bytes to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(char const * buf, size_t len, write_handler handler) {
-        m_alog->write(log::alevel::devel,"stub_con async_write");
+    void
+    async_write(char const* buf, size_t len, write_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "stub_con async_write");
         handler(make_error_code(error::not_implemented));
     }
 
@@ -238,8 +265,10 @@ protected:
      * @param bufs vector of buffers to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(std::vector<buffer> const & bufs, write_handler handler) {
-        m_alog->write(log::alevel::devel,"stub_con async_write buffer list");
+    void
+    async_write(std::vector<buffer> const& bufs, write_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "stub_con async_write buffer list");
         handler(make_error_code(error::not_implemented));
     }
 
@@ -247,7 +276,10 @@ protected:
     /**
      * @param hdl The new handle
      */
-    void set_handle(connection_hdl hdl) {}
+    void
+    set_handle(connection_hdl hdl)
+    {
+    }
 
     /// Call given handler back within the transport's event system (if present)
     /**
@@ -260,7 +292,9 @@ protected:
      * @return Whether or not the transport was able to register the handler for
      * callback.
      */
-    lib::error_code dispatch(dispatch_handler handler) {
+    lib::error_code
+    dispatch(dispatch_handler handler)
+    {
         handler();
         return lib::error_code();
     }
@@ -269,15 +303,17 @@ protected:
     /**
      * @param h The `shutdown_handler` to call back when complete
      */
-    void async_shutdown(shutdown_handler handler) {
+    void
+    async_shutdown(shutdown_handler handler)
+    {
         handler(lib::error_code());
     }
-private:
+
+  private:
     // member variables!
     lib::shared_ptr<alog_type> m_alog;
     lib::shared_ptr<elog_type> m_elog;
 };
-
 
 } // namespace stub
 } // namespace transport

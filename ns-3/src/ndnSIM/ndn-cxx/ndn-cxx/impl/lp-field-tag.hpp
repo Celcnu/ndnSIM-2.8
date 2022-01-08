@@ -27,23 +27,23 @@
 
 namespace ndn {
 
-template<typename Field, typename Tag, typename Packet>
+template <typename Field, typename Tag, typename Packet>
 void
 addFieldFromTag(lp::Packet& lpPacket, const Packet& packet)
 {
-  shared_ptr<Tag> tag = static_cast<const TagHost&>(packet).getTag<Tag>();
-  if (tag != nullptr) {
-    lpPacket.add<Field>(*tag);
-  }
+    shared_ptr<Tag> tag = static_cast<const TagHost&>(packet).getTag<Tag>();
+    if (tag != nullptr) {
+        lpPacket.add<Field>(*tag);
+    }
 }
 
-template<typename Tag, typename Field, typename Packet>
+template <typename Tag, typename Field, typename Packet>
 void
 addTagFromField(Packet& packet, const lp::Packet& lpPacket)
 {
-  if (lpPacket.has<Field>()) {
-    packet.setTag(make_shared<Tag>(lpPacket.get<Field>()));
-  }
+    if (lpPacket.has<Field>()) {
+        packet.setTag(make_shared<Tag>(lpPacket.get<Field>()));
+    }
 }
 
 } // namespace ndn

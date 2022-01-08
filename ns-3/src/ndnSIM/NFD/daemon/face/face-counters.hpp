@@ -39,52 +39,50 @@ namespace face {
  *  get<T>() can be used to access extended counters provided by
  *  LinkService or Transport of the Face.
  */
-class FaceCounters
-{
-public:
-  FaceCounters(const LinkService::Counters& linkServiceCounters,
-               const Transport::Counters& transportCounters);
+class FaceCounters {
+  public:
+    FaceCounters(const LinkService::Counters& linkServiceCounters, const Transport::Counters& transportCounters);
 
-  /** \return counters provided by LinkService
-   *  \tparam T LinkService counters type
-   *  \throw std::bad_cast counters type mismatch
-   */
-  template<typename T>
-  typename std::enable_if<std::is_base_of<LinkService::Counters, T>::value, const T&>::type
-  get() const
-  {
-    return dynamic_cast<const T&>(m_linkServiceCounters);
-  }
+    /** \return counters provided by LinkService
+     *  \tparam T LinkService counters type
+     *  \throw std::bad_cast counters type mismatch
+     */
+    template <typename T>
+    typename std::enable_if<std::is_base_of<LinkService::Counters, T>::value, const T&>::type
+    get() const
+    {
+        return dynamic_cast<const T&>(m_linkServiceCounters);
+    }
 
-  /** \return counters provided by Transport
-   *  \tparam T Transport counters type
-   *  \throw std::bad_cast counters type mismatch
-   */
-  template<typename T>
-  typename std::enable_if<std::is_base_of<Transport::Counters, T>::value, const T&>::type
-  get() const
-  {
-    return dynamic_cast<const T&>(m_transportCounters);
-  }
+    /** \return counters provided by Transport
+     *  \tparam T Transport counters type
+     *  \throw std::bad_cast counters type mismatch
+     */
+    template <typename T>
+    typename std::enable_if<std::is_base_of<Transport::Counters, T>::value, const T&>::type
+    get() const
+    {
+        return dynamic_cast<const T&>(m_transportCounters);
+    }
 
-public:
-  const PacketCounter& nInInterests;
-  const PacketCounter& nOutInterests;
-  const PacketCounter& nDroppedInterests;
-  const PacketCounter& nInData;
-  const PacketCounter& nOutData;
-  const PacketCounter& nInNacks;
-  const PacketCounter& nOutNacks;
-  PacketCounter nKeptInterests;
+  public:
+    const PacketCounter& nInInterests;
+    const PacketCounter& nOutInterests;
+    const PacketCounter& nDroppedInterests;
+    const PacketCounter& nInData;
+    const PacketCounter& nOutData;
+    const PacketCounter& nInNacks;
+    const PacketCounter& nOutNacks;
+    PacketCounter nKeptInterests;
 
-  const PacketCounter& nInPackets;
-  const PacketCounter& nOutPackets;
-  const ByteCounter& nInBytes;
-  const ByteCounter& nOutBytes;
+    const PacketCounter& nInPackets;
+    const PacketCounter& nOutPackets;
+    const ByteCounter& nInBytes;
+    const ByteCounter& nOutBytes;
 
-private:
-  const LinkService::Counters& m_linkServiceCounters;
-  const Transport::Counters& m_transportCounters;
+  private:
+    const LinkService::Counters& m_linkServiceCounters;
+    const Transport::Counters& m_transportCounters;
 };
 
 } // namespace face

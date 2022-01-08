@@ -34,57 +34,57 @@ BOOST_AUTO_TEST_SUITE(TestCounter)
 
 BOOST_AUTO_TEST_CASE(PacketCnt)
 {
-  PacketCounter counter;
+    PacketCounter counter;
 
-  uint64_t observation = counter; // implicit conversion
-  BOOST_CHECK_EQUAL(observation, 0);
+    uint64_t observation = counter; // implicit conversion
+    BOOST_CHECK_EQUAL(observation, 0);
 
-  ++counter;
-  BOOST_CHECK_EQUAL(counter, 1);
-  ++counter;
-  ++counter;
-  BOOST_CHECK_EQUAL(counter, 3);
+    ++counter;
+    BOOST_CHECK_EQUAL(counter, 1);
+    ++counter;
+    ++counter;
+    BOOST_CHECK_EQUAL(counter, 3);
 
-  counter.set(2);
-  BOOST_CHECK_EQUAL(counter, 2);
+    counter.set(2);
+    BOOST_CHECK_EQUAL(counter, 2);
 }
 
 BOOST_AUTO_TEST_CASE(ByteCnt)
 {
-  ByteCounter counter;
+    ByteCounter counter;
 
-  uint64_t observation = counter; // implicit conversion
-  BOOST_CHECK_EQUAL(observation, 0);
+    uint64_t observation = counter; // implicit conversion
+    BOOST_CHECK_EQUAL(observation, 0);
 
-  counter += 20;
-  BOOST_CHECK_EQUAL(counter, 20);
-  counter += 80;
-  counter += 90;
-  BOOST_CHECK_EQUAL(counter, 190);
+    counter += 20;
+    BOOST_CHECK_EQUAL(counter, 20);
+    counter += 80;
+    counter += 90;
+    BOOST_CHECK_EQUAL(counter, 190);
 
-  counter.set(21);
-  BOOST_CHECK_EQUAL(counter, 21);
+    counter.set(21);
+    BOOST_CHECK_EQUAL(counter, 21);
 }
 
 BOOST_AUTO_TEST_CASE(SizeCnt)
 {
-  std::vector<int> v;
-  SizeCounter<std::vector<int>> counter1(&v);
-  SizeCounter<std::vector<int>> counter2;
-  counter2.observe(&v);
+    std::vector<int> v;
+    SizeCounter<std::vector<int>> counter1(&v);
+    SizeCounter<std::vector<int>> counter2;
+    counter2.observe(&v);
 
-  size_t observation1 = counter1; // implicit conversion
-  size_t observation2 = counter2;
-  BOOST_CHECK_EQUAL(observation1, 0);
-  BOOST_CHECK_EQUAL(observation2, 0);
+    size_t observation1 = counter1; // implicit conversion
+    size_t observation2 = counter2;
+    BOOST_CHECK_EQUAL(observation1, 0);
+    BOOST_CHECK_EQUAL(observation2, 0);
 
-  v.resize(249);
-  BOOST_CHECK_EQUAL(counter1, 249);
-  BOOST_CHECK_EQUAL(counter2, 249);
+    v.resize(249);
+    BOOST_CHECK_EQUAL(counter1, 249);
+    BOOST_CHECK_EQUAL(counter2, 249);
 
-  v.resize(98);
-  BOOST_CHECK_EQUAL(counter1, 98);
-  BOOST_CHECK_EQUAL(counter2, 98);
+    v.resize(98);
+    BOOST_CHECK_EQUAL(counter1, 98);
+    BOOST_CHECK_EQUAL(counter2, 98);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCounter

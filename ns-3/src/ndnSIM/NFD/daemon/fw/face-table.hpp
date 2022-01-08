@@ -35,74 +35,64 @@ namespace nfd {
 
 /** \brief container of all faces
  */
-class FaceTable : noncopyable
-{
-public:
-  FaceTable();
+class FaceTable : noncopyable {
+  public:
+    FaceTable();
 
-  /** \brief add a face
-   *
-   *  FaceTable obtains shared ownership of the face.
-   *  The channel or protocol factory that creates the face may retain ownership.
-   */
-  void
-  add(shared_ptr<Face> face);
+    /** \brief add a face
+     *
+     *  FaceTable obtains shared ownership of the face.
+     *  The channel or protocol factory that creates the face may retain ownership.
+     */
+    void add(shared_ptr<Face> face);
 
-  /** \brief add a special face with a reserved FaceId
-   */
-  void
-  addReserved(shared_ptr<Face> face, FaceId faceId);
+    /** \brief add a special face with a reserved FaceId
+     */
+    void addReserved(shared_ptr<Face> face, FaceId faceId);
 
-  /** \brief get face by FaceId
-   *  \return a face if found, nullptr if not found;
-   *          face->shared_from_this() can be used if shared_ptr<Face> is desired
-   */
-  Face*
-  get(FaceId id) const;
+    /** \brief get face by FaceId
+     *  \return a face if found, nullptr if not found;
+     *          face->shared_from_this() can be used if shared_ptr<Face> is desired
+     */
+    Face* get(FaceId id) const;
 
-  /** \return count of faces
-   */
-  size_t
-  size() const;
+    /** \return count of faces
+     */
+    size_t size() const;
 
-public: // enumeration
-  using FaceMap = std::map<FaceId, shared_ptr<Face>>;
-  using ForwardRange = boost::indirected_range<const boost::select_second_const_range<FaceMap>>;
+  public: // enumeration
+    using FaceMap = std::map<FaceId, shared_ptr<Face>>;
+    using ForwardRange = boost::indirected_range<const boost::select_second_const_range<FaceMap>>;
 
-  /** \brief ForwardIterator for Face&
-   */
-  using const_iterator = boost::range_iterator<ForwardRange>::type;
+    /** \brief ForwardIterator for Face&
+     */
+    using const_iterator = boost::range_iterator<ForwardRange>::type;
 
-  const_iterator
-  begin() const;
+    const_iterator begin() const;
 
-  const_iterator
-  end() const;
+    const_iterator end() const;
 
-public: // signals
-  /** \brief Fires immediately after a face is added.
-   */
-  signal::Signal<FaceTable, Face> afterAdd;
+  public: // signals
+    /** \brief Fires immediately after a face is added.
+     */
+    signal::Signal<FaceTable, Face> afterAdd;
 
-  /** \brief Fires immediately before a face is removed.
-   *
-   *  When this signal is emitted, the face is still in FaceTable and has a valid FaceId.
-   */
-  signal::Signal<FaceTable, Face> beforeRemove;
+    /** \brief Fires immediately before a face is removed.
+     *
+     *  When this signal is emitted, the face is still in FaceTable and has a valid FaceId.
+     */
+    signal::Signal<FaceTable, Face> beforeRemove;
 
-private:
-  void
-  addImpl(shared_ptr<Face> face, FaceId faceId);
+  private:
+    void addImpl(shared_ptr<Face> face, FaceId faceId);
 
-  void
-  remove(FaceId faceId);
+    void remove(FaceId faceId);
 
-  ForwardRange
-  getForwardRange() const;
+    ForwardRange getForwardRange() const;
 
-private:
-  FaceId m_lastFaceId;
-  FaceMap m_faces;
+  private:
+    FaceId m_lastFaceId;
+    FaceMap m_faces;
 };
 
 } // namespace nfd

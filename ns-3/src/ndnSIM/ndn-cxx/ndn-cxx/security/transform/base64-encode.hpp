@@ -31,60 +31,52 @@ namespace transform {
 /**
  * @brief The module to perform Base64 encoding transformation.
  */
-class Base64Encode : public Transform
-{
-public:
-  /**
-   * @brief Create a base64 encoding module
-   *
-   * @p needBreak if true, insert newline after every 64 bytes, otherwise no newline is inserted
-   */
-  explicit
-  Base64Encode(bool needBreak = true);
+class Base64Encode : public Transform {
+  public:
+    /**
+     * @brief Create a base64 encoding module
+     *
+     * @p needBreak if true, insert newline after every 64 bytes, otherwise no newline is inserted
+     */
+    explicit Base64Encode(bool needBreak = true);
 
-  ~Base64Encode();
+    ~Base64Encode();
 
-private:
-  /**
-   * @brief Read partial transformation result (if exists) from BIO
-   */
-  void
-  preTransform() final;
+  private:
+    /**
+     * @brief Read partial transformation result (if exists) from BIO
+     */
+    void preTransform() final;
 
-  /**
-   * @brief Encode @p data into base64 format.
-   * @return The number of input bytes that have been accepted by the converter.
-   */
-  size_t
-  convert(const uint8_t* data, size_t dataLen) final;
+    /**
+     * @brief Encode @p data into base64 format.
+     * @return The number of input bytes that have been accepted by the converter.
+     */
+    size_t convert(const uint8_t* data, size_t dataLen) final;
 
-  /**
-   * @brief Finalize base64 encoding
-   *
-   * This method with read all encoding results from the converter and write them into next module.
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize base64 encoding
+     *
+     * This method with read all encoding results from the converter and write them into next module.
+     */
+    void finalize() final;
 
-  /**
-   * @brief Fill output buffer with the transformation result from BIO.
-   */
-  void
-  fillOutputBuffer();
+    /**
+     * @brief Fill output buffer with the transformation result from BIO.
+     */
+    void fillOutputBuffer();
 
-  /**
-   * @return true if converter does not have partial result.
-   */
-  bool
-  isConverterEmpty();
+    /**
+     * @return true if converter does not have partial result.
+     */
+    bool isConverterEmpty();
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
-unique_ptr<Transform>
-base64Encode(bool needBreak = true);
+unique_ptr<Transform> base64Encode(bool needBreak = true);
 
 } // namespace transform
 } // namespace security

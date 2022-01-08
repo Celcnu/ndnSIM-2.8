@@ -30,57 +30,48 @@
 
 namespace nfd {
 
-class Network
-{
-public:
-  Network();
+class Network {
+  public:
+    Network();
 
-  Network(const boost::asio::ip::address& minAddress,
-          const boost::asio::ip::address& maxAddress);
+    Network(const boost::asio::ip::address& minAddress, const boost::asio::ip::address& maxAddress);
 
-  bool
-  doesContain(const boost::asio::ip::address& address) const
-  {
-    return m_minAddress <= address && address <= m_maxAddress;
-  }
+    bool
+    doesContain(const boost::asio::ip::address& address) const
+    {
+        return m_minAddress <= address && address <= m_maxAddress;
+    }
 
-  static const Network&
-  getMaxRangeV4();
+    static const Network& getMaxRangeV4();
 
-  static const Network&
-  getMaxRangeV6();
+    static const Network& getMaxRangeV6();
 
-  static bool
-  isValidCidr(const std::string& cidr);
+    static bool isValidCidr(const std::string& cidr);
 
-  bool
-  operator==(const Network& rhs) const
-  {
-    return m_minAddress == rhs.m_minAddress && m_maxAddress == rhs.m_maxAddress;
-  }
+    bool
+    operator==(const Network& rhs) const
+    {
+        return m_minAddress == rhs.m_minAddress && m_maxAddress == rhs.m_maxAddress;
+    }
 
-  bool
-  operator!=(const Network& rhs) const
-  {
-    return !(*this == rhs);
-  }
+    bool
+    operator!=(const Network& rhs) const
+    {
+        return !(*this == rhs);
+    }
 
-private:
-  boost::asio::ip::address m_minAddress;
-  boost::asio::ip::address m_maxAddress;
+  private:
+    boost::asio::ip::address m_minAddress;
+    boost::asio::ip::address m_maxAddress;
 
-  friend std::ostream&
-  operator<<(std::ostream& os, const Network& network);
+    friend std::ostream& operator<<(std::ostream& os, const Network& network);
 
-  friend std::istream&
-  operator>>(std::istream& is, Network& network);
+    friend std::istream& operator>>(std::istream& is, Network& network);
 };
 
-std::ostream&
-operator<<(std::ostream& os, const Network& network);
+std::ostream& operator<<(std::ostream& os, const Network& network);
 
-std::istream&
-operator>>(std::istream& is, Network& network);
+std::istream& operator>>(std::istream& is, Network& network);
 
 } // namespace nfd
 

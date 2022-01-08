@@ -41,48 +41,39 @@ namespace rib {
  *  asks the ReadvertisePolicy to make decision on whether to readvertise each new route and what
  *  prefix to readvertise as, and invokes a ReadvertiseDestination to send the commands.
  */
-class Readvertise : noncopyable
-{
-public:
-  Readvertise(Rib& rib,
-              unique_ptr<ReadvertisePolicy> policy,
-              unique_ptr<ReadvertiseDestination> destination);
+class Readvertise : noncopyable {
+  public:
+    Readvertise(Rib& rib, unique_ptr<ReadvertisePolicy> policy, unique_ptr<ReadvertiseDestination> destination);
 
-private:
-  void
-  afterAddRoute(const RibRouteRef& ribRoute);
+  private:
+    void afterAddRoute(const RibRouteRef& ribRoute);
 
-  void
-  beforeRemoveRoute(const RibRouteRef& ribRoute);
+    void beforeRemoveRoute(const RibRouteRef& ribRoute);
 
-  void
-  afterDestinationAvailable();
+    void afterDestinationAvailable();
 
-  void
-  afterDestinationUnavailable();
+    void afterDestinationUnavailable();
 
-  void
-  advertise(ReadvertisedRouteContainer::iterator rrIt);
+    void advertise(ReadvertisedRouteContainer::iterator rrIt);
 
-  void
-  withdraw(ReadvertisedRouteContainer::iterator rrIt);
+    void withdraw(ReadvertisedRouteContainer::iterator rrIt);
 
-private:
-  /** \brief maps from RIB route to readvertised route derived from RIB route(s)
-   */
-  using RouteRrIndex = std::map<RibRouteRef, ReadvertisedRouteContainer::iterator>;
+  private:
+    /** \brief maps from RIB route to readvertised route derived from RIB route(s)
+     */
+    using RouteRrIndex = std::map<RibRouteRef, ReadvertisedRouteContainer::iterator>;
 
-  static const time::milliseconds RETRY_DELAY_MIN;
-  static const time::milliseconds RETRY_DELAY_MAX;
+    static const time::milliseconds RETRY_DELAY_MIN;
+    static const time::milliseconds RETRY_DELAY_MAX;
 
-  unique_ptr<ReadvertisePolicy> m_policy;
-  unique_ptr<ReadvertiseDestination> m_destination;
+    unique_ptr<ReadvertisePolicy> m_policy;
+    unique_ptr<ReadvertiseDestination> m_destination;
 
-  ReadvertisedRouteContainer m_rrs;
-  RouteRrIndex m_routeToRr;
+    ReadvertisedRouteContainer m_rrs;
+    RouteRrIndex m_routeToRr;
 
-  signal::ScopedConnection m_addRouteConn;
-  signal::ScopedConnection m_removeRouteConn;
+    signal::ScopedConnection m_addRouteConn;
+    signal::ScopedConnection m_removeRouteConn;
 };
 
 } // namespace rib

@@ -43,90 +43,88 @@ BOOST_FIXTURE_TEST_SUITE(TestMulticastDiscovery, MockNfdMgmtFixture)
 
 BOOST_AUTO_TEST_CASE(Normal)
 {
-  this->processInterest = [this] (const Interest& interest) {
-    if (Name("/localhost/nfd/faces/query").isPrefixOf(interest.getName())) {
-      nfd::FaceStatus payload1, payload2;
-      payload1.setFaceId(860)
+    this->processInterest = [this](const Interest& interest) {
+        if (Name("/localhost/nfd/faces/query").isPrefixOf(interest.getName())) {
+            nfd::FaceStatus payload1, payload2;
+            payload1.setFaceId(860)
               .setRemoteUri("ether://[ff:ff:ff:ff:ff:ff]")
               .setLocalUri("dev://eth0")
               .setFaceScope(nfd::FACE_SCOPE_NON_LOCAL)
               .setFacePersistency(nfd::FACE_PERSISTENCY_PERMANENT)
               .setLinkType(nfd::LINK_TYPE_MULTI_ACCESS);
-      payload2.setFaceId(861)
+            payload2.setFaceId(861)
               .setRemoteUri("ether://[ff:ff:ff:ff:ff:ff]")
               .setLocalUri("dev://eth1")
               .setFaceScope(nfd::FACE_SCOPE_NON_LOCAL)
               .setFacePersistency(nfd::FACE_PERSISTENCY_PERMANENT)
               .setLinkType(nfd::LINK_TYPE_MULTI_ACCESS);
-      this->sendDataset(interest.getName(), payload1, payload2);
-      return;
-    }
+            this->sendDataset(interest.getName(), payload1, payload2);
+            return;
+        }
 
-    optional<ControlParameters> req = parseCommand(interest, "/localhost/nfd/rib/register");
-    if (req) {
-      BOOST_REQUIRE(req->hasName());
-      BOOST_CHECK_EQUAL(req->getName(), "/localhop/ndn-autoconf/hub");
-      BOOST_REQUIRE(req->hasFaceId());
+        optional<ControlParameters> req = parseCommand(interest, "/localhost/nfd/rib/register");
+        if (req) {
+            BOOST_REQUIRE(req->hasName());
+            BOOST_CHECK_EQUAL(req->getName(), "/localhop/ndn-autoconf/hub");
+            BOOST_REQUIRE(req->hasFaceId());
 
-      if (req->getFaceId() == 860) {
-        ControlParameters resp;
-        resp.setName("/localhop/ndn-autoconf/hub")
-            .setFaceId(860)
-            .setOrigin(nfd::ROUTE_ORIGIN_APP)
-            .setCost(1)
-            .setFlags(0);
-        this->succeedCommand(interest, resp);
-      }
-      else if (req->getFaceId() == 861) {
-        // no reply, but stage should continue when there is at least one successful registration
-      }
-      else {
-        BOOST_ERROR("unexpected rib/register command");
-      }
-      return;
-    }
+            if (req->getFaceId() == 860) {
+                ControlParameters resp;
+                resp.setName("/localhop/ndn-autoconf/hub")
+                  .setFaceId(860)
+                  .setOrigin(nfd::ROUTE_ORIGIN_APP)
+                  .setCost(1)
+                  .setFlags(0);
+                this->succeedCommand(interest, resp);
+            }
+            else if (req->getFaceId() == 861) {
+                // no reply, but stage should continue when there is at least one successful registration
+            }
+            else {
+                BOOST_ERROR("unexpected rib/register command");
+            }
+            return;
+        }
 
-    req = parseCommand(interest, "/localhost/nfd/strategy-choice/set");
-    if (req) {
-      BOOST_REQUIRE(req->hasName());
-      BOOST_CHECK_EQUAL(req->getName(), "/localhop/ndn-autoconf/hub");
-      BOOST_REQUIRE(req->hasStrategy());
-      BOOST_CHECK_EQUAL(req->getStrategy(), "/localhost/nfd/strategy/multicast");
+        req = parseCommand(interest, "/localhost/nfd/strategy-choice/set");
+        if (req) {
+            BOOST_REQUIRE(req->hasName());
+            BOOST_CHECK_EQUAL(req->getName(), "/localhop/ndn-autoconf/hub");
+            BOOST_REQUIRE(req->hasStrategy());
+            BOOST_CHECK_EQUAL(req->getStrategy(), "/localhost/nfd/strategy/multicast");
 
-      this->succeedCommand(interest, *req);
-      return;
-    }
+            this->succeedCommand(interest, *req);
+            return;
+        }
 
-    if (interest.getName() == "/localhop/ndn-autoconf/hub") {
-      const char FACEURI[] = "udp://router.example.net";
-      auto data = makeData(Name("/localhop/ndn-autoconf/hub").appendVersion());
-      data->setFreshnessPeriod(1_s);
-      data->setContent(makeBinaryBlock(tlv::nfd::Uri, FACEURI, ::strlen(FACEURI)));
-      face.receive(*data);
-      return;
-    }
+        if (interest.getName() == "/localhop/ndn-autoconf/hub") {
+            const char FACEURI[] = "udp://router.example.net";
+            auto data = makeData(Name("/localhop/ndn-autoconf/hub").appendVersion());
+            data->setFreshnessPeriod(1_s);
+            data->setContent(makeBinaryBlock(tlv::nfd::Uri, FACEURI, ::strlen(FACEURI)));
+            face.receive(*data);
+            return;
+        }
 
-    BOOST_ERROR("unexpected Interest " << interest);
-  };
+        BOOST_ERROR("unexpected Interest " << interest);
+    };
 
-  nfd::Controller controller(face, m_keyChain);
-  MulticastDiscovery stage(face, controller);
+    nfd::Controller controller(face, m_keyChain);
+    MulticastDiscovery stage(face, controller);
 
-  bool hasSuccess = false;
-  stage.onSuccess.connect([&hasSuccess] (const FaceUri& u) {
-    BOOST_CHECK(!hasSuccess);
-    hasSuccess = true;
+    bool hasSuccess = false;
+    stage.onSuccess.connect([&hasSuccess](const FaceUri& u) {
+        BOOST_CHECK(!hasSuccess);
+        hasSuccess = true;
 
-    BOOST_CHECK(u == FaceUri("udp://router.example.net"));
-  });
+        BOOST_CHECK(u == FaceUri("udp://router.example.net"));
+    });
 
-  stage.onFailure.connect([] (const std::string& reason) {
-    BOOST_ERROR("unexpected failure: " << reason);
-  });
+    stage.onFailure.connect([](const std::string& reason) { BOOST_ERROR("unexpected failure: " << reason); });
 
-  stage.start();
-  face.processEvents(20_s);
-  BOOST_CHECK(hasSuccess);
+    stage.start();
+    face.processEvents(20_s);
+    BOOST_CHECK(hasSuccess);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestMulticastDiscovery

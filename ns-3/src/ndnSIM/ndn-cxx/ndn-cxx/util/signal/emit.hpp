@@ -39,8 +39,7 @@ namespace signal {
 
 /** \brief (implementation detail) a filler for extra argument
  */
-class DummyExtraArg
-{
+class DummyExtraArg {
 };
 
 } // namespace signal
@@ -56,24 +55,22 @@ class DummyExtraArg
  *  \note The method is declared as a template, so that the macro doesn't need argument types.
  *        But only argument types that are compatible with Signal declaration will work.
  */
-#define DECLARE_SIGNAL_EMIT(signalName) \
-  template<typename ...TArgs> \
-  void emit_##signalName(const TArgs&... args) \
-  { \
-    signalName(args...); \
-  }
+#define DECLARE_SIGNAL_EMIT(signalName)                                                                                \
+    template <typename... TArgs>                                                                                       \
+    void emit_##signalName(const TArgs&... args)                                                                       \
+    {                                                                                                                  \
+        signalName(args...);                                                                                           \
+    }
 
 /** \brief (implementation detail) invokes emit_signalName method
  *  \note C99 requires at least one argument to be passed in __VA_ARGS__,
  *        thus a DummyExtraArg is expected at the end of __VA_ARGS__,
  *        which will be accepted but ignored by Signal::operator() overload.
  */
-#define NDN_CXX_SIGNAL_EMIT(signalName, ...) \
-  emit_##signalName(__VA_ARGS__)
+#define NDN_CXX_SIGNAL_EMIT(signalName, ...) emit_##signalName(__VA_ARGS__)
 
 /** \brief (implementation detail)
  */
-#define emitSignal(...) \
-  NDN_CXX_SIGNAL_EMIT(__VA_ARGS__, ::ndn::util::signal::DummyExtraArg())
+#define emitSignal(...) NDN_CXX_SIGNAL_EMIT(__VA_ARGS__, ::ndn::util::signal::DummyExtraArg())
 
 #endif // NDN_UTIL_SIGNAL_EMIT_HPP

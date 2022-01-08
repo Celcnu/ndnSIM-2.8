@@ -51,115 +51,115 @@ DeadNonceList::DeadNonceList(time::nanoseconds lifetime)
   , m_markInterval(m_lifetime / EXPECTED_MARK_COUNT)
   , m_adjustCapacityInterval(m_lifetime)
 {
-  if (m_lifetime < MIN_LIFETIME) {
-    NDN_THROW(std::invalid_argument("lifetime is less than MIN_LIFETIME"));
-  }
+    if (m_lifetime < MIN_LIFETIME) {
+        NDN_THROW(std::invalid_argument("lifetime is less than MIN_LIFETIME"));
+    }
 
-  for (size_t i = 0; i < EXPECTED_MARK_COUNT; ++i) {
-    m_queue.push_back(MARK);
-  }
+    for (size_t i = 0; i < EXPECTED_MARK_COUNT; ++i) {
+        m_queue.push_back(MARK);
+    }
 
-  m_markEvent = getScheduler().schedule(m_markInterval, [this] { mark(); });
-  m_adjustCapacityEvent = getScheduler().schedule(m_adjustCapacityInterval, [this] { adjustCapacity(); });
+    m_markEvent = getScheduler().schedule(m_markInterval, [this] { mark(); });
+    m_adjustCapacityEvent = getScheduler().schedule(m_adjustCapacityInterval, [this] { adjustCapacity(); });
 }
 
 DeadNonceList::~DeadNonceList()
 {
-  m_markEvent.cancel();
-  m_adjustCapacityEvent.cancel();
+    m_markEvent.cancel();
+    m_adjustCapacityEvent.cancel();
 
-  BOOST_ASSERT_MSG(DEFAULT_LIFETIME >= MIN_LIFETIME, "DEFAULT_LIFETIME is too small");
-  static_assert(INITIAL_CAPACITY >= MIN_CAPACITY, "INITIAL_CAPACITY is too small");
-  static_assert(INITIAL_CAPACITY <= MAX_CAPACITY, "INITIAL_CAPACITY is too large");
-  BOOST_ASSERT_MSG(static_cast<size_t>(MIN_CAPACITY * CAPACITY_UP) > MIN_CAPACITY,
-                   "CAPACITY_UP must be able to increase from MIN_CAPACITY");
-  BOOST_ASSERT_MSG(static_cast<size_t>(MAX_CAPACITY * CAPACITY_DOWN) < MAX_CAPACITY,
-                   "CAPACITY_DOWN must be able to decrease from MAX_CAPACITY");
-  BOOST_ASSERT_MSG(CAPACITY_UP > 1.0, "CAPACITY_UP must adjust up");
-  BOOST_ASSERT_MSG(CAPACITY_DOWN < 1.0, "CAPACITY_DOWN must adjust down");
-  static_assert(EVICT_LIMIT >= 1, "EVICT_LIMIT must be at least 1");
+    BOOST_ASSERT_MSG(DEFAULT_LIFETIME >= MIN_LIFETIME, "DEFAULT_LIFETIME is too small");
+    static_assert(INITIAL_CAPACITY >= MIN_CAPACITY, "INITIAL_CAPACITY is too small");
+    static_assert(INITIAL_CAPACITY <= MAX_CAPACITY, "INITIAL_CAPACITY is too large");
+    BOOST_ASSERT_MSG(static_cast<size_t>(MIN_CAPACITY * CAPACITY_UP) > MIN_CAPACITY,
+                     "CAPACITY_UP must be able to increase from MIN_CAPACITY");
+    BOOST_ASSERT_MSG(static_cast<size_t>(MAX_CAPACITY * CAPACITY_DOWN) < MAX_CAPACITY,
+                     "CAPACITY_DOWN must be able to decrease from MAX_CAPACITY");
+    BOOST_ASSERT_MSG(CAPACITY_UP > 1.0, "CAPACITY_UP must adjust up");
+    BOOST_ASSERT_MSG(CAPACITY_DOWN < 1.0, "CAPACITY_DOWN must adjust down");
+    static_assert(EVICT_LIMIT >= 1, "EVICT_LIMIT must be at least 1");
 }
 
 size_t
 DeadNonceList::size() const
 {
-  return m_queue.size() - this->countMarks();
+    return m_queue.size() - this->countMarks();
 }
 
 bool
 DeadNonceList::has(const Name& name, uint32_t nonce) const
 {
-  Entry entry = DeadNonceList::makeEntry(name, nonce);
-  return m_ht.find(entry) != m_ht.end();
+    Entry entry = DeadNonceList::makeEntry(name, nonce);
+    return m_ht.find(entry) != m_ht.end();
 }
 
 void
 DeadNonceList::add(const Name& name, uint32_t nonce)
 {
-  Entry entry = DeadNonceList::makeEntry(name, nonce);
-  m_queue.push_back(entry);
+    Entry entry = DeadNonceList::makeEntry(name, nonce);
+    m_queue.push_back(entry);
 
-  this->evictEntries();
+    this->evictEntries();
 }
 
 DeadNonceList::Entry
 DeadNonceList::makeEntry(const Name& name, uint32_t nonce)
 {
-  Block nameWire = name.wireEncode();
-  return CityHash64WithSeed(reinterpret_cast<const char*>(nameWire.wire()), nameWire.size(),
-                            static_cast<uint64_t>(nonce));
+    Block nameWire = name.wireEncode();
+    return CityHash64WithSeed(reinterpret_cast<const char*>(nameWire.wire()), nameWire.size(),
+                              static_cast<uint64_t>(nonce));
 }
 
 size_t
 DeadNonceList::countMarks() const
 {
-  return m_ht.count(MARK);
+    return m_ht.count(MARK);
 }
 
 void
 DeadNonceList::mark()
 {
-  m_queue.push_back(MARK);
-  size_t nMarks = this->countMarks();
-  m_actualMarkCounts.insert(nMarks);
+    m_queue.push_back(MARK);
+    size_t nMarks = this->countMarks();
+    m_actualMarkCounts.insert(nMarks);
 
-  NFD_LOG_TRACE("mark nMarks=" << nMarks);
+    NFD_LOG_TRACE("mark nMarks=" << nMarks);
 
-  m_markEvent = getScheduler().schedule(m_markInterval, [this] { mark(); });
+    m_markEvent = getScheduler().schedule(m_markInterval, [this] { mark(); });
 }
 
 void
 DeadNonceList::adjustCapacity()
 {
-  auto equalRange = m_actualMarkCounts.equal_range(EXPECTED_MARK_COUNT);
-  if (equalRange.second == m_actualMarkCounts.begin()) {
-    // all counts are above expected count, adjust down
-    m_capacity = std::max(MIN_CAPACITY, static_cast<size_t>(m_capacity * CAPACITY_DOWN));
-    NFD_LOG_TRACE("adjustCapacity DOWN capacity=" << m_capacity);
-  }
-  else if (equalRange.first == m_actualMarkCounts.end()) {
-    // all counts are below expected count, adjust up
-    m_capacity = std::min(MAX_CAPACITY, static_cast<size_t>(m_capacity * CAPACITY_UP));
-    NFD_LOG_TRACE("adjustCapacity UP capacity=" << m_capacity);
-  }
+    auto equalRange = m_actualMarkCounts.equal_range(EXPECTED_MARK_COUNT);
+    if (equalRange.second == m_actualMarkCounts.begin()) {
+        // all counts are above expected count, adjust down
+        m_capacity = std::max(MIN_CAPACITY, static_cast<size_t>(m_capacity * CAPACITY_DOWN));
+        NFD_LOG_TRACE("adjustCapacity DOWN capacity=" << m_capacity);
+    }
+    else if (equalRange.first == m_actualMarkCounts.end()) {
+        // all counts are below expected count, adjust up
+        m_capacity = std::min(MAX_CAPACITY, static_cast<size_t>(m_capacity * CAPACITY_UP));
+        NFD_LOG_TRACE("adjustCapacity UP capacity=" << m_capacity);
+    }
 
-  m_actualMarkCounts.clear();
-  this->evictEntries();
+    m_actualMarkCounts.clear();
+    this->evictEntries();
 
-  m_adjustCapacityEvent = getScheduler().schedule(m_adjustCapacityInterval, [this] { adjustCapacity(); });
+    m_adjustCapacityEvent = getScheduler().schedule(m_adjustCapacityInterval, [this] { adjustCapacity(); });
 }
 
 void
 DeadNonceList::evictEntries()
 {
-  ssize_t nOverCapacity = m_queue.size() - m_capacity;
-  if (nOverCapacity <= 0) // not over capacity
-    return;
+    ssize_t nOverCapacity = m_queue.size() - m_capacity;
+    if (nOverCapacity <= 0) // not over capacity
+        return;
 
-  for (ssize_t nEvict = std::min<ssize_t>(nOverCapacity, EVICT_LIMIT); nEvict > 0; --nEvict) {
-    m_queue.erase(m_queue.begin());
-  }
-  BOOST_ASSERT(m_queue.size() >= m_capacity);
+    for (ssize_t nEvict = std::min<ssize_t>(nOverCapacity, EVICT_LIMIT); nEvict > 0; --nEvict) {
+        m_queue.erase(m_queue.begin());
+    }
+    BOOST_ASSERT(m_queue.size() >= m_capacity);
 }
 
 } // namespace nfd

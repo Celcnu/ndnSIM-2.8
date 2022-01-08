@@ -6,17 +6,18 @@
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
 // Define a callback to handle incoming messages
-void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
-    std::cout << "on_message called with hdl: " << hdl.lock().get()
-              << " and message: " << msg->get_payload()
+void
+on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg)
+{
+    std::cout << "on_message called with hdl: " << hdl.lock().get() << " and message: " << msg->get_payload()
               << std::endl;
 
     // check for a special command to instruct the server to stop listening so
@@ -28,13 +29,16 @@ void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
 
     try {
         s->send(hdl, msg->get_payload(), msg->get_opcode());
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << "Echo failed because: "
                   << "(" << e.what() << ")" << std::endl;
     }
 }
 
-int main() {
+int
+main()
+{
     // Create a server endpoint
     server echo_server;
 
@@ -47,7 +51,7 @@ int main() {
         echo_server.init_asio();
 
         // Register our message handler
-        echo_server.set_message_handler(bind(&on_message,&echo_server,::_1,::_2));
+        echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2));
 
         // Listen on port 9002
         echo_server.listen(9002);
@@ -57,9 +61,11 @@ int main() {
 
         // Start the ASIO io_service run loop
         echo_server.run();
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
         std::cout << "other exception" << std::endl;
     }
 }

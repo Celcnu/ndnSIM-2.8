@@ -30,12 +30,12 @@ namespace tests {
 void
 logFromModule2()
 {
-  NDN_LOG_TRACE("trace" << 2);
-  NDN_LOG_DEBUG("debug" << 2);
-  NDN_LOG_INFO("info" << 2);
-  NDN_LOG_WARN("warn" << 2);
-  NDN_LOG_ERROR("error" << 2);
-  NDN_LOG_FATAL("fatal" << 2);
+    NDN_LOG_TRACE("trace" << 2);
+    NDN_LOG_DEBUG("debug" << 2);
+    NDN_LOG_INFO("info" << 2);
+    NDN_LOG_WARN("warn" << 2);
+    NDN_LOG_ERROR("error" << 2);
+    NDN_LOG_FATAL("fatal" << 2);
 }
 
 } // namespace tests

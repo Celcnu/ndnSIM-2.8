@@ -35,16 +35,15 @@ using namespace ndn::tests;
 BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 
-class CertificateFetcherOfflineWrapper : public CertificateFetcherOffline
-{
-public:
-  CertificateFetcherOfflineWrapper(Face&)
-  {
-  }
+class CertificateFetcherOfflineWrapper : public CertificateFetcherOffline {
+  public:
+    CertificateFetcherOfflineWrapper(Face&)
+    {
+    }
 };
 
-using CertificateFetcherOfflineFixture = HierarchicalValidatorFixture<ValidationPolicySimpleHierarchy,
-                                                                      CertificateFetcherOfflineWrapper>;
+using CertificateFetcherOfflineFixture =
+  HierarchicalValidatorFixture<ValidationPolicySimpleHierarchy, CertificateFetcherOfflineWrapper>;
 
 BOOST_FIXTURE_TEST_SUITE(TestCertificateFetcherOffline, CertificateFetcherOfflineFixture)
 
@@ -52,17 +51,17 @@ typedef boost::mpl::vector<Interest, Data> Packets;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Validate, Packet, Packets)
 {
-  Packet unsignedPacket("/Security/V2/ValidatorFixture/Sub1/Packet");
+    Packet unsignedPacket("/Security/V2/ValidatorFixture/Sub1/Packet");
 
-  Packet packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(subIdentity));
-  VALIDATE_FAILURE(packet, "Should fail, as no cert should be requested");
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 0);
+    Packet packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(subIdentity));
+    VALIDATE_FAILURE(packet, "Should fail, as no cert should be requested");
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 0);
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(identity));
-  VALIDATE_SUCCESS(packet, "Should succeed, as signed by trust anchor");
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 0);
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(identity));
+    VALIDATE_SUCCESS(packet, "Should succeed, as signed by trust anchor");
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCertificateFetcherOffline

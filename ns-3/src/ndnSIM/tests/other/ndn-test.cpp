@@ -43,179 +43,175 @@ namespace ns3 {
  */
 
 class Tester {
-public:
-  Tester()
-    : m_csSize(100)
-    , m_interestRate(1000)
-    , m_shouldEvaluatePit(false)
-    , m_simulationTime(Seconds(2000) / m_interestRate)
-  {
-  }
+  public:
+    Tester()
+      : m_csSize(100)
+      , m_interestRate(1000)
+      , m_shouldEvaluatePit(false)
+      , m_simulationTime(Seconds(2000) / m_interestRate)
+    {
+    }
 
-  int
-  run(int argc, char* argv[]);
+    int run(int argc, char* argv[]);
 
-  void
-  printHeader(std::ostream& os);
+    void printHeader(std::ostream& os);
 
-  void
-  printStats(std::ostream& os, Time nextPrintTime, double beginRealTime);
+    void printStats(std::ostream& os, Time nextPrintTime, double beginRealTime);
 
-private:
-  size_t m_csSize;
-  double m_interestRate;
-  bool m_shouldEvaluatePit;
-  std::string m_strategy;
-  double m_initialOverhead;
-  Time m_simulationTime;
+  private:
+    size_t m_csSize;
+    double m_interestRate;
+    bool m_shouldEvaluatePit;
+    std::string m_strategy;
+    double m_initialOverhead;
+    Time m_simulationTime;
 };
 
 void
 Tester::printHeader(std::ostream& os)
 {
-  m_initialOverhead = MemUsage::Get() / 1024.0 / 1024.0;
-  os << "SimulationTime"
-     << "\t"
-     << "RealTime"
-     << "\t"
-     << "NumberOfInterests (total)"
-     << "\t"
-     << "NumberOfInterests (per real time)"
-     << "\n";
+    m_initialOverhead = MemUsage::Get() / 1024.0 / 1024.0;
+    os << "SimulationTime"
+       << "\t"
+       << "RealTime"
+       << "\t"
+       << "NumberOfInterests (total)"
+       << "\t"
+       << "NumberOfInterests (per real time)"
+       << "\n";
 }
 
 void
 Tester::printStats(std::ostream& os, Time nextPrintTime, double beginRealTime)
 {
-  ::timeval t;
-  gettimeofday(&t, NULL);
-  double realTime = t.tv_sec + (0.000001 * (unsigned)t.tv_usec) - beginRealTime;
-  Time simTime = Simulator::Now();
+    ::timeval t;
+    gettimeofday(&t, NULL);
+    double realTime = t.tv_sec + (0.000001 * (unsigned)t.tv_usec) - beginRealTime;
+    Time simTime = Simulator::Now();
 
-  os << simTime << "\t";
-  os << realTime << "\t";
+    os << simTime << "\t";
+    os << realTime << "\t";
 
-  double interestCount = m_interestRate * simTime.ToDouble(Time::S);
-  double nInterestsPerSec = interestCount / realTime;
+    double interestCount = m_interestRate * simTime.ToDouble(Time::S);
+    double nInterestsPerSec = interestCount / realTime;
 
-  os << interestCount << "\t" << nInterestsPerSec << "\t";
+    os << interestCount << "\t" << nInterestsPerSec << "\t";
 
-  uint64_t pitCount = 0;
-  uint64_t csCount = 0;
-  for (NodeList::Iterator node = NodeList::Begin(); node != NodeList::End(); node++) {
+    uint64_t pitCount = 0;
+    uint64_t csCount = 0;
+    for (NodeList::Iterator node = NodeList::Begin(); node != NodeList::End(); node++) {
 
-    auto pitSize = (*node)->GetObject<ndn::L3Protocol>()->getForwarder()->getPit().size();
-    if (pitSize != 0)
-      pitCount += pitSize;
+        auto pitSize = (*node)->GetObject<ndn::L3Protocol>()->getForwarder()->getPit().size();
+        if (pitSize != 0)
+            pitCount += pitSize;
 
-    auto csSize = (*node)->GetObject<ndn::L3Protocol>()->getForwarder()->getCs().size();
-    if (csSize != 0)
-      csCount += csSize;
-  }
-
-  os << "pit:" << pitCount << "\t";
-  os << "cs:" << csCount << "\t";
-
-  os << MemUsage::Get() / 1024.0 / 1024.0 << "MiB\n";
-
-  if ((simTime + nextPrintTime) >= m_simulationTime) {
-    double finalOverhead = MemUsage::Get() / 1024.0 / 1024.0;
-    if (m_shouldEvaluatePit) {
-      if (pitCount != 0) {
-        os << "Approximate memory overhead per PIT entry:"
-           <<  1000 * (finalOverhead - m_initialOverhead) / pitCount << "KiB\n";
-      }
-      else {
-        os << "`The number of PIT entries is equal to zero\n";
-      }
+        auto csSize = (*node)->GetObject<ndn::L3Protocol>()->getForwarder()->getCs().size();
+        if (csSize != 0)
+            csCount += csSize;
     }
-    else {
-      if (csCount != 0) {
-        os << "Approximate memory overhead per CS entry:"
-           <<  1000 * (finalOverhead - m_initialOverhead) / csCount << "KiB\n";
-      }
-      else {
-        os << "The number of CS entries is equal to zero\n";
-      }
-    }
-  }
 
-  Simulator::Schedule(nextPrintTime, &Tester::printStats, this, ref(os), nextPrintTime,
-                      beginRealTime);
+    os << "pit:" << pitCount << "\t";
+    os << "cs:" << csCount << "\t";
+
+    os << MemUsage::Get() / 1024.0 / 1024.0 << "MiB\n";
+
+    if ((simTime + nextPrintTime) >= m_simulationTime) {
+        double finalOverhead = MemUsage::Get() / 1024.0 / 1024.0;
+        if (m_shouldEvaluatePit) {
+            if (pitCount != 0) {
+                os << "Approximate memory overhead per PIT entry:"
+                   << 1000 * (finalOverhead - m_initialOverhead) / pitCount << "KiB\n";
+            }
+            else {
+                os << "`The number of PIT entries is equal to zero\n";
+            }
+        }
+        else {
+            if (csCount != 0) {
+                os << "Approximate memory overhead per CS entry:"
+                   << 1000 * (finalOverhead - m_initialOverhead) / csCount << "KiB\n";
+            }
+            else {
+                os << "The number of CS entries is equal to zero\n";
+            }
+        }
+    }
+
+    Simulator::Schedule(nextPrintTime, &Tester::printStats, this, ref(os), nextPrintTime, beginRealTime);
 }
 
 int
 Tester::run(int argc, char* argv[])
 {
-  // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10000Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::DropTailQueue::MaxSize", StringValue("20p"));
+    // setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10000Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
+    Config::SetDefault("ns3::DropTailQueue::MaxSize", StringValue("20p"));
 
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.AddValue("cs-size", "Maximum number of cached packets per node", m_csSize);
-  cmd.AddValue("rate", "Interest rate", m_interestRate);
-  cmd.AddValue("pit", "Perform PIT evaluation if this parameter is true",
-               m_shouldEvaluatePit);
-  cmd.AddValue("strategy", "Choose forwarding strategy "
-                           "(e.g., /localhost/nfd/strategy/multicast, "
-                           "/localhost/nfd/strategy/best-route, ...) ",
-               m_strategy);
-  cmd.AddValue("sim-time", "Simulation time", m_simulationTime);
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.AddValue("cs-size", "Maximum number of cached packets per node", m_csSize);
+    cmd.AddValue("rate", "Interest rate", m_interestRate);
+    cmd.AddValue("pit", "Perform PIT evaluation if this parameter is true", m_shouldEvaluatePit);
+    cmd.AddValue("strategy",
+                 "Choose forwarding strategy "
+                 "(e.g., /localhost/nfd/strategy/multicast, "
+                 "/localhost/nfd/strategy/best-route, ...) ",
+                 m_strategy);
+    cmd.AddValue("sim-time", "Simulation time", m_simulationTime);
+    cmd.Parse(argc, argv);
 
-  // Creating nodes
-  NodeContainer nodes;
-  nodes.Create(2);
+    // Creating nodes
+    NodeContainer nodes;
+    nodes.Create(2);
 
-  // Connecting nodes using two links
-  PointToPointHelper p2p;
-  p2p.Install(nodes.Get(0), nodes.Get(1));
+    // Connecting nodes using two links
+    PointToPointHelper p2p;
+    p2p.Install(nodes.Get(0), nodes.Get(1));
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.setCsSize(m_csSize);
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.setCsSize(m_csSize);
 
-  ndnHelper.InstallAll();
+    ndnHelper.InstallAll();
 
-  ndn::FibHelper::AddRoute(nodes.Get(0), "/", nodes.Get(1), 10);
-  if (!m_strategy.empty()) {
-    ndn::StrategyChoiceHelper::InstallAll("/", m_strategy);
-  }
+    ndn::FibHelper::AddRoute(nodes.Get(0), "/", nodes.Get(1), 10);
+    if (!m_strategy.empty()) {
+        ndn::StrategyChoiceHelper::InstallAll("/", m_strategy);
+    }
 
-  // Installing applications
+    // Installing applications
 
-  // Consumer
-  ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
-  // Consumer will request /prefix/0, /prefix/1, ...
-  consumerHelper.SetPrefix("/prefix");
-  consumerHelper.SetAttribute("Frequency", DoubleValue(m_interestRate));
-  consumerHelper.Install(nodes.Get(0)); // first node
+    // Consumer
+    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+    // Consumer will request /prefix/0, /prefix/1, ...
+    consumerHelper.SetPrefix("/prefix");
+    consumerHelper.SetAttribute("Frequency", DoubleValue(m_interestRate));
+    consumerHelper.Install(nodes.Get(0)); // first node
 
-  if (!m_shouldEvaluatePit) {
-    // Producer
-    ndn::AppHelper producerHelper("ns3::ndn::Producer");
-    // Producer will reply to all requests starting with /prefix
-    producerHelper.SetPrefix("/prefix");
-    producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
-    producerHelper.Install(nodes.Get(1)); // last node
-  }
+    if (!m_shouldEvaluatePit) {
+        // Producer
+        ndn::AppHelper producerHelper("ns3::ndn::Producer");
+        // Producer will reply to all requests starting with /prefix
+        producerHelper.SetPrefix("/prefix");
+        producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+        producerHelper.Install(nodes.Get(1)); // last node
+    }
 
-  Simulator::Stop(m_simulationTime);
+    Simulator::Stop(m_simulationTime);
 
-  struct ::timeval t;
-  gettimeofday(&t, NULL);
-  double beginRealTime = t.tv_sec + (0.000001 * (unsigned)t.tv_usec);
-  Simulator::Schedule(Seconds(0), &Tester::printHeader, this, ref(std::cout));
-  Simulator::Schedule(m_simulationTime / 200, &Tester::printStats, this, ref(std::cout),
-                      m_simulationTime / 200, beginRealTime);
+    struct ::timeval t;
+    gettimeofday(&t, NULL);
+    double beginRealTime = t.tv_sec + (0.000001 * (unsigned)t.tv_usec);
+    Simulator::Schedule(Seconds(0), &Tester::printHeader, this, ref(std::cout));
+    Simulator::Schedule(m_simulationTime / 200, &Tester::printStats, this, ref(std::cout), m_simulationTime / 200,
+                        beginRealTime);
 
-  L2RateTracer::InstallAll("drop-trace2.txt", Seconds(0.5));
-  Simulator::Run();
-  Simulator::Destroy();
+    L2RateTracer::InstallAll("drop-trace2.txt", Seconds(0.5));
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -223,6 +219,6 @@ Tester::run(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  ns3::Tester tester;
-  return tester.run(argc, argv);
+    ns3::Tester tester;
+    return tester.run(argc, argv);
 }

@@ -32,295 +32,244 @@ namespace nfd {
  * \brief base class of NFD ControlCommand
  * \sa https://redmine.named-data.net/projects/nfd/wiki/ControlCommand
  */
-class ControlCommand : noncopyable
-{
-public:
-  /** \brief represents an error in ControlParameters
-   */
-  class ArgumentError : public std::invalid_argument
-  {
+class ControlCommand : noncopyable {
   public:
-    explicit
-    ArgumentError(const std::string& what)
-      : std::invalid_argument(what)
-    {
-    }
-  };
-
-  virtual
-  ~ControlCommand();
-
-  /** \brief validate request parameters
-   *  \throw ArgumentError if parameters are invalid
-   */
-  virtual void
-  validateRequest(const ControlParameters& parameters) const;
-
-  /** \brief apply default values to missing fields in request
-   */
-  virtual void
-  applyDefaultsToRequest(ControlParameters& parameters) const;
-
-  /** \brief validate response parameters
-   *  \throw ArgumentError if parameters are invalid
-   */
-  virtual void
-  validateResponse(const ControlParameters& parameters) const;
-
-  /** \brief apply default values to missing fields in response
-   */
-  virtual void
-  applyDefaultsToResponse(ControlParameters& parameters) const;
-
-  /** \brief construct the Name for a request Interest
-   *  \throw ArgumentError if parameters are invalid
-   */
-  Name
-  getRequestName(const Name& commandPrefix, const ControlParameters& parameters) const;
-
-protected:
-  ControlCommand(const std::string& module, const std::string& verb);
-
-  class FieldValidator
-  {
-  public:
-    FieldValidator();
-
-    /** \brief declare a required field
+    /** \brief represents an error in ControlParameters
      */
-    FieldValidator&
-    required(ControlParameterField field)
-    {
-      m_required[field] = true;
-      return *this;
-    }
+    class ArgumentError : public std::invalid_argument {
+      public:
+        explicit ArgumentError(const std::string& what)
+          : std::invalid_argument(what)
+        {
+        }
+    };
 
-    /** \brief declare an optional field
-     */
-    FieldValidator&
-    optional(ControlParameterField field)
-    {
-      m_optional[field] = true;
-      return *this;
-    }
+    virtual ~ControlCommand();
 
-    /** \brief verify that all required fields are present,
-     *         and all present fields are either required or optional
-     *  \throw ArgumentError
+    /** \brief validate request parameters
+     *  \throw ArgumentError if parameters are invalid
      */
-    void
-    validate(const ControlParameters& parameters) const;
+    virtual void validateRequest(const ControlParameters& parameters) const;
+
+    /** \brief apply default values to missing fields in request
+     */
+    virtual void applyDefaultsToRequest(ControlParameters& parameters) const;
+
+    /** \brief validate response parameters
+     *  \throw ArgumentError if parameters are invalid
+     */
+    virtual void validateResponse(const ControlParameters& parameters) const;
+
+    /** \brief apply default values to missing fields in response
+     */
+    virtual void applyDefaultsToResponse(ControlParameters& parameters) const;
+
+    /** \brief construct the Name for a request Interest
+     *  \throw ArgumentError if parameters are invalid
+     */
+    Name getRequestName(const Name& commandPrefix, const ControlParameters& parameters) const;
+
+  protected:
+    ControlCommand(const std::string& module, const std::string& verb);
+
+    class FieldValidator {
+      public:
+        FieldValidator();
+
+        /** \brief declare a required field
+         */
+        FieldValidator&
+        required(ControlParameterField field)
+        {
+            m_required[field] = true;
+            return *this;
+        }
+
+        /** \brief declare an optional field
+         */
+        FieldValidator&
+        optional(ControlParameterField field)
+        {
+            m_optional[field] = true;
+            return *this;
+        }
+
+        /** \brief verify that all required fields are present,
+         *         and all present fields are either required or optional
+         *  \throw ArgumentError
+         */
+        void validate(const ControlParameters& parameters) const;
+
+      private:
+        std::vector<bool> m_required;
+        std::vector<bool> m_optional;
+    };
+
+  protected:
+    /** \brief FieldValidator for request ControlParameters
+     *
+     *  Constructor of subclass should populate this validator.
+     */
+    FieldValidator m_requestValidator;
+    /** \brief FieldValidator for response ControlParameters
+     *
+     *  Constructor of subclass should populate this validator.
+     */
+    FieldValidator m_responseValidator;
 
   private:
-    std::vector<bool> m_required;
-    std::vector<bool> m_optional;
-  };
-
-protected:
-  /** \brief FieldValidator for request ControlParameters
-   *
-   *  Constructor of subclass should populate this validator.
-   */
-  FieldValidator m_requestValidator;
-  /** \brief FieldValidator for response ControlParameters
-   *
-   *  Constructor of subclass should populate this validator.
-   */
-  FieldValidator m_responseValidator;
-
-private:
-  name::Component m_module;
-  name::Component m_verb;
+    name::Component m_module;
+    name::Component m_verb;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a faces/create command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Create-a-face
  */
-class FaceCreateCommand : public ControlCommand
-{
-public:
-  FaceCreateCommand();
+class FaceCreateCommand : public ControlCommand {
+  public:
+    FaceCreateCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a faces/update command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Update-the-static-properties-of-a-face
  */
-class FaceUpdateCommand : public ControlCommand
-{
-public:
-  FaceUpdateCommand();
+class FaceUpdateCommand : public ControlCommand {
+  public:
+    FaceUpdateCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  /**
-   * \note This can only validate ControlParameters in a success response.
-   *       Failure responses should be validated with validateRequest.
-   */
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    /**
+     * \note This can only validate ControlParameters in a success response.
+     *       Failure responses should be validated with validateRequest.
+     */
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a faces/destroy command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Destroy-a-face
  */
-class FaceDestroyCommand : public ControlCommand
-{
-public:
-  FaceDestroyCommand();
+class FaceDestroyCommand : public ControlCommand {
+  public:
+    FaceDestroyCommand();
 
-  void
-  validateRequest(const ControlParameters& parameters) const override;
+    void validateRequest(const ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a fib/add-nexthop command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt#Add-a-nexthop
  */
-class FibAddNextHopCommand : public ControlCommand
-{
-public:
-  FibAddNextHopCommand();
+class FibAddNextHopCommand : public ControlCommand {
+  public:
+    FibAddNextHopCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a fib/remove-nexthop command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt#Remove-a-nexthop
  */
-class FibRemoveNextHopCommand : public ControlCommand
-{
-public:
-  FibRemoveNextHopCommand();
+class FibRemoveNextHopCommand : public ControlCommand {
+  public:
+    FibRemoveNextHopCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a cs/config command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Update-configuration
  */
-class CsConfigCommand : public ControlCommand
-{
-public:
-  CsConfigCommand();
+class CsConfigCommand : public ControlCommand {
+  public:
+    CsConfigCommand();
 };
-
 
 /**
  * \ingroup management
  * \brief represents a cs/erase command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/CsMgmt#Erase-entries
  */
-class CsEraseCommand : public ControlCommand
-{
-public:
-  CsEraseCommand();
+class CsEraseCommand : public ControlCommand {
+  public:
+    CsEraseCommand();
 
-  void
-  validateRequest(const ControlParameters& parameters) const override;
+    void validateRequest(const ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a strategy-choice/set command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyChoice#Set-the-strategy-for-a-namespace
  */
-class StrategyChoiceSetCommand : public ControlCommand
-{
-public:
-  StrategyChoiceSetCommand();
+class StrategyChoiceSetCommand : public ControlCommand {
+  public:
+    StrategyChoiceSetCommand();
 };
-
 
 /**
  * \ingroup management
  * \brief represents a strategy-choice/set command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyChoice#Unset-the-strategy-for-a-namespace
  */
-class StrategyChoiceUnsetCommand : public ControlCommand
-{
-public:
-  StrategyChoiceUnsetCommand();
+class StrategyChoiceUnsetCommand : public ControlCommand {
+  public:
+    StrategyChoiceUnsetCommand();
 
-  void
-  validateRequest(const ControlParameters& parameters) const override;
+    void validateRequest(const ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a rib/register command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/RibMgmt#Register-a-route
  */
-class RibRegisterCommand : public ControlCommand
-{
-public:
-  RibRegisterCommand();
+class RibRegisterCommand : public ControlCommand {
+  public:
+    RibRegisterCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
-
 
 /**
  * \ingroup management
  * \brief represents a rib/unregister command
  * \sa https://redmine.named-data.net/projects/nfd/wiki/RibMgmt#Unregister-a-route
  */
-class RibUnregisterCommand : public ControlCommand
-{
-public:
-  RibUnregisterCommand();
+class RibUnregisterCommand : public ControlCommand {
+  public:
+    RibUnregisterCommand();
 
-  void
-  applyDefaultsToRequest(ControlParameters& parameters) const override;
+    void applyDefaultsToRequest(ControlParameters& parameters) const override;
 
-  void
-  validateResponse(const ControlParameters& parameters) const override;
+    void validateResponse(const ControlParameters& parameters) const override;
 };
 
 } // namespace nfd

@@ -32,54 +32,53 @@ bool
 getPassword(std::string& password, const std::string& prompt, bool shouldConfirm)
 {
 #ifdef NDN_CXX_HAVE_GETPASS
-  char* pw0 = getpass(prompt.c_str());
-  if (!pw0 || strlen(pw0) == 0) {
-    return false;
-  }
-  std::string password1 = pw0;
-  OPENSSL_cleanse(pw0, strlen(pw0));
+    char* pw0 = getpass(prompt.c_str());
+    if (!pw0 || strlen(pw0) == 0) {
+        return false;
+    }
+    std::string password1 = pw0;
+    OPENSSL_cleanse(pw0, strlen(pw0));
 
-  if (!shouldConfirm) {
-    password.swap(password1);
-    return true;
-  }
+    if (!shouldConfirm) {
+        password.swap(password1);
+        return true;
+    }
 
-  pw0 = getpass("Confirm: ");
-  if (!pw0) {
-    OPENSSL_cleanse(&password1.front(), password1.size());
-    return false;
-  }
+    pw0 = getpass("Confirm: ");
+    if (!pw0) {
+        OPENSSL_cleanse(&password1.front(), password1.size());
+        return false;
+    }
 
-  bool isReady = false;
-  if (password1.size() == strlen(pw0) &&
-      CRYPTO_memcmp(password1.data(), pw0, password1.size()) == 0) {
-    isReady = true;
-    password.swap(password1);
-  }
-  else {
-    OPENSSL_cleanse(&password1.front(), password1.size());
-  }
-  OPENSSL_cleanse(pw0, strlen(pw0));
+    bool isReady = false;
+    if (password1.size() == strlen(pw0) && CRYPTO_memcmp(password1.data(), pw0, password1.size()) == 0) {
+        isReady = true;
+        password.swap(password1);
+    }
+    else {
+        OPENSSL_cleanse(&password1.front(), password1.size());
+    }
+    OPENSSL_cleanse(pw0, strlen(pw0));
 
-  return isReady;
+    return isReady;
 #else
-  return false;
+    return false;
 #endif // NDN_CXX_HAVE_GETPASS
 }
 
 security::v2::Certificate
 loadCertificate(const std::string& fileName)
 {
-  shared_ptr<security::v2::Certificate> cert;
-  if (fileName == "-")
-    cert = io::load<security::v2::Certificate>(std::cin);
-  else
-    cert = io::load<security::v2::Certificate>(fileName);
+    shared_ptr<security::v2::Certificate> cert;
+    if (fileName == "-")
+        cert = io::load<security::v2::Certificate>(std::cin);
+    else
+        cert = io::load<security::v2::Certificate>(fileName);
 
-  if (cert == nullptr) {
-    NDN_THROW(CannotLoadCertificate(fileName));
-  }
-  return *cert;
+    if (cert == nullptr) {
+        NDN_THROW(CannotLoadCertificate(fileName));
+    }
+    return *cert;
 }
 
 } // namespace ndnsec

@@ -33,65 +33,65 @@ NS_OBJECT_ENSURE_REGISTERED(GlobalRouter);
 TypeId
 GlobalRouter::GetTypeId()
 {
-  static TypeId tid = TypeId("ns3::ndn::GlobalRouter").SetGroupName("Ndn").SetParent<Object>();
-  return tid;
+    static TypeId tid = TypeId("ns3::ndn::GlobalRouter").SetGroupName("Ndn").SetParent<Object>();
+    return tid;
 }
 
 GlobalRouter::GlobalRouter()
 {
-  m_id = m_idCounter;
-  m_idCounter++;
+    m_id = m_idCounter;
+    m_idCounter++;
 }
 
 void
 GlobalRouter::NotifyNewAggregate()
 {
-  if (m_ndn == 0) {
-    m_ndn = GetObject<L3Protocol>();
-  }
-  Object::NotifyNewAggregate();
+    if (m_ndn == 0) {
+        m_ndn = GetObject<L3Protocol>();
+    }
+    Object::NotifyNewAggregate();
 }
 
 uint32_t
 GlobalRouter::GetId() const
 {
-  return m_id;
+    return m_id;
 }
 
 Ptr<L3Protocol>
 GlobalRouter::GetL3Protocol() const
 {
-  return m_ndn;
+    return m_ndn;
 }
 
 void
 GlobalRouter::AddLocalPrefix(shared_ptr<Name> prefix)
 {
-  m_localPrefixes.push_back(prefix);
+    m_localPrefixes.push_back(prefix);
 }
 
 void
 GlobalRouter::AddIncidency(shared_ptr<Face> face, Ptr<GlobalRouter> gr)
 {
-  m_incidencies.push_back(std::make_tuple(this, face, gr));
+    m_incidencies.push_back(std::make_tuple(this, face, gr));
 }
 
 GlobalRouter::IncidencyList&
 GlobalRouter::GetIncidencies()
 {
-  return m_incidencies;
+    return m_incidencies;
 }
 
 const GlobalRouter::LocalPrefixList&
 GlobalRouter::GetLocalPrefixes() const
 {
-  return m_localPrefixes;
+    return m_localPrefixes;
 }
 
 void
 GlobalRouter::clear()
 {
-  m_idCounter = 0;
+    m_idCounter = 0;
 }
 
 } // namespace ndn

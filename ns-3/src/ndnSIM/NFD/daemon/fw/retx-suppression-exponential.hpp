@@ -38,49 +38,44 @@ namespace fw {
  *  The i-th retransmission will be suppressed if the last transmission (out-record)
  *  occurred within MIN(initialInterval * multiplier^(i-1), maxInterval)
  */
-class RetxSuppressionExponential
-{
-public:
-  /** \brief time granularity
-   */
-  typedef time::microseconds Duration;
+class RetxSuppressionExponential {
+  public:
+    /** \brief time granularity
+     */
+    typedef time::microseconds Duration;
 
-  explicit
-  RetxSuppressionExponential(const Duration& initialInterval = DEFAULT_INITIAL_INTERVAL,
-                             float multiplier = DEFAULT_MULTIPLIER,
-                             const Duration& maxInterval = DEFAULT_MAX_INTERVAL);
+    explicit RetxSuppressionExponential(const Duration& initialInterval = DEFAULT_INITIAL_INTERVAL,
+                                        float multiplier = DEFAULT_MULTIPLIER,
+                                        const Duration& maxInterval = DEFAULT_MAX_INTERVAL);
 
-  /** \brief determines whether Interest is a retransmission per pit entry
-   *         and if so, whether it shall be forwarded or suppressed
-   */
-  RetxSuppressionResult
-  decidePerPitEntry(pit::Entry& pitEntry);
+    /** \brief determines whether Interest is a retransmission per pit entry
+     *         and if so, whether it shall be forwarded or suppressed
+     */
+    RetxSuppressionResult decidePerPitEntry(pit::Entry& pitEntry);
 
-  /** \brief determines whether Interest is a retransmission per upstream
-   *         and if so, whether it shall be forwarded or suppressed
-   */
-  RetxSuppressionResult
-  decidePerUpstream(pit::Entry& pitEntry, Face& outFace);
+    /** \brief determines whether Interest is a retransmission per upstream
+     *         and if so, whether it shall be forwarded or suppressed
+     */
+    RetxSuppressionResult decidePerUpstream(pit::Entry& pitEntry, Face& outFace);
 
-  /** \brief Increment the suppression interval for out record
-   */
-  void
-  incrementIntervalForOutRecord(pit::OutRecord& outRecord);
+    /** \brief Increment the suppression interval for out record
+     */
+    void incrementIntervalForOutRecord(pit::OutRecord& outRecord);
 
-public:
-  /** \brief StrategyInfo on pit::Entry
-   */
-  class PitInfo;
+  public:
+    /** \brief StrategyInfo on pit::Entry
+     */
+    class PitInfo;
 
-public:
-  static const Duration DEFAULT_INITIAL_INTERVAL;
-  static const float DEFAULT_MULTIPLIER;
-  static const Duration DEFAULT_MAX_INTERVAL;
+  public:
+    static const Duration DEFAULT_INITIAL_INTERVAL;
+    static const float DEFAULT_MULTIPLIER;
+    static const Duration DEFAULT_MAX_INTERVAL;
 
-private:
-  const Duration m_initialInterval;
-  const float m_multiplier;
-  const Duration m_maxInterval;
+  private:
+    const Duration m_initialInterval;
+    const float m_multiplier;
+    const Duration m_maxInterval;
 };
 
 } // namespace fw

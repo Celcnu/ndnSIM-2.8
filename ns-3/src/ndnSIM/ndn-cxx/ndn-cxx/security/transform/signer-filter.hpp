@@ -34,38 +34,34 @@ class PrivateKey;
 /**
  * @brief The module to sign data.
  */
-class SignerFilter : public Transform
-{
-public:
-  /**
-   * @brief Create a module to sign using digest algorithm @p algo and private key @p key
-   */
-  SignerFilter(DigestAlgorithm algo, const PrivateKey& key);
+class SignerFilter : public Transform {
+  public:
+    /**
+     * @brief Create a module to sign using digest algorithm @p algo and private key @p key
+     */
+    SignerFilter(DigestAlgorithm algo, const PrivateKey& key);
 
-  ~SignerFilter();
+    ~SignerFilter();
 
-private:
-  /**
-   * @brief Write data @p buf into signer
-   *
-   * @return The number of bytes that are actually accepted
-   */
-  size_t
-  convert(const uint8_t* buf, size_t size) final;
+  private:
+    /**
+     * @brief Write data @p buf into signer
+     *
+     * @return The number of bytes that are actually accepted
+     */
+    size_t convert(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize signing and write the signature into next module.
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize signing and write the signature into next module.
+     */
+    void finalize() final;
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
-unique_ptr<Transform>
-signerFilter(DigestAlgorithm algo, const PrivateKey& key);
+unique_ptr<Transform> signerFilter(DigestAlgorithm algo, const PrivateKey& key);
 
 } // namespace transform
 } // namespace security

@@ -43,109 +43,100 @@ namespace nfd {
 namespace fw {
 namespace tests {
 
-template<typename S>
-class AdHocForwardingFixture : public GlobalIoTimeFixture
-{
-protected:
-  AdHocForwardingFixture()
-  {
-    nodeA = topo.addForwarder("A");
-    nodeB = topo.addForwarder("B");
-    nodeC = topo.addForwarder("C");
+template <typename S>
+class AdHocForwardingFixture : public GlobalIoTimeFixture {
+  protected:
+    AdHocForwardingFixture()
+    {
+        nodeA = topo.addForwarder("A");
+        nodeB = topo.addForwarder("B");
+        nodeC = topo.addForwarder("C");
 
-    for (TopologyNode node : {nodeA, nodeB, nodeC}) {
-      topo.setStrategy<S>(node);
+        for (TopologyNode node : {nodeA, nodeB, nodeC}) {
+            topo.setStrategy<S>(node);
+        }
+
+        auto wireless = topo.addLink("ABC", 10_ms, {nodeA, nodeB, nodeC}, ndn::nfd::LINK_TYPE_AD_HOC);
+        wireless->block(nodeA, nodeC);
+        wireless->block(nodeC, nodeA);
+        faceA = &wireless->getFace(nodeA);
+        faceB = &wireless->getFace(nodeB);
+        faceC = &wireless->getFace(nodeC);
+
+        appA = topo.addAppFace("consumer", nodeA);
+        topo.registerPrefix(nodeA, *faceA, "/P");
+        appC = topo.addAppFace("producer", nodeC, "/P");
+        topo.addEchoProducer(appC->getClientFace(), "/P");
     }
 
-    auto wireless = topo.addLink("ABC", 10_ms, {nodeA, nodeB, nodeC},
-                                 ndn::nfd::LINK_TYPE_AD_HOC);
-    wireless->block(nodeA, nodeC);
-    wireless->block(nodeC, nodeA);
-    faceA = &wireless->getFace(nodeA);
-    faceB = &wireless->getFace(nodeB);
-    faceC = &wireless->getFace(nodeC);
-
-    appA = topo.addAppFace("consumer", nodeA);
-    topo.registerPrefix(nodeA, *faceA, "/P");
-    appC = topo.addAppFace("producer", nodeC, "/P");
-    topo.addEchoProducer(appC->getClientFace(), "/P");
-  }
-
-protected:
-  TopologyTester topo;
-  TopologyNode nodeA;
-  TopologyNode nodeB;
-  TopologyNode nodeC;
-  Face* faceA;
-  Face* faceB;
-  Face* faceC;
-  shared_ptr<TopologyAppLink> appA;
-  shared_ptr<TopologyAppLink> appC;
+  protected:
+    TopologyTester topo;
+    TopologyNode nodeA;
+    TopologyNode nodeB;
+    TopologyNode nodeC;
+    Face* faceA;
+    Face* faceB;
+    Face* faceC;
+    shared_ptr<TopologyAppLink> appA;
+    shared_ptr<TopologyAppLink> appC;
 };
 
 BOOST_AUTO_TEST_SUITE(Fw)
 BOOST_AUTO_TEST_SUITE(TestAdHocForwarding)
 
-using Strategies = boost::mpl::vector<
-  AsfStrategy,
-  BestRouteStrategy2,
-  MulticastStrategy,
-  RandomStrategy
->;
+using Strategies = boost::mpl::vector<AsfStrategy, BestRouteStrategy2, MulticastStrategy, RandomStrategy>;
 
-BOOST_FIXTURE_TEST_CASE_TEMPLATE(SingleNexthop, S, Strategies,
-                                 AdHocForwardingFixture<S>)
+BOOST_FIXTURE_TEST_CASE_TEMPLATE(SingleNexthop, S, Strategies, AdHocForwardingFixture<S>)
 {
-  // +---+---+
-  // A   B   C
-  //
-  // A is the consumer. C is the producer.
-  // B should relay Interest/Data between A and C.
+    // +---+---+
+    // A   B   C
+    //
+    // A is the consumer. C is the producer.
+    // B should relay Interest/Data between A and C.
 
-  this->topo.registerPrefix(this->nodeB, *this->faceB, "/P");
-  this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 10);
-  this->advanceClocks(5_ms, 1200_ms);
+    this->topo.registerPrefix(this->nodeB, *this->faceB, "/P");
+    this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 10);
+    this->advanceClocks(5_ms, 1200_ms);
 
-  // Consumer should receive Data, and B should be relaying.
-  BOOST_CHECK_EQUAL(this->faceB->getCounters().nInInterests, 10);
-  BOOST_CHECK_EQUAL(this->faceB->getCounters().nOutInterests, 10);
-  BOOST_CHECK_EQUAL(this->appC->getForwarderFace().getCounters().nOutInterests, 10);
-  BOOST_CHECK_EQUAL(this->faceB->getCounters().nInData, 10);
-  BOOST_CHECK_EQUAL(this->faceB->getCounters().nOutData, 10);
-  BOOST_CHECK_EQUAL(this->appA->getForwarderFace().getCounters().nOutData, 10);
+    // Consumer should receive Data, and B should be relaying.
+    BOOST_CHECK_EQUAL(this->faceB->getCounters().nInInterests, 10);
+    BOOST_CHECK_EQUAL(this->faceB->getCounters().nOutInterests, 10);
+    BOOST_CHECK_EQUAL(this->appC->getForwarderFace().getCounters().nOutInterests, 10);
+    BOOST_CHECK_EQUAL(this->faceB->getCounters().nInData, 10);
+    BOOST_CHECK_EQUAL(this->faceB->getCounters().nOutData, 10);
+    BOOST_CHECK_EQUAL(this->appA->getForwarderFace().getCounters().nOutData, 10);
 }
 
-BOOST_FIXTURE_TEST_CASE_TEMPLATE(SecondNexthop, S, Strategies,
-                                 AdHocForwardingFixture<S>)
+BOOST_FIXTURE_TEST_CASE_TEMPLATE(SecondNexthop, S, Strategies, AdHocForwardingFixture<S>)
 {
-  // +---+---+
-  // A   B   C
-  //     |
-  //     D
-  //
-  // A is the consumer. C is the producer.
-  // B's first nexthop is D, but B-D link has failed, so B should relay Interest/Data between A and C.
+    // +---+---+
+    // A   B   C
+    //     |
+    //     D
+    //
+    // A is the consumer. C is the producer.
+    // B's first nexthop is D, but B-D link has failed, so B should relay Interest/Data between A and C.
 
-  TopologyNode nodeD = this->topo.addForwarder("D");
-  shared_ptr<TopologyLink> linkBD = this->topo.addLink("BD", 5_ms, {this->nodeB, nodeD});
-  this->topo.registerPrefix(this->nodeB, linkBD->getFace(this->nodeB), "/P", 5);
-  linkBD->fail();
-  this->topo.registerPrefix(this->nodeB, *this->faceB, "/P", 10);
+    TopologyNode nodeD = this->topo.addForwarder("D");
+    shared_ptr<TopologyLink> linkBD = this->topo.addLink("BD", 5_ms, {this->nodeB, nodeD});
+    this->topo.registerPrefix(this->nodeB, linkBD->getFace(this->nodeB), "/P", 5);
+    linkBD->fail();
+    this->topo.registerPrefix(this->nodeB, *this->faceB, "/P", 10);
 
-  // Two interval consumers are expressing Interests with same name 40ms apart,
-  // so that Interests from the second interval consumer are considered retransmission.
-  this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 50, 1);
-  this->advanceClocks(5_ms, 40_ms);
-  this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 50, 1);
-  this->advanceClocks(5_ms, 5400_ms);
+    // Two interval consumers are expressing Interests with same name 40ms apart,
+    // so that Interests from the second interval consumer are considered retransmission.
+    this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 50, 1);
+    this->advanceClocks(5_ms, 40_ms);
+    this->topo.addIntervalConsumer(this->appA->getClientFace(), "/P", 100_ms, 50, 1);
+    this->advanceClocks(5_ms, 5400_ms);
 
-  // Consumer should receive Data, and B should be relaying at least some Interest/Data.
-  BOOST_CHECK_GE(this->faceB->getCounters().nInInterests, 50);
-  BOOST_CHECK_GE(this->faceB->getCounters().nOutInterests, 25);
-  BOOST_CHECK_GE(this->appC->getForwarderFace().getCounters().nOutInterests, 25);
-  BOOST_CHECK_GE(this->faceB->getCounters().nInData, 25);
-  BOOST_CHECK_GE(this->faceB->getCounters().nOutData, 25);
-  BOOST_CHECK_GE(this->appA->getForwarderFace().getCounters().nOutData, 25);
+    // Consumer should receive Data, and B should be relaying at least some Interest/Data.
+    BOOST_CHECK_GE(this->faceB->getCounters().nInInterests, 50);
+    BOOST_CHECK_GE(this->faceB->getCounters().nOutInterests, 25);
+    BOOST_CHECK_GE(this->appC->getForwarderFace().getCounters().nOutInterests, 25);
+    BOOST_CHECK_GE(this->faceB->getCounters().nInData, 25);
+    BOOST_CHECK_GE(this->faceB->getCounters().nOutData, 25);
+    BOOST_CHECK_GE(this->appA->getForwarderFace().getCounters().nOutData, 25);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestAdHocForwarding

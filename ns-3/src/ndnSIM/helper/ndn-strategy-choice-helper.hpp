@@ -43,7 +43,6 @@ class Strategy;
 } // namespace fw
 } // namespace nfd
 
-
 namespace ns3 {
 namespace ndn {
 
@@ -57,86 +56,78 @@ using ::ndn::nfd::ControlParameters;
  * special Interest commands to the manager in order to specify the desired per-name
  * prefix forwarding strategy for one, more or all the nodes of a topology.
  */
-class StrategyChoiceHelper
-{
-public:
-  /**
-   * @brief Install a built-in strategy @p strategy on @p node for @p namePrefix namespace
-   */
-  static void
-  Install(Ptr<Node> node, const Name& namePrefix, const Name& strategy);
+class StrategyChoiceHelper {
+  public:
+    /**
+     * @brief Install a built-in strategy @p strategy on @p node for @p namePrefix namespace
+     */
+    static void Install(Ptr<Node> node, const Name& namePrefix, const Name& strategy);
 
-  /**
-   * @brief Install a built-in strategy @p strategy on nodes in @p c container for
-   *        @p namePrefix namespace
-   */
-  static void
-  Install(const NodeContainer& c, const Name& namePrefix, const Name& strategy);
+    /**
+     * @brief Install a built-in strategy @p strategy on nodes in @p c container for
+     *        @p namePrefix namespace
+     */
+    static void Install(const NodeContainer& c, const Name& namePrefix, const Name& strategy);
 
-  /**
-   * @brief Install a built-in strategy @p strategy on all nodes for @p namePrefix namespace
-   */
-  static void
-  InstallAll(const Name& namePrefix, const Name& strategy);
+    /**
+     * @brief Install a built-in strategy @p strategy on all nodes for @p namePrefix namespace
+     */
+    static void InstallAll(const Name& namePrefix, const Name& strategy);
 
-  /**
-   * @brief Install a custom strategy on @p node for @p namePrefix namespace
-   * @tparam Strategy Class name of the custom strategy
-   */
-  template<class Strategy>
-  static void
-  Install(Ptr<Node> node, const Name& namePrefix);
+    /**
+     * @brief Install a custom strategy on @p node for @p namePrefix namespace
+     * @tparam Strategy Class name of the custom strategy
+     */
+    template <class Strategy>
+    static void Install(Ptr<Node> node, const Name& namePrefix);
 
-  /**
-   * @brief Install a custom strategy on nodes in @p c container for @p namePrefix namespace
-   * @tparam Strategy Class name of the custom strategy
-   */
-  template<class Strategy>
-  static void
-  Install(const NodeContainer& c, const Name& namePrefix);
+    /**
+     * @brief Install a custom strategy on nodes in @p c container for @p namePrefix namespace
+     * @tparam Strategy Class name of the custom strategy
+     */
+    template <class Strategy>
+    static void Install(const NodeContainer& c, const Name& namePrefix);
 
-  /**
-   * @brief Install a custom strategy on all nodes for @p namePrefix namespace
-   * @tparam Strategy Class name of the custom strategy
-   */
-  template<class Strategy>
-  static void
-  InstallAll(const Name& namePrefix);
+    /**
+     * @brief Install a custom strategy on all nodes for @p namePrefix namespace
+     * @tparam Strategy Class name of the custom strategy
+     */
+    template <class Strategy>
+    static void InstallAll(const Name& namePrefix);
 
-private:
-  static void
-  sendCommand(const ControlParameters& parameters, Ptr<Node> node);
+  private:
+    static void sendCommand(const ControlParameters& parameters, Ptr<Node> node);
 };
 
-template<class Strategy>
+template <class Strategy>
 inline void
 StrategyChoiceHelper::Install(Ptr<Node> node, const Name& namePrefix)
 {
-  Ptr<L3Protocol> l3Protocol = node->GetObject<L3Protocol>();
-  NS_ASSERT(l3Protocol != nullptr);
-  NS_ASSERT(l3Protocol->getForwarder() != nullptr);
+    Ptr<L3Protocol> l3Protocol = node->GetObject<L3Protocol>();
+    NS_ASSERT(l3Protocol != nullptr);
+    NS_ASSERT(l3Protocol->getForwarder() != nullptr);
 
-  if (!Strategy::canCreate(Strategy::getStrategyName())) {
-    Strategy::template registerType<Strategy>();
-  }
+    if (!Strategy::canCreate(Strategy::getStrategyName())) {
+        Strategy::template registerType<Strategy>();
+    }
 
-  Install(node, namePrefix, Strategy::getStrategyName());
+    Install(node, namePrefix, Strategy::getStrategyName());
 }
 
-template<class Strategy>
+template <class Strategy>
 inline void
 StrategyChoiceHelper::Install(const NodeContainer& c, const Name& namePrefix)
 {
-  for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
-    Install<Strategy>(*i, namePrefix);
-  }
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i) {
+        Install<Strategy>(*i, namePrefix);
+    }
 }
 
-template<class Strategy>
+template <class Strategy>
 inline void
 StrategyChoiceHelper::InstallAll(const Name& namePrefix)
 {
-  Install<Strategy>(NodeContainer::GetGlobal(), namePrefix);
+    Install<Strategy>(NodeContainer::GetGlobal(), namePrefix);
 }
 
 } // namespace ndn

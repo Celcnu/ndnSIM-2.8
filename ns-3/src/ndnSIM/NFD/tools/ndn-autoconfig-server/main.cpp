@@ -38,59 +38,59 @@ namespace autoconfig_server {
 static void
 usage(const char* programName)
 {
-  std::cout << "Usage: " << programName << " [-h] [-V] [-p prefix]... <hub-face>\n"
-            << "\n"
-            << "Options:\n"
-            << "  -h        - print usage and exit\n"
-            << "  -V        - print version number and exit\n"
-            << "  -p prefix - a local prefix of the hub\n"
-            << "  hub-face  - a FaceUri to reach the hub\n";
+    std::cout << "Usage: " << programName << " [-h] [-V] [-p prefix]... <hub-face>\n"
+              << "\n"
+              << "Options:\n"
+              << "  -h        - print usage and exit\n"
+              << "  -V        - print version number and exit\n"
+              << "  -p prefix - a local prefix of the hub\n"
+              << "  hub-face  - a FaceUri to reach the hub\n";
 }
 
 static int
 main(int argc, char** argv)
 {
-  Options options;
+    Options options;
 
-  int opt = -1;
-  while ((opt = ::getopt(argc, argv, "hVp:")) != -1) {
-    switch (opt) {
-    case 'h':
-      usage(argv[0]);
-      return 0;
-    case 'V':
-      std::cout << NFD_VERSION_BUILD_STRING << std::endl;
-      return 0;
-    case 'p':
-      options.routablePrefixes.emplace_back(::optarg);
-      break;
-    default:
-      usage(argv[0]);
-      return 2;
+    int opt = -1;
+    while ((opt = ::getopt(argc, argv, "hVp:")) != -1) {
+        switch (opt) {
+            case 'h':
+                usage(argv[0]);
+                return 0;
+            case 'V':
+                std::cout << NFD_VERSION_BUILD_STRING << std::endl;
+                return 0;
+            case 'p':
+                options.routablePrefixes.emplace_back(::optarg);
+                break;
+            default:
+                usage(argv[0]);
+                return 2;
+        }
     }
-  }
 
-  if (argc != ::optind + 1) {
-    usage(argv[0]);
-    return 2;
-  }
+    if (argc != ::optind + 1) {
+        usage(argv[0]);
+        return 2;
+    }
 
-  if (!options.hubFaceUri.parse(argv[::optind])) {
-    std::cerr << "ERROR: cannot parse hub FaceUri" << std::endl;
-    return 2;
-  }
+    if (!options.hubFaceUri.parse(argv[::optind])) {
+        std::cerr << "ERROR: cannot parse hub FaceUri" << std::endl;
+        return 2;
+    }
 
-  try {
-    Face face;
-    KeyChain keyChain;
-    Program program(options, face, keyChain);
-    program.run();
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << boost::diagnostic_information(e);
-    return 1;
-  }
-  return 0;
+    try {
+        Face face;
+        KeyChain keyChain;
+        Program program(options, face, keyChain);
+        program.run();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << boost::diagnostic_information(e);
+        return 1;
+    }
+    return 0;
 }
 
 } // namespace autoconfig_server
@@ -100,5 +100,5 @@ main(int argc, char** argv)
 int
 main(int argc, char** argv)
 {
-  return ndn::tools::autoconfig_server::main(argc, argv);
+    return ndn::tools::autoconfig_server::main(argc, argv);
 }

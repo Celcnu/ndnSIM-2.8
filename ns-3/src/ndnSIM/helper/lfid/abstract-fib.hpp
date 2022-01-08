@@ -37,126 +37,116 @@ class GlobalRouter;
  * An abstract, lightweight representation of the FIB.
  */
 class AbstractFib {
-public:
-  using AllNodeFib = std::unordered_map<int, AbstractFib>;
+  public:
+    using AllNodeFib = std::unordered_map<int, AbstractFib>;
 
-  /**
-   * @param own The GlobalRouter object representing the current router
-   * @param numNodes The total number of nodes in the network
-   */
-  AbstractFib(const Ptr<GlobalRouter> own, int numNodes);
+    /**
+     * @param own The GlobalRouter object representing the current router
+     * @param numNodes The total number of nodes in the network
+     */
+    AbstractFib(const Ptr<GlobalRouter> own, int numNodes);
 
-public:
-  // Getters:
-  /**
-   * @return Return set of nexthops per destination
-   */
-  const std::set<FibNextHop>&
-  getNexthops(int dstId) const;
+  public:
+    // Getters:
+    /**
+     * @return Return set of nexthops per destination
+     */
+    const std::set<FibNextHop>& getNexthops(int dstId) const;
 
-  /**
-   * @return Return set of upward nexthops per destination
-   */
-  const std::set<FibNextHop>&
-  getUpwardNexthops(int dstId) const;
+    /**
+     * @return Return set of upward nexthops per destination
+     */
+    const std::set<FibNextHop>& getUpwardNexthops(int dstId) const;
 
-  /**
-   * Make sure that FIB is consistent (each destination has at least one downward nexthop)
-   */
-  void
-  checkFib() const;
+    /**
+     * Make sure that FIB is consistent (each destination has at least one downward nexthop)
+     */
+    void checkFib() const;
 
-  /**
-   * @return Return number nexthops per destination
-   * @pre Also assure that the destination is not equal to the current nodeId.
-   */
-  int
-  numEnabledNhPerDst(int dstId) const
-  {
-    NS_ABORT_UNLESS(dstId != nodeId);
-    return static_cast<int>(getNexthops(dstId).size());
-  }
+    /**
+     * @return Return number nexthops per destination
+     * @pre Also assure that the destination is not equal to the current nodeId.
+     */
+    int
+    numEnabledNhPerDst(int dstId) const
+    {
+        NS_ABORT_UNLESS(dstId != nodeId);
+        return static_cast<int>(getNexthops(dstId).size());
+    }
 
-  int
-  getNodeId() const
-  {
-    return nodeId;
-  }
+    int
+    getNodeId() const
+    {
+        return nodeId;
+    }
 
-  Ptr<GlobalRouter>
-  getGR() const;
+    Ptr<GlobalRouter> getGR() const;
 
-  std::string
-  getName() const
-  {
-    return nodeName;
-  }
+    std::string
+    getName() const
+    {
+        return nodeName;
+    }
 
-  int
-  getDegree() const
-  {
-    return nodeDegree;
-  }
+    int
+    getDegree() const
+    {
+        return nodeDegree;
+    }
 
-  int
-  getNumDsts() const
-  {
-    return static_cast<int>(perDstFib.size());
-  }
+    int
+    getNumDsts() const
+    {
+        return static_cast<int>(perDstFib.size());
+    }
 
-  bool
-  contains(int dstId) const
-  {
-    return perDstFib.count(dstId) > 0;
-  }
+    bool
+    contains(int dstId) const
+    {
+        return perDstFib.count(dstId) > 0;
+    }
 
-  // Functions for range-based loop:
-  auto
-  begin() const
-  {
-    return perDstFib.cbegin();
-  }
+    // Functions for range-based loop:
+    auto
+    begin() const
+    {
+        return perDstFib.cbegin();
+    }
 
-  auto
-  end() const
-  {
-    return perDstFib.cend();
-  }
+    auto
+    end() const
+    {
+        return perDstFib.cend();
+    }
 
-  // Setters:
-  void
-  insert(int dstId, const FibNextHop& nh);
+    // Setters:
+    void insert(int dstId, const FibNextHop& nh);
 
-  size_t
-  erase(int dstId, int nhId);
+    size_t erase(int dstId, int nhId);
 
-private:
-  void
-  checkInputs();
+  private:
+    void checkInputs();
 
-  void
-  createEmptyFib();
+    void createEmptyFib();
 
-private:
-  const int nodeId;           // Own node id
-  const std::string nodeName; // Own node name
-  const int numberOfNodes;
-  const int nodeDegree;
-  const Ptr<GlobalRouter> ownRouter;
+  private:
+    const int nodeId;           // Own node id
+    const std::string nodeName; // Own node name
+    const int numberOfNodes;
+    const int nodeDegree;
+    const Ptr<GlobalRouter> ownRouter;
 
-  int upwardCounter;
-  int totalNhCounter;
+    int upwardCounter;
+    int totalNhCounter;
 
-  // DstId -> set<FibNextHop>
-  std::unordered_map<int, std::set<FibNextHop>> perDstFib;
-  std::unordered_map<int, std::set<FibNextHop>> upwardPerDstFib;
+    // DstId -> set<FibNextHop>
+    std::unordered_map<int, std::set<FibNextHop>> perDstFib;
+    std::unordered_map<int, std::set<FibNextHop>> upwardPerDstFib;
 
-  friend std::ostream&
-  operator<<(std::ostream&, const AbstractFib& fib);
+    friend std::ostream& operator<<(std::ostream&, const AbstractFib& fib);
 };
 
-std::ostream&
-operator<<(std::ostream& os, const AbstractFib& fib);
+std::ostream& operator<<(std::ostream& os, const AbstractFib& fib);
 
 } // namespace ndn
 } // namespace ns-3

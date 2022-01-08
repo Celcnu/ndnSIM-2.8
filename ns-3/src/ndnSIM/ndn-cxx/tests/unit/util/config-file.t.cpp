@@ -34,33 +34,33 @@ BOOST_FIXTURE_TEST_SUITE(TestConfigFile, TestHomeEnvSaver)
 
 BOOST_AUTO_TEST_CASE(Parse)
 {
-  namespace fs = boost::filesystem;
+    namespace fs = boost::filesystem;
 
-  setenv("TEST_HOME", "tests/unit/util/config-file-home", 1);
+    setenv("TEST_HOME", "tests/unit/util/config-file-home", 1);
 
-  fs::path homePath(fs::absolute(std::getenv("TEST_HOME")));
-  homePath /= ".ndn/client.conf";
+    fs::path homePath(fs::absolute(std::getenv("TEST_HOME")));
+    homePath /= ".ndn/client.conf";
 
-  ConfigFile config;
-  BOOST_REQUIRE_EQUAL(config.getPath(), homePath);
+    ConfigFile config;
+    BOOST_REQUIRE_EQUAL(config.getPath(), homePath);
 
-  const ConfigFile::Parsed& parsed = config.getParsedConfiguration();
-  BOOST_CHECK_EQUAL(parsed.get<std::string>("a"), "/path/to/nowhere");
-  BOOST_CHECK_EQUAL(parsed.get<std::string>("b"), "some-othervalue.01");
+    const ConfigFile::Parsed& parsed = config.getParsedConfiguration();
+    BOOST_CHECK_EQUAL(parsed.get<std::string>("a"), "/path/to/nowhere");
+    BOOST_CHECK_EQUAL(parsed.get<std::string>("b"), "some-othervalue.01");
 }
 
 BOOST_AUTO_TEST_CASE(ParseEmptyPath)
 {
-  setenv("TEST_HOME", "tests/unit/util/does/not/exist", 1);
+    setenv("TEST_HOME", "tests/unit/util/does/not/exist", 1);
 
-  BOOST_CHECK_NO_THROW(ConfigFile config);
+    BOOST_CHECK_NO_THROW(ConfigFile config);
 }
 
 BOOST_AUTO_TEST_CASE(ParseMalformed)
 {
-  setenv("TEST_HOME", "tests/unit/util/config-file-malformed-home", 1);
+    setenv("TEST_HOME", "tests/unit/util/config-file-malformed-home", 1);
 
-  BOOST_CHECK_THROW(ConfigFile config, ConfigFile::Error);
+    BOOST_CHECK_THROW(ConfigFile config, ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestConfigFile

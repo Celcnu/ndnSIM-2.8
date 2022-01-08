@@ -29,33 +29,33 @@ namespace tpm {
 KeyHandleOsx::KeyHandleOsx(const KeyRefOsx& key)
   : m_key(key)
 {
-  if (m_key.get() == 0)
-    NDN_THROW(Error("Key is not set"));
+    if (m_key.get() == 0)
+        NDN_THROW(Error("Key is not set"));
 }
 
 ConstBufferPtr
 KeyHandleOsx::doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const
 {
-  return BackEndOsx::sign(m_key, digestAlgorithm, buf, size);
+    return BackEndOsx::sign(m_key, digestAlgorithm, buf, size);
 }
 
 bool
-KeyHandleOsx::doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size,
-                       const uint8_t* sig, size_t sigLen) const
+KeyHandleOsx::doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size, const uint8_t* sig,
+                       size_t sigLen) const
 {
-  NDN_THROW(Error("Signature verification is not supported with macOS Keychain-based TPM"));
+    NDN_THROW(Error("Signature verification is not supported with macOS Keychain-based TPM"));
 }
 
 ConstBufferPtr
 KeyHandleOsx::doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const
 {
-  return BackEndOsx::decrypt(m_key, cipherText, cipherTextLen);
+    return BackEndOsx::decrypt(m_key, cipherText, cipherTextLen);
 }
 
 ConstBufferPtr
 KeyHandleOsx::doDerivePublicKey() const
 {
-  return BackEndOsx::derivePublicKey(m_key);
+    return BackEndOsx::derivePublicKey(m_key);
 }
 
 } // namespace tpm

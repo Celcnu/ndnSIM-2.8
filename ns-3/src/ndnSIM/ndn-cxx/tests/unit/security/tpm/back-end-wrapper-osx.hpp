@@ -35,49 +35,48 @@ namespace tests {
 /**
  * @brief A wrapper of tpm::BackEndOsx for unit test template.
  */
-class BackEndWrapperOsx
-{
-public:
-  BackEndWrapperOsx()
-  {
-    std::string oldHOME;
-    if (std::getenv("OLD_HOME"))
-      oldHOME = std::getenv("OLD_HOME");
+class BackEndWrapperOsx {
+  public:
+    BackEndWrapperOsx()
+    {
+        std::string oldHOME;
+        if (std::getenv("OLD_HOME"))
+            oldHOME = std::getenv("OLD_HOME");
 
-    if (std::getenv("HOME"))
-      m_HOME = std::getenv("HOME");
+        if (std::getenv("HOME"))
+            m_HOME = std::getenv("HOME");
 
-    if (!oldHOME.empty())
-      setenv("HOME", oldHOME.data(), 1);
-    else
-      unsetenv("HOME");
+        if (!oldHOME.empty())
+            setenv("HOME", oldHOME.data(), 1);
+        else
+            unsetenv("HOME");
 
-    m_impl = make_unique<BackEndOsx>();
-  }
+        m_impl = make_unique<BackEndOsx>();
+    }
 
-  ~BackEndWrapperOsx()
-  {
-    if (!m_HOME.empty())
-      setenv("HOME", m_HOME.data(), 1);
-    else
-      unsetenv("HOME");
-  }
+    ~BackEndWrapperOsx()
+    {
+        if (!m_HOME.empty())
+            setenv("HOME", m_HOME.data(), 1);
+        else
+            unsetenv("HOME");
+    }
 
-  BackEnd&
-  getTpm()
-  {
-    return *m_impl;
-  }
+    BackEnd&
+    getTpm()
+    {
+        return *m_impl;
+    }
 
-  std::string
-  getScheme() const
-  {
-    return "tpm-osxkeychain";
-  }
+    std::string
+    getScheme() const
+    {
+        return "tpm-osxkeychain";
+    }
 
-private:
-  std::string m_HOME;
-  unique_ptr<BackEnd> m_impl;
+  private:
+    std::string m_HOME;
+    unique_ptr<BackEnd> m_impl;
 };
 
 } // namespace tests

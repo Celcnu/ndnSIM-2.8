@@ -36,7 +36,7 @@ InMemoryStoragePersistent::InMemoryStoragePersistent(DummyIoService& ioService)
 bool
 InMemoryStoragePersistent::evictItem()
 {
-  return false;
+    return false;
 }
 
 } // namespace ndn

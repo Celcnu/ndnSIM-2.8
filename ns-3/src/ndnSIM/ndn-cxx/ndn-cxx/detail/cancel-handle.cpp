@@ -27,10 +27,10 @@ namespace detail {
 void
 CancelHandle::cancel() const
 {
-  if (m_cancel != nullptr) {
-    m_cancel();
-    m_cancel = nullptr;
-  }
+    if (m_cancel != nullptr) {
+        m_cancel();
+        m_cancel = nullptr;
+    }
 }
 
 } // namespace detail

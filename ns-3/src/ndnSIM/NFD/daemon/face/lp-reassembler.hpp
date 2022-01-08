@@ -36,114 +36,103 @@ namespace face {
 /** \brief reassembles fragmented network-layer packets
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/NDNLPv2
  */
-class LpReassembler : noncopyable
-{
-public:
-  /** \brief Options that control the behavior of LpReassembler
-   */
-  struct Options
-  {
-    /** \brief maximum number of fragments in a packet
+class LpReassembler : noncopyable {
+  public:
+    /** \brief Options that control the behavior of LpReassembler
+     */
+    struct Options {
+        /** \brief maximum number of fragments in a packet
+         *
+         *  LpPackets with FragCount over this limit are dropped.
+         */
+        size_t nMaxFragments = 400;
+
+        /** \brief timeout before a partially reassembled packet is dropped
+         */
+        time::nanoseconds reassemblyTimeout = 500_ms;
+    };
+
+    explicit LpReassembler(const Options& options, const LinkService* linkService = nullptr);
+
+    /** \brief set options for reassembler
+     */
+    void setOptions(const Options& options);
+
+    /** \return LinkService that owns this instance
      *
-     *  LpPackets with FragCount over this limit are dropped.
+     *  This is only used for logging, and may be nullptr.
      */
-    size_t nMaxFragments = 400;
+    const LinkService* getLinkService() const;
 
-    /** \brief timeout before a partially reassembled packet is dropped
+    /** \brief adds received fragment to the buffer
+     *  \param remoteEndpoint endpoint that sent the packet
+     *  \param packet received fragment; must have Fragment field
+     *  \return a tuple containing:
+     *          whether a network-layer packet has been completely received,
+     *          the reassembled network-layer packet,
+     *          the first fragment for inspecting other NDNLPv2 headers
+     *  \throw tlv::Error packet is malformed
      */
-    time::nanoseconds reassemblyTimeout = 500_ms;
-  };
+    std::tuple<bool, Block, lp::Packet> receiveFragment(EndpointId remoteEndpoint, const lp::Packet& packet);
 
-  explicit
-  LpReassembler(const Options& options, const LinkService* linkService = nullptr);
+    /** \brief count of partial packets
+     */
+    size_t size() const;
 
-  /** \brief set options for reassembler
-   */
-  void
-  setOptions(const Options& options);
+    /** \brief signals before a partial packet is dropped due to timeout
+     *
+     *  If a partial packet is incomplete and no new fragment is received
+     *  within Options::reassemblyTimeout, it would be dropped due to timeout.
+     *  Before it's erased, this signal is emitted with the remote endpoint,
+     *  and the number of fragments being dropped.
+     */
+    signal::Signal<LpReassembler, EndpointId, size_t> beforeTimeout;
 
-  /** \return LinkService that owns this instance
-   *
-   *  This is only used for logging, and may be nullptr.
-   */
-  const LinkService*
-  getLinkService() const;
+  private:
+    /** \brief holds all fragments of packet until reassembled
+     */
+    struct PartialPacket {
+        std::vector<lp::Packet> fragments;
+        size_t fragCount;          ///< total fragments
+        size_t nReceivedFragments; ///< number of received fragments
+        scheduler::ScopedEventId dropTimer;
+    };
 
-  /** \brief adds received fragment to the buffer
-   *  \param remoteEndpoint endpoint that sent the packet
-   *  \param packet received fragment; must have Fragment field
-   *  \return a tuple containing:
-   *          whether a network-layer packet has been completely received,
-   *          the reassembled network-layer packet,
-   *          the first fragment for inspecting other NDNLPv2 headers
-   *  \throw tlv::Error packet is malformed
-   */
-  std::tuple<bool, Block, lp::Packet>
-  receiveFragment(EndpointId remoteEndpoint, const lp::Packet& packet);
+    /** \brief index key for PartialPackets
+     */
+    typedef std::tuple<EndpointId,  // remoteEndpoint
+                       lp::Sequence // message identifier (sequence of the first fragment)
+                       >
+      Key;
 
-  /** \brief count of partial packets
-   */
-  size_t
-  size() const;
+    Block doReassembly(const Key& key);
 
-  /** \brief signals before a partial packet is dropped due to timeout
-   *
-   *  If a partial packet is incomplete and no new fragment is received
-   *  within Options::reassemblyTimeout, it would be dropped due to timeout.
-   *  Before it's erased, this signal is emitted with the remote endpoint,
-   *  and the number of fragments being dropped.
-   */
-  signal::Signal<LpReassembler, EndpointId, size_t> beforeTimeout;
+    void timeoutPartialPacket(const Key& key);
 
-private:
-  /** \brief holds all fragments of packet until reassembled
-   */
-  struct PartialPacket
-  {
-    std::vector<lp::Packet> fragments;
-    size_t fragCount; ///< total fragments
-    size_t nReceivedFragments; ///< number of received fragments
-    scheduler::ScopedEventId dropTimer;
-  };
-
-  /** \brief index key for PartialPackets
-   */
-  typedef std::tuple<
-    EndpointId, // remoteEndpoint
-    lp::Sequence // message identifier (sequence of the first fragment)
-  > Key;
-
-  Block
-  doReassembly(const Key& key);
-
-  void
-  timeoutPartialPacket(const Key& key);
-
-private:
-  Options m_options;
-  const LinkService* m_linkService;
-  std::map<Key, PartialPacket> m_partialPackets;
+  private:
+    Options m_options;
+    const LinkService* m_linkService;
+    std::map<Key, PartialPacket> m_partialPackets;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const FaceLogHelper<LpReassembler>& flh);
+std::ostream& operator<<(std::ostream& os, const FaceLogHelper<LpReassembler>& flh);
 
 inline void
 LpReassembler::setOptions(const Options& options)
 {
-  m_options = options;
+    m_options = options;
 }
 
 inline const LinkService*
 LpReassembler::getLinkService() const
 {
-  return m_linkService;
+    return m_linkService;
 }
 
 inline size_t
 LpReassembler::size() const
 {
-  return m_partialPackets.size();
+    return m_partialPackets.size();
 }
 
 } // namespace face

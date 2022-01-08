@@ -33,19 +33,17 @@ NFD_LOG_MEMBER_INIT_SPECIALIZED(StreamTransport<boost::asio::local::stream_proto
 UnixStreamTransport::UnixStreamTransport(protocol::socket&& socket)
   : StreamTransport(std::move(socket))
 {
-  static_assert(
-    std::is_same<std::remove_cv<protocol::socket::native_handle_type>::type, int>::value,
-    "The native handle type for UnixStreamTransport sockets must be 'int'"
-  );
+    static_assert(std::is_same<std::remove_cv<protocol::socket::native_handle_type>::type, int>::value,
+                  "The native handle type for UnixStreamTransport sockets must be 'int'");
 
-  this->setLocalUri(FaceUri(m_socket.local_endpoint()));
-  this->setRemoteUri(FaceUri::fromFd(m_socket.native_handle()));
-  this->setScope(ndn::nfd::FACE_SCOPE_LOCAL);
-  this->setPersistency(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
-  this->setLinkType(ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  this->setMtu(MTU_UNLIMITED);
+    this->setLocalUri(FaceUri(m_socket.local_endpoint()));
+    this->setRemoteUri(FaceUri::fromFd(m_socket.native_handle()));
+    this->setScope(ndn::nfd::FACE_SCOPE_LOCAL);
+    this->setPersistency(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    this->setLinkType(ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    this->setMtu(MTU_UNLIMITED);
 
-  NFD_LOG_FACE_DEBUG("Creating transport");
+    NFD_LOG_FACE_DEBUG("Creating transport");
 }
 
 } // namespace face

@@ -41,54 +41,54 @@ BOOST_AUTO_TEST_SUITE(TestAsfMeasurements)
 
 BOOST_FIXTURE_TEST_CASE(FaceInfo, GlobalIoTimeFixture)
 {
-  using asf::FaceInfo;
-  FaceInfo info(nullptr);
+    using asf::FaceInfo;
+    FaceInfo info(nullptr);
 
-  BOOST_CHECK_EQUAL(info.getLastRtt(), FaceInfo::RTT_NO_MEASUREMENT);
-  BOOST_CHECK_EQUAL(info.getSrtt(), FaceInfo::RTT_NO_MEASUREMENT);
+    BOOST_CHECK_EQUAL(info.getLastRtt(), FaceInfo::RTT_NO_MEASUREMENT);
+    BOOST_CHECK_EQUAL(info.getSrtt(), FaceInfo::RTT_NO_MEASUREMENT);
 
-  info.recordRtt(100_ms);
-  Name interestName("/ndn/interest");
+    info.recordRtt(100_ms);
+    Name interestName("/ndn/interest");
 
-  // Receive Interest and forward to next hop; should update RTO information
-  BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), false);
-  auto rto = info.scheduleTimeout(interestName, []{});
-  BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), true);
-  BOOST_CHECK_EQUAL(rto, 300_ms);
+    // Receive Interest and forward to next hop; should update RTO information
+    BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), false);
+    auto rto = info.scheduleTimeout(interestName, [] {});
+    BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), true);
+    BOOST_CHECK_EQUAL(rto, 300_ms);
 
-  // Receive Data
-  time::nanoseconds rtt(5_ms);
-  this->advanceClocks(5_ms);
-  info.recordRtt(rtt);
-  info.cancelTimeout(interestName);
+    // Receive Data
+    time::nanoseconds rtt(5_ms);
+    this->advanceClocks(5_ms);
+    info.recordRtt(rtt);
+    info.cancelTimeout(interestName);
 
-  BOOST_CHECK_EQUAL(info.getLastRtt(), rtt);
-  BOOST_CHECK_EQUAL(info.getSrtt(), 88125_us);
+    BOOST_CHECK_EQUAL(info.getLastRtt(), rtt);
+    BOOST_CHECK_EQUAL(info.getSrtt(), 88125_us);
 
-  // Send out another Interest which times out
-  rto = info.scheduleTimeout(interestName, []{});
-  BOOST_CHECK_EQUAL(rto, 333125_us);
+    // Send out another Interest which times out
+    rto = info.scheduleTimeout(interestName, [] {});
+    BOOST_CHECK_EQUAL(rto, 333125_us);
 
-  auto previousSrtt = info.getSrtt();
-  info.recordTimeout(interestName);
+    auto previousSrtt = info.getSrtt();
+    info.recordTimeout(interestName);
 
-  BOOST_CHECK_EQUAL(info.getLastRtt(), FaceInfo::RTT_TIMEOUT);
-  BOOST_CHECK_EQUAL(info.getSrtt(), previousSrtt);
-  BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), false);
+    BOOST_CHECK_EQUAL(info.getLastRtt(), FaceInfo::RTT_TIMEOUT);
+    BOOST_CHECK_EQUAL(info.getSrtt(), previousSrtt);
+    BOOST_CHECK_EQUAL(info.isTimeoutScheduled(), false);
 }
 
 BOOST_FIXTURE_TEST_CASE(NamespaceInfo, GlobalIoTimeFixture)
 {
-  using asf::NamespaceInfo;
-  NamespaceInfo info(nullptr);
+    using asf::NamespaceInfo;
+    NamespaceInfo info(nullptr);
 
-  BOOST_CHECK(info.getFaceInfo(1234) == nullptr);
+    BOOST_CHECK(info.getFaceInfo(1234) == nullptr);
 
-  auto& faceInfo = info.getOrCreateFaceInfo(1234);
-  BOOST_CHECK(info.getFaceInfo(1234) == &faceInfo);
+    auto& faceInfo = info.getOrCreateFaceInfo(1234);
+    BOOST_CHECK(info.getFaceInfo(1234) == &faceInfo);
 
-  this->advanceClocks(AsfMeasurements::MEASUREMENTS_LIFETIME + 1_s);
-  BOOST_CHECK(info.getFaceInfo(1234) == nullptr); // expired
+    this->advanceClocks(AsfMeasurements::MEASUREMENTS_LIFETIME + 1_s);
+    BOOST_CHECK(info.getFaceInfo(1234) == nullptr); // expired
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestAsfStrategy

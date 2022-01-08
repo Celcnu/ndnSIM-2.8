@@ -32,123 +32,119 @@ class RegexPatternListMatcher;
  * @brief declares the set of Interests a producer can serve,
  *        which starts with a name prefix, plus an optional regular expression
  */
-class InterestFilter
-{
-public:
-  class Error : public std::runtime_error
-  {
+class InterestFilter {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * @brief Construct an InterestFilter to match Interests by prefix
-   *
-   * This filter matches Interests whose name start with the given prefix.
-   *
-   * @note InterestFilter is implicitly convertible from Name.
-   */
-  InterestFilter(const Name& prefix);
+    /**
+     * @brief Construct an InterestFilter to match Interests by prefix
+     *
+     * This filter matches Interests whose name start with the given prefix.
+     *
+     * @note InterestFilter is implicitly convertible from Name.
+     */
+    InterestFilter(const Name& prefix);
 
-  /**
-   * @brief Construct an InterestFilter to match Interests by prefix
-   *
-   * This filter matches Interests whose name start with the given prefix.
-   *
-   * @param prefixUri name prefix, interpreted as ndn URI
-   * @note InterestFilter is implicitly convertible from null-terminated byte string.
-   */
-  InterestFilter(const char* prefixUri);
+    /**
+     * @brief Construct an InterestFilter to match Interests by prefix
+     *
+     * This filter matches Interests whose name start with the given prefix.
+     *
+     * @param prefixUri name prefix, interpreted as ndn URI
+     * @note InterestFilter is implicitly convertible from null-terminated byte string.
+     */
+    InterestFilter(const char* prefixUri);
 
-  /**
-   * @brief Construct an InterestFilter to match Interests by prefix
-   *
-   * This filter matches Interests whose name start with the given prefix.
-   *
-   * @param prefixUri name prefix, interpreted as ndn URI
-   * @note InterestFilter is implicitly convertible from std::string.
-   */
-  InterestFilter(const std::string& prefixUri);
+    /**
+     * @brief Construct an InterestFilter to match Interests by prefix
+     *
+     * This filter matches Interests whose name start with the given prefix.
+     *
+     * @param prefixUri name prefix, interpreted as ndn URI
+     * @note InterestFilter is implicitly convertible from std::string.
+     */
+    InterestFilter(const std::string& prefixUri);
 
-  /**
-   * @brief Construct an InterestFilter to match Interests by prefix and regular expression
-   *
-   * This filter matches Interests whose name start with the given prefix and
-   * the remaining components match the given regular expression.
-   * For example, the following InterestFilter:
-   *
-   *    InterestFilter("/hello", "<world><>+")
-   *
-   * matches Interests whose name has prefix `/hello` followed by component `world`
-   * and has at least one more component after it, such as:
-   *
-   *    /hello/world/%21
-   *    /hello/world/x/y/z
-   *
-   * Note that regular expression will need to match all components (e.g., there are
-   * implicit heading `^` and trailing `$` symbols in the regular expression).
-   */
-  InterestFilter(const Name& prefix, const std::string& regexFilter);
+    /**
+     * @brief Construct an InterestFilter to match Interests by prefix and regular expression
+     *
+     * This filter matches Interests whose name start with the given prefix and
+     * the remaining components match the given regular expression.
+     * For example, the following InterestFilter:
+     *
+     *    InterestFilter("/hello", "<world><>+")
+     *
+     * matches Interests whose name has prefix `/hello` followed by component `world`
+     * and has at least one more component after it, such as:
+     *
+     *    /hello/world/%21
+     *    /hello/world/x/y/z
+     *
+     * Note that regular expression will need to match all components (e.g., there are
+     * implicit heading `^` and trailing `$` symbols in the regular expression).
+     */
+    InterestFilter(const Name& prefix, const std::string& regexFilter);
 
-  /**
-   * @brief Implicit conversion to Name
-   * @note This allows InterestCallback to be declared with `Name` rather than `InterestFilter`,
-   *       but this does not work if InterestFilter has regular expression.
-   */
-  operator const Name&() const;
+    /**
+     * @brief Implicit conversion to Name
+     * @note This allows InterestCallback to be declared with `Name` rather than `InterestFilter`,
+     *       but this does not work if InterestFilter has regular expression.
+     */
+    operator const Name&() const;
 
-  /**
-   * @brief Check if specified Interest name matches the filter
-   */
-  bool
-  doesMatch(const Name& name) const;
+    /**
+     * @brief Check if specified Interest name matches the filter
+     */
+    bool doesMatch(const Name& name) const;
 
-  const Name&
-  getPrefix() const
-  {
-    return m_prefix;
-  }
+    const Name&
+    getPrefix() const
+    {
+        return m_prefix;
+    }
 
-  bool
-  hasRegexFilter() const
-  {
-    return m_regexFilter != nullptr;
-  }
+    bool
+    hasRegexFilter() const
+    {
+        return m_regexFilter != nullptr;
+    }
 
-  const RegexPatternListMatcher&
-  getRegexFilter() const
-  {
-    return *m_regexFilter;
-  }
+    const RegexPatternListMatcher&
+    getRegexFilter() const
+    {
+        return *m_regexFilter;
+    }
 
-  /** \brief Get whether Interest loopback is allowed
-   */
-  NDN_CXX_NODISCARD bool
-  allowsLoopback() const
-  {
-    return m_allowsLoopback;
-  }
+    /** \brief Get whether Interest loopback is allowed
+     */
+    NDN_CXX_NODISCARD bool
+    allowsLoopback() const
+    {
+        return m_allowsLoopback;
+    }
 
-  /** \brief Set whether Interest loopback is allowed
-   *  \param wantLoopback if true, this InterestFilter may receive Interests that are expressed
-   *                      locally on the same \p ndn::Face ; if false, this InterestFilter can only
-   *                      receive Interests received from the forwarder. The default is true.
-   */
-  InterestFilter&
-  allowLoopback(bool wantLoopback)
-  {
-    m_allowsLoopback = wantLoopback;
-    return *this;
-  }
+    /** \brief Set whether Interest loopback is allowed
+     *  \param wantLoopback if true, this InterestFilter may receive Interests that are expressed
+     *                      locally on the same \p ndn::Face ; if false, this InterestFilter can only
+     *                      receive Interests received from the forwarder. The default is true.
+     */
+    InterestFilter&
+    allowLoopback(bool wantLoopback)
+    {
+        m_allowsLoopback = wantLoopback;
+        return *this;
+    }
 
-private:
-  Name m_prefix;
-  shared_ptr<RegexPatternListMatcher> m_regexFilter;
-  bool m_allowsLoopback = true;
+  private:
+    Name m_prefix;
+    shared_ptr<RegexPatternListMatcher> m_regexFilter;
+    bool m_allowsLoopback = true;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const InterestFilter& filter);
+std::ostream& operator<<(std::ostream& os, const InterestFilter& filter);
 
 } // namespace ndn
 

@@ -34,24 +34,23 @@ namespace nfd {
  * \tparam T class containing a RouteFlags field and implementing
  *           a `RouteFlags getFlags() const` member function
  */
-template<typename T>
-class RouteFlagsTraits
-{
-public:
-  bool
-  isChildInherit() const
-  {
-    return static_cast<const T*>(this)->getFlags() & ROUTE_FLAG_CHILD_INHERIT;
-  }
+template <typename T>
+class RouteFlagsTraits {
+  public:
+    bool
+    isChildInherit() const
+    {
+        return static_cast<const T*>(this)->getFlags() & ROUTE_FLAG_CHILD_INHERIT;
+    }
 
-  bool
-  isRibCapture() const
-  {
-    return static_cast<const T*>(this)->getFlags() & ROUTE_FLAG_CAPTURE;
-  }
+    bool
+    isRibCapture() const
+    {
+        return static_cast<const T*>(this)->getFlags() & ROUTE_FLAG_CAPTURE;
+    }
 
-protected:
-  RouteFlagsTraits() = default;
+  protected:
+    RouteFlagsTraits() = default;
 };
 
 } // namespace nfd

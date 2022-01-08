@@ -36,31 +36,26 @@ namespace autoconfig {
  *  \brief provide synchronous DNS SRV record querying
  */
 
-class DnsSrvError : public std::runtime_error
-{
-public:
-  explicit
-  DnsSrvError(const std::string& what)
-    : std::runtime_error(what)
-  {
-  }
+class DnsSrvError : public std::runtime_error {
+  public:
+    explicit DnsSrvError(const std::string& what)
+      : std::runtime_error(what)
+    {
+    }
 };
-
 
 /** \brief Send DNS SRV request for \p fqdn
  *  \param fqdn a fully qualified domain name
  *  \return FaceUri of the hub from the requested SRV record
  *  \throw DnsSrvError query returns nothing or SRV record cannot be parsed
  */
-std::string
-querySrvRr(const std::string& fqdn);
+std::string querySrvRr(const std::string& fqdn);
 
 /** \brief Send DNS SRV request using search domain list
  *  \return FaceUri of the hub from the requested SRV record
  *  \throw DnsSrvError if query returns nothing or SRV record cannot be parsed
  */
-std::string
-querySrvRrSearch();
+std::string querySrvRrSearch();
 
 } // namespace autoconfig
 } // namespace tools

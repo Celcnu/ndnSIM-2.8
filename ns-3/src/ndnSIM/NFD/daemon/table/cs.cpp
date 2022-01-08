@@ -38,161 +38,162 @@ NFD_LOG_INIT(ContentStore);
 static unique_ptr<Policy>
 makeDefaultPolicy()
 {
-  return Policy::create("lru");
+    return Policy::create("lru");
 }
 
 Cs::Cs(size_t nMaxPackets)
 {
-  setPolicyImpl(makeDefaultPolicy());
-  m_policy->setLimit(nMaxPackets);
+    setPolicyImpl(makeDefaultPolicy());
+    m_policy->setLimit(nMaxPackets);
 }
 
 void
 Cs::insert(const Data& data, bool isUnsolicited)
 {
-  if (!m_shouldAdmit || m_policy->getLimit() == 0) {
-    return;
-  }
-  NFD_LOG_DEBUG("insert " << data.getName());
-
-  // recognize CachePolicy
-  // 尝试取出data的CachePolicyType，如果data没Tag，视为要求缓存
-  // 如果tag指明不缓存 直接return
-  shared_ptr<lp::CachePolicyTag> tag = data.getTag<lp::CachePolicyTag>();
-  if (tag != nullptr) {
-    lp::CachePolicyType policy = tag->get().getPolicy();
-    if (policy == lp::CachePolicyType::NO_CACHE) {
-      return;
+    if (!m_shouldAdmit || m_policy->getLimit() == 0) {
+        return;
     }
-  }
+    NFD_LOG_DEBUG("insert " << data.getName());
 
-  // 缓存 ↓↓↓
-
-  /**
-   * 尝试把(data, isUnsolicited)压入m_table表
-   * 压入后把自己在表中的迭代器返回给it（无论是否重复）
-   * 因为table是set类型，所以会调用data的重载operator==分析是否重复
-   * 如果有重复元素,说明不是NewEntry,isNewEntry=false
-   * 为什么会有newEntry? 不是new 说明缓存中已经有了? 或者之前已经存过?
-   */
-  const_iterator it;
-  bool isNewEntry = false;
-  std::tie(it, isNewEntry) = m_table.emplace(data.shared_from_this(), isUnsolicited);
-  Entry& entry = const_cast<Entry&>(*it);
-
-  // fresh一下新来的这个包
-  entry.updateFreshUntil();
-
-  // 如果不是新的包 ---> 缓存中已经存在
-  if (!isNewEntry) { // existing entry
-    // TODO: ???
-    // XXX This doesn't forbid unsolicited Data from refreshing a solicited entry.
-    if (entry.isUnsolicited() && !isUnsolicited) {
-      entry.clearUnsolicited();
+    // recognize CachePolicy
+    // 尝试取出data的CachePolicyType，如果data没Tag，视为要求缓存
+    // 如果tag指明不缓存 直接return
+    shared_ptr<lp::CachePolicyTag> tag = data.getTag<lp::CachePolicyTag>();
+    if (tag != nullptr) {
+        lp::CachePolicyType policy = tag->get().getPolicy();
+        if (policy == lp::CachePolicyType::NO_CACHE) {
+            return;
+        }
     }
 
-    m_policy->afterRefresh(it);
-  }
-  else {
-    m_policy->afterInsert(it);
-  }
+    // 缓存 ↓↓↓
+
+    /**
+     * 尝试把(data, isUnsolicited)压入m_table表
+     * 压入后把自己在表中的迭代器返回给it（无论是否重复）
+     * 因为table是set类型，所以会调用data的重载operator==分析是否重复
+     * 如果有重复元素,说明不是NewEntry,isNewEntry=false
+     * 为什么会有newEntry? 不是new 说明缓存中已经有了? 或者之前已经存过?
+     */
+    const_iterator it;
+    bool isNewEntry = false;
+    std::tie(it, isNewEntry) = m_table.emplace(data.shared_from_this(), isUnsolicited);
+    Entry& entry = const_cast<Entry&>(*it);
+
+    // fresh一下新来的这个包
+    entry.updateFreshUntil();
+
+    // 如果不是新的包 ---> 缓存中已经存在
+    if (!isNewEntry) { // existing entry
+        // TODO: ???
+        // XXX This doesn't forbid unsolicited Data from refreshing a solicited entry.
+        if (entry.isUnsolicited() && !isUnsolicited) {
+            entry.clearUnsolicited();
+        }
+
+        m_policy->afterRefresh(it);
+    }
+    else {
+        m_policy->afterInsert(it);
+    }
 }
 
 std::pair<Cs::const_iterator, Cs::const_iterator>
 Cs::findPrefixRange(const Name& prefix) const
 {
-  auto first = m_table.lower_bound(prefix);
-  auto last = m_table.end();
-  if (prefix.size() > 0) {
-    last = m_table.lower_bound(prefix.getSuccessor());
-  }
-  return {first, last};
+    auto first = m_table.lower_bound(prefix);
+    auto last = m_table.end();
+    if (prefix.size() > 0) {
+        last = m_table.lower_bound(prefix.getSuccessor());
+    }
+    return {first, last};
 }
 
 size_t
 Cs::eraseImpl(const Name& prefix, size_t limit)
 {
-  const_iterator i, last;
-  std::tie(i, last) = findPrefixRange(prefix);
+    const_iterator i, last;
+    std::tie(i, last) = findPrefixRange(prefix);
 
-  size_t nErased = 0;
-  while (i != last && nErased < limit) {
-    m_policy->beforeErase(i);
-    i = m_table.erase(i);
-    ++nErased;
-  }
-  return nErased;
+    size_t nErased = 0;
+    while (i != last && nErased < limit) {
+        m_policy->beforeErase(i);
+        i = m_table.erase(i);
+        ++nErased;
+    }
+    return nErased;
 }
 
 Cs::const_iterator
 Cs::findImpl(const Interest& interest) const
 {
-  if (!m_shouldServe || m_policy->getLimit() == 0) {
-    return m_table.end();
-  }
+    if (!m_shouldServe || m_policy->getLimit() == 0) {
+        return m_table.end();
+    }
 
-  const Name& prefix = interest.getName();
-  auto range = findPrefixRange(prefix);
-  auto match = std::find_if(range.first, range.second,
-                            [&interest] (const auto& entry) { return entry.canSatisfy(interest); });
+    const Name& prefix = interest.getName();
+    auto range = findPrefixRange(prefix);
+    auto match =
+      std::find_if(range.first, range.second, [&interest](const auto& entry) { return entry.canSatisfy(interest); });
 
-  if (match == range.second) {
-    NFD_LOG_DEBUG("find " << prefix << " no-match");
-    return m_table.end();
-  }
-  NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
-  m_policy->beforeUse(match);
-  return match;
+    // 这里好像不只在匹配兴趣???
+    if (match == range.second) {
+        NFD_LOG_DEBUG("find " << prefix << " no-match");
+        return m_table.end();
+    }
+    NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
+    m_policy->beforeUse(match);
+    return match;
 }
 
 void
 Cs::dump()
 {
-  NFD_LOG_DEBUG("dump table");
-  for (const Entry& entry : m_table) {
-    NFD_LOG_TRACE(entry.getFullName());
-  }
+    NFD_LOG_DEBUG("dump table");
+    for (const Entry& entry : m_table) {
+        NFD_LOG_TRACE(entry.getFullName());
+    }
 }
 
 void
 Cs::setPolicy(unique_ptr<Policy> policy)
 {
-  BOOST_ASSERT(policy != nullptr);
-  BOOST_ASSERT(m_policy != nullptr);
-  size_t limit = m_policy->getLimit();
-  this->setPolicyImpl(std::move(policy));
-  m_policy->setLimit(limit);
+    BOOST_ASSERT(policy != nullptr);
+    BOOST_ASSERT(m_policy != nullptr);
+    size_t limit = m_policy->getLimit();
+    this->setPolicyImpl(std::move(policy));
+    m_policy->setLimit(limit);
 }
 
 void
 Cs::setPolicyImpl(unique_ptr<Policy> policy)
 {
-  NFD_LOG_DEBUG("set-policy " << policy->getName());
-  m_policy = std::move(policy);
-  m_beforeEvictConnection = m_policy->beforeEvict.connect([this] (auto it) { m_table.erase(it); });
+    NFD_LOG_DEBUG("set-policy " << policy->getName());
+    m_policy = std::move(policy);
+    m_beforeEvictConnection = m_policy->beforeEvict.connect([this](auto it) { m_table.erase(it); });
 
-  m_policy->setCs(this);
-  BOOST_ASSERT(m_policy->getCs() == this);
+    m_policy->setCs(this);
+    BOOST_ASSERT(m_policy->getCs() == this);
 }
 
 void
 Cs::enableAdmit(bool shouldAdmit)
 {
-  if (m_shouldAdmit == shouldAdmit) {
-    return;
-  }
-  m_shouldAdmit = shouldAdmit;
-  NFD_LOG_INFO((shouldAdmit ? "Enabling" : "Disabling") << " Data admittance");
+    if (m_shouldAdmit == shouldAdmit) {
+        return;
+    }
+    m_shouldAdmit = shouldAdmit;
+    NFD_LOG_INFO((shouldAdmit ? "Enabling" : "Disabling") << " Data admittance");
 }
 
 void
 Cs::enableServe(bool shouldServe)
 {
-  if (m_shouldServe == shouldServe) {
-    return;
-  }
-  m_shouldServe = shouldServe;
-  NFD_LOG_INFO((shouldServe ? "Enabling" : "Disabling") << " Data serving");
+    if (m_shouldServe == shouldServe) {
+        return;
+    }
+    m_shouldServe = shouldServe;
+    NFD_LOG_INFO((shouldServe ? "Enabling" : "Disabling") << " Data serving");
 }
 
 } // namespace cs

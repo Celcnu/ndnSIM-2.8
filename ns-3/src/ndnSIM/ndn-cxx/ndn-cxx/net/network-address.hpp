@@ -32,99 +32,92 @@ namespace ndn {
 namespace net {
 
 enum class AddressFamily {
-  UNSPECIFIED,
-  V4,
-  V6,
+    UNSPECIFIED,
+    V4,
+    V6,
 };
 
 enum class AddressScope {
-  NOWHERE,
-  HOST,
-  LINK,
-  GLOBAL,
+    NOWHERE,
+    HOST,
+    LINK,
+    GLOBAL,
 };
 
-std::ostream&
-operator<<(std::ostream& os, AddressScope scope);
+std::ostream& operator<<(std::ostream& os, AddressScope scope);
 
 /**
  * @brief Stores one IP address supported by a network interface.
  */
-class NetworkAddress
-{
-public:
-  NetworkAddress(AddressFamily family,
-                 boost::asio::ip::address ip,
-                 boost::asio::ip::address broadcast,
-                 uint8_t prefixLength,
-                 AddressScope scope,
-                 uint32_t flags);
+class NetworkAddress {
+  public:
+    NetworkAddress(AddressFamily family, boost::asio::ip::address ip, boost::asio::ip::address broadcast,
+                   uint8_t prefixLength, AddressScope scope, uint32_t flags);
 
-  /** @brief Returns the address family
-   */
-  AddressFamily
-  getFamily() const
-  {
-    return m_family;
-  }
+    /** @brief Returns the address family
+     */
+    AddressFamily
+    getFamily() const
+    {
+        return m_family;
+    }
 
-  /** @brief Returns the IP address (v4 or v6)
-   */
-  boost::asio::ip::address
-  getIp() const
-  {
-    return m_ip;
-  }
+    /** @brief Returns the IP address (v4 or v6)
+     */
+    boost::asio::ip::address
+    getIp() const
+    {
+        return m_ip;
+    }
 
-  /** @brief Returns the IP broadcast address
-   */
-  boost::asio::ip::address
-  getBroadcast() const
-  {
-    return m_broadcast;
-  }
+    /** @brief Returns the IP broadcast address
+     */
+    boost::asio::ip::address
+    getBroadcast() const
+    {
+        return m_broadcast;
+    }
 
-  /** @brief Returns the prefix length
-   */
-  uint8_t
-  getPrefixLength() const
-  {
-    return m_prefixLength;
-  }
+    /** @brief Returns the prefix length
+     */
+    uint8_t
+    getPrefixLength() const
+    {
+        return m_prefixLength;
+    }
 
-  /** @brief Returns the address scope
-   */
-  AddressScope
-  getScope() const
-  {
-    return m_scope;
-  }
+    /** @brief Returns the address scope
+     */
+    AddressScope
+    getScope() const
+    {
+        return m_scope;
+    }
 
-  /** @brief Returns a bitset of platform-specific flags enabled on the address
-   */
-  uint32_t
-  getFlags() const
-  {
-    return m_flags;
-  }
+    /** @brief Returns a bitset of platform-specific flags enabled on the address
+     */
+    uint32_t
+    getFlags() const
+    {
+        return m_flags;
+    }
 
-  friend bool
-  operator<(const NetworkAddress& a, const NetworkAddress& b)
-  {
-    return a.m_ip < b.m_ip;
-  }
+    friend bool
+    operator<(const NetworkAddress& a, const NetworkAddress& b)
+    {
+        return a.m_ip < b.m_ip;
+    }
 
-private:
-  AddressFamily m_family;
-  boost::asio::ip::address m_ip;
-  boost::asio::ip::address m_broadcast;
-  uint8_t m_prefixLength;
-  AddressScope m_scope;
-  uint32_t m_flags; // IFA_F_* in if_addr.h
+  private:
+    AddressFamily m_family;
+    boost::asio::ip::address m_ip;
+    boost::asio::ip::address m_broadcast;
+    uint8_t m_prefixLength;
+    AddressScope m_scope;
+    uint32_t m_flags; // IFA_F_* in if_addr.h
 };
 
-std::ostream&
-operator<<(std::ostream& os, const NetworkAddress& address);
+std::ostream& operator<<(std::ostream& os, const NetworkAddress& address);
 
 } // namespace net
 } // namespace ndn

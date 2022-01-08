@@ -54,25 +54,22 @@ namespace autoconfig {
  *     The DNS server should answer with an SRV record that contains the hostname and UDP port
  *     number of the home NDN router of this user's site.
  */
-class GuessFromIdentityName : public Stage
-{
-public:
-  explicit
-  GuessFromIdentityName(KeyChain& keyChain);
+class GuessFromIdentityName : public Stage {
+  public:
+    explicit GuessFromIdentityName(KeyChain& keyChain);
 
-  const std::string&
-  getName() const override
-  {
-    static const std::string STAGE_NAME("guess from identity name");
-    return STAGE_NAME;
-  }
+    const std::string&
+    getName() const override
+    {
+        static const std::string STAGE_NAME("guess from identity name");
+        return STAGE_NAME;
+    }
 
-private:
-  void
-  doStart() override;
+  private:
+    void doStart() override;
 
-private:
-  KeyChain& m_keyChain;
+  private:
+    KeyChain& m_keyChain;
 };
 
 } // namespace autoconfig

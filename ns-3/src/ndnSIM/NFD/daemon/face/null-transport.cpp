@@ -30,17 +30,17 @@ namespace face {
 
 NFD_LOG_INIT(NullTransport);
 
-NullTransport::NullTransport(const FaceUri& localUri, const FaceUri& remoteUri,
-                             ndn::nfd::FaceScope scope, ndn::nfd::FacePersistency persistency)
+NullTransport::NullTransport(const FaceUri& localUri, const FaceUri& remoteUri, ndn::nfd::FaceScope scope,
+                             ndn::nfd::FacePersistency persistency)
 {
-  this->setLocalUri(localUri);
-  this->setRemoteUri(remoteUri);
-  this->setScope(scope);
-  this->setPersistency(persistency);
-  this->setLinkType(ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  this->setMtu(MTU_UNLIMITED);
+    this->setLocalUri(localUri);
+    this->setRemoteUri(remoteUri);
+    this->setScope(scope);
+    this->setPersistency(persistency);
+    this->setLinkType(ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    this->setMtu(MTU_UNLIMITED);
 
-  NFD_LOG_FACE_DEBUG("Creating transport");
+    NFD_LOG_FACE_DEBUG("Creating transport");
 }
 
 } // namespace face

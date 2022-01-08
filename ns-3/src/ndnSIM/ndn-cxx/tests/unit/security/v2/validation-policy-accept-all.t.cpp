@@ -36,17 +36,16 @@ using namespace ndn::tests;
 BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 
-class ValidationPolicyAcceptAllFixture : public ValidatorFixture<ValidationPolicyAcceptAll>
-{
-public:
-  ValidationPolicyAcceptAllFixture()
-  {
-    identity = addIdentity("/Security/V2/TestValidationPolicyAcceptAll");
-    // don't add trust anchors
-  }
+class ValidationPolicyAcceptAllFixture : public ValidatorFixture<ValidationPolicyAcceptAll> {
+  public:
+    ValidationPolicyAcceptAllFixture()
+    {
+        identity = addIdentity("/Security/V2/TestValidationPolicyAcceptAll");
+        // don't add trust anchors
+    }
 
-public:
-  Identity identity;
+  public:
+    Identity identity;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestValidationPolicyAcceptAll, ValidationPolicyAcceptAllFixture)
@@ -55,18 +54,18 @@ typedef boost::mpl::vector<Interest, Data> Packets;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Validate, Packet, Packets)
 {
-  Packet unsignedPacket("/Security/V2/TestValidationPolicyAcceptAll/Sub/Packet");
+    Packet unsignedPacket("/Security/V2/TestValidationPolicyAcceptAll/Sub/Packet");
 
-  Packet packet = unsignedPacket;
-  VALIDATE_SUCCESS(packet, "Should accept unsigned");
+    Packet packet = unsignedPacket;
+    VALIDATE_SUCCESS(packet, "Should accept unsigned");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingWithSha256());
-  VALIDATE_SUCCESS(packet, "Should accept Sha256Digest signature");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingWithSha256());
+    VALIDATE_SUCCESS(packet, "Should accept Sha256Digest signature");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(identity));
-  VALIDATE_SUCCESS(packet, "Should accept signature while no trust anchors configured");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(identity));
+    VALIDATE_SUCCESS(packet, "Should accept signature while no trust anchors configured");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestValidationPolicyAcceptAll

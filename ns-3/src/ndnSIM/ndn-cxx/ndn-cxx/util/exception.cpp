@@ -30,14 +30,12 @@ namespace exception {
 std::string
 to_string(const errinfo_stacktrace& x)
 {
-  if (x.value().empty())
-    return "";
+    if (x.value().empty())
+        return "";
 
-  std::ostringstream out;
-  out << "===== Stacktrace =====\n"
-      << x.value()
-      << "======================\n";
-  return out.str();
+    std::ostringstream out;
+    out << "===== Stacktrace =====\n" << x.value() << "======================\n";
+    return out.str();
 }
 #endif
 

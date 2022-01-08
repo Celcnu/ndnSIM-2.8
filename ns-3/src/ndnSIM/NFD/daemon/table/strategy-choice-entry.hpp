@@ -42,45 +42,41 @@ namespace strategy_choice {
 
 /** \brief Represents a Strategy Choice entry
  */
-class Entry : noncopyable
-{
-public:
-  explicit
-  Entry(const Name& prefix);
+class Entry : noncopyable {
+  public:
+    explicit Entry(const Name& prefix);
 
-  ~Entry();
+    ~Entry();
 
-  /** \return name prefix on which this strategy choice is applied
-   */
-  const Name&
-  getPrefix() const
-  {
-    return m_prefix;
-  }
+    /** \return name prefix on which this strategy choice is applied
+     */
+    const Name&
+    getPrefix() const
+    {
+        return m_prefix;
+    }
 
-  /** \return strategy instance name
-   */
-  const Name&
-  getStrategyInstanceName() const;
+    /** \return strategy instance name
+     */
+    const Name& getStrategyInstanceName() const;
 
-  /** \return strategy instance
-   */
-  fw::Strategy&
-  getStrategy() const
-  {
-    BOOST_ASSERT(m_strategy != nullptr);
-    return *m_strategy;
-  }
+    /** \return strategy instance
+     */
+    fw::Strategy&
+    getStrategy() const
+    {
+        BOOST_ASSERT(m_strategy != nullptr);
+        return *m_strategy;
+    }
 
-  void
-  setStrategy(unique_ptr<fw::Strategy> strategy);
+    void setStrategy(unique_ptr<fw::Strategy> strategy);
 
-private:
-  Name m_prefix;
-  unique_ptr<fw::Strategy> m_strategy;
+  private:
+    Name m_prefix;
+    unique_ptr<fw::Strategy> m_strategy;
 
-  name_tree::Entry* m_nameTreeEntry = nullptr;
-  friend class name_tree::Entry;
+    name_tree::Entry* m_nameTreeEntry = nullptr;
+    friend class name_tree::Entry;
 };
 
 } // namespace strategy_choice

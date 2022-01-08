@@ -31,18 +31,18 @@ namespace rib {
 optional<ReadvertiseAction>
 ClientToNlsrReadvertisePolicy::handleNewRoute(const RibRouteRef& ribRoute) const
 {
-  if (ribRoute.route->origin == ndn::nfd::ROUTE_ORIGIN_CLIENT) {
-    return ReadvertiseAction{ribRoute.entry->getName(), ndn::security::SigningInfo()};
-  }
-  else {
-    return nullopt;
-  }
+    if (ribRoute.route->origin == ndn::nfd::ROUTE_ORIGIN_CLIENT) {
+        return ReadvertiseAction{ribRoute.entry->getName(), ndn::security::SigningInfo()};
+    }
+    else {
+        return nullopt;
+    }
 }
 
 time::milliseconds
 ClientToNlsrReadvertisePolicy::getRefreshInterval() const
 {
-  return 1_h;
+    return 1_h;
 }
 
 } // namespace rib

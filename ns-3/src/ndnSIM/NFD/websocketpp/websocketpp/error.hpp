@@ -38,7 +38,7 @@
 namespace websocketpp {
 
 /// Combination error code / string type for returning two values
-typedef std::pair<lib::error_code,std::string> err_str_pair;
+typedef std::pair<lib::error_code, std::string> err_str_pair;
 
 /// Library level error codes
 namespace error {
@@ -141,22 +141,27 @@ enum value {
 
     /// HTTP parse error
     http_parse_error,
-    
+
     /// Extension negotiation failed
     extension_neg_failed
 }; // enum value
 
-
 class category : public lib::error_category {
-public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case error::general:
                 return "Generic error";
             case error::send_queue_full:
@@ -227,12 +232,16 @@ public:
     }
 };
 
-inline const lib::error_category& get_category() {
+inline const lib::error_category&
+get_category()
+{
     static category instance;
     return instance;
 }
 
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -240,8 +249,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace websocketpp
 
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum<websocketpp::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::error::value> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_
@@ -249,22 +258,32 @@ _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_
 namespace websocketpp {
 
 class exception : public std::exception {
-public:
-    exception(std::string const & msg, lib::error_code ec = make_error_code(error::general))
-      : m_msg(msg.empty() ? ec.message() : msg), m_code(ec)
-    {}
+  public:
+    exception(std::string const& msg, lib::error_code ec = make_error_code(error::general))
+      : m_msg(msg.empty() ? ec.message() : msg)
+      , m_code(ec)
+    {
+    }
 
     explicit exception(lib::error_code ec)
-      : m_msg(ec.message()), m_code(ec)
-    {}
+      : m_msg(ec.message())
+      , m_code(ec)
+    {
+    }
 
-    ~exception() throw() {}
+    ~exception() throw()
+    {
+    }
 
-    virtual char const * what() const throw() {
+    virtual char const*
+    what() const throw()
+    {
         return m_msg.c_str();
     }
 
-    lib::error_code code() const throw() {
+    lib::error_code
+    code() const throw()
+    {
         return m_code;
     }
 

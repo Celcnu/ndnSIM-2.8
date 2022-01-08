@@ -39,18 +39,18 @@ namespace face {
 ssize_t
 getTxQueueLength(int fd)
 {
-  int queueLength = QUEUE_UNSUPPORTED;
+    int queueLength = QUEUE_UNSUPPORTED;
 #if defined(__linux__)
-  if (ioctl(fd, SIOCOUTQ, &queueLength) < 0) {
-    queueLength = QUEUE_ERROR;
-  }
+    if (ioctl(fd, SIOCOUTQ, &queueLength) < 0) {
+        queueLength = QUEUE_ERROR;
+    }
 #elif defined(__APPLE__)
-  socklen_t queueLengthSize = sizeof(queueLength);
-  if (getsockopt(fd, SOL_SOCKET, SO_NWRITE, &queueLength, &queueLengthSize) < 0) {
-    queueLength = QUEUE_ERROR;
-  }
+    socklen_t queueLengthSize = sizeof(queueLength);
+    if (getsockopt(fd, SOL_SOCKET, SO_NWRITE, &queueLength, &queueLengthSize) < 0) {
+        queueLength = QUEUE_ERROR;
+    }
 #endif
-  return queueLength;
+    return queueLength;
 }
 
 } // namespace face

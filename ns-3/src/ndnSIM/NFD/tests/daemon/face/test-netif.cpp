@@ -33,23 +33,23 @@ namespace tests {
 std::vector<shared_ptr<const NetworkInterface>>
 enumerateNetworkInterfaces(NetworkMonitor& netmon)
 {
-  if (netmon.getCapabilities() & NetworkMonitor::CAP_ENUM) {
-    netmon.onEnumerationCompleted.connect([] { getGlobalIoService().stop(); });
-    getGlobalIoService().run();
-    getGlobalIoService().reset();
-  }
-  return netmon.listNetworkInterfaces();
+    if (netmon.getCapabilities() & NetworkMonitor::CAP_ENUM) {
+        netmon.onEnumerationCompleted.connect([] { getGlobalIoService().stop(); });
+        getGlobalIoService().run();
+        getGlobalIoService().reset();
+    }
+    return netmon.listNetworkInterfaces();
 }
 
 std::vector<shared_ptr<const NetworkInterface>>
 collectNetworkInterfaces(bool allowCached)
 {
-  static optional<std::vector<shared_ptr<const NetworkInterface>>> cached;
-  if (!allowCached || !cached) {
-    NetworkMonitor netmon(getGlobalIoService());
-    cached = enumerateNetworkInterfaces(netmon);
-  }
-  return *cached;
+    static optional<std::vector<shared_ptr<const NetworkInterface>>> cached;
+    if (!allowCached || !cached) {
+        NetworkMonitor netmon(getGlobalIoService());
+        cached = enumerateNetworkInterfaces(netmon);
+    }
+    return *cached;
 }
 
 } // namespace tests

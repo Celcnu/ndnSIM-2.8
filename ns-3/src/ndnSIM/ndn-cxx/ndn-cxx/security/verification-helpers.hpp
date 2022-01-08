@@ -51,24 +51,21 @@ class Certificate;
 /**
  * @brief Verify @p blob using @p key against @p sig.
  */
-bool
-verifySignature(const uint8_t* blob, size_t blobLen, const uint8_t* sig, size_t sigLen,
-                const transform::PublicKey& key);
+bool verifySignature(const uint8_t* blob, size_t blobLen, const uint8_t* sig, size_t sigLen,
+                     const transform::PublicKey& key);
 
 /**
  * @brief Verify @p blob using @p key against @p sig.
  * @note @p key must be a public key in PKCS #8 format.
  */
-bool
-verifySignature(const uint8_t* blob, size_t blobLen, const uint8_t* sig, size_t sigLen,
-                const uint8_t* key, size_t keyLen);
+bool verifySignature(const uint8_t* blob, size_t blobLen, const uint8_t* sig, size_t sigLen, const uint8_t* key,
+                     size_t keyLen);
 
 /**
  * @brief Verify @p data using @p key.
  * @note @p key must be a public key in PKCS #8 format.
  */
-bool
-verifySignature(const Data& data, const uint8_t* key, size_t keyLen);
+bool verifySignature(const Data& data, const uint8_t* key, size_t keyLen);
 
 /**
  * @brief Verify @p interest using @p key.
@@ -76,57 +73,48 @@ verifySignature(const Data& data, const uint8_t* key, size_t keyLen);
  * @note This method verifies only signature of the signed interest.
  * @sa docs/specs/signed-interest.rst
  */
-bool
-verifySignature(const Interest& interest, const uint8_t* key, size_t keyLen);
+bool verifySignature(const Interest& interest, const uint8_t* key, size_t keyLen);
 
 /**
  * @brief Verify @p data using @p key.
  */
-bool
-verifySignature(const Data& data, const transform::PublicKey& key);
+bool verifySignature(const Data& data, const transform::PublicKey& key);
 
 /**
  * @brief Verify @p interest using @p key.
  * @note This method verifies only signature of the signed interest.
  * @sa docs/specs/signed-interest.rst
  */
-bool
-verifySignature(const Interest& interest, const transform::PublicKey& key);
+bool verifySignature(const Interest& interest, const transform::PublicKey& key);
 
 /**
  * @brief Verify @p data using @p key.
  */
-bool
-verifySignature(const Data& data, const pib::Key& key);
+bool verifySignature(const Data& data, const pib::Key& key);
 
 /**
  * @brief Verify @p interest using @p key.
  * @note This method verifies only signature of the signed interest.
  * @sa docs/specs/signed-interest.rst
  */
-bool
-verifySignature(const Interest& interest, const pib::Key& key);
+bool verifySignature(const Interest& interest, const pib::Key& key);
 
 /**
  * @brief Verify @p data using @p cert.
  */
-bool
-verifySignature(const Data& data, const v2::Certificate& cert);
+bool verifySignature(const Data& data, const v2::Certificate& cert);
 
 /**
  * @brief Verify @p interest using @p cert.
  * @note This method verifies only signature of the signed interest.
  * @sa docs/specs/signed-interest.rst
  */
-bool
-verifySignature(const Interest& interest, const v2::Certificate& cert);
+bool verifySignature(const Interest& interest, const v2::Certificate& cert);
 
 /**
  * @brief Verify @p data using @p tpm and @p keyName with the @p digestAlgorithm.
  */
-bool
-verifySignature(const Data& data, const tpm::Tpm& tpm, const Name& keyName,
-                DigestAlgorithm digestAlgorithm);
+bool verifySignature(const Data& data, const tpm::Tpm& tpm, const Name& keyName, DigestAlgorithm digestAlgorithm);
 
 /**
  * @brief Verify @p interest using @p tpm and @p keyName with the @p digestAlgorithm.
@@ -134,8 +122,7 @@ verifySignature(const Data& data, const tpm::Tpm& tpm, const Name& keyName,
  * @sa docs/specs/signed-interest.rst
  */
 bool
-verifySignature(const Interest& interest, const tpm::Tpm& tpm, const Name& keyName,
-                DigestAlgorithm digestAlgorithm);
+verifySignature(const Interest& interest, const tpm::Tpm& tpm, const Name& keyName, DigestAlgorithm digestAlgorithm);
 
 //////////////////////////////////////////////////////////////////
 
@@ -143,22 +130,19 @@ verifySignature(const Interest& interest, const tpm::Tpm& tpm, const Name& keyNa
  * @brief Verify @p blob against @p digest using @p algorithm.
  */
 bool
-verifyDigest(const uint8_t* blob, size_t blobLen, const uint8_t* digest, size_t digestLen,
-             DigestAlgorithm algorithm);
+verifyDigest(const uint8_t* blob, size_t blobLen, const uint8_t* digest, size_t digestLen, DigestAlgorithm algorithm);
 
 /**
  * @brief Verify @p data against digest @p algorithm.
  */
-bool
-verifyDigest(const Data& data, DigestAlgorithm algorithm);
+bool verifyDigest(const Data& data, DigestAlgorithm algorithm);
 
 /**
  * @brief Verify @p interest against digest @p algorithm.
  * @note This method verifies only signature of the signed interest.
  * @sa docs/specs/signed-interest.rst
  */
-bool
-verifyDigest(const Interest& interest, DigestAlgorithm algorithm);
+bool verifyDigest(const Interest& interest, DigestAlgorithm algorithm);
 
 } // namespace security
 } // namespace ndn

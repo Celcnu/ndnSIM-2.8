@@ -48,13 +48,15 @@ namespace parser {
  * - Once initialized, read entire request as raw bytes
  */
 class request : public parser {
-public:
+  public:
     typedef request type;
     typedef lib::shared_ptr<type> ptr;
 
     request()
       : m_buf(lib::make_shared<std::string>())
-      , m_ready(false) {}
+      , m_ready(false)
+    {
+    }
 
     /// Process bytes in the input buffer
     /**
@@ -76,43 +78,49 @@ public:
      * @param len Size of byte buffer
      * @return Number of bytes processed.
      */
-    size_t consume(char const * buf, size_t len);
+    size_t consume(char const* buf, size_t len);
 
     /// Returns whether or not the request is ready for reading.
-    bool ready() const {
+    bool
+    ready() const
+    {
         return m_ready;
     }
 
     /// Returns the full raw request (including the body)
     std::string raw() const;
-    
+
     /// Returns the raw request headers only (similar to an HTTP HEAD request)
     std::string raw_head() const;
 
     /// Set the HTTP method. Must be a valid HTTP token
-    void set_method(std::string const & method);
+    void set_method(std::string const& method);
 
     /// Return the request method
-    std::string const & get_method() const {
+    std::string const&
+    get_method() const
+    {
         return m_method;
     }
 
     /// Set the HTTP uri. Must be a valid HTTP uri
-    void set_uri(std::string const & uri);
+    void set_uri(std::string const& uri);
 
     /// Return the requested URI
-    std::string const & get_uri() const {
+    std::string const&
+    get_uri() const
+    {
         return m_uri;
     }
 
-private:
+  private:
     /// Helper function for message::consume. Process request line
     void process(std::string::iterator begin, std::string::iterator end);
 
-    lib::shared_ptr<std::string>    m_buf;
-    std::string                     m_method;
-    std::string                     m_uri;
-    bool                            m_ready;
+    lib::shared_ptr<std::string> m_buf;
+    std::string m_method;
+    std::string m_uri;
+    bool m_ready;
 };
 
 } // namespace parser

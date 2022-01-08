@@ -30,14 +30,13 @@
 namespace boost {
 namespace asio {
 
-template<>
-struct wait_traits<ndn::time::steady_clock>
-{
-  static ndn::time::steady_clock::duration
-  to_wait_duration(const ndn::time::steady_clock::duration& d)
-  {
-    return ndn::time::steady_clock::to_wait_duration(d);
-  }
+template <>
+struct wait_traits<ndn::time::steady_clock> {
+    static ndn::time::steady_clock::duration
+    to_wait_duration(const ndn::time::steady_clock::duration& d)
+    {
+        return ndn::time::steady_clock::to_wait_duration(d);
+    }
 };
 
 } // namespace asio
@@ -47,10 +46,9 @@ namespace ndn {
 namespace util {
 namespace detail {
 
-class SteadyTimer : public boost::asio::basic_waitable_timer<time::steady_clock>
-{
-public:
-  using boost::asio::basic_waitable_timer<time::steady_clock>::basic_waitable_timer;
+class SteadyTimer : public boost::asio::basic_waitable_timer<time::steady_clock> {
+  public:
+    using boost::asio::basic_waitable_timer<time::steady_clock>::basic_waitable_timer;
 };
 
 } // namespace detail

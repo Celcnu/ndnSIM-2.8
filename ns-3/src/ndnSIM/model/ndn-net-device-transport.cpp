@@ -34,121 +34,109 @@ NS_LOG_COMPONENT_DEFINE("ndn.NetDeviceTransport");
 namespace ns3 {
 namespace ndn {
 
-NetDeviceTransport::NetDeviceTransport(Ptr<Node> node,
-                                       const Ptr<NetDevice>& netDevice,
-                                       const std::string& localUri,
-                                       const std::string& remoteUri,
-                                       ::ndn::nfd::FaceScope scope,
-                                       ::ndn::nfd::FacePersistency persistency,
-                                       ::ndn::nfd::LinkType linkType)
+NetDeviceTransport::NetDeviceTransport(Ptr<Node> node, const Ptr<NetDevice>& netDevice, const std::string& localUri,
+                                       const std::string& remoteUri, ::ndn::nfd::FaceScope scope,
+                                       ::ndn::nfd::FacePersistency persistency, ::ndn::nfd::LinkType linkType)
   : m_netDevice(netDevice)
   , m_node(node)
 {
-  this->setLocalUri(FaceUri(localUri));
-  this->setRemoteUri(FaceUri(remoteUri));
-  this->setScope(scope);
-  this->setPersistency(persistency);
-  this->setLinkType(linkType);
-  this->setMtu(m_netDevice->GetMtu()); // Use the MTU of the netDevice
+    this->setLocalUri(FaceUri(localUri));
+    this->setRemoteUri(FaceUri(remoteUri));
+    this->setScope(scope);
+    this->setPersistency(persistency);
+    this->setLinkType(linkType);
+    this->setMtu(m_netDevice->GetMtu()); // Use the MTU of the netDevice
 
-  // Get send queue capacity for congestion marking
-  PointerValue txQueueAttribute;
-  if (m_netDevice->GetAttributeFailSafe("TxQueue", txQueueAttribute)) {
-    Ptr<ns3::QueueBase> txQueue = txQueueAttribute.Get<ns3::QueueBase>();
-    // must be put into bytes mode queue
+    // Get send queue capacity for congestion marking
+    PointerValue txQueueAttribute;
+    if (m_netDevice->GetAttributeFailSafe("TxQueue", txQueueAttribute)) {
+        Ptr<ns3::QueueBase> txQueue = txQueueAttribute.Get<ns3::QueueBase>();
+        // must be put into bytes mode queue
 
-    auto size = txQueue->GetMaxSize();
-    if (size.GetUnit() == BYTES) {
-      this->setSendQueueCapacity(size.GetValue());
+        auto size = txQueue->GetMaxSize();
+        if (size.GetUnit() == BYTES) {
+            this->setSendQueueCapacity(size.GetValue());
+        }
+        else {
+            // don't know the exact size in bytes, guessing based on "standard" packet size
+            this->setSendQueueCapacity(size.GetValue() * 1500);
+        }
     }
-    else {
-      // don't know the exact size in bytes, guessing based on "standard" packet size
-      this->setSendQueueCapacity(size.GetValue() * 1500);
-    }
-  }
 
-  NS_LOG_FUNCTION(this << "Creating an ndnSIM transport instance for netDevice with URI"
-                  << this->getLocalUri());
+    NS_LOG_FUNCTION(this << "Creating an ndnSIM transport instance for netDevice with URI" << this->getLocalUri());
 
-  NS_ASSERT_MSG(m_netDevice != 0, "NetDeviceFace needs to be assigned a valid NetDevice");
+    NS_ASSERT_MSG(m_netDevice != 0, "NetDeviceFace needs to be assigned a valid NetDevice");
 
-  // Node::ReceiveFromDevice ---> NetDeviceTransport::receiveFromNetDevice
-  m_node->RegisterProtocolHandler(MakeCallback(&NetDeviceTransport::receiveFromNetDevice, this),
-                                  L3Protocol::ETHERNET_FRAME_TYPE, m_netDevice,
-                                  true /*promiscuous mode*/);
+    // Node::ReceiveFromDevice ---> NetDeviceTransport::receiveFromNetDevice
+    m_node->RegisterProtocolHandler(MakeCallback(&NetDeviceTransport::receiveFromNetDevice, this),
+                                    L3Protocol::ETHERNET_FRAME_TYPE, m_netDevice, true /*promiscuous mode*/);
 }
 
 NetDeviceTransport::~NetDeviceTransport()
 {
-  NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION_NOARGS();
 }
 
 ssize_t
 NetDeviceTransport::getSendQueueLength()
 {
-  PointerValue txQueueAttribute;
-  if (m_netDevice->GetAttributeFailSafe("TxQueue", txQueueAttribute)) {
-    Ptr<ns3::QueueBase> txQueue = txQueueAttribute.Get<ns3::QueueBase>();
-    return txQueue->GetNBytes();
-  }
-  else {
-    return nfd::face::QUEUE_UNSUPPORTED;
-  }
+    PointerValue txQueueAttribute;
+    if (m_netDevice->GetAttributeFailSafe("TxQueue", txQueueAttribute)) {
+        Ptr<ns3::QueueBase> txQueue = txQueueAttribute.Get<ns3::QueueBase>();
+        return txQueue->GetNBytes();
+    }
+    else {
+        return nfd::face::QUEUE_UNSUPPORTED;
+    }
 }
 
 void
 NetDeviceTransport::doClose()
 {
-  NS_LOG_FUNCTION(this << "Closing transport for netDevice with URI"
-                  << this->getLocalUri());
+    NS_LOG_FUNCTION(this << "Closing transport for netDevice with URI" << this->getLocalUri());
 
-  // set the state of the transport to "CLOSED"
-  this->setState(nfd::face::TransportState::CLOSED);
+    // set the state of the transport to "CLOSED"
+    this->setState(nfd::face::TransportState::CLOSED);
 }
 
 // 给Block添加header, 打包成packet
 void
 NetDeviceTransport::doSend(const Block& packet, const nfd::EndpointId& endpoint)
 {
-  NS_LOG_FUNCTION(this << "Sending packet from netDevice with URI"
-                  << this->getLocalUri());
+    NS_LOG_FUNCTION(this << "Sending packet from netDevice with URI" << this->getLocalUri());
 
-  // convert NFD packet to NS3 packet
-  BlockHeader header(packet);
+    // convert NFD packet to NS3 packet
+    BlockHeader header(packet);
 
-  Ptr<ns3::Packet> ns3Packet = Create<ns3::Packet>();
-  ns3Packet->AddHeader(header);
+    Ptr<ns3::Packet> ns3Packet = Create<ns3::Packet>();
+    ns3Packet->AddHeader(header);
 
-  // send the NS3 packet 
-  // TODO: 在这里之后的代码跳转和教程里介绍的不一致???
-  m_netDevice->Send(ns3Packet, m_netDevice->GetBroadcast(),
-                    L3Protocol::ETHERNET_FRAME_TYPE);
+    // send the NS3 packet
+    // TODO: 在这里之后的代码跳转和教程里介绍的不一致???
+    m_netDevice->Send(ns3Packet, m_netDevice->GetBroadcast(), L3Protocol::ETHERNET_FRAME_TYPE);
 }
 
 // callback
 void
-NetDeviceTransport::receiveFromNetDevice(Ptr<NetDevice> device,
-                                         Ptr<const ns3::Packet> p,
-                                         uint16_t protocol,
-                                         const Address& from, const Address& to,
-                                         NetDevice::PacketType packetType)
+NetDeviceTransport::receiveFromNetDevice(Ptr<NetDevice> device, Ptr<const ns3::Packet> p, uint16_t protocol,
+                                         const Address& from, const Address& to, NetDevice::PacketType packetType)
 {
-  NS_LOG_FUNCTION(device << p << protocol << from << to << packetType);
+    NS_LOG_FUNCTION(device << p << protocol << from << to << packetType);
 
-  // Convert NS3 packet to NFD packet
-  Ptr<ns3::Packet> packet = p->Copy();
+    // Convert NS3 packet to NFD packet
+    Ptr<ns3::Packet> packet = p->Copy();
 
-  // 去掉packet的header,转化为Block类型准备向上传
-  BlockHeader header;
-  packet->RemoveHeader(header);
+    // 去掉packet的header,转化为Block类型准备向上传
+    BlockHeader header;
+    packet->RemoveHeader(header);
 
-  this->receive(std::move(header.getBlock()));
+    this->receive(std::move(header.getBlock()));
 }
 
 Ptr<NetDevice>
 NetDeviceTransport::GetNetDevice() const
 {
-  return m_netDevice;
+    return m_netDevice;
 }
 
 } // namespace ndn

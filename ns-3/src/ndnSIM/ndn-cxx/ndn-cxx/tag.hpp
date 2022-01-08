@@ -27,69 +27,64 @@ namespace ndn {
 /**
  * @brief Base class for packet tags that can hold any arbitrary information
  */
-class Tag
-{
-public:
-  virtual
-  ~Tag();
+class Tag {
+  public:
+    virtual ~Tag();
 
-  /**
-   * @fn static constexpr int getTypeId() noexcept
-   * @return an integer that uniquely identifies this Tag type
-   * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/PacketTagTypes
-   */
+    /**
+     * @fn static constexpr int getTypeId() noexcept
+     * @return an integer that uniquely identifies this Tag type
+     * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/PacketTagTypes
+     */
 #ifdef DOXYGEN
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return <type-identifier>;
-  }
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return <type - identifier>;
+    }
 #endif // DOXYGEN
 };
 
-inline
-Tag::~Tag() = default;
+inline Tag::~Tag() = default;
 
 /** @brief provides a tag type for simple types
  *  @tparam T the value type
  *  @tparam TypeId the TypeId
  */
-template<typename T, int TypeId>
-class SimpleTag : public Tag
-{
-public:
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return TypeId;
-  }
+template <typename T, int TypeId>
+class SimpleTag : public Tag {
+  public:
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return TypeId;
+    }
 
-  /** \brief explicitly convertible from T
-   */
-  constexpr explicit
-  SimpleTag(const T& value) noexcept
-    : m_value(value)
-  {
-  }
+    /** \brief explicitly convertible from T
+     */
+    constexpr explicit SimpleTag(const T& value) noexcept
+      : m_value(value)
+    {
+    }
 
-  /** \brief implicitly convertible to T
-   *  \return a copy of the enclosed value
-   */
-  operator T() const
-  {
-    return m_value;
-  }
+    /** \brief implicitly convertible to T
+     *  \return a copy of the enclosed value
+     */
+    operator T() const
+    {
+        return m_value;
+    }
 
-  /** \return the enclosed value
-   */
-  constexpr const T&
-  get() const noexcept
-  {
-    return m_value;
-  }
+    /** \return the enclosed value
+     */
+    constexpr const T&
+    get() const noexcept
+    {
+        return m_value;
+    }
 
-private:
-  T m_value;
+  private:
+    T m_value;
 };
 
 } // namespace ndn

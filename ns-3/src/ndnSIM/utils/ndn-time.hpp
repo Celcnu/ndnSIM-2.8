@@ -29,27 +29,21 @@ namespace ndn {
 namespace time {
 
 class CustomSystemClock : public CustomClock<system_clock> {
-public:
-  system_clock::time_point
-  getNow() const;
+  public:
+    system_clock::time_point getNow() const;
 
-  std::string
-  getSince() const;
+    std::string getSince() const;
 
-  system_clock::duration
-  toWaitDuration(system_clock::duration d) const;
+    system_clock::duration toWaitDuration(system_clock::duration d) const;
 };
 
 class CustomSteadyClock : public CustomClock<steady_clock> {
-public:
-  steady_clock::time_point
-  getNow() const;
+  public:
+    steady_clock::time_point getNow() const;
 
-  std::string
-  getSince() const;
+    std::string getSince() const;
 
-  steady_clock::duration
-  toWaitDuration(steady_clock::duration d) const;
+    steady_clock::duration toWaitDuration(steady_clock::duration d) const;
 };
 
 } // namespace time

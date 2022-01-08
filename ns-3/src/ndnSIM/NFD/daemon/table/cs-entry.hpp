@@ -33,81 +33,74 @@ namespace cs {
 
 /** \brief a ContentStore entry
  */
-class Entry
-{
-public: // exposed through ContentStore enumeration
-  /** \brief return the stored Data
-   */
-  const Data&
-  getData() const
-  {
-    return *m_data;
-  }
+class Entry {
+  public: // exposed through ContentStore enumeration
+    /** \brief return the stored Data
+     */
+    const Data&
+    getData() const
+    {
+        return *m_data;
+    }
 
-  /** \brief return stored Data name
-   */
-  const Name&
-  getName() const
-  {
-    return m_data->getName();
-  }
+    /** \brief return stored Data name
+     */
+    const Name&
+    getName() const
+    {
+        return m_data->getName();
+    }
 
-  /** \brief return full name (including implicit digest) of the stored Data
-   */
-  const Name&
-  getFullName() const
-  {
-    return m_data->getFullName();
-  }
+    /** \brief return full name (including implicit digest) of the stored Data
+     */
+    const Name&
+    getFullName() const
+    {
+        return m_data->getFullName();
+    }
 
-  /** \brief return whether the stored Data is unsolicited
-   */
-  bool
-  isUnsolicited() const
-  {
-    return m_isUnsolicited;
-  }
+    /** \brief return whether the stored Data is unsolicited
+     */
+    bool
+    isUnsolicited() const
+    {
+        return m_isUnsolicited;
+    }
 
-  /** \brief check if the stored Data is fresh now
-   */
-  bool
-  isFresh() const;
+    /** \brief check if the stored Data is fresh now
+     */
+    bool isFresh() const;
 
-  /** \brief determine whether Interest can be satisified by the stored Data
-   */
-  bool
-  canSatisfy(const Interest& interest) const;
+    /** \brief determine whether Interest can be satisified by the stored Data
+     */
+    bool canSatisfy(const Interest& interest) const;
 
-public: // used by ContentStore implementation
-  Entry(shared_ptr<const Data> data, bool isUnsolicited);
+  public: // used by ContentStore implementation
+    Entry(shared_ptr<const Data> data, bool isUnsolicited);
 
-  /** \brief recalculate when the entry would become non-fresh, relative to current time
-   */
-  void
-  updateFreshUntil();
+    /** \brief recalculate when the entry would become non-fresh, relative to current time
+     */
+    void updateFreshUntil();
 
-  /** \brief clear 'unsolicited' flag
-   */
-  void
-  clearUnsolicited()
-  {
-    m_isUnsolicited = false;
-  }
+    /** \brief clear 'unsolicited' flag
+     */
+    void
+    clearUnsolicited()
+    {
+        m_isUnsolicited = false;
+    }
 
-private:
-  shared_ptr<const Data> m_data; // 数据内容
-  bool m_isUnsolicited; // 未经请求的数据(PIT中没有的数据就是未经请求的) 
-  time::steady_clock::TimePoint m_freshUntil; // Fresh截止时间, 超过这个时间 这个缓存的数据就变成"不新鲜的"了
+  private:
+    shared_ptr<const Data> m_data; // 数据内容
+    bool m_isUnsolicited;          // 未经请求的数据(PIT中没有的数据就是未经请求的)
+    time::steady_clock::TimePoint m_freshUntil; // Fresh截止时间, 超过这个时间 这个缓存的数据就变成"不新鲜的"了
 };
 
-bool
-operator<(const Entry& entry, const Name& queryName);
+bool operator<(const Entry& entry, const Name& queryName);
 
-bool
-operator<(const Name& queryName, const Entry& entry);
+bool operator<(const Name& queryName, const Entry& entry);
 
-bool
-operator<(const Entry& lhs, const Entry& rhs);
+bool operator<(const Entry& lhs, const Entry& rhs);
 
 /** \brief an ordered container of ContentStore entries
  *
@@ -118,7 +111,7 @@ using Table = std::set<Entry, std::less<>>;
 inline bool
 operator<(Table::const_iterator lhs, Table::const_iterator rhs)
 {
-  return *lhs < *rhs;
+    return *lhs < *rhs;
 }
 
 } // namespace cs

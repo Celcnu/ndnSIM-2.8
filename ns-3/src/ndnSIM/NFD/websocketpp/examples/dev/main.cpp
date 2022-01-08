@@ -18,9 +18,9 @@
 #include <iostream>
 #include <sstream>
 
-//typedef websocketpp::concurrency::stl concurrency;
-//typedef websocketpp::transport::iostream<concurrency> transport;
-//typedef websocketpp::server<concurrency,transport> server;
+// typedef websocketpp::concurrency::stl concurrency;
+// typedef websocketpp::transport::iostream<concurrency> transport;
+// typedef websocketpp::server<concurrency,transport> server;
 typedef websocketpp::server<websocketpp::config::core> server;
 
 /*class handler : public server::handler {
@@ -62,23 +62,21 @@ typedef websocketpp::server<websocketpp::config::core> server;
     }
 };*/
 
-int main() {
-    typedef websocketpp::message_buffer::message<websocketpp::message_buffer::alloc::con_msg_manager>
-        message_type;
-    typedef websocketpp::message_buffer::alloc::con_msg_manager<message_type>
-        con_msg_man_type;
+int
+main()
+{
+    typedef websocketpp::message_buffer::message<websocketpp::message_buffer::alloc::con_msg_manager> message_type;
+    typedef websocketpp::message_buffer::alloc::con_msg_manager<message_type> con_msg_man_type;
 
     con_msg_man_type::ptr manager = websocketpp::lib::make_shared<con_msg_man_type>();
 
     size_t foo = 1024;
 
-    message_type::ptr input = manager->get_message(websocketpp::frame::opcode::TEXT,foo);
-    message_type::ptr output = manager->get_message(websocketpp::frame::opcode::TEXT,foo);
+    message_type::ptr input = manager->get_message(websocketpp::frame::opcode::TEXT, foo);
+    message_type::ptr output = manager->get_message(websocketpp::frame::opcode::TEXT, foo);
     websocketpp::frame::masking_key_type key;
 
     std::random_device dev;
-
-
 
     key.i = 0x12345678;
 
@@ -100,59 +98,69 @@ int main() {
     {
         boost::timer::auto_cpu_timer t;
 
-        input->get_raw_payload().replace(0,foo,foo,'\0');
-        output->get_raw_payload().replace(0,foo,foo,'\0');
+        input->get_raw_payload().replace(0, foo, foo, '\0');
+        output->get_raw_payload().replace(0, foo, foo, '\0');
     }
 
     std::cout << "Out of place accelerated" << std::endl;
     {
         boost::timer::auto_cpu_timer t;
 
-        websocketpp::frame::word_mask_exact(reinterpret_cast<uint8_t*>(const_cast<char*>(input->get_raw_payload().data())), reinterpret_cast<uint8_t*>(const_cast<char*>(output->get_raw_payload().data())), foo, key);
+        websocketpp::frame::word_mask_exact(reinterpret_cast<uint8_t*>(
+                                              const_cast<char*>(input->get_raw_payload().data())),
+                                            reinterpret_cast<uint8_t*>(
+                                              const_cast<char*>(output->get_raw_payload().data())),
+                                            foo, key);
     }
 
-    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(),20) << std::endl;
-    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(),20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(), 20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(), 20) << std::endl;
 
-    input->get_raw_payload().replace(0,foo,foo,'\0');
-    output->get_raw_payload().replace(0,foo,foo,'\0');
+    input->get_raw_payload().replace(0, foo, foo, '\0');
+    output->get_raw_payload().replace(0, foo, foo, '\0');
 
     std::cout << "In place accelerated" << std::endl;
     {
         boost::timer::auto_cpu_timer t;
 
-        websocketpp::frame::word_mask_exact(reinterpret_cast<uint8_t*>(const_cast<char*>(input->get_raw_payload().data())), reinterpret_cast<uint8_t*>(const_cast<char*>(input->get_raw_payload().data())), foo, key);
+        websocketpp::frame::word_mask_exact(reinterpret_cast<uint8_t*>(
+                                              const_cast<char*>(input->get_raw_payload().data())),
+                                            reinterpret_cast<uint8_t*>(
+                                              const_cast<char*>(input->get_raw_payload().data())),
+                                            foo, key);
     }
 
-    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(),20) << std::endl;
-    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(),20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(), 20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(), 20) << std::endl;
 
-    input->get_raw_payload().replace(0,foo,foo,'\0');
-    output->get_raw_payload().replace(0,foo,foo,'\0');
+    input->get_raw_payload().replace(0, foo, foo, '\0');
+    output->get_raw_payload().replace(0, foo, foo, '\0');
     std::cout << "Out of place byte by byte" << std::endl;
     {
         boost::timer::auto_cpu_timer t;
 
-        websocketpp::frame::byte_mask(input->get_raw_payload().begin(), input->get_raw_payload().end(), output->get_raw_payload().begin(), key);
+        websocketpp::frame::byte_mask(input->get_raw_payload().begin(), input->get_raw_payload().end(),
+                                      output->get_raw_payload().begin(), key);
     }
 
-    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(),20) << std::endl;
-    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(),20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(), 20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(), 20) << std::endl;
 
-    input->get_raw_payload().replace(0,foo,foo,'\0');
-    output->get_raw_payload().replace(0,foo,foo,'\0');
+    input->get_raw_payload().replace(0, foo, foo, '\0');
+    output->get_raw_payload().replace(0, foo, foo, '\0');
     std::cout << "In place byte by byte" << std::endl;
     {
         boost::timer::auto_cpu_timer t;
 
-        websocketpp::frame::byte_mask(input->get_raw_payload().begin(), input->get_raw_payload().end(), input->get_raw_payload().begin(), key);
+        websocketpp::frame::byte_mask(input->get_raw_payload().begin(), input->get_raw_payload().end(),
+                                      input->get_raw_payload().begin(), key);
     }
 
-    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(),20) << std::endl;
-    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(),20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(), 20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(), 20) << std::endl;
 
-    input->get_raw_payload().replace(0,foo,foo,'a');
-    output->get_raw_payload().replace(0,foo,foo,'b');
+    input->get_raw_payload().replace(0, foo, foo, 'a');
+    output->get_raw_payload().replace(0, foo, foo, 'b');
     std::cout << "Copy" << std::endl;
     {
         boost::timer::auto_cpu_timer t;
@@ -160,8 +168,8 @@ int main() {
         std::copy(input->get_raw_payload().begin(), input->get_raw_payload().end(), output->get_raw_payload().begin());
     }
 
-    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(),20) << std::endl;
-    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(),20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(input->get_payload().c_str(), 20) << std::endl;
+    std::cout << websocketpp::utility::to_hex(output->get_payload().c_str(), 20) << std::endl;
 
     /*server::handler::ptr h(new handler());
 
@@ -179,7 +187,9 @@ int main() {
     //foo.handle_accept(con,true);
 
     std::stringstream input;
-    input << "GET / HTTP/1.1\r\nHost: www.example.com\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nOrigin: http://www.example.com\r\n\r\n";
+    input << "GET / HTTP/1.1\r\nHost: www.example.com\r\nConnection: Upgrade\r\nUpgrade:
+    websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nOrigin:
+    http://www.example.com\r\n\r\n";
     //input << "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n";
     input >> *con;
 

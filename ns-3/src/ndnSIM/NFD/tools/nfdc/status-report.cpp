@@ -33,70 +33,66 @@ namespace nfdc {
 ReportFormat
 parseReportFormat(const std::string& s)
 {
-  if (s == "xml") {
-    return ReportFormat::XML;
-  }
-  if (s == "text") {
-    return ReportFormat::TEXT;
-  }
-  NDN_THROW(std::invalid_argument("unrecognized ReportFormat '" + s + "'"));
+    if (s == "xml") {
+        return ReportFormat::XML;
+    }
+    if (s == "text") {
+        return ReportFormat::TEXT;
+    }
+    NDN_THROW(std::invalid_argument("unrecognized ReportFormat '" + s + "'"));
 }
 
 std::ostream&
 operator<<(std::ostream& os, ReportFormat fmt)
 {
-  switch (fmt) {
-    case ReportFormat::XML:
-      return os << "xml";
-    case ReportFormat::TEXT:
-      return os << "text";
-  }
-  return os << static_cast<int>(fmt);
+    switch (fmt) {
+        case ReportFormat::XML:
+            return os << "xml";
+        case ReportFormat::TEXT:
+            return os << "text";
+    }
+    return os << static_cast<int>(fmt);
 }
 
 uint32_t
 StatusReport::collect(Face& face, KeyChain& keyChain, Validator& validator, const CommandOptions& options)
 {
-  Controller controller(face, keyChain, validator);
-  uint32_t errorCode = 0;
+    Controller controller(face, keyChain, validator);
+    uint32_t errorCode = 0;
 
-  for (size_t i = 0; i < sections.size(); ++i) {
-    Module& module = *sections[i];
-    module.fetchStatus(
-      controller,
-      []{},
-      [i, &errorCode] (uint32_t code, const std::string& reason) {
-        errorCode = i * 1000000 + code;
-      },
-      options);
-  }
+    for (size_t i = 0; i < sections.size(); ++i) {
+        Module& module = *sections[i];
+        module.fetchStatus(
+          controller, [] {},
+          [i, &errorCode](uint32_t code, const std::string& reason) { errorCode = i * 1000000 + code; }, options);
+    }
 
-  this->processEvents(face);
-  return errorCode;
+    this->processEvents(face);
+    return errorCode;
 }
 
 void
 StatusReport::processEvents(Face& face)
 {
-  face.processEvents();
+    face.processEvents();
 }
 
 void
 StatusReport::formatXml(std::ostream& os) const
 {
-  xml::printHeader(os);
-  for (const auto& module : sections) {
-    module->formatStatusXml(os);
-  }
-  xml::printFooter(os);
+    xml::printHeader(os);
+    for (const auto& module : sections) {
+        module->formatStatusXml(os);
+    }
+    xml::printFooter(os);
 }
 
 void
 StatusReport::formatText(std::ostream& os) const
 {
-  for (const auto& module : sections) {
-    module->formatStatusText(os);
-  }
+    for (const auto& module : sections) {
+        module->formatStatusText(os);
+    }
 }
 
 } // namespace nfdc

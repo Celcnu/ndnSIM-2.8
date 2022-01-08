@@ -30,7 +30,7 @@
 #include <unistd.h>
 
 #if !defined(PCAP_NETMASK_UNKNOWN)
-#define PCAP_NETMASK_UNKNOWN  0xffffffff
+#define PCAP_NETMASK_UNKNOWN 0xffffffff
 #endif
 
 namespace nfd {
@@ -39,104 +39,104 @@ namespace face {
 PcapHelper::PcapHelper(const std::string& interfaceName)
   : m_pcap(nullptr)
 {
-  char errbuf[PCAP_ERRBUF_SIZE] = {};
-  m_pcap = pcap_create(interfaceName.data(), errbuf);
-  if (!m_pcap)
-    NDN_THROW(Error("pcap_create: " + std::string(errbuf)));
+    char errbuf[PCAP_ERRBUF_SIZE] = {};
+    m_pcap = pcap_create(interfaceName.data(), errbuf);
+    if (!m_pcap)
+        NDN_THROW(Error("pcap_create: " + std::string(errbuf)));
 
-  // Enable "immediate mode", effectively disabling any read buffering in the kernel.
-  // This corresponds to the BIOCIMMEDIATE ioctl on BSD-like systems (including macOS)
-  // where libpcap uses a BPF device. On Linux this forces libpcap not to use TPACKET_V3,
-  // even if the kernel supports it, thus preventing bug #1511.
-  if (pcap_set_immediate_mode(m_pcap, 1) < 0)
-    NDN_THROW(Error("pcap_set_immediate_mode failed"));
+    // Enable "immediate mode", effectively disabling any read buffering in the kernel.
+    // This corresponds to the BIOCIMMEDIATE ioctl on BSD-like systems (including macOS)
+    // where libpcap uses a BPF device. On Linux this forces libpcap not to use TPACKET_V3,
+    // even if the kernel supports it, thus preventing bug #1511.
+    if (pcap_set_immediate_mode(m_pcap, 1) < 0)
+        NDN_THROW(Error("pcap_set_immediate_mode failed"));
 
-  pcap_set_snaplen(m_pcap, ethernet::HDR_LEN + ndn::MAX_NDN_PACKET_SIZE);
-  pcap_set_buffer_size(m_pcap, 4 * 1024 * 1024);
+    pcap_set_snaplen(m_pcap, ethernet::HDR_LEN + ndn::MAX_NDN_PACKET_SIZE);
+    pcap_set_buffer_size(m_pcap, 4 * 1024 * 1024);
 }
 
 PcapHelper::~PcapHelper()
 {
-  close();
+    close();
 }
 
 void
 PcapHelper::activate(int dlt)
 {
-  int ret = pcap_activate(m_pcap);
-  if (ret < 0)
-    NDN_THROW(Error("pcap_activate: " + std::string(pcap_statustostr(ret))));
+    int ret = pcap_activate(m_pcap);
+    if (ret < 0)
+        NDN_THROW(Error("pcap_activate: " + std::string(pcap_statustostr(ret))));
 
-  if (pcap_set_datalink(m_pcap, dlt) < 0)
-    NDN_THROW(Error("pcap_set_datalink: " + getLastError()));
+    if (pcap_set_datalink(m_pcap, dlt) < 0)
+        NDN_THROW(Error("pcap_set_datalink: " + getLastError()));
 
-  if (pcap_setdirection(m_pcap, PCAP_D_IN) < 0)
-    NDN_THROW(Error("pcap_setdirection: " + getLastError()));
+    if (pcap_setdirection(m_pcap, PCAP_D_IN) < 0)
+        NDN_THROW(Error("pcap_setdirection: " + getLastError()));
 }
 
 void
 PcapHelper::close()
 {
-  if (m_pcap) {
-    pcap_close(m_pcap);
-    m_pcap = nullptr;
-  }
+    if (m_pcap) {
+        pcap_close(m_pcap);
+        m_pcap = nullptr;
+    }
 }
 
 int
 PcapHelper::getFd() const
 {
-  int fd = pcap_get_selectable_fd(m_pcap);
-  if (fd < 0)
-    NDN_THROW(Error("pcap_get_selectable_fd failed"));
+    int fd = pcap_get_selectable_fd(m_pcap);
+    if (fd < 0)
+        NDN_THROW(Error("pcap_get_selectable_fd failed"));
 
-  // we need to duplicate the fd, otherwise both pcap_close() and the
-  // caller may attempt to close the same fd and one of them will fail
-  return ::dup(fd);
+    // we need to duplicate the fd, otherwise both pcap_close() and the
+    // caller may attempt to close the same fd and one of them will fail
+    return ::dup(fd);
 }
 
 std::string
 PcapHelper::getLastError() const
 {
-  return pcap_geterr(m_pcap);
+    return pcap_geterr(m_pcap);
 }
 
 size_t
 PcapHelper::getNDropped() const
 {
-  pcap_stat ps{};
-  if (pcap_stats(m_pcap, &ps) < 0)
-    NDN_THROW(Error("pcap_stats: " + getLastError()));
+    pcap_stat ps{};
+    if (pcap_stats(m_pcap, &ps) < 0)
+        NDN_THROW(Error("pcap_stats: " + getLastError()));
 
-  return ps.ps_drop;
+    return ps.ps_drop;
 }
 
 void
 PcapHelper::setPacketFilter(const char* filter) const
 {
-  bpf_program prog;
-  if (pcap_compile(m_pcap, &prog, filter, 1, PCAP_NETMASK_UNKNOWN) < 0)
-    NDN_THROW(Error("pcap_compile: " + getLastError()));
+    bpf_program prog;
+    if (pcap_compile(m_pcap, &prog, filter, 1, PCAP_NETMASK_UNKNOWN) < 0)
+        NDN_THROW(Error("pcap_compile: " + getLastError()));
 
-  int ret = pcap_setfilter(m_pcap, &prog);
-  pcap_freecode(&prog);
-  if (ret < 0)
-    NDN_THROW(Error("pcap_setfilter: " + getLastError()));
+    int ret = pcap_setfilter(m_pcap, &prog);
+    pcap_freecode(&prog);
+    if (ret < 0)
+        NDN_THROW(Error("pcap_setfilter: " + getLastError()));
 }
 
 std::tuple<const uint8_t*, size_t, std::string>
 PcapHelper::readNextPacket() const
 {
-  pcap_pkthdr* header;
-  const uint8_t* packet;
+    pcap_pkthdr* header;
+    const uint8_t* packet;
 
-  int ret = pcap_next_ex(m_pcap, &header, &packet);
-  if (ret < 0)
-    return std::make_tuple(nullptr, 0, getLastError());
-  else if (ret == 0)
-    return std::make_tuple(nullptr, 0, "timed out");
-  else
-    return std::make_tuple(packet, header->caplen, "");
+    int ret = pcap_next_ex(m_pcap, &header, &packet);
+    if (ret < 0)
+        return std::make_tuple(nullptr, 0, getLastError());
+    else if (ret == 0)
+        return std::make_tuple(nullptr, 0, "timed out");
+    else
+        return std::make_tuple(packet, header->caplen, "");
 }
 
 } // namespace face

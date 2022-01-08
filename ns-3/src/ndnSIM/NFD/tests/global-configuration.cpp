@@ -34,36 +34,34 @@
 namespace nfd {
 namespace tests {
 
-class GlobalConfiguration
-{
-public:
-  GlobalConfiguration()
-  {
-    const char* envHome = ::getenv("HOME");
-    if (envHome)
-      m_home = envHome;
+class GlobalConfiguration {
+  public:
+    GlobalConfiguration()
+    {
+        const char* envHome = ::getenv("HOME");
+        if (envHome)
+            m_home = envHome;
 
-    auto testHome = boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "test-home";
-    if (::setenv("HOME", testHome.c_str(), 1) != 0)
-      NDN_THROW(std::runtime_error("setenv() failed"));
+        auto testHome = boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "test-home";
+        if (::setenv("HOME", testHome.c_str(), 1) != 0)
+            NDN_THROW(std::runtime_error("setenv() failed"));
 
-    boost::filesystem::create_directories(testHome);
+        boost::filesystem::create_directories(testHome);
 
-    std::ofstream clientConf((testHome / ".ndn" / "client.conf").c_str());
-    clientConf << "pib=pib-sqlite3" << std::endl
-               << "tpm=tpm-file" << std::endl;
-  }
+        std::ofstream clientConf((testHome / ".ndn" / "client.conf").c_str());
+        clientConf << "pib=pib-sqlite3" << std::endl << "tpm=tpm-file" << std::endl;
+    }
 
-  ~GlobalConfiguration() noexcept
-  {
-    if (m_home.empty())
-      ::unsetenv("HOME");
-    else
-      ::setenv("HOME", m_home.data(), 1);
-  }
+    ~GlobalConfiguration() noexcept
+    {
+        if (m_home.empty())
+            ::unsetenv("HOME");
+        else
+            ::setenv("HOME", m_home.data(), 1);
+    }
 
-private:
-  std::string m_home;
+  private:
+    std::string m_home;
 };
 
 #if BOOST_VERSION >= 106500

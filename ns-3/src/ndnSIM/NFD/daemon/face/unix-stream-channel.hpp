@@ -42,80 +42,71 @@ namespace face {
  * Channel can create faces as a response to incoming IPC connections
  * (UnixStreamChannel::listen needs to be called for that to work).
  */
-class UnixStreamChannel : public Channel
-{
-public:
-  /**
-   * \brief UnixStreamChannel-related error
-   */
-  class Error : public std::runtime_error
-  {
+class UnixStreamChannel : public Channel {
   public:
-    explicit
-    Error(const std::string& what)
-      : std::runtime_error(what)
+    /**
+     * \brief UnixStreamChannel-related error
+     */
+    class Error : public std::runtime_error {
+      public:
+        explicit Error(const std::string& what)
+          : std::runtime_error(what)
+        {
+        }
+    };
+
+    /**
+     * \brief Create UnixStream channel for the specified endpoint
+     *
+     * To enable creation of faces upon incoming connections, one
+     * needs to explicitly call UnixStreamChannel::listen method.
+     */
+    UnixStreamChannel(const unix_stream::Endpoint& endpoint, bool wantCongestionMarking);
+
+    ~UnixStreamChannel() override;
+
+    bool
+    isListening() const override
     {
+        return m_acceptor.is_open();
     }
-  };
 
-  /**
-   * \brief Create UnixStream channel for the specified endpoint
-   *
-   * To enable creation of faces upon incoming connections, one
-   * needs to explicitly call UnixStreamChannel::listen method.
-   */
-  UnixStreamChannel(const unix_stream::Endpoint& endpoint, bool wantCongestionMarking);
+    size_t
+    size() const override
+    {
+        return m_size;
+    }
 
-  ~UnixStreamChannel() override;
+    /**
+     * \brief Start listening
+     *
+     * Enable listening on the Unix socket, waiting for incoming connections,
+     * and creating a face when a connection is made.
+     *
+     * Faces created in this way will have on-demand persistency.
+     *
+     * \param onFaceCreated  Callback to notify successful creation of the face
+     * \param onAcceptFailed Callback to notify when channel fails (accept call
+     *                       returns an error)
+     * \param backlog        The maximum length of the queue of pending incoming
+     *                       connections
+     * \throw Error
+     */
+    void listen(const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onAcceptFailed,
+                int backlog = boost::asio::local::stream_protocol::acceptor::max_connections);
 
-  bool
-  isListening() const override
-  {
-    return m_acceptor.is_open();
-  }
+  private:
+    void accept(const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onAcceptFailed);
 
-  size_t
-  size() const override
-  {
-    return m_size;
-  }
+    void handleAccept(const boost::system::error_code& error, const FaceCreatedCallback& onFaceCreated,
+                      const FaceCreationFailedCallback& onAcceptFailed);
 
-  /**
-   * \brief Start listening
-   *
-   * Enable listening on the Unix socket, waiting for incoming connections,
-   * and creating a face when a connection is made.
-   *
-   * Faces created in this way will have on-demand persistency.
-   *
-   * \param onFaceCreated  Callback to notify successful creation of the face
-   * \param onAcceptFailed Callback to notify when channel fails (accept call
-   *                       returns an error)
-   * \param backlog        The maximum length of the queue of pending incoming
-   *                       connections
-   * \throw Error
-   */
-  void
-  listen(const FaceCreatedCallback& onFaceCreated,
-         const FaceCreationFailedCallback& onAcceptFailed,
-         int backlog = boost::asio::local::stream_protocol::acceptor::max_connections);
-
-private:
-  void
-  accept(const FaceCreatedCallback& onFaceCreated,
-         const FaceCreationFailedCallback& onAcceptFailed);
-
-  void
-  handleAccept(const boost::system::error_code& error,
-               const FaceCreatedCallback& onFaceCreated,
-               const FaceCreationFailedCallback& onAcceptFailed);
-
-private:
-  const unix_stream::Endpoint m_endpoint;
-  boost::asio::local::stream_protocol::acceptor m_acceptor;
-  boost::asio::local::stream_protocol::socket m_socket;
-  size_t m_size;
-  bool m_wantCongestionMarking;
+  private:
+    const unix_stream::Endpoint m_endpoint;
+    boost::asio::local::stream_protocol::acceptor m_acceptor;
+    boost::asio::local::stream_protocol::socket m_socket;
+    size_t m_size;
+    bool m_wantCongestionMarking;
 };
 
 } // namespace face

@@ -56,341 +56,331 @@ namespace ndn {
 
 /** @brief implementation detail of Face
  */
-class Face::Impl : noncopyable
-{
-public:
-  using PendingInterestTable = RecordContainer<PendingInterest>;
-  using InterestFilterTable = RecordContainer<InterestFilterRecord>;
-  using RegisteredPrefixTable = RecordContainer<RegisteredPrefix>;
+class Face::Impl : noncopyable {
+  public:
+    using PendingInterestTable = RecordContainer<PendingInterest>;
+    using InterestFilterTable = RecordContainer<InterestFilterRecord>;
+    using RegisteredPrefixTable = RecordContainer<RegisteredPrefix>;
 
-  Impl(Face& face, KeyChain& keyChain)
-    : m_face(face)
-    , m_scheduler(m_face.getIoService())
-    , m_nfdController(m_face, keyChain)
-  {
-    auto postOnEmptyPitOrNoRegisteredPrefixes = [this] {
-      m_scheduler.schedule(time::seconds(0), bind(&Impl::onEmptyPitOrNoRegisteredPrefixes, this));
-      // without this extra "post", transport can get paused (-async_read) and then resumed
-      // (+async_read) from within onInterest/onData callback.  After onInterest/onData
-      // finishes, there is another +async_read with the same memory block.  A few of such
-      // async_read duplications can cause various effects and result in segfault.
-    };
+    Impl(Face& face, KeyChain& keyChain)
+      : m_face(face)
+      , m_scheduler(m_face.getIoService())
+      , m_nfdController(m_face, keyChain)
+    {
+        auto postOnEmptyPitOrNoRegisteredPrefixes = [this] {
+            m_scheduler.schedule(time::seconds(0), bind(&Impl::onEmptyPitOrNoRegisteredPrefixes, this));
+            // without this extra "post", transport can get paused (-async_read) and then resumed
+            // (+async_read) from within onInterest/onData callback.  After onInterest/onData
+            // finishes, there is another +async_read with the same memory block.  A few of such
+            // async_read duplications can cause various effects and result in segfault.
+        };
 
-    m_pendingInterestTable.onEmpty.connect(postOnEmptyPitOrNoRegisteredPrefixes);
-    m_registeredPrefixTable.onEmpty.connect(postOnEmptyPitOrNoRegisteredPrefixes);
-  }
-
-public: // consumer
-  void
-  asyncExpressInterest(RecordId id, shared_ptr<const Interest> interest,
-                       const DataCallback& afterSatisfied,
-                       const NackCallback& afterNacked,
-                       const TimeoutCallback& afterTimeout)
-  {
-    NDN_LOG_DEBUG("<I " << *interest);
-    this->ensureConnected(true);
-
-    const Interest& interest2 = *interest;
-    auto& entry = m_pendingInterestTable.put(id, std::move(interest), afterSatisfied, afterNacked,
-                                             afterTimeout, ref(m_scheduler));
-
-    lp::Packet lpPacket;
-    addFieldFromTag<lp::NextHopFaceIdField, lp::NextHopFaceIdTag>(lpPacket, interest2);
-    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, interest2);
-
-    entry.recordForwarding();
-    m_face.m_transport->send(finishEncoding(std::move(lpPacket), interest2.wireEncode(),
-                                            'I', interest2.getName()));
-    dispatchInterest(entry, interest2);
-  }
-
-  void
-  asyncRemovePendingInterest(RecordId id)
-  {
-    m_pendingInterestTable.erase(id);
-  }
-
-  void
-  asyncRemoveAllPendingInterests()
-  {
-    m_pendingInterestTable.clear();
-  }
-
-  /** @return whether the Data should be sent to the forwarder, if it does not come from the forwarder
-   */
-  bool
-  satisfyPendingInterests(const Data& data)
-  {
-    bool hasAppMatch = false, hasForwarderMatch = false;
-    m_pendingInterestTable.removeIf([&] (PendingInterest& entry) {
-      if (!entry.getInterest()->matchesData(data)) {
-        return false;
-      }
-      NDN_LOG_DEBUG("   satisfying " << *entry.getInterest() << " from " << entry.getOrigin());
-
-      if (entry.getOrigin() == PendingInterestOrigin::APP) {
-        hasAppMatch = true;
-        entry.invokeDataCallback(data);
-      }
-      else {
-        hasForwarderMatch = true;
-      }
-
-      return true;
-    });
-
-    // if Data matches no pending Interest record, it is sent to the forwarder as unsolicited Data
-    return hasForwarderMatch || !hasAppMatch;
-  }
-
-  /** @return a Nack to be sent to the forwarder, or nullopt if no Nack should be sent
-   */
-  optional<lp::Nack>
-  nackPendingInterests(const lp::Nack& nack)
-  {
-    optional<lp::Nack> outNack;
-    m_pendingInterestTable.removeIf([&] (PendingInterest& entry) {
-      if (!nack.getInterest().matchesInterest(*entry.getInterest())) {
-        return false;
-      }
-      NDN_LOG_DEBUG("   nacking " << *entry.getInterest() << " from " << entry.getOrigin());
-
-      optional<lp::Nack> outNack1 = entry.recordNack(nack);
-      if (!outNack1) {
-        return false;
-      }
-
-      if (entry.getOrigin() == PendingInterestOrigin::APP) {
-        entry.invokeNackCallback(*outNack1);
-      }
-      else {
-        outNack = outNack1;
-      }
-      return true;
-    });
-
-    // send "least severe" Nack from any PendingInterest record originated from forwarder, because
-    // it is unimportant to consider Nack reason for the unlikely case when forwarder sends multiple
-    // Interests to an app in a short while
-    return outNack;
-  }
-
-public: // producer
-  void
-  asyncSetInterestFilter(RecordId id, const InterestFilter& filter,
-                         const InterestCallback& onInterest)
-  {
-    NDN_LOG_INFO("setting InterestFilter: " << filter);
-    m_interestFilterTable.put(id, filter, onInterest);
-  }
-
-  void
-  asyncUnsetInterestFilter(RecordId id)
-  {
-    const InterestFilterRecord* record = m_interestFilterTable.get(id);
-    if (record != nullptr) {
-      NDN_LOG_INFO("unsetting InterestFilter: " << record->getFilter());
-      m_interestFilterTable.erase(id);
-    }
-  }
-
-  void
-  processIncomingInterest(shared_ptr<const Interest> interest)
-  {
-    const Interest& interest2 = *interest;
-    auto& entry = m_pendingInterestTable.insert(std::move(interest), ref(m_scheduler));
-    dispatchInterest(entry, interest2);
-  }
-
-  void
-  dispatchInterest(PendingInterest& entry, const Interest& interest)
-  {
-    m_interestFilterTable.forEach([&] (const InterestFilterRecord& filter) {
-      if (!filter.doesMatch(entry)) {
-        return;
-      }
-      NDN_LOG_DEBUG("   matches " << filter.getFilter());
-      entry.recordForwarding();
-      filter.invokeInterestCallback(interest);
-    });
-  }
-
-  void
-  asyncPutData(const Data& data)
-  {
-    NDN_LOG_DEBUG("<D " << data.getName());
-    bool shouldSendToForwarder = satisfyPendingInterests(data);
-    if (!shouldSendToForwarder) {
-      return;
+        m_pendingInterestTable.onEmpty.connect(postOnEmptyPitOrNoRegisteredPrefixes);
+        m_registeredPrefixTable.onEmpty.connect(postOnEmptyPitOrNoRegisteredPrefixes);
     }
 
-    this->ensureConnected(true);
+  public: // consumer
+    void
+    asyncExpressInterest(RecordId id, shared_ptr<const Interest> interest, const DataCallback& afterSatisfied,
+                         const NackCallback& afterNacked, const TimeoutCallback& afterTimeout)
+    {
+        NDN_LOG_DEBUG("<I " << *interest);
+        this->ensureConnected(true);
 
-    lp::Packet lpPacket;
-    addFieldFromTag<lp::CachePolicyField, lp::CachePolicyTag>(lpPacket, data);
-    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, data);
+        const Interest& interest2 = *interest;
+        auto& entry = m_pendingInterestTable.put(id, std::move(interest), afterSatisfied, afterNacked, afterTimeout,
+                                                 ref(m_scheduler));
 
-    m_face.m_transport->send(finishEncoding(std::move(lpPacket), data.wireEncode(),
-                                            'D', data.getName()));
-  }
+        lp::Packet lpPacket;
+        addFieldFromTag<lp::NextHopFaceIdField, lp::NextHopFaceIdTag>(lpPacket, interest2);
+        addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, interest2);
 
-  void
-  asyncPutNack(const lp::Nack& nack)
-  {
-    NDN_LOG_DEBUG("<N " << nack.getInterest() << '~' << nack.getHeader().getReason());
-    optional<lp::Nack> outNack = nackPendingInterests(nack);
-    if (!outNack) {
-      return;
+        entry.recordForwarding();
+        m_face.m_transport->send(finishEncoding(std::move(lpPacket), interest2.wireEncode(), 'I', interest2.getName()));
+        dispatchInterest(entry, interest2);
     }
 
-    this->ensureConnected(true);
+    void
+    asyncRemovePendingInterest(RecordId id)
+    {
+        m_pendingInterestTable.erase(id);
+    }
 
-    lp::Packet lpPacket;
-    lpPacket.add<lp::NackField>(outNack->getHeader());
-    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, *outNack);
+    void
+    asyncRemoveAllPendingInterests()
+    {
+        m_pendingInterestTable.clear();
+    }
 
-    const Interest& interest = outNack->getInterest();
-    m_face.m_transport->send(finishEncoding(std::move(lpPacket), interest.wireEncode(),
-                                            'N', interest.getName()));
-  }
+    /** @return whether the Data should be sent to the forwarder, if it does not come from the forwarder
+     */
+    bool
+    satisfyPendingInterests(const Data& data)
+    {
+        bool hasAppMatch = false, hasForwarderMatch = false;
+        m_pendingInterestTable.removeIf([&](PendingInterest& entry) {
+            if (!entry.getInterest()->matchesData(data)) {
+                return false;
+            }
+            NDN_LOG_DEBUG("   satisfying " << *entry.getInterest() << " from " << entry.getOrigin());
 
-public: // prefix registration
-  RecordId
-  registerPrefix(const Name& prefix,
-                 const RegisterPrefixSuccessCallback& onSuccess,
-                 const RegisterPrefixFailureCallback& onFailure,
-                 uint64_t flags, const nfd::CommandOptions& options,
-                 const optional<InterestFilter>& filter, const InterestCallback& onInterest)
-  {
-    NDN_LOG_INFO("registering prefix: " << prefix);
-    auto id = m_registeredPrefixTable.allocateId();
+            if (entry.getOrigin() == PendingInterestOrigin::APP) {
+                hasAppMatch = true;
+                entry.invokeDataCallback(data);
+            }
+            else {
+                hasForwarderMatch = true;
+            }
 
-    m_nfdController.start<nfd::RibRegisterCommand>(
-      nfd::ControlParameters().setName(prefix).setFlags(flags),
-      [=] (const nfd::ControlParameters&) {
-        NDN_LOG_INFO("registered prefix: " << prefix);
+            return true;
+        });
 
-        RecordId filterId = 0;
-        if (filter) {
-          NDN_LOG_INFO("setting InterestFilter: " << *filter);
-          InterestFilterRecord& filterRecord = m_interestFilterTable.insert(*filter, onInterest);
-          filterId = filterRecord.getId();
+        // if Data matches no pending Interest record, it is sent to the forwarder as unsolicited Data
+        return hasForwarderMatch || !hasAppMatch;
+    }
+
+    /** @return a Nack to be sent to the forwarder, or nullopt if no Nack should be sent
+     */
+    optional<lp::Nack>
+    nackPendingInterests(const lp::Nack& nack)
+    {
+        optional<lp::Nack> outNack;
+        m_pendingInterestTable.removeIf([&](PendingInterest& entry) {
+            if (!nack.getInterest().matchesInterest(*entry.getInterest())) {
+                return false;
+            }
+            NDN_LOG_DEBUG("   nacking " << *entry.getInterest() << " from " << entry.getOrigin());
+
+            optional<lp::Nack> outNack1 = entry.recordNack(nack);
+            if (!outNack1) {
+                return false;
+            }
+
+            if (entry.getOrigin() == PendingInterestOrigin::APP) {
+                entry.invokeNackCallback(*outNack1);
+            }
+            else {
+                outNack = outNack1;
+            }
+            return true;
+        });
+
+        // send "least severe" Nack from any PendingInterest record originated from forwarder, because
+        // it is unimportant to consider Nack reason for the unlikely case when forwarder sends multiple
+        // Interests to an app in a short while
+        return outNack;
+    }
+
+  public: // producer
+    void
+    asyncSetInterestFilter(RecordId id, const InterestFilter& filter, const InterestCallback& onInterest)
+    {
+        NDN_LOG_INFO("setting InterestFilter: " << filter);
+        m_interestFilterTable.put(id, filter, onInterest);
+    }
+
+    void
+    asyncUnsetInterestFilter(RecordId id)
+    {
+        const InterestFilterRecord* record = m_interestFilterTable.get(id);
+        if (record != nullptr) {
+            NDN_LOG_INFO("unsetting InterestFilter: " << record->getFilter());
+            m_interestFilterTable.erase(id);
+        }
+    }
+
+    void
+    processIncomingInterest(shared_ptr<const Interest> interest)
+    {
+        const Interest& interest2 = *interest;
+        auto& entry = m_pendingInterestTable.insert(std::move(interest), ref(m_scheduler));
+        dispatchInterest(entry, interest2);
+    }
+
+    void
+    dispatchInterest(PendingInterest& entry, const Interest& interest)
+    {
+        m_interestFilterTable.forEach([&](const InterestFilterRecord& filter) {
+            if (!filter.doesMatch(entry)) {
+                return;
+            }
+            NDN_LOG_DEBUG("   matches " << filter.getFilter());
+            entry.recordForwarding();
+            filter.invokeInterestCallback(interest);
+        });
+    }
+
+    void
+    asyncPutData(const Data& data)
+    {
+        NDN_LOG_DEBUG("<D " << data.getName());
+        bool shouldSendToForwarder = satisfyPendingInterests(data);
+        if (!shouldSendToForwarder) {
+            return;
         }
 
-        m_registeredPrefixTable.put(id, prefix, options, filterId);
+        this->ensureConnected(true);
 
-        if (onSuccess != nullptr) {
-          onSuccess(prefix);
+        lp::Packet lpPacket;
+        addFieldFromTag<lp::CachePolicyField, lp::CachePolicyTag>(lpPacket, data);
+        addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, data);
+
+        m_face.m_transport->send(finishEncoding(std::move(lpPacket), data.wireEncode(), 'D', data.getName()));
+    }
+
+    void
+    asyncPutNack(const lp::Nack& nack)
+    {
+        NDN_LOG_DEBUG("<N " << nack.getInterest() << '~' << nack.getHeader().getReason());
+        optional<lp::Nack> outNack = nackPendingInterests(nack);
+        if (!outNack) {
+            return;
         }
-      },
-      [=] (const nfd::ControlResponse& resp) {
-        NDN_LOG_INFO("register prefix failed: " << prefix);
-        onFailure(prefix, resp.getText());
-      },
-      options);
 
-    return id;
-  }
+        this->ensureConnected(true);
 
-  void
-  asyncUnregisterPrefix(RecordId id,
-                        const UnregisterPrefixSuccessCallback& onSuccess,
-                        const UnregisterPrefixFailureCallback& onFailure)
-  {
-    const RegisteredPrefix* record = m_registeredPrefixTable.get(id);
-    if (record == nullptr) {
-      if (onFailure != nullptr) {
-        onFailure("Unrecognized RegisteredPrefixHandle");
-      }
-      return;
+        lp::Packet lpPacket;
+        lpPacket.add<lp::NackField>(outNack->getHeader());
+        addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, *outNack);
+
+        const Interest& interest = outNack->getInterest();
+        m_face.m_transport->send(finishEncoding(std::move(lpPacket), interest.wireEncode(), 'N', interest.getName()));
     }
 
-    if (record->getFilterId() != 0) {
-      asyncUnsetInterestFilter(record->getFilterId());
+  public: // prefix registration
+    RecordId
+    registerPrefix(const Name& prefix, const RegisterPrefixSuccessCallback& onSuccess,
+                   const RegisterPrefixFailureCallback& onFailure, uint64_t flags, const nfd::CommandOptions& options,
+                   const optional<InterestFilter>& filter, const InterestCallback& onInterest)
+    {
+        NDN_LOG_INFO("registering prefix: " << prefix);
+        auto id = m_registeredPrefixTable.allocateId();
+
+        m_nfdController.start<nfd::RibRegisterCommand>(
+          nfd::ControlParameters().setName(prefix).setFlags(flags),
+          [=](const nfd::ControlParameters&) {
+              NDN_LOG_INFO("registered prefix: " << prefix);
+
+              RecordId filterId = 0;
+              if (filter) {
+                  NDN_LOG_INFO("setting InterestFilter: " << *filter);
+                  InterestFilterRecord& filterRecord = m_interestFilterTable.insert(*filter, onInterest);
+                  filterId = filterRecord.getId();
+              }
+
+              m_registeredPrefixTable.put(id, prefix, options, filterId);
+
+              if (onSuccess != nullptr) {
+                  onSuccess(prefix);
+              }
+          },
+          [=](const nfd::ControlResponse& resp) {
+              NDN_LOG_INFO("register prefix failed: " << prefix);
+              onFailure(prefix, resp.getText());
+          },
+          options);
+
+        return id;
     }
 
-    NDN_LOG_INFO("unregistering prefix: " << record->getPrefix());
-
-    m_nfdController.start<nfd::RibUnregisterCommand>(
-      nfd::ControlParameters().setName(record->getPrefix()),
-      [=] (const nfd::ControlParameters&) {
-        NDN_LOG_INFO("unregistered prefix: " << record->getPrefix());
-        m_registeredPrefixTable.erase(id);
-
-        if (onSuccess != nullptr) {
-          onSuccess();
+    void
+    asyncUnregisterPrefix(RecordId id, const UnregisterPrefixSuccessCallback& onSuccess,
+                          const UnregisterPrefixFailureCallback& onFailure)
+    {
+        const RegisteredPrefix* record = m_registeredPrefixTable.get(id);
+        if (record == nullptr) {
+            if (onFailure != nullptr) {
+                onFailure("Unrecognized RegisteredPrefixHandle");
+            }
+            return;
         }
-      },
-      [=] (const nfd::ControlResponse& resp) {
-        NDN_LOG_INFO("unregister prefix failed: " << record->getPrefix());
-        onFailure(resp.getText());
-      },
-      record->getCommandOptions());
-  }
 
-public: // IO routine
-  void
-  ensureConnected(bool wantResume)
-  {
-    if (!m_face.m_transport->isConnected()) {
-      m_face.m_transport->connect([this] (const Block& wire) { m_face.onReceiveElement(wire); });
+        if (record->getFilterId() != 0) {
+            asyncUnsetInterestFilter(record->getFilterId());
+        }
+
+        NDN_LOG_INFO("unregistering prefix: " << record->getPrefix());
+
+        m_nfdController.start<nfd::RibUnregisterCommand>(
+          nfd::ControlParameters().setName(record->getPrefix()),
+          [=](const nfd::ControlParameters&) {
+              NDN_LOG_INFO("unregistered prefix: " << record->getPrefix());
+              m_registeredPrefixTable.erase(id);
+
+              if (onSuccess != nullptr) {
+                  onSuccess();
+              }
+          },
+          [=](const nfd::ControlResponse& resp) {
+              NDN_LOG_INFO("unregister prefix failed: " << record->getPrefix());
+              onFailure(resp.getText());
+          },
+          record->getCommandOptions());
     }
 
-    if (wantResume && !m_face.m_transport->isReceiving()) {
-      m_face.m_transport->resume();
-    }
-  }
+  public: // IO routine
+    void
+    ensureConnected(bool wantResume)
+    {
+        if (!m_face.m_transport->isConnected()) {
+            m_face.m_transport->connect([this](const Block& wire) { m_face.onReceiveElement(wire); });
+        }
 
-  void
-  onEmptyPitOrNoRegisteredPrefixes()
-  {
-    if (m_pendingInterestTable.empty() && m_registeredPrefixTable.empty()) {
-      m_face.m_transport->pause();
-    }
-  }
-
-  void
-  shutdown()
-  {
-    m_pendingInterestTable.clear();
-    m_registeredPrefixTable.clear();
-  }
-
-private:
-  /** @brief Finish packet encoding
-   *  @param lpPacket NDNLP packet without FragmentField
-   *  @param wire wire encoding of Interest or Data
-   *  @param pktType packet type, 'I' for Interest, 'D' for Data, 'N' for Nack
-   *  @param name packet name
-   *  @return wire encoding of either NDNLP or bare network packet
-   *  @throw Face::OversizedPacketError wire encoding exceeds limit
-   */
-  Block
-  finishEncoding(lp::Packet&& lpPacket, Block wire, char pktType, const Name& name)
-  {
-    if (!lpPacket.empty()) {
-      lpPacket.add<lp::FragmentField>(std::make_pair(wire.begin(), wire.end()));
-      wire = lpPacket.wireEncode();
+        if (wantResume && !m_face.m_transport->isReceiving()) {
+            m_face.m_transport->resume();
+        }
     }
 
-    if (wire.size() > MAX_NDN_PACKET_SIZE) {
-      NDN_THROW(Face::OversizedPacketError(pktType, name, wire.size()));
+    void
+    onEmptyPitOrNoRegisteredPrefixes()
+    {
+        if (m_pendingInterestTable.empty() && m_registeredPrefixTable.empty()) {
+            m_face.m_transport->pause();
+        }
     }
 
-    return wire;
-  }
+    void
+    shutdown()
+    {
+        m_pendingInterestTable.clear();
+        m_registeredPrefixTable.clear();
+    }
 
-private:
-  Face& m_face;
-  Scheduler m_scheduler;
-  scheduler::ScopedEventId m_processEventsTimeoutEvent;
-  nfd::Controller m_nfdController;
+  private:
+    /** @brief Finish packet encoding
+     *  @param lpPacket NDNLP packet without FragmentField
+     *  @param wire wire encoding of Interest or Data
+     *  @param pktType packet type, 'I' for Interest, 'D' for Data, 'N' for Nack
+     *  @param name packet name
+     *  @return wire encoding of either NDNLP or bare network packet
+     *  @throw Face::OversizedPacketError wire encoding exceeds limit
+     */
+    Block
+    finishEncoding(lp::Packet&& lpPacket, Block wire, char pktType, const Name& name)
+    {
+        if (!lpPacket.empty()) {
+            lpPacket.add<lp::FragmentField>(std::make_pair(wire.begin(), wire.end()));
+            wire = lpPacket.wireEncode();
+        }
 
-  PendingInterestTable m_pendingInterestTable;
-  InterestFilterTable m_interestFilterTable;
-  RegisteredPrefixTable m_registeredPrefixTable;
+        if (wire.size() > MAX_NDN_PACKET_SIZE) {
+            NDN_THROW(Face::OversizedPacketError(pktType, name, wire.size()));
+        }
 
-  friend class Face;
+        return wire;
+    }
+
+  private:
+    Face& m_face;
+    Scheduler m_scheduler;
+    scheduler::ScopedEventId m_processEventsTimeoutEvent;
+    nfd::Controller m_nfdController;
+
+    PendingInterestTable m_pendingInterestTable;
+    InterestFilterTable m_interestFilterTable;
+    RegisteredPrefixTable m_registeredPrefixTable;
+
+    friend class Face;
 };
 
 } // namespace ndn

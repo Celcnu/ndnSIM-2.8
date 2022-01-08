@@ -5,11 +5,15 @@
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
-void on_message(websocketpp::connection_hdl, server::message_ptr msg) {
-        std::cout << msg->get_payload() << std::endl;
+void
+on_message(websocketpp::connection_hdl, server::message_ptr msg)
+{
+    std::cout << msg->get_payload() << std::endl;
 }
 
-int main() {
+int
+main()
+{
     server print_server;
 
     print_server.set_message_handler(&on_message);

@@ -33,27 +33,24 @@ namespace face {
 
 /** \brief A Transport that drops every packet.
  */
-class NullTransport FINAL_UNLESS_WITH_TESTS : public Transport
-{
-public:
-  explicit
-  NullTransport(const FaceUri& localUri = FaceUri("null://"),
-                const FaceUri& remoteUri = FaceUri("null://"),
-                ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
-                ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+class NullTransport FINAL_UNLESS_WITH_TESTS : public Transport {
+  public:
+    explicit NullTransport(const FaceUri& localUri = FaceUri("null://"), const FaceUri& remoteUri = FaceUri("null://"),
+                           ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
+                           ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERMANENT);
 
-protected:
-  void
-  doClose() OVERRIDE_WITH_TESTS_ELSE_FINAL
-  {
-    setState(TransportState::CLOSED);
-  }
+  protected:
+    void
+    doClose() OVERRIDE_WITH_TESTS_ELSE_FINAL
+    {
+        setState(TransportState::CLOSED);
+    }
 
-private:
-  void
-  doSend(const Block&, const EndpointId&) OVERRIDE_WITH_TESTS_ELSE_FINAL
-  {
-  }
+  private:
+    void
+    doSend(const Block&, const EndpointId&) OVERRIDE_WITH_TESTS_ELSE_FINAL
+    {
+    }
 };
 
 } // namespace face

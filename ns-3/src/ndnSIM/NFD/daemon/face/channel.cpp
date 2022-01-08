@@ -34,17 +34,17 @@ Channel::~Channel() = default;
 void
 Channel::setUri(const FaceUri& uri)
 {
-  m_uri = uri;
+    m_uri = uri;
 }
 
 void
 connectFaceClosedSignal(Face& face, std::function<void()> f)
 {
-  face.afterStateChange.connect([f = std::move(f)] (auto, FaceState newState) {
-    if (newState == FaceState::CLOSED) {
-      f();
-    }
-  });
+    face.afterStateChange.connect([f = std::move(f)](auto, FaceState newState) {
+        if (newState == FaceState::CLOSED) {
+            f();
+        }
+    });
 }
 
 } // namespace face

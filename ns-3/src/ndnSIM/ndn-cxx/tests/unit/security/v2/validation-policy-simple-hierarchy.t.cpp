@@ -42,32 +42,32 @@ typedef boost::mpl::vector<Interest, Data> Packets;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Validate, Packet, Packets)
 {
-  Packet unsignedPacket("/Security/V2/ValidatorFixture/Sub1/Sub2/Packet");
+    Packet unsignedPacket("/Security/V2/ValidatorFixture/Sub1/Sub2/Packet");
 
-  Packet packet = unsignedPacket;
-  VALIDATE_FAILURE(packet, "Unsigned");
+    Packet packet = unsignedPacket;
+    VALIDATE_FAILURE(packet, "Unsigned");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingWithSha256());
-  VALIDATE_FAILURE(packet, "Policy doesn't accept Sha256Digest signature");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingWithSha256());
+    VALIDATE_FAILURE(packet, "Policy doesn't accept Sha256Digest signature");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(identity));
-  VALIDATE_SUCCESS(packet, "Should get accepted, as signed by the anchor");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(identity));
+    VALIDATE_SUCCESS(packet, "Should get accepted, as signed by the anchor");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(subIdentity));
-  VALIDATE_SUCCESS(packet, "Should get accepted, as signed by the policy-compliant cert");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(subIdentity));
+    VALIDATE_SUCCESS(packet, "Should get accepted, as signed by the policy-compliant cert");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(otherIdentity));
-  VALIDATE_FAILURE(packet, "Should fail, as signed by the policy-violating cert");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(otherIdentity));
+    VALIDATE_FAILURE(packet, "Should fail, as signed by the policy-violating cert");
 
-  packet = unsignedPacket;
-  m_keyChain.sign(packet, signingByIdentity(subSelfSignedIdentity));
-  VALIDATE_FAILURE(packet, "Should fail, because subSelfSignedIdentity is not a trust anchor");
+    packet = unsignedPacket;
+    m_keyChain.sign(packet, signingByIdentity(subSelfSignedIdentity));
+    VALIDATE_FAILURE(packet, "Should fail, because subSelfSignedIdentity is not a trust anchor");
 
-  // TODO add checks with malformed packets
+    // TODO add checks with malformed packets
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestValidator

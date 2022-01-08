@@ -35,29 +35,24 @@ namespace rib {
 
 /** \brief a decision made by readvertise policy
  */
-struct ReadvertiseAction
-{
-  Name prefix; ///< the prefix that should be readvertised
-  ndn::security::SigningInfo signer; ///< credentials for command signing
+struct ReadvertiseAction {
+    Name prefix;                       ///< the prefix that should be readvertised
+    ndn::security::SigningInfo signer; ///< credentials for command signing
 };
 
 /** \brief a policy to decide whether to readvertise a route, and what prefix to readvertise
  */
-class ReadvertisePolicy : noncopyable
-{
-public:
-  virtual
-  ~ReadvertisePolicy() = default;
+class ReadvertisePolicy : noncopyable {
+  public:
+    virtual ~ReadvertisePolicy() = default;
 
-  /** \brief decide whether to readvertise a route, and what prefix to readvertise
-   */
-  virtual optional<ReadvertiseAction>
-  handleNewRoute(const RibRouteRef& ribRoute) const = 0;
+    /** \brief decide whether to readvertise a route, and what prefix to readvertise
+     */
+    virtual optional<ReadvertiseAction> handleNewRoute(const RibRouteRef& ribRoute) const = 0;
 
-  /** \return how often readvertisements made by this policy should be refreshed.
-   */
-  virtual time::milliseconds
-  getRefreshInterval() const = 0;
+    /** \return how often readvertisements made by this policy should be refreshed.
+     */
+    virtual time::milliseconds getRefreshInterval() const = 0;
 };
 
 } // namespace rib

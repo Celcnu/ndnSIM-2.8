@@ -34,114 +34,98 @@ namespace face {
 
 /** \brief Protocol factory for UDP over IPv4 and IPv6
  */
-class UdpFactory : public ProtocolFactory
-{
-public:
-  class Error : public ProtocolFactory::Error
-  {
+class UdpFactory : public ProtocolFactory {
   public:
-    using ProtocolFactory::Error::Error;
-  };
+    class Error : public ProtocolFactory::Error {
+      public:
+        using ProtocolFactory::Error::Error;
+    };
 
-  static const std::string&
-  getId() noexcept;
+    static const std::string& getId() noexcept;
 
-  explicit
-  UdpFactory(const CtorParams& params);
+    explicit UdpFactory(const CtorParams& params);
 
-  /**
-   * \brief Create UDP-based channel using udp::Endpoint
-   *
-   * udp::Endpoint is really an alias for boost::asio::ip::udp::endpoint.
-   *
-   * If this method is called twice with the same endpoint, only one channel
-   * will be created. The second call will just return the existing channel.
-   *
-   * If a multicast face is already active on the same local endpoint,
-   * the creation fails and an exception is thrown.
-   *
-   * \return always a valid pointer to a UdpChannel object, an exception
-   *         is thrown if it cannot be created.
-   * \throw UdpFactory::Error
-   */
-  shared_ptr<UdpChannel>
-  createChannel(const udp::Endpoint& localEndpoint,
-                time::nanoseconds idleTimeout);
+    /**
+     * \brief Create UDP-based channel using udp::Endpoint
+     *
+     * udp::Endpoint is really an alias for boost::asio::ip::udp::endpoint.
+     *
+     * If this method is called twice with the same endpoint, only one channel
+     * will be created. The second call will just return the existing channel.
+     *
+     * If a multicast face is already active on the same local endpoint,
+     * the creation fails and an exception is thrown.
+     *
+     * \return always a valid pointer to a UdpChannel object, an exception
+     *         is thrown if it cannot be created.
+     * \throw UdpFactory::Error
+     */
+    shared_ptr<UdpChannel> createChannel(const udp::Endpoint& localEndpoint, time::nanoseconds idleTimeout);
 
-  /**
-   * \brief Create a multicast UDP face
-   *
-   * udp::Endpoint is really an alias for boost::asio::ip::udp::endpoint.
-   *
-   * The face will join the specified multicast group.
-   *
-   * If this method is called twice with the same set of arguments, only one
-   * face will be created. The second call will just return the existing face.
-   *
-   * If a UDP channel, unicast face, or multicast face already exists on the
-   * same combination of local address and multicast port, the creation fails
-   * and an exception is thrown.
-   *
-   * \param netif the network interface to which the face will be bound
-   * \param localAddress the local IP address to which the face will be bound
-   * \param multicastEndpoint the multicast endpoint (multicast group and port number)
-   *
-   * \return always a valid shared pointer to the created face;
-   *         an exception is thrown if the face cannot be created.
-   * \throw UdpFactory::Error
-   */
-  shared_ptr<Face>
-  createMulticastFace(const shared_ptr<const ndn::net::NetworkInterface>& netif,
-                      const boost::asio::ip::address& localAddress,
-                      const udp::Endpoint& multicastEndpoint);
+    /**
+     * \brief Create a multicast UDP face
+     *
+     * udp::Endpoint is really an alias for boost::asio::ip::udp::endpoint.
+     *
+     * The face will join the specified multicast group.
+     *
+     * If this method is called twice with the same set of arguments, only one
+     * face will be created. The second call will just return the existing face.
+     *
+     * If a UDP channel, unicast face, or multicast face already exists on the
+     * same combination of local address and multicast port, the creation fails
+     * and an exception is thrown.
+     *
+     * \param netif the network interface to which the face will be bound
+     * \param localAddress the local IP address to which the face will be bound
+     * \param multicastEndpoint the multicast endpoint (multicast group and port number)
+     *
+     * \return always a valid shared pointer to the created face;
+     *         an exception is thrown if the face cannot be created.
+     * \throw UdpFactory::Error
+     */
+    shared_ptr<Face>
+    createMulticastFace(const shared_ptr<const ndn::net::NetworkInterface>& netif,
+                        const boost::asio::ip::address& localAddress, const udp::Endpoint& multicastEndpoint);
 
-private:
-  /** \brief process face_system.udp config section
-   */
-  void
-  doProcessConfig(OptionalConfigSection configSection,
-                  FaceSystem::ConfigContext& context) override;
+  private:
+    /** \brief process face_system.udp config section
+     */
+    void doProcessConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context) override;
 
-  void
-  doCreateFace(const CreateFaceRequest& req,
-               const FaceCreatedCallback& onCreated,
-               const FaceCreationFailedCallback& onFailure) override;
+    void doCreateFace(const CreateFaceRequest& req, const FaceCreatedCallback& onCreated,
+                      const FaceCreationFailedCallback& onFailure) override;
 
-  std::vector<shared_ptr<const Channel>>
-  doGetChannels() const override;
+    std::vector<shared_ptr<const Channel>> doGetChannels() const override;
 
-  /** \brief Create UDP multicast faces on \p netif if needed by \p m_mcastConfig
-   *  \return list of faces (just created or already existing) on \p netif
-   */
-  std::vector<shared_ptr<Face>>
-  applyMcastConfigToNetif(const shared_ptr<const ndn::net::NetworkInterface>& netif);
+    /** \brief Create UDP multicast faces on \p netif if needed by \p m_mcastConfig
+     *  \return list of faces (just created or already existing) on \p netif
+     */
+    std::vector<shared_ptr<Face>> applyMcastConfigToNetif(const shared_ptr<const ndn::net::NetworkInterface>& netif);
 
-  /** \brief Create and destroy UDP multicast faces according to \p m_mcastConfig
-   */
-  void
-  applyMcastConfig(const FaceSystem::ConfigContext& context);
+    /** \brief Create and destroy UDP multicast faces according to \p m_mcastConfig
+     */
+    void applyMcastConfig(const FaceSystem::ConfigContext& context);
 
-private:
-  bool m_wantCongestionMarking = false;
-  std::map<udp::Endpoint, shared_ptr<UdpChannel>> m_channels;
+  private:
+    bool m_wantCongestionMarking = false;
+    std::map<udp::Endpoint, shared_ptr<UdpChannel>> m_channels;
 
-  struct MulticastConfig
-  {
-    bool isEnabled = false;
-    udp::Endpoint group = udp::getDefaultMulticastGroup();
-    udp::Endpoint groupV6 = udp::getDefaultMulticastGroupV6();
-    ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS;
-    NetworkInterfacePredicate netifPredicate;
-  };
-  MulticastConfig m_mcastConfig;
-  std::map<udp::Endpoint, shared_ptr<Face>> m_mcastFaces;
+    struct MulticastConfig {
+        bool isEnabled = false;
+        udp::Endpoint group = udp::getDefaultMulticastGroup();
+        udp::Endpoint groupV6 = udp::getDefaultMulticastGroupV6();
+        ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS;
+        NetworkInterfacePredicate netifPredicate;
+    };
+    MulticastConfig m_mcastConfig;
+    std::map<udp::Endpoint, shared_ptr<Face>> m_mcastFaces;
 
-  signal::ScopedConnection m_netifAddConn;
-  struct NetifConns
-  {
-    signal::ScopedConnection addrAddConn;
-  };
-  std::map<int, NetifConns> m_netifConns; // ifindex => signal connections
+    signal::ScopedConnection m_netifAddConn;
+    struct NetifConns {
+        signal::ScopedConnection addrAddConn;
+    };
+    std::map<int, NetifConns> m_netifConns; // ifindex => signal connections
 };
 
 } // namespace face

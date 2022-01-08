@@ -34,37 +34,32 @@ namespace transform {
  * It checks the first byte that is ever written into the sink,
  * and set output true if the byte is non-zero, otherwise false.
  */
-class BoolSink : public Sink
-{
-public:
-  /**
-   * @brief Create a bool sink whose output will be stored in @p value.
-   */
-  explicit
-  BoolSink(bool& value);
+class BoolSink : public Sink {
+  public:
+    /**
+     * @brief Create a bool sink whose output will be stored in @p value.
+     */
+    explicit BoolSink(bool& value);
 
-private:
-  /**
-   * @brief Check the first byte that is ever received and set the boolean variable.
-   *
-   * @return the same value as @p size.
-   */
-  size_t
-  doWrite(const uint8_t* buf, size_t size) final;
+  private:
+    /**
+     * @brief Check the first byte that is ever received and set the boolean variable.
+     *
+     * @return the same value as @p size.
+     */
+    size_t doWrite(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize sink processing
-   */
-  void
-  doEnd() final;
+    /**
+     * @brief Finalize sink processing
+     */
+    void doEnd() final;
 
-private:
-  bool m_hasValue;
-  bool& m_value;
+  private:
+    bool m_hasValue;
+    bool& m_value;
 };
 
-unique_ptr<Sink>
-boolSink(bool& value);
+unique_ptr<Sink> boolSink(bool& value);
 
 } // namespace transform
 } // namespace security

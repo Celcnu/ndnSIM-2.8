@@ -54,8 +54,7 @@ class Interest : public PacketBase, public std::enable_shared_from_this<Interest
      *  @warning In certain contexts that use `Interest::shared_from_this()`, Interest must be
      * created using `make_shared`. Otherwise, `shared_from_this()` will trigger undefined behavior.
      */
-    explicit Interest(const Name& name = Name(),
-                      time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME);
+    explicit Interest(const Name& name = Name(), time::milliseconds lifetime = DEFAULT_INTEREST_LIFETIME);
 
     /** @brief Construct an Interest by decoding from @p wire.
      *

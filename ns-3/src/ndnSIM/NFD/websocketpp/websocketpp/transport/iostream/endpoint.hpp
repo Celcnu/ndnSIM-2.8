@@ -44,7 +44,7 @@ namespace iostream {
 
 template <typename config>
 class endpoint {
-public:
+  public:
     /// Type of this endpoint transport component
     typedef endpoint type;
     /// Type of a pointer to this endpoint transport component
@@ -65,9 +65,11 @@ public:
     typedef typename transport_con_type::ptr transport_con_ptr;
 
     // generate and manage our own io_service
-    explicit endpoint() : m_output_stream(NULL), m_is_secure(false)
+    explicit endpoint()
+      : m_output_stream(NULL)
+      , m_is_secure(false)
     {
-        //std::cout << "transport::iostream::endpoint constructor" << std::endl;
+        // std::cout << "transport::iostream::endpoint constructor" << std::endl;
     }
 
     /// Register a default output stream
@@ -77,8 +79,10 @@ public:
      *
      * @param o The ostream to use as the default output stream.
      */
-    void register_ostream(std::ostream * o) {
-        m_alog->write(log::alevel::devel,"register_ostream");
+    void
+    register_ostream(std::ostream* o)
+    {
+        m_alog->write(log::alevel::devel, "register_ostream");
         m_output_stream = o;
     }
 
@@ -99,7 +103,9 @@ public:
      *
      * @param value Whether or not the endpoint can create secure connections.
      */
-    void set_secure(bool value) {
+    void
+    set_secure(bool value)
+    {
         m_is_secure = value;
     }
 
@@ -113,17 +119,19 @@ public:
      *
      * @return Whether or not the underlying transport is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return m_is_secure;
     }
-    
+
     /// Sets the write handler
     /**
      * The write handler is called when the iostream transport receives data
      * that needs to be written to the appropriate output location. This handler
      * can be used in place of registering an ostream for output.
      *
-     * The signature of the handler is 
+     * The signature of the handler is
      * `lib::error_code (connection_hdl, char const *, size_t)` The
      * code returned will be reported and logged by the core library.
      *
@@ -131,10 +139,12 @@ public:
      *
      * @param h The handler to call on connection shutdown.
      */
-    void set_write_handler(write_handler h) {
+    void
+    set_write_handler(write_handler h)
+    {
         m_write_handler = h;
     }
-    
+
     /// Sets the shutdown handler
     /**
      * The shutdown handler is called when the iostream transport receives a
@@ -151,10 +161,13 @@ public:
      *
      * @param h The handler to call on connection shutdown.
      */
-    void set_shutdown_handler(shutdown_handler h) {
+    void
+    set_shutdown_handler(shutdown_handler h)
+    {
         m_shutdown_handler = h;
     }
-protected:
+
+  protected:
     /// Initialize logging
     /**
      * The loggers are located in the main endpoint class. As such, the
@@ -168,7 +181,9 @@ protected:
      * @param a A pointer to the access logger to use.
      * @param e A pointer to the error logger to use.
      */
-    void init_logging(lib::shared_ptr<alog_type> a, lib::shared_ptr<elog_type> e) {
+    void
+    init_logging(lib::shared_ptr<alog_type> a, lib::shared_ptr<elog_type> e)
+    {
         m_elog = e;
         m_alog = a;
     }
@@ -180,7 +195,9 @@ protected:
      * @param u A URI pointer to the URI to connect to.
      * @param cb The function to call back with the results when complete.
      */
-    void async_connect(transport_con_ptr, uri_ptr, connect_handler cb) {
+    void
+    async_connect(transport_con_ptr, uri_ptr, connect_handler cb)
+    {
         cb(lib::error_code());
     }
 
@@ -194,7 +211,9 @@ protected:
      * @param tcon A pointer to the transport portion of the connection.
      * @return A status code indicating the success or failure of the operation
      */
-    lib::error_code init(transport_con_ptr tcon) {
+    lib::error_code
+    init(transport_con_ptr tcon)
+    {
         tcon->register_ostream(m_output_stream);
         if (m_shutdown_handler) {
             tcon->set_shutdown_handler(m_shutdown_handler);
@@ -204,16 +223,16 @@ protected:
         }
         return lib::error_code();
     }
-private:
-    std::ostream *  m_output_stream;
-    shutdown_handler m_shutdown_handler;
-    write_handler   m_write_handler;
-    
-    lib::shared_ptr<elog_type>     m_elog;
-    lib::shared_ptr<alog_type>     m_alog;
-    bool            m_is_secure;
-};
 
+  private:
+    std::ostream* m_output_stream;
+    shutdown_handler m_shutdown_handler;
+    write_handler m_write_handler;
+
+    lib::shared_ptr<elog_type> m_elog;
+    lib::shared_ptr<alog_type> m_alog;
+    bool m_is_secure;
+};
 
 } // namespace iostream
 } // namespace transport

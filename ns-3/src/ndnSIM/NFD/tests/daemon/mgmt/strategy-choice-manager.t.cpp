@@ -34,47 +34,44 @@
 namespace nfd {
 namespace tests {
 
-class StrategyChoiceManagerFixture : public ManagerFixtureWithAuthenticator
-{
-public:
-  StrategyChoiceManagerFixture()
-    : sc(m_forwarder.getStrategyChoice())
-    , manager(sc, m_dispatcher, *m_authenticator)
-    , strategyNameP("/strategy-choice-manager-P/%FD%02")
-  {
-    VersionedDummyStrategy<2>::registerAs(strategyNameP);
+class StrategyChoiceManagerFixture : public ManagerFixtureWithAuthenticator {
+  public:
+    StrategyChoiceManagerFixture()
+      : sc(m_forwarder.getStrategyChoice())
+      , manager(sc, m_dispatcher, *m_authenticator)
+      , strategyNameP("/strategy-choice-manager-P/%FD%02")
+    {
+        VersionedDummyStrategy<2>::registerAs(strategyNameP);
 
-    setTopPrefix();
-    setPrivilege("strategy-choice");
-  }
+        setTopPrefix();
+        setPrivilege("strategy-choice");
+    }
 
-public:
-  /** \return whether exact-match StrategyChoice entry exists
-   */
-  bool
-  hasEntry(const Name& name) const
-  {
-    return sc.get(name).first;
-  }
+  public:
+    /** \return whether exact-match StrategyChoice entry exists
+     */
+    bool
+    hasEntry(const Name& name) const
+    {
+        return sc.get(name).first;
+    }
 
-  /** \return strategy instance name from an exact-match StrategyChoice entry
-   */
-  Name
-  getInstanceName(const Name& name) const
-  {
-    bool hasEntry = false;
-    Name instanceName;
-    std::tie(hasEntry, instanceName) = sc.get(name);
-    return hasEntry ?
-           instanceName :
-           Name("/no-StrategyChoice-entry-at").append(name);
-  }
+    /** \return strategy instance name from an exact-match StrategyChoice entry
+     */
+    Name
+    getInstanceName(const Name& name) const
+    {
+        bool hasEntry = false;
+        Name instanceName;
+        std::tie(hasEntry, instanceName) = sc.get(name);
+        return hasEntry ? instanceName : Name("/no-StrategyChoice-entry-at").append(name);
+    }
 
-protected:
-  StrategyChoice& sc;
-  StrategyChoiceManager manager;
+  protected:
+    StrategyChoice& sc;
+    StrategyChoiceManager manager;
 
-  const Name strategyNameP;
+    const Name strategyNameP;
 };
 
 BOOST_AUTO_TEST_SUITE(Mgmt)
@@ -82,162 +79,143 @@ BOOST_FIXTURE_TEST_SUITE(TestStrategyChoiceManager, StrategyChoiceManagerFixture
 
 BOOST_AUTO_TEST_CASE(SetSuccess)
 {
-  ControlParameters reqParams;
-  reqParams.setName("/A")
-           .setStrategy(strategyNameP.getPrefix(-1)); // use unversioned strategy name in request
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
-  receiveInterest(req);
+    ControlParameters reqParams;
+    reqParams.setName("/A").setStrategy(strategyNameP.getPrefix(-1)); // use unversioned strategy name in request
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
+    receiveInterest(req);
 
-  ControlParameters expectedParams;
-  expectedParams.setName("/A")
-                .setStrategy(strategyNameP); // response should have versioned strategy name
-  ControlResponse expectedResp;
-  expectedResp.setCode(200)
-              .setText("OK")
-              .setBody(expectedParams.wireEncode());
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlParameters expectedParams;
+    expectedParams.setName("/A").setStrategy(strategyNameP); // response should have versioned strategy name
+    ControlResponse expectedResp;
+    expectedResp.setCode(200).setText("OK").setBody(expectedParams.wireEncode());
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(getInstanceName("/A"), strategyNameP);
+    BOOST_CHECK_EQUAL(getInstanceName("/A"), strategyNameP);
 
-  // Strategy versioning and parameters are not tested here because they are covered by
-  // Table/TestStrategyChoice test suite.
+    // Strategy versioning and parameters are not tested here because they are covered by
+    // Table/TestStrategyChoice test suite.
 }
 
 BOOST_AUTO_TEST_CASE(SetUnknownStrategy)
 {
-  ControlParameters reqParams;
-  reqParams.setName("/A")
-           .setStrategy("/strategy-choice-manager-unknown");
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
-  receiveInterest(req);
+    ControlParameters reqParams;
+    reqParams.setName("/A").setStrategy("/strategy-choice-manager-unknown");
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
+    receiveInterest(req);
 
-  ControlResponse expectedResp;
-  expectedResp.setCode(404)
-              .setText("Strategy not registered");
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlResponse expectedResp;
+    expectedResp.setCode(404).setText("Strategy not registered");
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(hasEntry("/A"), false);
+    BOOST_CHECK_EQUAL(hasEntry("/A"), false);
 }
 
 BOOST_AUTO_TEST_CASE(SetNameTooLong)
 {
-  Name prefix;
-  while (prefix.size() <= NameTree::getMaxDepth()) {
-    prefix.append("A");
-  }
-  ControlParameters reqParams;
-  reqParams.setName(prefix)
-           .setStrategy(strategyNameP);
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
-  receiveInterest(req);
+    Name prefix;
+    while (prefix.size() <= NameTree::getMaxDepth()) {
+        prefix.append("A");
+    }
+    ControlParameters reqParams;
+    reqParams.setName(prefix).setStrategy(strategyNameP);
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/set", reqParams);
+    receiveInterest(req);
 
-  ControlResponse expectedResp;
-  expectedResp.setCode(414)
-              .setText("Prefix has too many components (limit is " +
-                       to_string(NameTree::getMaxDepth()) + ")");
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlResponse expectedResp;
+    expectedResp.setCode(414).setText("Prefix has too many components (limit is " + to_string(NameTree::getMaxDepth())
+                                      + ")");
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(hasEntry(prefix), false);
+    BOOST_CHECK_EQUAL(hasEntry(prefix), false);
 }
 
 BOOST_AUTO_TEST_CASE(UnsetSuccess)
 {
-  auto insertRes = sc.insert("/A", strategyNameP);
-  BOOST_REQUIRE(insertRes);
+    auto insertRes = sc.insert("/A", strategyNameP);
+    BOOST_REQUIRE(insertRes);
 
-  ControlParameters reqParams;
-  reqParams.setName("/A");
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
-  receiveInterest(req);
+    ControlParameters reqParams;
+    reqParams.setName("/A");
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
+    receiveInterest(req);
 
-  ControlParameters expectedParams(reqParams);
-  ControlResponse expectedResp;
-  expectedResp.setCode(200)
-              .setText("OK")
-              .setBody(expectedParams.wireEncode());
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlParameters expectedParams(reqParams);
+    ControlResponse expectedResp;
+    expectedResp.setCode(200).setText("OK").setBody(expectedParams.wireEncode());
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(hasEntry("/A"), false);
+    BOOST_CHECK_EQUAL(hasEntry("/A"), false);
 }
 
 BOOST_AUTO_TEST_CASE(UnsetNoop)
 {
-  ControlParameters reqParams;
-  reqParams.setName("/A");
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
-  receiveInterest(req);
+    ControlParameters reqParams;
+    reqParams.setName("/A");
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
+    receiveInterest(req);
 
-  ControlParameters expectedParams(reqParams);
-  ControlResponse expectedResp;
-  expectedResp.setCode(200)
-              .setText("OK")
-              .setBody(expectedParams.wireEncode());
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlParameters expectedParams(reqParams);
+    ControlResponse expectedResp;
+    expectedResp.setCode(200).setText("OK").setBody(expectedParams.wireEncode());
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(hasEntry("/A"), false);
+    BOOST_CHECK_EQUAL(hasEntry("/A"), false);
 }
 
 BOOST_AUTO_TEST_CASE(UnsetRootForbidden)
 {
-  ControlParameters reqParams;
-  reqParams.setName("/");
-  auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
-  receiveInterest(req);
+    ControlParameters reqParams;
+    reqParams.setName("/");
+    auto req = makeControlCommandRequest("/localhost/nfd/strategy-choice/unset", reqParams);
+    receiveInterest(req);
 
-  ControlResponse expectedResp;
-  expectedResp.setCode(400)
-              .setText("failed in validating parameters");
-  BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp),
-                    CheckResponseResult::OK);
+    ControlResponse expectedResp;
+    expectedResp.setCode(400).setText("failed in validating parameters");
+    BOOST_CHECK_EQUAL(checkResponse(0, req.getName(), expectedResp), CheckResponseResult::OK);
 
-  BOOST_CHECK_EQUAL(hasEntry("/"), true);
+    BOOST_CHECK_EQUAL(hasEntry("/"), true);
 }
 
 BOOST_AUTO_TEST_CASE(StrategyChoiceDataset)
 {
-  std::map<Name, Name> expected; // namespace => strategy instance name
-  for (const strategy_choice::Entry& entry : sc) {
-    expected[entry.getPrefix()] = entry.getStrategyInstanceName();
-  }
-
-  for (size_t i = expected.size(); i < 1024; ++i) {
-    Name name("/SC");
-    name.appendNumber(i);
-    Name strategy = DummyStrategy::getStrategyName(i);
-
-    auto insertRes = sc.insert(name, strategy);
-    BOOST_CHECK(insertRes);
-    expected[name] = strategy;
-  }
-
-  receiveInterest(Interest("/localhost/nfd/strategy-choice/list").setCanBePrefix(true));
-
-  Block dataset = concatenateResponses();
-  dataset.parse();
-  BOOST_CHECK_EQUAL(dataset.elements_size(), expected.size());
-
-  for (auto i = dataset.elements_begin(); i != dataset.elements_end(); ++i) {
-    ndn::nfd::StrategyChoice record(*i);
-    auto found = expected.find(record.getName());
-    if (found == expected.end()) {
-      BOOST_ERROR("record has unexpected namespace " << record.getName());
+    std::map<Name, Name> expected; // namespace => strategy instance name
+    for (const strategy_choice::Entry& entry : sc) {
+        expected[entry.getPrefix()] = entry.getStrategyInstanceName();
     }
-    else {
-      BOOST_CHECK_MESSAGE(record.getStrategy() == found->second,
-        "record for " << record.getName() << " has wrong strategy " << record.getStrategy() <<
-        ", should be " << found->second);
-      expected.erase(found);
-    }
-  }
 
-  for (const auto& pair : expected) {
-    BOOST_ERROR("record for " << pair.first << " is missing");
-  }
+    for (size_t i = expected.size(); i < 1024; ++i) {
+        Name name("/SC");
+        name.appendNumber(i);
+        Name strategy = DummyStrategy::getStrategyName(i);
+
+        auto insertRes = sc.insert(name, strategy);
+        BOOST_CHECK(insertRes);
+        expected[name] = strategy;
+    }
+
+    receiveInterest(Interest("/localhost/nfd/strategy-choice/list").setCanBePrefix(true));
+
+    Block dataset = concatenateResponses();
+    dataset.parse();
+    BOOST_CHECK_EQUAL(dataset.elements_size(), expected.size());
+
+    for (auto i = dataset.elements_begin(); i != dataset.elements_end(); ++i) {
+        ndn::nfd::StrategyChoice record(*i);
+        auto found = expected.find(record.getName());
+        if (found == expected.end()) {
+            BOOST_ERROR("record has unexpected namespace " << record.getName());
+        }
+        else {
+            BOOST_CHECK_MESSAGE(record.getStrategy() == found->second,
+                                "record for " << record.getName() << " has wrong strategy " << record.getStrategy()
+                                              << ", should be " << found->second);
+            expected.erase(found);
+        }
+    }
+
+    for (const auto& pair : expected) {
+        BOOST_ERROR("record for " << pair.first << " is missing");
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStrategyChoiceManager

@@ -35,10 +35,9 @@ namespace validator_config {
 
 typedef boost::property_tree::ptree ConfigSection;
 
-class Error : public std::runtime_error
-{
-public:
-  using std::runtime_error::runtime_error;
+class Error : public std::runtime_error {
+  public:
+    using std::runtime_error::runtime_error;
 };
 
 } // namespace validator_config

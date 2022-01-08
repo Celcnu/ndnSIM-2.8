@@ -33,7 +33,7 @@ namespace face {
 // 所以 LinkService 的 afterReceiveInterest 通过 Face 连接到了 Forwarder::startProcessInterest 上
 // 即 LinkService 的 afterReceiveInterest 信号等价于 Forwarder::startProcessInterest 函数 !
 Face::Face(unique_ptr<LinkService> service, unique_ptr<Transport> transport)
-  : afterReceiveInterest(service->afterReceiveInterest) 
+  : afterReceiveInterest(service->afterReceiveInterest)
   , afterReceiveData(service->afterReceiveData)
   , afterReceiveNack(service->afterReceiveNack)
   , onDroppedInterest(service->onDroppedInterest)
@@ -44,17 +44,16 @@ Face::Face(unique_ptr<LinkService> service, unique_ptr<Transport> transport)
   , m_counters(m_service->getCounters(), m_transport->getCounters())
   , m_metric(0)
 {
-  m_service->setFaceAndTransport(*this, *m_transport);
-  m_transport->setFaceAndLinkService(*this, *m_service);
+    m_service->setFaceAndTransport(*this, *m_transport);
+    m_transport->setFaceAndLinkService(*this, *m_service);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FaceLogHelper<Face>& flh)
 {
-  const Face& face = flh.obj;
-  os << "[id=" << face.getId() << ",local=" << face.getLocalUri() <<
-        ",remote=" << face.getRemoteUri() << "] ";
-  return os;
+    const Face& face = flh.obj;
+    os << "[id=" << face.getId() << ",local=" << face.getLocalUri() << ",remote=" << face.getRemoteUri() << "] ";
+    return os;
 }
 
 } // namespace face

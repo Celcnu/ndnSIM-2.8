@@ -40,60 +40,50 @@ NFD_LOG_MEMBER_DECL_SPECIALIZED(StreamTransport<boost::asio::ip::tcp>);
  * state is set to DOWN, and the connection is retried periodically with exponential backoff
  * until it is reestablished
  */
-class TcpTransport FINAL_UNLESS_WITH_TESTS : public StreamTransport<boost::asio::ip::tcp>
-{
-public:
-  TcpTransport(protocol::socket&& socket, ndn::nfd::FacePersistency persistency, ndn::nfd::FaceScope faceScope);
+class TcpTransport FINAL_UNLESS_WITH_TESTS : public StreamTransport<boost::asio::ip::tcp> {
+  public:
+    TcpTransport(protocol::socket&& socket, ndn::nfd::FacePersistency persistency, ndn::nfd::FaceScope faceScope);
 
-  ssize_t
-  getSendQueueLength() final;
+    ssize_t getSendQueueLength() final;
 
-protected:
-  bool
-  canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
+  protected:
+    bool canChangePersistencyToImpl(ndn::nfd::FacePersistency newPersistency) const final;
 
-  void
-  afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
+    void afterChangePersistency(ndn::nfd::FacePersistency oldPersistency) final;
 
-  void
-  doClose() final;
+    void doClose() final;
 
-  void
-  handleError(const boost::system::error_code& error) final;
+    void handleError(const boost::system::error_code& error) final;
 
-PROTECTED_WITH_TESTS_ELSE_PRIVATE:
-  VIRTUAL_WITH_TESTS void
-  reconnect();
+    PROTECTED_WITH_TESTS_ELSE_PRIVATE : VIRTUAL_WITH_TESTS void reconnect();
 
-  VIRTUAL_WITH_TESTS void
-  handleReconnect(const boost::system::error_code& error);
+    VIRTUAL_WITH_TESTS void handleReconnect(const boost::system::error_code& error);
 
-  VIRTUAL_WITH_TESTS void
-  handleReconnectTimeout();
+    VIRTUAL_WITH_TESTS void handleReconnectTimeout();
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /** \brief how long to wait before the first reconnection attempt after the TCP connection has been severed
-   */
-  static time::milliseconds s_initialReconnectWait;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /** \brief how long to wait before the first reconnection attempt after the TCP connection has been severed
+       */
+      static time::milliseconds s_initialReconnectWait;
 
-  /** \brief maximum amount of time to wait before a reconnection attempt
-   */
-  static time::milliseconds s_maxReconnectWait;
+    /** \brief maximum amount of time to wait before a reconnection attempt
+     */
+    static time::milliseconds s_maxReconnectWait;
 
-  /** \brief multiplier for the exponential backoff of the reconnection timer
-   */
-  static float s_reconnectWaitMultiplier;
+    /** \brief multiplier for the exponential backoff of the reconnection timer
+     */
+    static float s_reconnectWaitMultiplier;
 
-private:
-  typename protocol::endpoint m_remoteEndpoint;
+  private:
+    typename protocol::endpoint m_remoteEndpoint;
 
-  /** \note valid only when persistency is set to permanent
-   */
-  scheduler::ScopedEventId m_reconnectEvent;
+    /** \note valid only when persistency is set to permanent
+     */
+    scheduler::ScopedEventId m_reconnectEvent;
 
-  /** \note valid only when persistency is set to permanent
-   */
-  time::milliseconds m_nextReconnectWait;
+    /** \note valid only when persistency is set to permanent
+     */
+    time::milliseconds m_nextReconnectWait;
 };
 
 } // namespace face

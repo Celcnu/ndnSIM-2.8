@@ -45,81 +45,81 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
+    // setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
+    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
 
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  // Creating nodes
-  NodeContainer nodes;
-  nodes.Create(3);
+    // Creating nodes
+    NodeContainer nodes;
+    nodes.Create(3);
 
-  // Connecting nodes using two links
-  PointToPointHelper p2p;
-  p2p.Install(nodes.Get(0), nodes.Get(1));
-  p2p.Install(nodes.Get(1), nodes.Get(2));
+    // Connecting nodes using two links
+    PointToPointHelper p2p;
+    p2p.Install(nodes.Get(0), nodes.Get(1));
+    p2p.Install(nodes.Get(1), nodes.Get(2));
 
-  // Install Ndn stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.SetDefaultRoutes(true);
-  ndnHelper.setCsSize(2); // allow just 2 entries to be cached
-  ndnHelper.setPolicy("nfd::cs::lru");
-  ndnHelper.InstallAll();
+    // Install Ndn stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.SetDefaultRoutes(true);
+    ndnHelper.setCsSize(2); // allow just 2 entries to be cached
+    ndnHelper.setPolicy("nfd::cs::lru");
+    ndnHelper.InstallAll();
 
-  // Installing applications
+    // Installing applications
 
-  // Consumer
-  ndn::AppHelper consumerHelper("OneInterestRequester");
+    // Consumer
+    ndn::AppHelper consumerHelper("OneInterestRequester");
 
-  // /*
-  //   1) at time 1 second requests Data from a producer that does not specify freshness
-  //   2) at time 10 seconds requests the same Data packet as client 1
+    // /*
+    //   1) at time 1 second requests Data from a producer that does not specify freshness
+    //   2) at time 10 seconds requests the same Data packet as client 1
 
-  //   3) at time 2 seconds requests Data from a producer that specifies freshness set to 2 seconds
-  //   4) at time 12 seconds requests the same Data packet as client 3
+    //   3) at time 2 seconds requests Data from a producer that specifies freshness set to 2 seconds
+    //   4) at time 12 seconds requests the same Data packet as client 3
 
-  //   Expectation:
-  //   Interests from 1, 3 and 4 will reach producers
-  //   Interset from 2 will be served from cache
-  //  */
+    //   Expectation:
+    //   Interests from 1, 3 and 4 will reach producers
+    //   Interset from 2 will be served from cache
+    //  */
 
-  consumerHelper.SetPrefix("/no-freshness");
-  consumerHelper.Install(nodes.Get(0)).Start(Seconds(1));
-  consumerHelper.Install(nodes.Get(0)).Start(Seconds(10));
+    consumerHelper.SetPrefix("/no-freshness");
+    consumerHelper.Install(nodes.Get(0)).Start(Seconds(1));
+    consumerHelper.Install(nodes.Get(0)).Start(Seconds(10));
 
-  consumerHelper.SetPrefix("/with-freshness");
-  consumerHelper.Install(nodes.Get(0)).Start(Seconds(2));
-  consumerHelper.Install(nodes.Get(0)).Start(Seconds(12));
+    consumerHelper.SetPrefix("/with-freshness");
+    consumerHelper.Install(nodes.Get(0)).Start(Seconds(2));
+    consumerHelper.Install(nodes.Get(0)).Start(Seconds(12));
 
-  // Producer
-  ndn::AppHelper producerHelper("ns3::ndn::Producer");
-  producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+    // Producer
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
 
-  producerHelper.SetAttribute("Freshness", TimeValue(Years(100))); // freshness long enough
-  producerHelper.SetPrefix("/no-freshness");
-  producerHelper.Install(nodes.Get(2)); // last node
+    producerHelper.SetAttribute("Freshness", TimeValue(Years(100))); // freshness long enough
+    producerHelper.SetPrefix("/no-freshness");
+    producerHelper.Install(nodes.Get(2)); // last node
 
-  producerHelper.SetAttribute("Freshness", TimeValue(Seconds(2.0))); // freshness 2 seconds (!!!
-                                                                     // freshness granularity is 1
-                                                                     // seconds !!!)
-  producerHelper.SetPrefix("/with-freshness");
-  producerHelper.Install(nodes.Get(2)); // last node
+    producerHelper.SetAttribute("Freshness", TimeValue(Seconds(2.0))); // freshness 2 seconds (!!!
+                                                                       // freshness granularity is 1
+                                                                       // seconds !!!)
+    producerHelper.SetPrefix("/with-freshness");
+    producerHelper.Install(nodes.Get(2)); // last node
 
-  Simulator::Stop(Seconds(30.0));
+    Simulator::Stop(Seconds(30.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 } // namespace ns3
 
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

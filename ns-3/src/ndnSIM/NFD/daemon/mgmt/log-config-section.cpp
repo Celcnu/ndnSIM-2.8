@@ -33,13 +33,13 @@ namespace log {
 static void
 onConfig(const ConfigSection& section, bool isDryRun, const std::string&)
 {
-  // controlled only through NS-3 logger configuration
+    // controlled only through NS-3 logger configuration
 }
 
 void
 setConfigFile(ConfigFile& config)
 {
-  config.addSectionHandler("log", &onConfig);
+    config.addSectionHandler("log", &onConfig);
 }
 
 } // namespace log

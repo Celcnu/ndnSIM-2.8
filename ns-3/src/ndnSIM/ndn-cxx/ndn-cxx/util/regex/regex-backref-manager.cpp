@@ -28,17 +28,17 @@ namespace ndn {
 size_t
 RegexBackrefManager::pushRef(const shared_ptr<RegexMatcher>& matcher)
 {
-  auto last = m_backrefs.size();
-  m_backrefs.emplace_back(matcher);
-  return last;
+    auto last = m_backrefs.size();
+    m_backrefs.emplace_back(matcher);
+    return last;
 }
 
 shared_ptr<RegexMatcher>
 RegexBackrefManager::getBackref(size_t i) const
 {
-  auto backref = m_backrefs[i].lock();
-  BOOST_ASSERT(backref != nullptr);
-  return backref;
+    auto backref = m_backrefs[i].lock();
+    BOOST_ASSERT(backref != nullptr);
+    return backref;
 }
 
 } // namespace ndn

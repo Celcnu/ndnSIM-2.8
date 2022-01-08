@@ -34,121 +34,109 @@ namespace util {
  * @brief wrap an SQLite3 prepared statement
  * @warning This class is implementation detail of ndn-cxx library.
  */
-class Sqlite3Statement : noncopyable
-{
-public:
-  /**
-   * @brief initialize and prepare Sqlite3 statement
-   * @param database handler to open sqlite3 database
-   * @param statement SQL statement
-   * @throw std::domain_error SQL statement is bad
-   */
-  Sqlite3Statement(sqlite3* database, const std::string& statement);
+class Sqlite3Statement : noncopyable {
+  public:
+    /**
+     * @brief initialize and prepare Sqlite3 statement
+     * @param database handler to open sqlite3 database
+     * @param statement SQL statement
+     * @throw std::domain_error SQL statement is bad
+     */
+    Sqlite3Statement(sqlite3* database, const std::string& statement);
 
-  /**
-   * @brief finalize the statement
-   */
-  ~Sqlite3Statement();
+    /**
+     * @brief finalize the statement
+     */
+    ~Sqlite3Statement();
 
-  /**
-   * @brief bind a string to the statement
-   *
-   * @param index The binding position
-   * @param value The pointer of the binding string
-   * @param size The size of the binding string
-   * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
-   * @return SQLite result value.
-   */
-  int
-  bind(int index, const char* value, size_t size, void(*destructor)(void*));
+    /**
+     * @brief bind a string to the statement
+     *
+     * @param index The binding position
+     * @param value The pointer of the binding string
+     * @param size The size of the binding string
+     * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
+     * @return SQLite result value.
+     */
+    int bind(int index, const char* value, size_t size, void (*destructor)(void*));
 
-  /**
-   * @brief bind a string to the statement
-   *
-   * @param index The binding position
-   * @param value The binding string
-   * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
-   * @return SQLite result value.
-   */
-  int
-  bind(int index, const std::string& value, void(*destructor)(void*));
+    /**
+     * @brief bind a string to the statement
+     *
+     * @param index The binding position
+     * @param value The binding string
+     * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
+     * @return SQLite result value.
+     */
+    int bind(int index, const std::string& value, void (*destructor)(void*));
 
-  /**
-   * @brief bind a byte blob to the statement
-   *
-   * @param index The binding position
-   * @param value The pointer of the blob
-   * @param size The size of the blob
-   * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
-   * @return SQLite result value.
-   */
-  int
-  bind(int index, const void* value, size_t size, void(*destructor)(void*));
+    /**
+     * @brief bind a byte blob to the statement
+     *
+     * @param index The binding position
+     * @param value The pointer of the blob
+     * @param size The size of the blob
+     * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
+     * @return SQLite result value.
+     */
+    int bind(int index, const void* value, size_t size, void (*destructor)(void*));
 
-  /**
-   * @brief bind a byte blob to the statement
-   *
-   * @param index The binding position
-   * @param block The binding block
-   * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
-   * @return SQLite result value
-   */
-  int
-  bind(int index, const Block& block, void(*destructor)(void*));
+    /**
+     * @brief bind a byte blob to the statement
+     *
+     * @param index The binding position
+     * @param block The binding block
+     * @param destructor SQLite3 destructor, e.g., SQLITE_TRANSIENT
+     * @return SQLite result value
+     */
+    int bind(int index, const Block& block, void (*destructor)(void*));
 
-  /**
-   * @brief bind an integer to the statement
-   *
-   * @param index The binding position
-   * @param number The binding integer
-   * @return SQLite result value
-   */
-  int
-  bind(int index, int number);
+    /**
+     * @brief bind an integer to the statement
+     *
+     * @param index The binding position
+     * @param number The binding integer
+     * @return SQLite result value
+     */
+    int bind(int index, int number);
 
-  /**
-   * @brief get a string from @p column.
-   */
-  std::string
-  getString(int column);
+    /**
+     * @brief get a string from @p column.
+     */
+    std::string getString(int column);
 
-  /**
-   * @brief get a block from @p column.
-   */
-  Block
-  getBlock(int column);
+    /**
+     * @brief get a block from @p column.
+     */
+    Block getBlock(int column);
 
-  /**
-   * @brief get an integer from @p column.
-   */
-  int
-  getInt(int column);
+    /**
+     * @brief get an integer from @p column.
+     */
+    int getInt(int column);
 
-  /**
-   * @brief get a pointer of byte blob from @p column.
-   */
-  const uint8_t*
-  getBlob(int column);
+    /**
+     * @brief get a pointer of byte blob from @p column.
+     */
+    const uint8_t* getBlob(int column);
 
-  /**
-   * @brief get the size of @p column.
-   */
-  int
-  getSize(int column);
+    /**
+     * @brief get the size of @p column.
+     */
+    int getSize(int column);
 
-  /**
-   * @brief wrapper of sqlite3_step
-   */
-  int
-  step();
+    /**
+     * @brief wrapper of sqlite3_step
+     */
+    int step();
 
-  /**
-   * @brief implicitly converts to sqlite3_stmt* to be used in SQLite C API
-   */
-  operator sqlite3_stmt*();
+    /**
+     * @brief implicitly converts to sqlite3_stmt* to be used in SQLite C API
+     */
+    operator sqlite3_stmt*();
 
-private:
-  sqlite3_stmt* m_stmt;
+  private:
+    sqlite3_stmt* m_stmt;
 };
 
 } // namespace util

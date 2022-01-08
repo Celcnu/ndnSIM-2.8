@@ -84,22 +84,22 @@ using std::size_t;
 
 using boost::noncopyable;
 
+using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::weak_ptr;
-using std::make_shared;
-using std::make_unique;
 
-using std::static_pointer_cast;
-using std::dynamic_pointer_cast;
 using std::const_pointer_cast;
+using std::dynamic_pointer_cast;
+using std::static_pointer_cast;
 
 using std::bind;
 
 using namespace std::string_literals;
 
-using ndn::optional;
 using ndn::nullopt;
+using ndn::optional;
 using ndn::to_string;
 
 using ndn::Block;

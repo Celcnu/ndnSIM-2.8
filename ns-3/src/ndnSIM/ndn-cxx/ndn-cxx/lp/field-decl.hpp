@@ -39,131 +39,115 @@ namespace lp {
  */
 struct NonNegativeIntegerTag;
 
-template<typename TlvType, typename T>
-struct DecodeHelper
-{
-  static
-  BOOST_CONCEPT_REQUIRES(((WireDecodable<T>)), (T))
-  decode(const Block& wire)
-  {
-    T type;
-    type.wireDecode(wire);
-    return type;
-  }
-};
-
-template<typename TlvType>
-struct DecodeHelper<TlvType, EmptyValue>
-{
-  static EmptyValue
-  decode(const Block& wire)
-  {
-    if (wire.value_size() != 0) {
-      NDN_THROW(ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) +
-                                " must be empty"));
+template <typename TlvType, typename T>
+struct DecodeHelper {
+    static BOOST_CONCEPT_REQUIRES(((WireDecodable<T>)), (T)) decode(const Block& wire)
+    {
+        T type;
+        type.wireDecode(wire);
+        return type;
     }
-    return EmptyValue{};
-  }
 };
 
-template<typename TlvType>
-struct DecodeHelper<TlvType, NonNegativeIntegerTag>
-{
-  static uint64_t
-  decode(const Block& wire)
-  {
-    return readNonNegativeInteger(wire);
-  }
-};
-
-template<typename TlvType>
-struct DecodeHelper<TlvType, uint64_t>
-{
-  static uint64_t
-  decode(const Block& wire)
-  {
-    if (wire.value_size() != sizeof(uint64_t)) {
-      NDN_THROW(ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) +
-                                " must contain a 64-bit integer"));
+template <typename TlvType>
+struct DecodeHelper<TlvType, EmptyValue> {
+    static EmptyValue
+    decode(const Block& wire)
+    {
+        if (wire.value_size() != 0) {
+            NDN_THROW(ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) + " must be empty"));
+        }
+        return EmptyValue{};
     }
-    uint64_t n = 0;
-    std::memcpy(&n, wire.value(), sizeof(n));
-    return boost::endian::big_to_native(n);
-  }
 };
 
-template<typename TlvType>
-struct DecodeHelper<TlvType, std::pair<Buffer::const_iterator, Buffer::const_iterator>>
-{
-  static std::pair<Buffer::const_iterator, Buffer::const_iterator>
-  decode(const Block& wire)
-  {
-    if (wire.value_size() == 0) {
-      NDN_THROW(ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) +
-                                " cannot be empty"));
+template <typename TlvType>
+struct DecodeHelper<TlvType, NonNegativeIntegerTag> {
+    static uint64_t
+    decode(const Block& wire)
+    {
+        return readNonNegativeInteger(wire);
     }
-    return std::make_pair(wire.value_begin(), wire.value_end());
-  }
 };
 
-template<typename encoding::Tag TAG, typename TlvType, typename T>
-struct EncodeHelper
-{
-  static
-  BOOST_CONCEPT_REQUIRES(((WireEncodableWithEncodingBuffer<T>)), (size_t))
-  encode(EncodingImpl<TAG>& encoder, const T& value)
-  {
-    return value.wireEncode(encoder);
-  }
+template <typename TlvType>
+struct DecodeHelper<TlvType, uint64_t> {
+    static uint64_t
+    decode(const Block& wire)
+    {
+        if (wire.value_size() != sizeof(uint64_t)) {
+            NDN_THROW(
+              ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) + " must contain a 64-bit integer"));
+        }
+        uint64_t n = 0;
+        std::memcpy(&n, wire.value(), sizeof(n));
+        return boost::endian::big_to_native(n);
+    }
 };
 
-template<typename encoding::Tag TAG, typename TlvType>
-struct EncodeHelper<TAG, TlvType, EmptyValue>
-{
-  static size_t
-  encode(EncodingImpl<TAG>& encoder, const EmptyValue value)
-  {
-    size_t length = 0;
-    length += encoder.prependVarNumber(0);
-    length += encoder.prependVarNumber(TlvType::value);
-    return length;
-  }
+template <typename TlvType>
+struct DecodeHelper<TlvType, std::pair<Buffer::const_iterator, Buffer::const_iterator>> {
+    static std::pair<Buffer::const_iterator, Buffer::const_iterator>
+    decode(const Block& wire)
+    {
+        if (wire.value_size() == 0) {
+            NDN_THROW(ndn::tlv::Error("NDNLP field of TLV-TYPE " + to_string(wire.type()) + " cannot be empty"));
+        }
+        return std::make_pair(wire.value_begin(), wire.value_end());
+    }
 };
 
-template<typename encoding::Tag TAG, typename TlvType>
-struct EncodeHelper<TAG, TlvType, NonNegativeIntegerTag>
-{
-  static size_t
-  encode(EncodingImpl<TAG>& encoder, uint64_t value)
-  {
-    return prependNonNegativeIntegerBlock(encoder, TlvType::value, value);
-  }
+template <typename encoding::Tag TAG, typename TlvType, typename T>
+struct EncodeHelper {
+    static BOOST_CONCEPT_REQUIRES(((WireEncodableWithEncodingBuffer<T>)), (size_t))
+      encode(EncodingImpl<TAG>& encoder, const T& value)
+    {
+        return value.wireEncode(encoder);
+    }
 };
 
-template<typename encoding::Tag TAG, typename TlvType>
-struct EncodeHelper<TAG, TlvType, uint64_t>
-{
-  static size_t
-  encode(EncodingImpl<TAG>& encoder, uint64_t value)
-  {
-    boost::endian::native_to_big_inplace(value);
-    return encoder.prependByteArrayBlock(TlvType::value,
-                                         reinterpret_cast<const uint8_t*>(&value), sizeof(value));
-  }
+template <typename encoding::Tag TAG, typename TlvType>
+struct EncodeHelper<TAG, TlvType, EmptyValue> {
+    static size_t
+    encode(EncodingImpl<TAG>& encoder, const EmptyValue value)
+    {
+        size_t length = 0;
+        length += encoder.prependVarNumber(0);
+        length += encoder.prependVarNumber(TlvType::value);
+        return length;
+    }
 };
 
-template<typename encoding::Tag TAG, typename TlvType>
-struct EncodeHelper<TAG, TlvType, std::pair<Buffer::const_iterator, Buffer::const_iterator>>
-{
-  static size_t
-  encode(EncodingImpl<TAG>& encoder, const std::pair<Buffer::const_iterator, Buffer::const_iterator>& value)
-  {
-    size_t length = 0;
-    length += encoder.prependRange(value.first, value.second);
-    length += encoder.prependVarNumber(length);
-    length += encoder.prependVarNumber(TlvType::value);
-    return length;
-  }
+template <typename encoding::Tag TAG, typename TlvType>
+struct EncodeHelper<TAG, TlvType, NonNegativeIntegerTag> {
+    static size_t
+    encode(EncodingImpl<TAG>& encoder, uint64_t value)
+    {
+        return prependNonNegativeIntegerBlock(encoder, TlvType::value, value);
+    }
+};
+
+template <typename encoding::Tag TAG, typename TlvType>
+struct EncodeHelper<TAG, TlvType, uint64_t> {
+    static size_t
+    encode(EncodingImpl<TAG>& encoder, uint64_t value)
+    {
+        boost::endian::native_to_big_inplace(value);
+        return encoder.prependByteArrayBlock(TlvType::value, reinterpret_cast<const uint8_t*>(&value), sizeof(value));
+    }
+};
+
+template <typename encoding::Tag TAG, typename TlvType>
+struct EncodeHelper<TAG, TlvType, std::pair<Buffer::const_iterator, Buffer::const_iterator>> {
+    static size_t
+    encode(EncodingImpl<TAG>& encoder, const std::pair<Buffer::const_iterator, Buffer::const_iterator>& value)
+    {
+        size_t length = 0;
+        length += encoder.prependRange(value.first, value.second);
+        length += encoder.prependVarNumber(length);
+        length += encoder.prependVarNumber(TlvType::value);
+        return length;
+    }
 };
 
 /** \brief Declare a field.
@@ -174,41 +158,40 @@ struct EncodeHelper<TAG, TlvType, std::pair<Buffer::const_iterator, Buffer::cons
  *  \tparam DECODER_TAG selects a specialization of DecodeHelper.
  *  \tparam ENCODER_TAG selects a specialization of EncodeHelper.
  */
-template<typename LOCATION, typename VALUE, uint64_t TYPE, bool REPEATABLE = false,
-         typename DECODER_TAG = VALUE, typename ENCODER_TAG = VALUE>
-class FieldDecl
-{
-public:
-  typedef LOCATION FieldLocation;
-  typedef VALUE ValueType;
-  typedef std::integral_constant<uint64_t, TYPE> TlvType;
-  typedef std::integral_constant<bool, REPEATABLE> IsRepeatable;
+template <typename LOCATION, typename VALUE, uint64_t TYPE, bool REPEATABLE = false, typename DECODER_TAG = VALUE,
+          typename ENCODER_TAG = VALUE>
+class FieldDecl {
+  public:
+    typedef LOCATION FieldLocation;
+    typedef VALUE ValueType;
+    typedef std::integral_constant<uint64_t, TYPE> TlvType;
+    typedef std::integral_constant<bool, REPEATABLE> IsRepeatable;
 
-  /** \brief Decode a field.
-   *  \param wire an element with top-level TLV-TYPE \c TlvType::value.
-   *  \return value of the field.
-   *  \throw ndn::tlv::Error decode failure.
-   */
-  static ValueType
-  decode(const Block& wire)
-  {
-    if (wire.type() != TlvType::value) {
-      NDN_THROW(ndn::tlv::Error("Unexpected TLV-TYPE " + to_string(wire.type())));
+    /** \brief Decode a field.
+     *  \param wire an element with top-level TLV-TYPE \c TlvType::value.
+     *  \return value of the field.
+     *  \throw ndn::tlv::Error decode failure.
+     */
+    static ValueType
+    decode(const Block& wire)
+    {
+        if (wire.type() != TlvType::value) {
+            NDN_THROW(ndn::tlv::Error("Unexpected TLV-TYPE " + to_string(wire.type())));
+        }
+
+        return DecodeHelper<TlvType, DECODER_TAG>::decode(wire);
     }
 
-    return DecodeHelper<TlvType, DECODER_TAG>::decode(wire);
-  }
-
-  /** \brief Encode a field and prepend to \p encoder.
-   *  \param encoder a buffer encoder or estimator.
-   *  \param value value of the field.
-   */
-  template<typename encoding::Tag TAG>
-  static size_t
-  encode(EncodingImpl<TAG>& encoder, const ValueType& value)
-  {
-    return EncodeHelper<TAG, TlvType, ENCODER_TAG>::encode(encoder, value);
-  }
+    /** \brief Encode a field and prepend to \p encoder.
+     *  \param encoder a buffer encoder or estimator.
+     *  \param value value of the field.
+     */
+    template <typename encoding::Tag TAG>
+    static size_t
+    encode(EncodingImpl<TAG>& encoder, const ValueType& value)
+    {
+        return EncodeHelper<TAG, TlvType, ENCODER_TAG>::encode(encoder, value);
+    }
 };
 
 } // namespace lp

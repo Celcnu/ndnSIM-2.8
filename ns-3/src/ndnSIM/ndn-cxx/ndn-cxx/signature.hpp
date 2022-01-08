@@ -34,121 +34,113 @@ namespace ndn {
  *  SignatureSha256WithRsa , or @p SignatureSha256WithEcdsa instead of using @p Signature type
  *  directly.
  */
-class Signature
-{
-public:
-  class Error : public tlv::Error
-  {
+class Signature {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  Signature() = default;
+    Signature() = default;
 
-  explicit
-  Signature(const Block& info, const Block& value = Block());
+    explicit Signature(const Block& info, const Block& value = Block());
 
-  explicit
-  Signature(const SignatureInfo& info, const Block& value = Block());
+    explicit Signature(const SignatureInfo& info, const Block& value = Block());
 
-  /** @brief Determine whether SignatureInfo is valid
-   */
-  explicit
-  operator bool() const
-  {
-    return m_info.getSignatureType() != -1;
-  }
+    /** @brief Determine whether SignatureInfo is valid
+     */
+    explicit operator bool() const
+    {
+        return m_info.getSignatureType() != -1;
+    }
 
-  /** @brief Get SignatureInfo
-   */
-  const SignatureInfo&
-  getSignatureInfo() const
-  {
-    return m_info;
-  }
+    /** @brief Get SignatureInfo
+     */
+    const SignatureInfo&
+    getSignatureInfo() const
+    {
+        return m_info;
+    }
 
-  /** @brief Get SignatureInfo as wire format
-   */
-  const Block&
-  getInfo() const
-  {
-    return m_info.wireEncode();
-  }
+    /** @brief Get SignatureInfo as wire format
+     */
+    const Block&
+    getInfo() const
+    {
+        return m_info.wireEncode();
+    }
 
-  /** @brief Decode SignatureInfo from wire format
-   *  @throw tlv::Error decode error
-   */
-  void
-  setInfo(const Block& info);
+    /** @brief Decode SignatureInfo from wire format
+     *  @throw tlv::Error decode error
+     */
+    void setInfo(const Block& info);
 
-  /** @brief Set SignatureInfo
-   */
-  void
-  setInfo(const SignatureInfo& info)
-  {
-    m_info = info;
-  }
+    /** @brief Set SignatureInfo
+     */
+    void
+    setInfo(const SignatureInfo& info)
+    {
+        m_info = info;
+    }
 
-  /** @brief Get SignatureValue
-   */
-  const Block&
-  getValue() const
-  {
-    return m_value;
-  }
+    /** @brief Get SignatureValue
+     */
+    const Block&
+    getValue() const
+    {
+        return m_value;
+    }
 
-  /** @brief Set SignatureValue
-   *  @throws tlv::Error TLV-TYPE of supplied block is not SignatureValue, or the block does not have TLV-VALUE
-   */
-  void
-  setValue(const Block& value);
+    /** @brief Set SignatureValue
+     *  @throws tlv::Error TLV-TYPE of supplied block is not SignatureValue, or the block does not have TLV-VALUE
+     */
+    void setValue(const Block& value);
 
-public: // SignatureInfo fields
-  /** @brief Get SignatureType
-   *  @throw Error signature is invalid
-   */
-  tlv::SignatureTypeValue
-  getType() const;
+  public: // SignatureInfo fields
+    /** @brief Get SignatureType
+     *  @throw Error signature is invalid
+     */
+    tlv::SignatureTypeValue getType() const;
 
-  /** @brief Check if KeyLocator exists in SignatureInfo
-   */
-  bool
-  hasKeyLocator() const
-  {
-    return m_info.hasKeyLocator();
-  }
+    /** @brief Check if KeyLocator exists in SignatureInfo
+     */
+    bool
+    hasKeyLocator() const
+    {
+        return m_info.hasKeyLocator();
+    }
 
-  /** @brief Get KeyLocator
-   *  @throw tlv::Error KeyLocator does not exist in SignatureInfo
-   */
-  const KeyLocator&
-  getKeyLocator() const
-  {
-    return m_info.getKeyLocator();
-  }
+    /** @brief Get KeyLocator
+     *  @throw tlv::Error KeyLocator does not exist in SignatureInfo
+     */
+    const KeyLocator&
+    getKeyLocator() const
+    {
+        return m_info.getKeyLocator();
+    }
 
-  /** @brief Set KeyLocator
-   */
-  void
-  setKeyLocator(const KeyLocator& keyLocator)
-  {
-    m_info.setKeyLocator(keyLocator);
-  }
+    /** @brief Set KeyLocator
+     */
+    void
+    setKeyLocator(const KeyLocator& keyLocator)
+    {
+        m_info.setKeyLocator(keyLocator);
+    }
 
-  /** @brief Unset KeyLocator
-   *
-   *  @note Subclasses of Signature may provide advisory (non-virtual) override to prevent unsetting
-   *        KeyLocator if it is required by the specification.
-   */
-  void
-  unsetKeyLocator()
-  {
-    m_info.unsetKeyLocator();
-  }
+    /** @brief Unset KeyLocator
+     *
+     *  @note Subclasses of Signature may provide advisory (non-virtual) override to prevent unsetting
+     *        KeyLocator if it is required by the specification.
+     */
+    void
+    unsetKeyLocator()
+    {
+        m_info.unsetKeyLocator();
+    }
 
-protected:
-  SignatureInfo m_info;
-  mutable Block m_value;
+  protected:
+    SignatureInfo m_info;
+    mutable Block m_value;
 };
 
 } // namespace ndn

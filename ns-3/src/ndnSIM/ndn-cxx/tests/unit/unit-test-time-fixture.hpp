@@ -31,73 +31,72 @@ namespace tests {
 
 /** \brief a test fixture that overrides steady clock and system clock
  */
-class UnitTestTimeFixture
-{
-public:
-  UnitTestTimeFixture()
-    : steadyClock(make_shared<time::UnitTestSteadyClock>())
-    , systemClock(make_shared<time::UnitTestSystemClock>())
-  {
-    time::setCustomClocks(steadyClock, systemClock);
-  }
-
-  ~UnitTestTimeFixture()
-  {
-    time::setCustomClocks(nullptr, nullptr);
-  }
-
-  /** \brief advance steady and system clocks
-   *
-   *  Clocks are advanced in increments of \p tick for \p nTicks ticks.
-   *  After each tick, io_service is polled to process pending I/O events.
-   *
-   *  Exceptions thrown during I/O events are propagated to the caller.
-   *  Clock advancing would stop in case of an exception.
-   */
-  void
-  advanceClocks(const time::nanoseconds& tick, size_t nTicks = 1)
-  {
-    this->advanceClocks(tick, tick * nTicks);
-  }
-
-  /** \brief advance steady and system clocks
-   *
-   *  Clocks are advanced in increments of \p tick for \p total time.
-   *  The last increment might be shorter than \p tick.
-   *  After each tick, io_service is polled to process pending I/O events.
-   *
-   *  Exceptions thrown during I/O events are propagated to the caller.
-   *  Clock advancing would stop in case of an exception.
-   */
-  void
-  advanceClocks(const time::nanoseconds& tick, const time::nanoseconds& total)
-  {
-    BOOST_ASSERT(tick > time::nanoseconds::zero());
-    BOOST_ASSERT(total >= time::nanoseconds::zero());
-
-    time::nanoseconds remaining = total;
-    while (remaining > time::nanoseconds::zero()) {
-      if (remaining >= tick) {
-        steadyClock->advance(tick);
-        systemClock->advance(tick);
-        remaining -= tick;
-      }
-      else {
-        steadyClock->advance(remaining);
-        systemClock->advance(remaining);
-        remaining = time::nanoseconds::zero();
-      }
-
-      if (io.stopped())
-        io.reset();
-      io.poll();
+class UnitTestTimeFixture {
+  public:
+    UnitTestTimeFixture()
+      : steadyClock(make_shared<time::UnitTestSteadyClock>())
+      , systemClock(make_shared<time::UnitTestSystemClock>())
+    {
+        time::setCustomClocks(steadyClock, systemClock);
     }
-  }
 
-public:
-  shared_ptr<time::UnitTestSteadyClock> steadyClock;
-  shared_ptr<time::UnitTestSystemClock> systemClock;
-  boost::asio::io_service io;
+    ~UnitTestTimeFixture()
+    {
+        time::setCustomClocks(nullptr, nullptr);
+    }
+
+    /** \brief advance steady and system clocks
+     *
+     *  Clocks are advanced in increments of \p tick for \p nTicks ticks.
+     *  After each tick, io_service is polled to process pending I/O events.
+     *
+     *  Exceptions thrown during I/O events are propagated to the caller.
+     *  Clock advancing would stop in case of an exception.
+     */
+    void
+    advanceClocks(const time::nanoseconds& tick, size_t nTicks = 1)
+    {
+        this->advanceClocks(tick, tick * nTicks);
+    }
+
+    /** \brief advance steady and system clocks
+     *
+     *  Clocks are advanced in increments of \p tick for \p total time.
+     *  The last increment might be shorter than \p tick.
+     *  After each tick, io_service is polled to process pending I/O events.
+     *
+     *  Exceptions thrown during I/O events are propagated to the caller.
+     *  Clock advancing would stop in case of an exception.
+     */
+    void
+    advanceClocks(const time::nanoseconds& tick, const time::nanoseconds& total)
+    {
+        BOOST_ASSERT(tick > time::nanoseconds::zero());
+        BOOST_ASSERT(total >= time::nanoseconds::zero());
+
+        time::nanoseconds remaining = total;
+        while (remaining > time::nanoseconds::zero()) {
+            if (remaining >= tick) {
+                steadyClock->advance(tick);
+                systemClock->advance(tick);
+                remaining -= tick;
+            }
+            else {
+                steadyClock->advance(remaining);
+                systemClock->advance(remaining);
+                remaining = time::nanoseconds::zero();
+            }
+
+            if (io.stopped())
+                io.reset();
+            io.poll();
+        }
+    }
+
+  public:
+    shared_ptr<time::UnitTestSteadyClock> steadyClock;
+    shared_ptr<time::UnitTestSystemClock> systemClock;
+    boost::asio::io_service io;
 };
 
 } // namespace tests

@@ -31,43 +31,43 @@ BOOST_AUTO_TEST_SUITE(TestBufferStream)
 
 BOOST_AUTO_TEST_CASE(Empty)
 {
-  OBufferStream os;
+    OBufferStream os;
 
-  shared_ptr<Buffer> buf = os.buf();
-  BOOST_CHECK_EQUAL(buf->size(), 0);
+    shared_ptr<Buffer> buf = os.buf();
+    BOOST_CHECK_EQUAL(buf->size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(Put)
 {
-  OBufferStream os;
-  os.put(0x33);
-  os.put(0x44);
+    OBufferStream os;
+    os.put(0x33);
+    os.put(0x44);
 
-  shared_ptr<Buffer> buf = os.buf();
-  BOOST_REQUIRE_EQUAL(buf->size(), 2);
-  BOOST_CHECK_EQUAL(buf->at(0), 0x33);
-  BOOST_CHECK_EQUAL(buf->at(1), 0x44);
+    shared_ptr<Buffer> buf = os.buf();
+    BOOST_REQUIRE_EQUAL(buf->size(), 2);
+    BOOST_CHECK_EQUAL(buf->at(0), 0x33);
+    BOOST_CHECK_EQUAL(buf->at(1), 0x44);
 }
 
 BOOST_AUTO_TEST_CASE(Write)
 {
-  OBufferStream os;
-  os.write("\x11\x22", 2);
+    OBufferStream os;
+    os.write("\x11\x22", 2);
 
-  shared_ptr<Buffer> buf = os.buf();
-  BOOST_REQUIRE_EQUAL(buf->size(), 2);
-  BOOST_CHECK_EQUAL(buf->at(0), 0x11);
-  BOOST_CHECK_EQUAL(buf->at(1), 0x22);
+    shared_ptr<Buffer> buf = os.buf();
+    BOOST_REQUIRE_EQUAL(buf->size(), 2);
+    BOOST_CHECK_EQUAL(buf->at(0), 0x11);
+    BOOST_CHECK_EQUAL(buf->at(1), 0x22);
 }
 
 BOOST_AUTO_TEST_CASE(Destructor) // Bug 3727
 {
-  auto os = make_unique<OBufferStream>();
-  *os << 'x';
-  os.reset(); // should not cause use-after-free
+    auto os = make_unique<OBufferStream>();
+    *os << 'x';
+    os.reset(); // should not cause use-after-free
 
-  // avoid "test case [...] did not check any assertions" message from Boost.Test
-  BOOST_CHECK(true);
+    // avoid "test case [...] did not check any assertions" message from Boost.Test
+    BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestBufferStream

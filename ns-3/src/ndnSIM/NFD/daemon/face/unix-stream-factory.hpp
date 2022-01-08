@@ -34,40 +34,34 @@ namespace face {
 
 /** \brief Protocol factory for stream-oriented Unix sockets
  */
-class UnixStreamFactory : public ProtocolFactory
-{
-public:
-  static const std::string&
-  getId() noexcept;
+class UnixStreamFactory : public ProtocolFactory {
+  public:
+    static const std::string& getId() noexcept;
 
-  using ProtocolFactory::ProtocolFactory;
+    using ProtocolFactory::ProtocolFactory;
 
-  /**
-   * \brief Create stream-oriented Unix channel using specified socket path
-   *
-   * If this method is called twice with the same path, only one channel
-   * will be created.  The second call will just retrieve the existing
-   * channel.
-   *
-   * \returns always a valid pointer to a UnixStreamChannel object,
-   *          an exception will be thrown if the channel cannot be created.
-   */
-  shared_ptr<UnixStreamChannel>
-  createChannel(const std::string& unixSocketPath);
+    /**
+     * \brief Create stream-oriented Unix channel using specified socket path
+     *
+     * If this method is called twice with the same path, only one channel
+     * will be created.  The second call will just retrieve the existing
+     * channel.
+     *
+     * \returns always a valid pointer to a UnixStreamChannel object,
+     *          an exception will be thrown if the channel cannot be created.
+     */
+    shared_ptr<UnixStreamChannel> createChannel(const std::string& unixSocketPath);
 
-private:
-  /** \brief process face_system.unix config section
-   */
-  void
-  doProcessConfig(OptionalConfigSection configSection,
-                  FaceSystem::ConfigContext& context) override;
+  private:
+    /** \brief process face_system.unix config section
+     */
+    void doProcessConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context) override;
 
-  std::vector<shared_ptr<const Channel>>
-  doGetChannels() const override;
+    std::vector<shared_ptr<const Channel>> doGetChannels() const override;
 
-private:
-  bool m_wantCongestionMarking = false;
-  std::map<unix_stream::Endpoint, shared_ptr<UnixStreamChannel>> m_channels;
+  private:
+    bool m_wantCongestionMarking = false;
+    std::map<unix_stream::Endpoint, shared_ptr<UnixStreamChannel>> m_channels;
 };
 
 } // namespace face

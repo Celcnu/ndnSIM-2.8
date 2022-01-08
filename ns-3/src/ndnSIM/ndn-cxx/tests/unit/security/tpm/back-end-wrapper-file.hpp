@@ -34,35 +34,34 @@ namespace tests {
 /**
  * @brief A wrapper of tpm::BackEndFile for unit test template.
  */
-class BackEndWrapperFile
-{
-public:
-  BackEndWrapperFile()
-    : m_tmpPath(boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "TpmFileTest")
-    , m_impl(make_unique<BackEndFile>(m_tmpPath.string()))
-  {
-  }
+class BackEndWrapperFile {
+  public:
+    BackEndWrapperFile()
+      : m_tmpPath(boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "TpmFileTest")
+      , m_impl(make_unique<BackEndFile>(m_tmpPath.string()))
+    {
+    }
 
-  ~BackEndWrapperFile()
-  {
-    boost::filesystem::remove_all(m_tmpPath);
-  }
+    ~BackEndWrapperFile()
+    {
+        boost::filesystem::remove_all(m_tmpPath);
+    }
 
-  BackEnd&
-  getTpm()
-  {
-    return *m_impl;
-  }
+    BackEnd&
+    getTpm()
+    {
+        return *m_impl;
+    }
 
-  std::string
-  getScheme() const
-  {
-    return "tpm-file";
-  }
+    std::string
+    getScheme() const
+    {
+        return "tpm-file";
+    }
 
-private:
-  const boost::filesystem::path m_tmpPath;
-  const unique_ptr<BackEnd> m_impl;
+  private:
+    const boost::filesystem::path m_tmpPath;
+    const unique_ptr<BackEnd> m_impl;
 };
 
 } // namespace tests

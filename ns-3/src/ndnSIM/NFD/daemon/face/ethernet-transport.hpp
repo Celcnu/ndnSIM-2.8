@@ -38,79 +38,67 @@ namespace face {
 /**
  * @brief Base class for Ethernet-based Transports
  */
-class EthernetTransport : public Transport
-{
-public:
-  class Error : public std::runtime_error
-  {
+class EthernetTransport : public Transport {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * @brief Processes the payload of an incoming frame
-   * @param payload Pointer to the first byte of data after the Ethernet header
-   * @param length Payload length
-   * @param sender Sender address
-   */
-  void
-  receivePayload(const uint8_t* payload, size_t length,
-                 const ethernet::Address& sender);
+    /**
+     * @brief Processes the payload of an incoming frame
+     * @param payload Pointer to the first byte of data after the Ethernet header
+     * @param length Payload length
+     * @param sender Sender address
+     */
+    void receivePayload(const uint8_t* payload, size_t length, const ethernet::Address& sender);
 
-protected:
-  EthernetTransport(const ndn::net::NetworkInterface& localEndpoint,
-                    const ethernet::Address& remoteEndpoint);
+  protected:
+    EthernetTransport(const ndn::net::NetworkInterface& localEndpoint, const ethernet::Address& remoteEndpoint);
 
-  void
-  doClose() final;
+    void doClose() final;
 
-  bool
-  hasRecentlyReceived() const
-  {
-    return m_hasRecentlyReceived;
-  }
+    bool
+    hasRecentlyReceived() const
+    {
+        return m_hasRecentlyReceived;
+    }
 
-  void
-  resetRecentlyReceived()
-  {
-    m_hasRecentlyReceived = false;
-  }
+    void
+    resetRecentlyReceived()
+    {
+        m_hasRecentlyReceived = false;
+    }
 
-private:
-  void
-  handleNetifStateChange(ndn::net::InterfaceState netifState);
+  private:
+    void handleNetifStateChange(ndn::net::InterfaceState netifState);
 
-  void
-  doSend(const Block& packet, const EndpointId& endpoint) final;
+    void doSend(const Block& packet, const EndpointId& endpoint) final;
 
-  /**
-   * @brief Sends the specified TLV block on the network wrapped in an Ethernet frame
-   */
-  void
-  sendPacket(const ndn::Block& block);
+    /**
+     * @brief Sends the specified TLV block on the network wrapped in an Ethernet frame
+     */
+    void sendPacket(const ndn::Block& block);
 
-  void
-  asyncRead();
+    void asyncRead();
 
-  void
-  handleRead(const boost::system::error_code& error);
+    void handleRead(const boost::system::error_code& error);
 
-  void
-  handleError(const std::string& errorMessage);
+    void handleError(const std::string& errorMessage);
 
-protected:
-  boost::asio::posix::stream_descriptor m_socket;
-  PcapHelper m_pcap;
-  ethernet::Address m_srcAddress;
-  ethernet::Address m_destAddress;
-  std::string m_interfaceName;
+  protected:
+    boost::asio::posix::stream_descriptor m_socket;
+    PcapHelper m_pcap;
+    ethernet::Address m_srcAddress;
+    ethernet::Address m_destAddress;
+    std::string m_interfaceName;
 
-private:
-  signal::ScopedConnection m_netifStateConn;
-  bool m_hasRecentlyReceived;
+  private:
+    signal::ScopedConnection m_netifStateConn;
+    bool m_hasRecentlyReceived;
 #ifdef _DEBUG
-  /// number of frames dropped by the kernel, as reported by libpcap
-  size_t m_nDropped;
+    /// number of frames dropped by the kernel, as reported by libpcap
+    size_t m_nDropped;
 #endif
 };
 

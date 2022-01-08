@@ -41,52 +41,52 @@ LruPolicy::LruPolicy()
 void
 LruPolicy::doAfterInsert(EntryRef i)
 {
-  this->insertToQueue(i, true);
-  this->evictEntries();
+    this->insertToQueue(i, true);
+    this->evictEntries();
 }
 
 void
 LruPolicy::doAfterRefresh(EntryRef i)
 {
-  this->insertToQueue(i, false);
+    this->insertToQueue(i, false);
 }
 
 void
 LruPolicy::doBeforeErase(EntryRef i)
 {
-  m_queue.get<1>().erase(i);
+    m_queue.get<1>().erase(i);
 }
 
 void
 LruPolicy::doBeforeUse(EntryRef i)
 {
-  this->insertToQueue(i, false);
+    this->insertToQueue(i, false);
 }
 
 void
 LruPolicy::evictEntries()
 {
-  BOOST_ASSERT(this->getCs() != nullptr);
-  while (this->getCs()->size() > this->getLimit()) {
-    BOOST_ASSERT(!m_queue.empty());
-    EntryRef i = m_queue.front();
-    m_queue.pop_front();
-    this->emitSignal(beforeEvict, i);
-  }
+    BOOST_ASSERT(this->getCs() != nullptr);
+    while (this->getCs()->size() > this->getLimit()) {
+        BOOST_ASSERT(!m_queue.empty());
+        EntryRef i = m_queue.front();
+        m_queue.pop_front();
+        this->emitSignal(beforeEvict, i);
+    }
 }
 
 void
 LruPolicy::insertToQueue(EntryRef i, bool isNewEntry)
 {
-  Queue::iterator it;
-  bool isNew = false;
-  // push_back only if i does not exist
-  std::tie(it, isNew) = m_queue.push_back(i);
+    Queue::iterator it;
+    bool isNew = false;
+    // push_back only if i does not exist
+    std::tie(it, isNew) = m_queue.push_back(i);
 
-  BOOST_ASSERT(isNew == isNewEntry);
-  if (!isNewEntry) {
-    m_queue.relocate(m_queue.end(), it);
-  }
+    BOOST_ASSERT(isNew == isNewEntry);
+    if (!isNewEntry) {
+        m_queue.relocate(m_queue.end(), it);
+    }
 }
 
 } // namespace lru

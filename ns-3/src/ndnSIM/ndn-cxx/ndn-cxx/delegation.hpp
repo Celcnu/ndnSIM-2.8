@@ -29,59 +29,56 @@ namespace ndn {
 /** \brief Represents a Delegation.
  *  \sa https://named-data.net/doc/NDN-packet-spec/current/link.html
  */
-class Delegation
-{
-private: // non-member operators
-  // NOTE: the following "hidden friend" operators are available via
-  //       argument-dependent lookup only and must be defined inline.
+class Delegation {
+  private: // non-member operators
+    // NOTE: the following "hidden friend" operators are available via
+    //       argument-dependent lookup only and must be defined inline.
 
-  friend bool
-  operator==(const Delegation& lhs, const Delegation& rhs)
-  {
-    return !(lhs != rhs);
-  }
+    friend bool
+    operator==(const Delegation& lhs, const Delegation& rhs)
+    {
+        return !(lhs != rhs);
+    }
 
-  friend bool
-  operator!=(const Delegation& lhs, const Delegation& rhs)
-  {
-    return lhs.preference != rhs.preference ||
-           lhs.name != rhs.name;
-  }
+    friend bool
+    operator!=(const Delegation& lhs, const Delegation& rhs)
+    {
+        return lhs.preference != rhs.preference || lhs.name != rhs.name;
+    }
 
-  friend bool
-  operator<(const Delegation& lhs, const Delegation& rhs)
-  {
-    return std::tie(lhs.preference, lhs.name) <
-           std::tie(rhs.preference, rhs.name);
-  }
+    friend bool
+    operator<(const Delegation& lhs, const Delegation& rhs)
+    {
+        return std::tie(lhs.preference, lhs.name) < std::tie(rhs.preference, rhs.name);
+    }
 
-  friend bool
-  operator<=(const Delegation& lhs, const Delegation& rhs)
-  {
-    return !(rhs < lhs);
-  }
+    friend bool
+    operator<=(const Delegation& lhs, const Delegation& rhs)
+    {
+        return !(rhs < lhs);
+    }
 
-  friend bool
-  operator>(const Delegation& lhs, const Delegation& rhs)
-  {
-    return rhs < lhs;
-  }
+    friend bool
+    operator>(const Delegation& lhs, const Delegation& rhs)
+    {
+        return rhs < lhs;
+    }
 
-  friend bool
-  operator>=(const Delegation& lhs, const Delegation& rhs)
-  {
-    return !(lhs < rhs);
-  }
+    friend bool
+    operator>=(const Delegation& lhs, const Delegation& rhs)
+    {
+        return !(lhs < rhs);
+    }
 
-  friend std::ostream&
-  operator<<(std::ostream& os, const Delegation& d)
-  {
-    return os << d.name << '(' << d.preference << ')';
-  }
+    friend std::ostream&
+    operator<<(std::ostream& os, const Delegation& d)
+    {
+        return os << d.name << '(' << d.preference << ')';
+    }
 
-public:
-  uint64_t preference;
-  Name name;
+  public:
+    uint64_t preference;
+    Name name;
 };
 
 } // namespace ndn

@@ -37,56 +37,52 @@ namespace tests {
 
 /** \brief A base test fixture that provides both main and RIB io_service.
  */
-class RibIoFixture : public GlobalIoFixture
-{
-protected:
-  RibIoFixture();
+class RibIoFixture : public GlobalIoFixture {
+  protected:
+    RibIoFixture();
 
-  ~RibIoFixture();
+    ~RibIoFixture();
 
-protected:
-  /** \brief Poll main and RIB thread io_service to process all pending I/O events.
-   *
-   * This call will execute all pending I/O events, including events that are posted
-   * inside the processing event, i.e., main and RIB thread io_service will be polled
-   * repeatedly until all pending events are processed.
-   *
-   * \warning Must be called from the main thread
-   */
-  void
-  poll();
+  protected:
+    /** \brief Poll main and RIB thread io_service to process all pending I/O events.
+     *
+     * This call will execute all pending I/O events, including events that are posted
+     * inside the processing event, i.e., main and RIB thread io_service will be polled
+     * repeatedly until all pending events are processed.
+     *
+     * \warning Must be called from the main thread
+     */
+    void poll();
 
-protected:
-  /** \brief pointer to global main io_service
-   */
-  boost::asio::io_service* g_mainIo = nullptr;
+  protected:
+    /** \brief pointer to global main io_service
+     */
+    boost::asio::io_service* g_mainIo = nullptr;
 
-  /** \brief pointer to global RIB io_service
-   */
-  boost::asio::io_service* g_ribIo = nullptr;
+    /** \brief pointer to global RIB io_service
+     */
+    boost::asio::io_service* g_ribIo = nullptr;
 
-  /** \brief global RIB thread
-   */
-  std::thread g_ribThread;
+    /** \brief global RIB thread
+     */
+    std::thread g_ribThread;
 
-private:
-  bool m_shouldStopRibIo = false;
-  bool m_shouldPollRibIo = false;
-  std::mutex m_ribPollMutex;
-  std::condition_variable m_ribPollStartCv;
-  std::condition_variable m_ribPollEndCv;
+  private:
+    bool m_shouldStopRibIo = false;
+    bool m_shouldPollRibIo = false;
+    std::mutex m_ribPollMutex;
+    std::condition_variable m_ribPollStartCv;
+    std::condition_variable m_ribPollEndCv;
 };
 
 /** \brief RibIoFixture that also overrides steady clock and system clock.
  */
-class RibIoTimeFixture : public RibIoFixture, public ClockFixture
-{
-protected:
-  RibIoTimeFixture();
+class RibIoTimeFixture : public RibIoFixture, public ClockFixture {
+  protected:
+    RibIoTimeFixture();
 
-private:
-  void
-  pollAfterClockTick() override;
+  private:
+    void pollAfterClockTick() override;
 };
 
 } // namespace tests

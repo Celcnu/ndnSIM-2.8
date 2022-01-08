@@ -39,7 +39,7 @@ const unique_ptr<Entry> Fib::s_emptyEntry = make_unique<Entry>(Name());
 static inline bool
 nteHasFibEntry(const name_tree::Entry& nte)
 {
-  return nte.getFibEntry() != nullptr;
+    return nte.getFibEntry() != nullptr;
 }
 
 Fib::Fib(NameTree& nameTree)
@@ -47,125 +47,125 @@ Fib::Fib(NameTree& nameTree)
 {
 }
 
-template<typename K>
+template <typename K>
 const Entry&
 Fib::findLongestPrefixMatchImpl(const K& key) const
 {
-  name_tree::Entry* nte = m_nameTree.findLongestPrefixMatch(key, &nteHasFibEntry);
-  if (nte != nullptr) {
-    return *nte->getFibEntry();
-  }
-  return *s_emptyEntry;
+    name_tree::Entry* nte = m_nameTree.findLongestPrefixMatch(key, &nteHasFibEntry);
+    if (nte != nullptr) {
+        return *nte->getFibEntry();
+    }
+    return *s_emptyEntry;
 }
 
 const Entry&
 Fib::findLongestPrefixMatch(const Name& prefix) const
 {
-  return this->findLongestPrefixMatchImpl(prefix);
+    return this->findLongestPrefixMatchImpl(prefix);
 }
 
 const Entry&
 Fib::findLongestPrefixMatch(const pit::Entry& pitEntry) const
 {
-  return this->findLongestPrefixMatchImpl(pitEntry);
+    return this->findLongestPrefixMatchImpl(pitEntry);
 }
 
 const Entry&
 Fib::findLongestPrefixMatch(const measurements::Entry& measurementsEntry) const
 {
-  return this->findLongestPrefixMatchImpl(measurementsEntry);
+    return this->findLongestPrefixMatchImpl(measurementsEntry);
 }
 
 Entry*
 Fib::findExactMatch(const Name& prefix)
 {
-  name_tree::Entry* nte = m_nameTree.findExactMatch(prefix);
-  if (nte != nullptr)
-    return nte->getFibEntry();
+    name_tree::Entry* nte = m_nameTree.findExactMatch(prefix);
+    if (nte != nullptr)
+        return nte->getFibEntry();
 
-  return nullptr;
+    return nullptr;
 }
 
 std::pair<Entry*, bool>
 Fib::insert(const Name& prefix)
 {
-  name_tree::Entry& nte = m_nameTree.lookup(prefix);
-  Entry* entry = nte.getFibEntry();
-  if (entry != nullptr) {
-    return {entry, false};
-  }
+    name_tree::Entry& nte = m_nameTree.lookup(prefix);
+    Entry* entry = nte.getFibEntry();
+    if (entry != nullptr) {
+        return {entry, false};
+    }
 
-  nte.setFibEntry(make_unique<Entry>(prefix));
-  ++m_nItems;
-  return {nte.getFibEntry(), true};
+    nte.setFibEntry(make_unique<Entry>(prefix));
+    ++m_nItems;
+    return {nte.getFibEntry(), true};
 }
 
 void
 Fib::erase(name_tree::Entry* nte, bool canDeleteNte)
 {
-  BOOST_ASSERT(nte != nullptr);
+    BOOST_ASSERT(nte != nullptr);
 
-  nte->setFibEntry(nullptr);
-  if (canDeleteNte) {
-    m_nameTree.eraseIfEmpty(nte);
-  }
-  --m_nItems;
+    nte->setFibEntry(nullptr);
+    if (canDeleteNte) {
+        m_nameTree.eraseIfEmpty(nte);
+    }
+    --m_nItems;
 }
 
 void
 Fib::erase(const Name& prefix)
 {
-  name_tree::Entry* nte = m_nameTree.findExactMatch(prefix);
-  if (nte != nullptr) {
-    this->erase(nte);
-  }
+    name_tree::Entry* nte = m_nameTree.findExactMatch(prefix);
+    if (nte != nullptr) {
+        this->erase(nte);
+    }
 }
 
 void
 Fib::erase(const Entry& entry)
 {
-  name_tree::Entry* nte = m_nameTree.getEntry(entry);
-  if (nte == nullptr) { // don't try to erase s_emptyEntry
-    BOOST_ASSERT(&entry == s_emptyEntry.get());
-    return;
-  }
-  this->erase(nte);
+    name_tree::Entry* nte = m_nameTree.getEntry(entry);
+    if (nte == nullptr) { // don't try to erase s_emptyEntry
+        BOOST_ASSERT(&entry == s_emptyEntry.get());
+        return;
+    }
+    this->erase(nte);
 }
 
 void
 Fib::addOrUpdateNextHop(Entry& entry, Face& face, uint64_t cost)
 {
-  NextHopList::iterator it;
-  bool isNew;
-  std::tie(it, isNew) = entry.addOrUpdateNextHop(face, cost);
+    NextHopList::iterator it;
+    bool isNew;
+    std::tie(it, isNew) = entry.addOrUpdateNextHop(face, cost);
 
-  if (isNew)
-    this->afterNewNextHop(entry.getPrefix(), *it);
+    if (isNew)
+        this->afterNewNextHop(entry.getPrefix(), *it);
 }
 
 Fib::RemoveNextHopResult
 Fib::removeNextHop(Entry& entry, const Face& face)
 {
-  bool isRemoved = entry.removeNextHop(face);
+    bool isRemoved = entry.removeNextHop(face);
 
-  if (!isRemoved) {
-    return RemoveNextHopResult::NO_SUCH_NEXTHOP;
-  }
-  else if (!entry.hasNextHops()) {
-    name_tree::Entry* nte = m_nameTree.getEntry(entry);
-    this->erase(nte, false);
-    return RemoveNextHopResult::FIB_ENTRY_REMOVED;
-  }
-  else {
-    return RemoveNextHopResult::NEXTHOP_REMOVED;
-  }
+    if (!isRemoved) {
+        return RemoveNextHopResult::NO_SUCH_NEXTHOP;
+    }
+    else if (!entry.hasNextHops()) {
+        name_tree::Entry* nte = m_nameTree.getEntry(entry);
+        this->erase(nte, false);
+        return RemoveNextHopResult::FIB_ENTRY_REMOVED;
+    }
+    else {
+        return RemoveNextHopResult::NEXTHOP_REMOVED;
+    }
 }
 
 Fib::Range
 Fib::getRange() const
 {
-  return m_nameTree.fullEnumerate(&nteHasFibEntry) |
-         boost::adaptors::transformed(name_tree::GetTableEntry<Entry>(&name_tree::Entry::getFibEntry));
+    return m_nameTree.fullEnumerate(&nteHasFibEntry)
+           | boost::adaptors::transformed(name_tree::GetTableEntry<Entry>(&name_tree::Entry::getFibEntry));
 }
 
 } // namespace fib

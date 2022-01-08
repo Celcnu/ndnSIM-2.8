@@ -42,20 +42,18 @@ static_assert(lp::tlv::Fragment < 253, "Fragment TLV-TYPE must fit in 1 octet");
 /** \brief maximum overhead on a single fragment,
  *         not counting other NDNLPv2 headers
  */
-static const size_t MAX_SINGLE_FRAG_OVERHEAD =
-  1 + 9 + // LpPacket TLV-TYPE and TLV-LENGTH
-  1 + 1 + 8 + // Sequence TLV
-  1 + 9; // Fragment TLV-TYPE and TLV-LENGTH
+static const size_t MAX_SINGLE_FRAG_OVERHEAD = 1 + 9 +     // LpPacket TLV-TYPE and TLV-LENGTH
+                                               1 + 1 + 8 + // Sequence TLV
+                                               1 + 9;      // Fragment TLV-TYPE and TLV-LENGTH
 
 /** \brief maximum overhead of adding fragmentation to payload,
  *         not counting other NDNLPv2 headers
  */
-static const size_t MAX_FRAG_OVERHEAD =
-  1 + 9 + // LpPacket TLV-TYPE and TLV-LENGTH
-  1 + 1 + 8 + // Sequence TLV
-  1 + 1 + 8 + // FragIndex TLV
-  1 + 1 + 8 + // FragCount TLV
-  1 + 9; // Fragment TLV-TYPE and TLV-LENGTH
+static const size_t MAX_FRAG_OVERHEAD = 1 + 9 +     // LpPacket TLV-TYPE and TLV-LENGTH
+                                        1 + 1 + 8 + // Sequence TLV
+                                        1 + 1 + 8 + // FragIndex TLV
+                                        1 + 1 + 8 + // FragCount TLV
+                                        1 + 9;      // Fragment TLV-TYPE and TLV-LENGTH
 
 LpFragmenter::LpFragmenter(const LpFragmenter::Options& options, const LinkService* linkService)
   : m_options(options)
@@ -66,92 +64,91 @@ LpFragmenter::LpFragmenter(const LpFragmenter::Options& options, const LinkServi
 void
 LpFragmenter::setOptions(const Options& options)
 {
-  m_options = options;
+    m_options = options;
 }
 
 const LinkService*
 LpFragmenter::getLinkService() const
 {
-  return m_linkService;
+    return m_linkService;
 }
 
 std::tuple<bool, std::vector<lp::Packet>>
 LpFragmenter::fragmentPacket(const lp::Packet& packet, size_t mtu)
 {
-  BOOST_ASSERT(packet.has<lp::FragmentField>());
-  BOOST_ASSERT(!packet.has<lp::FragIndexField>());
-  BOOST_ASSERT(!packet.has<lp::FragCountField>());
+    BOOST_ASSERT(packet.has<lp::FragmentField>());
+    BOOST_ASSERT(!packet.has<lp::FragIndexField>());
+    BOOST_ASSERT(!packet.has<lp::FragCountField>());
 
-  if (MAX_SINGLE_FRAG_OVERHEAD + packet.wireEncode().size() <= mtu) {
-    // fast path: fragmentation not needed
-    // To qualify for fast path, the packet must have space for adding a sequence number,
-    // because another NDNLPv2 feature may require the sequence number.
-    return std::make_tuple(true, std::vector<lp::Packet>{packet});
-  }
-
-  ndn::Buffer::const_iterator netPktBegin, netPktEnd;
-  std::tie(netPktBegin, netPktEnd) = packet.get<lp::FragmentField>();
-  size_t netPktSize = std::distance(netPktBegin, netPktEnd);
-
-  // compute size of other NDNLPv2 headers to be placed on the first fragment
-  size_t firstHeaderSize = 0;
-  const Block& packetWire = packet.wireEncode();
-  if (packetWire.type() == lp::tlv::LpPacket) {
-    for (const Block& element : packetWire.elements()) {
-      if (element.type() != lp::tlv::Fragment) {
-        firstHeaderSize += element.size();
-      }
+    if (MAX_SINGLE_FRAG_OVERHEAD + packet.wireEncode().size() <= mtu) {
+        // fast path: fragmentation not needed
+        // To qualify for fast path, the packet must have space for adding a sequence number,
+        // because another NDNLPv2 feature may require the sequence number.
+        return std::make_tuple(true, std::vector<lp::Packet>{packet});
     }
-  }
 
-  // compute payload size
-  if (MAX_FRAG_OVERHEAD + firstHeaderSize + 1 > mtu) { // 1-octet fragment
-    NFD_LOG_FACE_WARN("fragmentation error, MTU too small for first fragment: DROP");
-    return std::make_tuple(false, std::vector<lp::Packet>{});
-  }
-  size_t firstPayloadSize = std::min(netPktSize, mtu - firstHeaderSize - MAX_FRAG_OVERHEAD);
-  size_t payloadSize = mtu - MAX_FRAG_OVERHEAD;
-  size_t fragCount = 1 + ((netPktSize - firstPayloadSize) / payloadSize) +
-                     ((netPktSize - firstPayloadSize) % payloadSize != 0);
+    ndn::Buffer::const_iterator netPktBegin, netPktEnd;
+    std::tie(netPktBegin, netPktEnd) = packet.get<lp::FragmentField>();
+    size_t netPktSize = std::distance(netPktBegin, netPktEnd);
 
-  // compute FragCount
-  if (fragCount > m_options.nMaxFragments) {
-    NFD_LOG_FACE_WARN("fragmentation error, FragCount over limit: DROP");
-    return std::make_tuple(false, std::vector<lp::Packet>{});
-  }
+    // compute size of other NDNLPv2 headers to be placed on the first fragment
+    size_t firstHeaderSize = 0;
+    const Block& packetWire = packet.wireEncode();
+    if (packetWire.type() == lp::tlv::LpPacket) {
+        for (const Block& element : packetWire.elements()) {
+            if (element.type() != lp::tlv::Fragment) {
+                firstHeaderSize += element.size();
+            }
+        }
+    }
 
-  // populate fragments
-  std::vector<lp::Packet> frags(fragCount);
-  frags.front() = packet; // copy input packet to preserve other NDNLPv2 fields
-  size_t fragIndex = 0;
-  auto fragBegin = netPktBegin,
-       fragEnd = fragBegin + firstPayloadSize;
-  while (fragBegin < netPktEnd) {
-    lp::Packet& frag = frags[fragIndex];
-    frag.add<lp::FragIndexField>(fragIndex);
-    frag.add<lp::FragCountField>(fragCount);
-    frag.set<lp::FragmentField>({fragBegin, fragEnd});
-    BOOST_ASSERT(frag.wireEncode().size() <= mtu);
+    // compute payload size
+    if (MAX_FRAG_OVERHEAD + firstHeaderSize + 1 > mtu) { // 1-octet fragment
+        NFD_LOG_FACE_WARN("fragmentation error, MTU too small for first fragment: DROP");
+        return std::make_tuple(false, std::vector<lp::Packet>{});
+    }
+    size_t firstPayloadSize = std::min(netPktSize, mtu - firstHeaderSize - MAX_FRAG_OVERHEAD);
+    size_t payloadSize = mtu - MAX_FRAG_OVERHEAD;
+    size_t fragCount =
+      1 + ((netPktSize - firstPayloadSize) / payloadSize) + ((netPktSize - firstPayloadSize) % payloadSize != 0);
 
-    ++fragIndex;
-    fragBegin = fragEnd;
-    fragEnd = std::min(netPktEnd, fragBegin + payloadSize);
-  }
-  BOOST_ASSERT(fragIndex == fragCount);
+    // compute FragCount
+    if (fragCount > m_options.nMaxFragments) {
+        NFD_LOG_FACE_WARN("fragmentation error, FragCount over limit: DROP");
+        return std::make_tuple(false, std::vector<lp::Packet>{});
+    }
 
-  return std::make_tuple(true, frags);
+    // populate fragments
+    std::vector<lp::Packet> frags(fragCount);
+    frags.front() = packet; // copy input packet to preserve other NDNLPv2 fields
+    size_t fragIndex = 0;
+    auto fragBegin = netPktBegin, fragEnd = fragBegin + firstPayloadSize;
+    while (fragBegin < netPktEnd) {
+        lp::Packet& frag = frags[fragIndex];
+        frag.add<lp::FragIndexField>(fragIndex);
+        frag.add<lp::FragCountField>(fragCount);
+        frag.set<lp::FragmentField>({fragBegin, fragEnd});
+        BOOST_ASSERT(frag.wireEncode().size() <= mtu);
+
+        ++fragIndex;
+        fragBegin = fragEnd;
+        fragEnd = std::min(netPktEnd, fragBegin + payloadSize);
+    }
+    BOOST_ASSERT(fragIndex == fragCount);
+
+    return std::make_tuple(true, frags);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FaceLogHelper<LpFragmenter>& flh)
 {
-  if (flh.obj.getLinkService() == nullptr) {
-    os << "[id=0,local=unknown,remote=unknown] ";
-  }
-  else {
-    os << FaceLogHelper<LinkService>(*flh.obj.getLinkService());
-  }
-  return os;
+    if (flh.obj.getLinkService() == nullptr) {
+        os << "[id=0,local=unknown,remote=unknown] ";
+    }
+    else {
+        os << FaceLogHelper<LinkService>(*flh.obj.getLinkService());
+    }
+    return os;
 }
 
 } // namespace face

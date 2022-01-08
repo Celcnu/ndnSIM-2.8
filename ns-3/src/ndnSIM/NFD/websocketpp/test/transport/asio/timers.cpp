@@ -50,7 +50,9 @@
 #include <boost/asio.hpp>
 
 // Accept a connection, read data, and discard until EOF
-void run_dummy_server(int port) {
+void
+run_dummy_server(int port)
+{
     using boost::asio::ip::tcp;
 
     try {
@@ -65,30 +67,35 @@ void run_dummy_server(int port) {
             socket.read_some(boost::asio::buffer(data), ec);
             if (ec == boost::asio::error::eof) {
                 break;
-            } else if (ec) {
+            }
+            else if (ec) {
                 // other error
                 throw ec;
             }
         }
-    } catch (std::exception & e) {
+    }
+    catch (std::exception& e) {
         std::cout << e.what() << std::endl;
-    } catch (boost::system::error_code & ec) {
+    }
+    catch (boost::system::error_code& ec) {
         std::cout << ec.message() << std::endl;
     }
 }
 
 // Wait for the specified time period then fail the test
-void run_test_timer(long value) {
+void
+run_test_timer(long value)
+{
     boost::asio::io_service ios;
-    boost::asio::deadline_timer t(ios,boost::posix_time::milliseconds(value));
+    boost::asio::deadline_timer t(ios, boost::posix_time::milliseconds(value));
     boost::system::error_code ec;
     t.wait(ec);
-    BOOST_FAIL( "Test timed out" );
+    BOOST_FAIL("Test timed out");
 }
 
 struct config {
     typedef websocketpp::concurrency::none concurrency_type;
-    //typedef websocketpp::log::basic<concurrency_type,websocketpp::log::alevel> alog_type;
+    // typedef websocketpp::log::basic<concurrency_type,websocketpp::log::alevel> alog_type;
     typedef websocketpp::log::stub alog_type;
     typedef websocketpp::log::stub elog_type;
     typedef websocketpp::http::parser::request request_type;
@@ -107,28 +114,34 @@ struct config {
 
 // Mock context that does no validation
 typedef websocketpp::lib::shared_ptr<boost::asio::ssl::context> context_ptr;
-context_ptr on_tls_init(websocketpp::connection_hdl) {
+context_ptr on_tls_init(websocketpp::connection_hdl)
+{
     return context_ptr(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
 }
 
 // Mock connection
-struct mock_con: public websocketpp::transport::asio::connection<config> {
+struct mock_con : public websocketpp::transport::asio::connection<config> {
     typedef websocketpp::transport::asio::connection<config> base;
 
     mock_con(bool a, const websocketpp::lib::shared_ptr<config::alog_type>& b,
              const websocketpp::lib::shared_ptr<config::elog_type>& c)
-            : base(a,b,c) {}
-
-    void start() {
-        base::init(websocketpp::lib::bind(&mock_con::handle_start,this,
-            websocketpp::lib::placeholders::_1));
+      : base(a, b, c)
+    {
     }
 
-    void handle_start(const websocketpp::lib::error_code& ec) {
+    void
+    start()
+    {
+        base::init(websocketpp::lib::bind(&mock_con::handle_start, this, websocketpp::lib::placeholders::_1));
+    }
+
+    void
+    handle_start(const websocketpp::lib::error_code& ec)
+    {
         using websocketpp::transport::asio::socket::make_error_code;
         using websocketpp::transport::asio::socket::error::tls_handshake_timeout;
 
-        BOOST_CHECK_EQUAL( ec, make_error_code(tls_handshake_timeout) );
+        BOOST_CHECK_EQUAL(ec, make_error_code(tls_handshake_timeout));
 
         base::cancel_socket();
     }
@@ -141,36 +154,32 @@ struct mock_endpoint : public websocketpp::transport::asio::endpoint<config> {
     typedef websocketpp::transport::asio::endpoint<config> base;
 
     mock_endpoint()
-        : alog(websocketpp::lib::make_shared<config::alog_type>())
-        , elog(websocketpp::lib::make_shared<config::elog_type>())
+      : alog(websocketpp::lib::make_shared<config::alog_type>())
+      , elog(websocketpp::lib::make_shared<config::elog_type>())
     {
         alog->set_channels(websocketpp::log::alevel::all);
-        base::init_logging(alog,elog);
+        base::init_logging(alog, elog);
         init_asio();
     }
 
-    void connect(std::string u) {
-        m_con.reset(new mock_con(false,alog,elog));
+    void
+    connect(std::string u)
+    {
+        m_con.reset(new mock_con(false, alog, elog));
         websocketpp::uri_ptr uri(new websocketpp::uri(u));
 
-        BOOST_CHECK( uri->get_valid() );
-        BOOST_CHECK_EQUAL( base::init(m_con), websocketpp::lib::error_code() );
+        BOOST_CHECK(uri->get_valid());
+        BOOST_CHECK_EQUAL(base::init(m_con), websocketpp::lib::error_code());
 
-        base::async_connect(
-            m_con,
-            uri,
-            websocketpp::lib::bind(
-                &mock_endpoint::handle_connect,
-                this,
-                m_con,
-                websocketpp::lib::placeholders::_1
-            )
-        );
+        base::async_connect(m_con, uri,
+                            websocketpp::lib::bind(&mock_endpoint::handle_connect, this, m_con,
+                                                   websocketpp::lib::placeholders::_1));
     }
 
-    void handle_connect(connection_ptr con, websocketpp::lib::error_code const & ec)
+    void
+    handle_connect(connection_ptr con, websocketpp::lib::error_code const& ec)
     {
-        BOOST_CHECK( !ec );
+        BOOST_CHECK(!ec);
         con->start();
     }
 
@@ -179,9 +188,10 @@ struct mock_endpoint : public websocketpp::transport::asio::endpoint<config> {
     websocketpp::lib::shared_ptr<config::elog_type> elog;
 };
 
-BOOST_AUTO_TEST_CASE( tls_handshake_timeout ) {
-    websocketpp::lib::thread dummy_server(websocketpp::lib::bind(&run_dummy_server,9005));
-    websocketpp::lib::thread timer(websocketpp::lib::bind(&run_test_timer,5000));
+BOOST_AUTO_TEST_CASE(tls_handshake_timeout)
+{
+    websocketpp::lib::thread dummy_server(websocketpp::lib::bind(&run_dummy_server, 9005));
+    websocketpp::lib::thread timer(websocketpp::lib::bind(&run_test_timer, 5000));
     dummy_server.detach();
     timer.detach();
 

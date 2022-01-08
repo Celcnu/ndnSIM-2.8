@@ -27,14 +27,14 @@
 namespace ndn {
 namespace tests {
 
-template<typename F>
+template <typename F>
 time::nanoseconds
 timedExecute(const F& f)
 {
-  auto before = time::steady_clock::now();
-  f();
-  auto after = time::steady_clock::now();
-  return after - before;
+    auto before = time::steady_clock::now();
+    f();
+    auto after = time::steady_clock::now();
+    return after - before;
 }
 
 } // namespace tests

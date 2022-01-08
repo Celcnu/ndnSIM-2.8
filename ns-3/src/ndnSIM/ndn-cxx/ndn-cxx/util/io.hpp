@@ -30,48 +30,47 @@
 namespace ndn {
 namespace io {
 
-class Error : public std::runtime_error
-{
-public:
-  using std::runtime_error::runtime_error;
+class Error : public std::runtime_error {
+  public:
+    using std::runtime_error::runtime_error;
 };
 
 /** \brief Indicates how a file or stream of bytes is encoded.
  */
 enum IoEncoding {
-  /** \brief Raw binary, without encoding
-   */
-  NO_ENCODING,
+    /** \brief Raw binary, without encoding
+     */
+    NO_ENCODING,
 
-  /** \brief Base64 encoding
-   *
-   *  `save()` inserts a newline after every 64 characters,
-   *  `load()` can accept base64 text with or without newlines.
-   */
-  BASE64,
+    /** \brief Base64 encoding
+     *
+     *  `save()` inserts a newline after every 64 characters,
+     *  `load()` can accept base64 text with or without newlines.
+     */
+    BASE64,
 
-  /** \brief Hexadecimal encoding
-   *
-   *  `save()` uses uppercase letters A-F, `load()` can accept mixed-case.
-   */
-  HEX,
+    /** \brief Hexadecimal encoding
+     *
+     *  `save()` uses uppercase letters A-F, `load()` can accept mixed-case.
+     */
+    HEX,
 };
 
 namespace detail {
 
-template<typename T>
+template <typename T>
 static void
 checkInnerError(typename T::Error*)
 {
-  static_assert(std::is_convertible<typename T::Error*, tlv::Error*>::value,
-                "T::Error, if defined, must be a subclass of ndn::tlv::Error");
+    static_assert(std::is_convertible<typename T::Error*, tlv::Error*>::value,
+                  "T::Error, if defined, must be a subclass of ndn::tlv::Error");
 }
 
-template<typename T>
+template <typename T>
 static void
 checkInnerError(...)
 {
-  // T::Error is not defined
+    // T::Error is not defined
 }
 
 } // namespace detail
@@ -81,38 +80,36 @@ checkInnerError(...)
  *  \throw Error error during loading
  *  \throw std::invalid_argument the specified encoding is not supported
  */
-shared_ptr<Buffer>
-loadBuffer(std::istream& is, IoEncoding encoding = BASE64);
+shared_ptr<Buffer> loadBuffer(std::istream& is, IoEncoding encoding = BASE64);
 
 /** \brief Reads a TLV block from a stream.
  *  \return a Block, or nullopt if an error occurs
  */
-optional<Block>
-loadBlock(std::istream& is, IoEncoding encoding = BASE64);
+optional<Block> loadBlock(std::istream& is, IoEncoding encoding = BASE64);
 
 /** \brief Reads a TLV element from a stream.
  *  \tparam T type of TLV element; `T` must be WireDecodable and the nested type
  *            `T::Error`, if defined, must be a subclass of ndn::tlv::Error
  *  \return the TLV element, or nullptr if an error occurs
  */
-template<typename T>
+template <typename T>
 shared_ptr<T>
 load(std::istream& is, IoEncoding encoding = BASE64)
 {
-  BOOST_CONCEPT_ASSERT((WireDecodable<T>));
-  detail::checkInnerError<T>(nullptr);
+    BOOST_CONCEPT_ASSERT((WireDecodable<T>));
+    detail::checkInnerError<T>(nullptr);
 
-  auto block = loadBlock(is, encoding);
-  if (!block) {
-    return nullptr;
-  }
+    auto block = loadBlock(is, encoding);
+    if (!block) {
+        return nullptr;
+    }
 
-  try {
-    return make_shared<T>(*block);
-  }
-  catch (const tlv::Error&) {
-    return nullptr;
-  }
+    try {
+        return make_shared<T>(*block);
+    }
+    catch (const tlv::Error&) {
+        return nullptr;
+    }
 }
 
 /** \brief Reads a TLV element from a file.
@@ -120,27 +117,25 @@ load(std::istream& is, IoEncoding encoding = BASE64)
  *            `T::Error`, if defined, must be a subclass of ndn::tlv::Error
  *  \return the TLV element, or nullptr if an error occurs
  */
-template<typename T>
+template <typename T>
 shared_ptr<T>
 load(const std::string& filename, IoEncoding encoding = BASE64)
 {
-  std::ifstream is(filename);
-  return load<T>(is, encoding);
+    std::ifstream is(filename);
+    return load<T>(is, encoding);
 }
 
 /** \brief Writes a byte buffer to a stream.
  *  \throw Error error during saving
  *  \throw std::invalid_argument the specified encoding is not supported
  */
-void
-saveBuffer(const uint8_t* buf, size_t size, std::ostream& os, IoEncoding encoding = BASE64);
+void saveBuffer(const uint8_t* buf, size_t size, std::ostream& os, IoEncoding encoding = BASE64);
 
 /** \brief Writes a TLV block to a stream.
  *  \throw Error error during saving
  *  \throw std::invalid_argument the specified encoding is not supported
  */
-void
-saveBlock(const Block& block, std::ostream& os, IoEncoding encoding = BASE64);
+void saveBlock(const Block& block, std::ostream& os, IoEncoding encoding = BASE64);
 
 /** \brief Writes a TLV element to a stream.
  *  \tparam T type of TLV element; `T` must be WireEncodable and the nested type
@@ -148,22 +143,22 @@ saveBlock(const Block& block, std::ostream& os, IoEncoding encoding = BASE64);
  *  \throw Error error during encoding or saving
  *  \throw std::invalid_argument the specified encoding is not supported
  */
-template<typename T>
+template <typename T>
 void
 save(const T& obj, std::ostream& os, IoEncoding encoding = BASE64)
 {
-  BOOST_CONCEPT_ASSERT((WireEncodable<T>));
-  detail::checkInnerError<T>(nullptr);
+    BOOST_CONCEPT_ASSERT((WireEncodable<T>));
+    detail::checkInnerError<T>(nullptr);
 
-  Block block;
-  try {
-    block = obj.wireEncode();
-  }
-  catch (const tlv::Error&) {
-    NDN_THROW_NESTED(Error("Encode error during save"));
-  }
+    Block block;
+    try {
+        block = obj.wireEncode();
+    }
+    catch (const tlv::Error&) {
+        NDN_THROW_NESTED(Error("Encode error during save"));
+    }
 
-  saveBlock(block, os, encoding);
+    saveBlock(block, os, encoding);
 }
 
 /** \brief Writes a TLV element to a file.
@@ -172,12 +167,12 @@ save(const T& obj, std::ostream& os, IoEncoding encoding = BASE64)
  *  \throw Error error during encoding or saving
  *  \throw std::invalid_argument the specified encoding is not supported
  */
-template<typename T>
+template <typename T>
 void
 save(const T& obj, const std::string& filename, IoEncoding encoding = BASE64)
 {
-  std::ofstream os(filename);
-  save(obj, os, encoding);
+    std::ofstream os(filename);
+    save(obj, os, encoding);
 }
 
 } // namespace io

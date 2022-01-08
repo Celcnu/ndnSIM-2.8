@@ -26,142 +26,130 @@
 namespace ns3 {
 namespace ndn {
 
-class StrategyChoiceHelperFixture : public ScenarioHelperWithCleanupFixture
-{
-public:
-  StrategyChoiceHelperFixture()
-  {
-    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
-    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
-    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("500p"));
+class StrategyChoiceHelperFixture : public ScenarioHelperWithCleanupFixture {
+  public:
+    StrategyChoiceHelperFixture()
+    {
+        Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
+        Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
+        Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("500p"));
 
-    // Creating two 3 node topologies:                      //
-    //                                                      //
-    //                 +----+                     +----+    //
-    //              +- | B1 |                  +- | B2 |    //
-    //             /   +----+                 /   +----+    //
-    //  +----+    /                +----+    /              //
-    //  |    | --+                 |    | --+               //
-    //  | A1 |                     | A2 |                   //
-    //  |    | --+                 |    | --+               //
-    //  +----+    \                +----+    \              //
-    //             \   +----+                 \   +----+    //
-    //              +- | C1 |                  +- | C2 |    //
-    //                 +----+                     +----+    //
+        // Creating two 3 node topologies:                      //
+        //                                                      //
+        //                 +----+                     +----+    //
+        //              +- | B1 |                  +- | B2 |    //
+        //             /   +----+                 /   +----+    //
+        //  +----+    /                +----+    /              //
+        //  |    | --+                 |    | --+               //
+        //  | A1 |                     | A2 |                   //
+        //  |    | --+                 |    | --+               //
+        //  +----+    \                +----+    \              //
+        //             \   +----+                 \   +----+    //
+        //              +- | C1 |                  +- | C2 |    //
+        //                 +----+                     +----+    //
 
-    createTopology({
-        {"A1", "B1"},
-        {"A1", "C1"},
-        {"A2", "B2"},
-        {"A2", "C2"}
-      });
+        createTopology({{"A1", "B1"}, {"A1", "C1"}, {"A2", "B2"}, {"A2", "C2"}});
 
-    addRoutes({
-        {"A1", "B1", "/prefix", 200},
-        {"A1", "C1", "/prefix", 100},
-        {"A2", "B2", "/prefix", 100},
-        {"A2", "C2", "/prefix", 200}
-      });
+        addRoutes({{"A1", "B1", "/prefix", 200},
+                   {"A1", "C1", "/prefix", 100},
+                   {"A2", "B2", "/prefix", 100},
+                   {"A2", "C2", "/prefix", 200}});
 
-    addApps({
-        {"A1", "ns3::ndn::ConsumerCbr",
-            {{"Prefix", "/prefix"}, {"Frequency", "1"}},
-            "0.1s", "100s"},
-        {"A2", "ns3::ndn::ConsumerCbr",
-            {{"Prefix", "/prefix"}, {"Frequency", "1"}},
-            "0.1s", "100s"},
-      });
-  }
+        addApps({
+          {"A1", "ns3::ndn::ConsumerCbr", {{"Prefix", "/prefix"}, {"Frequency", "1"}}, "0.1s", "100s"},
+          {"A2", "ns3::ndn::ConsumerCbr", {{"Prefix", "/prefix"}, {"Frequency", "1"}}, "0.1s", "100s"},
+        });
+    }
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestStrategyChoiceHelper, StrategyChoiceHelperFixture)
 
 BOOST_AUTO_TEST_CASE(DefaultStrategies)
 {
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
 }
 
 // static void
 // Install(Ptr<Node> node, const Name& namePrefix, const Name& strategy);
 BOOST_AUTO_TEST_CASE(InstallBuiltInStrategyOnNode)
 {
-  StrategyChoiceHelper::Install(getNode("A2"), "/prefix", "/localhost/nfd/strategy/multicast");
+    StrategyChoiceHelper::Install(getNode("A2"), "/prefix", "/localhost/nfd/strategy/multicast");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
 }
 
 // static void
 // Install(Ptr<Node> node, const Name& namePrefix, const Name& strategy);
 BOOST_AUTO_TEST_CASE(InstallBuiltInStrategyOnNodeContainer)
 {
-  NodeContainer nodes;
-  nodes.Add(getNode("A1"));
-  nodes.Add(getNode("A2"));
+    NodeContainer nodes;
+    nodes.Add(getNode("A1"));
+    nodes.Add(getNode("A2"));
 
-  StrategyChoiceHelper::Install(nodes, "/prefix", "/localhost/nfd/strategy/multicast");
+    StrategyChoiceHelper::Install(nodes, "/prefix", "/localhost/nfd/strategy/multicast");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
 }
 
 // static void
 // InstallAll(const Name& namePrefix, const Name& strategy);
 BOOST_AUTO_TEST_CASE(InstallAllBuiltInStrategy)
 {
-  StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/multicast");
+    StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/multicast");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 5);
 }
 
-
 class NullStrategy : public nfd::fw::Strategy {
-public:
-  NullStrategy(nfd::Forwarder& forwarder, const Name& name = getStrategyName())
-    : Strategy(forwarder)
-  {
-    this->setInstanceName(name);
-  }
+  public:
+    NullStrategy(nfd::Forwarder& forwarder, const Name& name = getStrategyName())
+      : Strategy(forwarder)
+    {
+        this->setInstanceName(name);
+    }
 
-  void
-  afterReceiveInterest(const nfd::FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<nfd::pit::Entry>& pitEntry) override
-  {
-    // this strategy doesn't forward interests
-  }
+    void
+    afterReceiveInterest(const nfd::FaceEndpoint& ingress, const Interest& interest,
+                         const shared_ptr<nfd::pit::Entry>& pitEntry) override
+    {
+        // this strategy doesn't forward interests
+    }
 
-public:
-  static const Name& getStrategyName()
-  {
-    static Name strategyName("ndn:/localhost/nfd/strategy/unit-tests/null-strategy/%FD%00");
-    return strategyName;
-  }
+  public:
+    static const Name&
+    getStrategyName()
+    {
+        static Name strategyName("ndn:/localhost/nfd/strategy/unit-tests/null-strategy/%FD%00");
+        return strategyName;
+    }
 };
 
 // template<class Strategy>
@@ -169,16 +157,16 @@ public:
 // Install(Ptr<Node> node, const Name& namePrefix);
 BOOST_AUTO_TEST_CASE(InstallCustomStrategyOnNode)
 {
-  StrategyChoiceHelper::Install<NullStrategy>(getNode("A2"), "/prefix");
+    StrategyChoiceHelper::Install<NullStrategy>(getNode("A2"), "/prefix");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 5);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
 }
 
 // template<class Strategy>
@@ -186,20 +174,20 @@ BOOST_AUTO_TEST_CASE(InstallCustomStrategyOnNode)
 // Install(const NodeContainer& c, const Name& namePrefix);
 BOOST_AUTO_TEST_CASE(InstallCustomStrategyOnNodeContainer)
 {
-  NodeContainer nodes;
-  nodes.Add(getNode("A1"));
-  nodes.Add(getNode("A2"));
+    NodeContainer nodes;
+    nodes.Add(getNode("A1"));
+    nodes.Add(getNode("A2"));
 
-  StrategyChoiceHelper::Install<NullStrategy>(nodes, "/prefix");
+    StrategyChoiceHelper::Install<NullStrategy>(nodes, "/prefix");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 0);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
 }
 
 // template<class Strategy>
@@ -207,16 +195,16 @@ BOOST_AUTO_TEST_CASE(InstallCustomStrategyOnNodeContainer)
 // InstallAll(const Name& namePrefix);
 BOOST_AUTO_TEST_CASE(InstallAllCustomStrategy)
 {
-  StrategyChoiceHelper::InstallAll<NullStrategy>("/prefix");
+    StrategyChoiceHelper::InstallAll<NullStrategy>("/prefix");
 
-  Simulator::Stop(Seconds(5));
-  Simulator::Run();
+    Simulator::Stop(Seconds(5));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "B1")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A1", "C1")->getCounters().nOutInterests, 0);
 
-  BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
-  BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "B2")->getCounters().nOutInterests, 0);
+    BOOST_CHECK_EQUAL(getFace("A2", "C2")->getCounters().nOutInterests, 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

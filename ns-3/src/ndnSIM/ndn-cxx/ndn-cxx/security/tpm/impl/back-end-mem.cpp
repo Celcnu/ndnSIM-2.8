@@ -34,10 +34,9 @@ namespace tpm {
 
 using transform::PrivateKey;
 
-class BackEndMem::Impl
-{
-public:
-  std::unordered_map<Name, shared_ptr<PrivateKey>> keys;
+class BackEndMem::Impl {
+  public:
+    std::unordered_map<Name, shared_ptr<PrivateKey>> keys;
 };
 
 BackEndMem::BackEndMem(const std::string&)
@@ -50,85 +49,85 @@ BackEndMem::~BackEndMem() = default;
 const std::string&
 BackEndMem::getScheme()
 {
-  static std::string scheme = "tpm-memory";
-  return scheme;
+    static std::string scheme = "tpm-memory";
+    return scheme;
 }
 
 bool
 BackEndMem::doHasKey(const Name& keyName) const
 {
-  return (m_impl->keys.count(keyName) > 0);
+    return (m_impl->keys.count(keyName) > 0);
 }
 
 unique_ptr<KeyHandle>
 BackEndMem::doGetKeyHandle(const Name& keyName) const
 {
-  auto it = m_impl->keys.find(keyName);
-  if (it == m_impl->keys.end())
-    return nullptr;
-  return make_unique<KeyHandleMem>(it->second);
+    auto it = m_impl->keys.find(keyName);
+    if (it == m_impl->keys.end())
+        return nullptr;
+    return make_unique<KeyHandleMem>(it->second);
 }
 
 unique_ptr<KeyHandle>
 BackEndMem::doCreateKey(const Name& identityName, const KeyParams& params)
 {
-  switch (params.getKeyType()) {
-  case KeyType::RSA:
-  case KeyType::EC:
-  case KeyType::HMAC:
-    break;
-  default:
-    NDN_THROW(std::invalid_argument("Memory-based TPM does not support creating a key of type " +
-                                    boost::lexical_cast<std::string>(params.getKeyType())));
-  }
+    switch (params.getKeyType()) {
+        case KeyType::RSA:
+        case KeyType::EC:
+        case KeyType::HMAC:
+            break;
+        default:
+            NDN_THROW(std::invalid_argument("Memory-based TPM does not support creating a key of type "
+                                            + boost::lexical_cast<std::string>(params.getKeyType())));
+    }
 
-  shared_ptr<PrivateKey> key(transform::generatePrivateKey(params).release());
-  unique_ptr<KeyHandle> keyHandle = make_unique<KeyHandleMem>(key);
+    shared_ptr<PrivateKey> key(transform::generatePrivateKey(params).release());
+    unique_ptr<KeyHandle> keyHandle = make_unique<KeyHandleMem>(key);
 
-  Name keyName;
-  if (params.getKeyType() == KeyType::HMAC) {
-    keyName = constructHmacKeyName(*key, identityName, params);
-  }
-  else {
-    keyName = constructAsymmetricKeyName(*keyHandle, identityName, params);
-  }
-  keyHandle->setKeyName(keyName);
+    Name keyName;
+    if (params.getKeyType() == KeyType::HMAC) {
+        keyName = constructHmacKeyName(*key, identityName, params);
+    }
+    else {
+        keyName = constructAsymmetricKeyName(*keyHandle, identityName, params);
+    }
+    keyHandle->setKeyName(keyName);
 
-  m_impl->keys[keyName] = std::move(key);
-  return keyHandle;
+    m_impl->keys[keyName] = std::move(key);
+    return keyHandle;
 }
 
 void
 BackEndMem::doDeleteKey(const Name& keyName)
 {
-  m_impl->keys.erase(keyName);
+    m_impl->keys.erase(keyName);
 }
 
 ConstBufferPtr
 BackEndMem::doExportKey(const Name& keyName, const char* pw, size_t pwLen)
 {
-  OBufferStream os;
-  m_impl->keys[keyName]->savePkcs8(os, pw, pwLen);
-  return os.buf();
+    OBufferStream os;
+    m_impl->keys[keyName]->savePkcs8(os, pw, pwLen);
+    return os.buf();
 }
 
 void
 BackEndMem::doImportKey(const Name& keyName, const uint8_t* buf, size_t size, const char* pw, size_t pwLen)
 {
-  auto key = make_shared<PrivateKey>();
-  try {
-    key->loadPkcs8(buf, size, pw, pwLen);
-  }
-  catch (const PrivateKey::Error&) {
-    NDN_THROW_NESTED(Error("Cannot import private key"));
-  }
-  doImportKey(keyName, std::move(key));
+    auto key = make_shared<PrivateKey>();
+    try {
+        key->loadPkcs8(buf, size, pw, pwLen);
+    }
+    catch (const PrivateKey::Error&) {
+        NDN_THROW_NESTED(Error("Cannot import private key"));
+    }
+    doImportKey(keyName, std::move(key));
 }
 
 void
 BackEndMem::doImportKey(const Name& keyName, shared_ptr<transform::PrivateKey> key)
 {
-  m_impl->keys[keyName] = std::move(key);
+    m_impl->keys[keyName] = std::move(key);
 }
 
 } // namespace tpm

@@ -30,20 +30,16 @@ namespace ndn {
 
 // No Vertex Property
 // Edge Property: Weight.
-using DiGraph =
-  boost::adjacency_list<boost::listS, boost::vecS, boost::bidirectionalS, boost::no_property,
-                        boost::property<boost::edge_weight_t, int>>;
+using DiGraph = boost::adjacency_list<boost::listS, boost::vecS, boost::bidirectionalS, boost::no_property,
+                                      boost::property<boost::edge_weight_t, int>>;
 
-void
-getDigraphFromFib(DiGraph& dg, const AbstractFib::AllNodeFib& allNodeFIB, const int dstId);
+void getDigraphFromFib(DiGraph& dg, const AbstractFib::AllNodeFib& allNodeFIB, const int dstId);
 
-int
-removeLoops(AbstractFib::AllNodeFib& allNodeFIB, bool printOutput = true);
+int removeLoops(AbstractFib::AllNodeFib& allNodeFIB, bool printOutput = true);
 
-int
-removeDeadEnds(AbstractFib::AllNodeFib& allNodeFIB, bool printOutput = true);
+int removeDeadEnds(AbstractFib::AllNodeFib& allNodeFIB, bool printOutput = true);
 
 } // namespace ndn
 } // namespace ns3
 
-#endif //LFID_REMOVE_LOOPS_H
+#endif // LFID_REMOVE_LOOPS_H

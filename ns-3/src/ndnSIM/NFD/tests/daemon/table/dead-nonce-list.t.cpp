@@ -37,124 +37,123 @@ BOOST_FIXTURE_TEST_SUITE(TestDeadNonceList, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  Name nameA("ndn:/A");
-  Name nameB("ndn:/B");
-  const uint32_t nonce1 = 0x53b4eaa8;
-  const uint32_t nonce2 = 0x1f46372b;
+    Name nameA("ndn:/A");
+    Name nameB("ndn:/B");
+    const uint32_t nonce1 = 0x53b4eaa8;
+    const uint32_t nonce2 = 0x1f46372b;
 
-  DeadNonceList dnl;
-  BOOST_CHECK_EQUAL(dnl.size(), 0);
-  BOOST_CHECK_EQUAL(dnl.has(nameA, nonce1), false);
+    DeadNonceList dnl;
+    BOOST_CHECK_EQUAL(dnl.size(), 0);
+    BOOST_CHECK_EQUAL(dnl.has(nameA, nonce1), false);
 
-  dnl.add(nameA, nonce1);
-  BOOST_CHECK_EQUAL(dnl.size(), 1);
-  BOOST_CHECK_EQUAL(dnl.has(nameA, nonce1), true);
-  BOOST_CHECK_EQUAL(dnl.has(nameA, nonce2), false);
-  BOOST_CHECK_EQUAL(dnl.has(nameB, nonce1), false);
+    dnl.add(nameA, nonce1);
+    BOOST_CHECK_EQUAL(dnl.size(), 1);
+    BOOST_CHECK_EQUAL(dnl.has(nameA, nonce1), true);
+    BOOST_CHECK_EQUAL(dnl.has(nameA, nonce2), false);
+    BOOST_CHECK_EQUAL(dnl.has(nameB, nonce1), false);
 }
 
 BOOST_AUTO_TEST_CASE(MinLifetime)
 {
-  BOOST_CHECK_THROW(DeadNonceList dnl(time::milliseconds::zero()), std::invalid_argument);
+    BOOST_CHECK_THROW(DeadNonceList dnl(time::milliseconds::zero()), std::invalid_argument);
 }
 
 /// A Fixture that periodically inserts Nonces
-class PeriodicalInsertionFixture : public GlobalIoTimeFixture
-{
-protected:
-  PeriodicalInsertionFixture()
-    : dnl(LIFETIME)
-    , name("ndn:/N")
-    , lastNonce(0)
-    , addNonceBatch(0)
-    , addNonceInterval(LIFETIME / DeadNonceList::EXPECTED_MARK_COUNT)
-    , timeUnit(addNonceInterval / 2)
-  {
-    this->addNonce();
-  }
-
-  void
-  setRate(size_t nNoncesPerLifetime)
-  {
-    addNonceBatch = nNoncesPerLifetime / DeadNonceList::EXPECTED_MARK_COUNT;
-  }
-
-  void
-  addNonce()
-  {
-    for (size_t i = 0; i < addNonceBatch; ++i) {
-      dnl.add(name, ++lastNonce);
+class PeriodicalInsertionFixture : public GlobalIoTimeFixture {
+  protected:
+    PeriodicalInsertionFixture()
+      : dnl(LIFETIME)
+      , name("ndn:/N")
+      , lastNonce(0)
+      , addNonceBatch(0)
+      , addNonceInterval(LIFETIME / DeadNonceList::EXPECTED_MARK_COUNT)
+      , timeUnit(addNonceInterval / 2)
+    {
+        this->addNonce();
     }
 
-    if (addNonceInterval > time::nanoseconds::zero()) {
-      addNonceEvent = getScheduler().schedule(addNonceInterval, [this] { addNonce(); });
+    void
+    setRate(size_t nNoncesPerLifetime)
+    {
+        addNonceBatch = nNoncesPerLifetime / DeadNonceList::EXPECTED_MARK_COUNT;
     }
-  }
 
-  /** \brief advance clocks by LIFETIME*t
-   */
-  void
-  advanceClocksByLifetime(float t)
-  {
-    this->advanceClocks(timeUnit, time::duration_cast<time::nanoseconds>(LIFETIME * t));
-  }
+    void
+    addNonce()
+    {
+        for (size_t i = 0; i < addNonceBatch; ++i) {
+            dnl.add(name, ++lastNonce);
+        }
 
-protected:
-  static const time::nanoseconds LIFETIME;
-  DeadNonceList dnl;
-  Name name;
-  uint32_t lastNonce;
-  size_t addNonceBatch;
-  time::nanoseconds addNonceInterval;
-  time::nanoseconds timeUnit;
-  scheduler::ScopedEventId addNonceEvent;
+        if (addNonceInterval > time::nanoseconds::zero()) {
+            addNonceEvent = getScheduler().schedule(addNonceInterval, [this] { addNonce(); });
+        }
+    }
+
+    /** \brief advance clocks by LIFETIME*t
+     */
+    void
+    advanceClocksByLifetime(float t)
+    {
+        this->advanceClocks(timeUnit, time::duration_cast<time::nanoseconds>(LIFETIME * t));
+    }
+
+  protected:
+    static const time::nanoseconds LIFETIME;
+    DeadNonceList dnl;
+    Name name;
+    uint32_t lastNonce;
+    size_t addNonceBatch;
+    time::nanoseconds addNonceInterval;
+    time::nanoseconds timeUnit;
+    scheduler::ScopedEventId addNonceEvent;
 };
 
 const time::nanoseconds PeriodicalInsertionFixture::LIFETIME = 200_ms;
 
 BOOST_FIXTURE_TEST_CASE(Lifetime, PeriodicalInsertionFixture)
 {
-  BOOST_CHECK_EQUAL(dnl.getLifetime(), LIFETIME);
+    BOOST_CHECK_EQUAL(dnl.getLifetime(), LIFETIME);
 
-  const int RATE = DeadNonceList::INITIAL_CAPACITY / 2;
-  this->setRate(RATE);
-  this->advanceClocksByLifetime(10.0);
+    const int RATE = DeadNonceList::INITIAL_CAPACITY / 2;
+    this->setRate(RATE);
+    this->advanceClocksByLifetime(10.0);
 
-  Name nameC("ndn:/C");
-  const uint32_t nonceC = 0x25390656;
-  BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), false);
-  dnl.add(nameC, nonceC);
-  BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), true);
+    Name nameC("ndn:/C");
+    const uint32_t nonceC = 0x25390656;
+    BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), false);
+    dnl.add(nameC, nonceC);
+    BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), true);
 
-  this->advanceClocksByLifetime(0.5); // -50%, entry should exist
-  BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), true);
+    this->advanceClocksByLifetime(0.5); // -50%, entry should exist
+    BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), true);
 
-  this->advanceClocksByLifetime(1.0); // +50%, entry should be gone
-  BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), false);
+    this->advanceClocksByLifetime(1.0); // +50%, entry should be gone
+    BOOST_CHECK_EQUAL(dnl.has(nameC, nonceC), false);
 }
 
 BOOST_FIXTURE_TEST_CASE(CapacityDown, PeriodicalInsertionFixture)
 {
-  ssize_t cap0 = dnl.m_capacity;
+    ssize_t cap0 = dnl.m_capacity;
 
-  const int RATE = DeadNonceList::INITIAL_CAPACITY / 3;
-  this->setRate(RATE);
-  this->advanceClocksByLifetime(10.0);
+    const int RATE = DeadNonceList::INITIAL_CAPACITY / 3;
+    this->setRate(RATE);
+    this->advanceClocksByLifetime(10.0);
 
-  ssize_t cap1 = dnl.m_capacity;
-  BOOST_CHECK_LT(std::abs(cap1 - RATE), std::abs(cap0 - RATE));
+    ssize_t cap1 = dnl.m_capacity;
+    BOOST_CHECK_LT(std::abs(cap1 - RATE), std::abs(cap0 - RATE));
 }
 
 BOOST_FIXTURE_TEST_CASE(CapacityUp, PeriodicalInsertionFixture)
 {
-  ssize_t cap0 = dnl.m_capacity;
+    ssize_t cap0 = dnl.m_capacity;
 
-  const int RATE = DeadNonceList::INITIAL_CAPACITY * 3;
-  this->setRate(RATE);
-  this->advanceClocksByLifetime(10.0);
+    const int RATE = DeadNonceList::INITIAL_CAPACITY * 3;
+    this->setRate(RATE);
+    this->advanceClocksByLifetime(10.0);
 
-  ssize_t cap1 = dnl.m_capacity;
-  BOOST_CHECK_LT(std::abs(cap1 - RATE), std::abs(cap0 - RATE));
+    ssize_t cap1 = dnl.m_capacity;
+    BOOST_CHECK_LT(std::abs(cap1 - RATE), std::abs(cap0 - RATE));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestDeadNonceList

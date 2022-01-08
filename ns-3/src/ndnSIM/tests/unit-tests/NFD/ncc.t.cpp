@@ -26,44 +26,36 @@
 namespace ns3 {
 namespace ndn {
 
-class NccFixture : public ScenarioHelperWithCleanupFixture
-{
-public:
-  NccFixture()
-  {
-    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
-    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
-    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("500p"));
+class NccFixture : public ScenarioHelperWithCleanupFixture {
+  public:
+    NccFixture()
+    {
+        Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
+        Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("1ms"));
+        Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("500p"));
 
-      //            Creating a 3 node topology                //
-      //                                                      //
-      //                                                      //
-      //          +----+       +----+         +----+          //
-      //          |    |       |    |         |    |          //
-      //          | A1 | <---> | A2 |  <--->  | A3 |          //
-      //          |    |       |    |         |    |          //
-      //          +----+       +----+         +----+          //
-      //                                                      //
-      //                                                      //
-      //                                                      //
+        //            Creating a 3 node topology                //
+        //                                                      //
+        //                                                      //
+        //          +----+       +----+         +----+          //
+        //          |    |       |    |         |    |          //
+        //          | A1 | <---> | A2 |  <--->  | A3 |          //
+        //          |    |       |    |         |    |          //
+        //          +----+       +----+         +----+          //
+        //                                                      //
+        //                                                      //
+        //                                                      //
 
-      createTopology({
-          {"A1", "A2"},
-          {"A2", "A3"}
-        });
+        createTopology({{"A1", "A2"}, {"A2", "A3"}});
 
-      addRoutes({
+        addRoutes({
           {"A1", "A2", "/prefix", 100},
           {"A2", "A3", "/prefix", 100},
         });
 
-      addApps({
-          {"A1", "ns3::ndn::ConsumerCbr",
-              {{"Prefix", "/prefix"}, {"Frequency", "1000"}},
-              "0.1s", "1.1s"},
-          {"A3", "ns3::ndn::Producer",
-              {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}},
-              "0s", "10s"},
+        addApps({
+          {"A1", "ns3::ndn::ConsumerCbr", {{"Prefix", "/prefix"}, {"Frequency", "1000"}}, "0.1s", "1.1s"},
+          {"A3", "ns3::ndn::Producer", {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}}, "0s", "10s"},
         });
     }
 };
@@ -72,18 +64,18 @@ BOOST_FIXTURE_TEST_SUITE(TestNccStrategy, NccFixture)
 
 BOOST_AUTO_TEST_CASE(DetachedPitEntries)
 {
-  StrategyChoiceHelper::Install(getNode("A1"), "/prefix", "/localhost/nfd/strategy/ncc");
-  StrategyChoiceHelper::Install(getNode("A2"), "/prefix", "/localhost/nfd/strategy/ncc");
-  StrategyChoiceHelper::Install(getNode("A3"), "/prefix", "/localhost/nfd/strategy/ncc");
+    StrategyChoiceHelper::Install(getNode("A1"), "/prefix", "/localhost/nfd/strategy/ncc");
+    StrategyChoiceHelper::Install(getNode("A2"), "/prefix", "/localhost/nfd/strategy/ncc");
+    StrategyChoiceHelper::Install(getNode("A3"), "/prefix", "/localhost/nfd/strategy/ncc");
 
-  Simulator::Stop(Seconds(5.2));
-  BOOST_CHECK_NO_THROW(Simulator::Run());
+    Simulator::Stop(Seconds(5.2));
+    BOOST_CHECK_NO_THROW(Simulator::Run());
 
-  BOOST_CHECK_EQUAL(getFace("A1", "A2")->getCounters().nOutInterests, 1000);
-  BOOST_CHECK_EQUAL(getFace("A2", "A3")->getCounters().nOutInterests, 1000);
+    BOOST_CHECK_EQUAL(getFace("A1", "A2")->getCounters().nOutInterests, 1000);
+    BOOST_CHECK_EQUAL(getFace("A2", "A3")->getCounters().nOutInterests, 1000);
 
-  BOOST_CHECK_EQUAL(getFace("A3", "A2")->getCounters().nOutData, 1000);
-  BOOST_CHECK_EQUAL(getFace("A2", "A1")->getCounters().nOutData, 1000);
+    BOOST_CHECK_EQUAL(getFace("A3", "A2")->getCounters().nOutData, 1000);
+    BOOST_CHECK_EQUAL(getFace("A2", "A1")->getCounters().nOutData, 1000);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -42,35 +42,30 @@ namespace nfd {
 
 /** \brief Provides ControlCommand authorization according to NFD configuration file.
  */
-class CommandAuthenticator : public std::enable_shared_from_this<CommandAuthenticator>, noncopyable
-{
-public:
-  static shared_ptr<CommandAuthenticator>
-  create();
+class CommandAuthenticator : public std::enable_shared_from_this<CommandAuthenticator>, noncopyable {
+  public:
+    static shared_ptr<CommandAuthenticator> create();
 
-  void
-  setConfigFile(ConfigFile& configFile);
+    void setConfigFile(ConfigFile& configFile);
 
-  /** \return an Authorization function for module/verb command
-   *  \param module management module name
-   *  \param verb command verb; currently it's ignored
-   *  \note This must be called before parsing configuration file
-   */
-  ndn::mgmt::Authorization
-  makeAuthorization(const std::string& module, const std::string& verb);
+    /** \return an Authorization function for module/verb command
+     *  \param module management module name
+     *  \param verb command verb; currently it's ignored
+     *  \note This must be called before parsing configuration file
+     */
+    ndn::mgmt::Authorization makeAuthorization(const std::string& module, const std::string& verb);
 
-private:
-  CommandAuthenticator();
+  private:
+    CommandAuthenticator();
 
-  /** \brief process "authorizations" section
-   *  \throw ConfigFile::Error on parse error
-   */
-  void
-  processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename);
+    /** \brief process "authorizations" section
+     *  \throw ConfigFile::Error on parse error
+     */
+    void processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename);
 
-private:
-  /// module => validator
-  std::unordered_map<std::string, shared_ptr<ndn::security::v2::Validator>> m_validators;
+  private:
+    /// module => validator
+    std::unordered_map<std::string, shared_ptr<ndn::security::v2::Validator>> m_validators;
 };
 
 } // namespace nfd

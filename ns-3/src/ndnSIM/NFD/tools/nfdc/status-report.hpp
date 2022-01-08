@@ -39,57 +39,46 @@ using ndn::Face;
 using ndn::KeyChain;
 using ndn::security::v2::Validator;
 
-enum class ReportFormat {
-  XML = 1,
-  TEXT = 2
-};
+enum class ReportFormat { XML = 1, TEXT = 2 };
 
-ReportFormat
-parseReportFormat(const std::string& s);
+ReportFormat parseReportFormat(const std::string& s);
 
-std::ostream&
-operator<<(std::ostream& os, ReportFormat fmt);
+std::ostream& operator<<(std::ostream& os, ReportFormat fmt);
 
 /** \brief collects and prints NFD status report
  */
-class StatusReport : noncopyable
-{
-public:
+class StatusReport : noncopyable {
+  public:
 #ifdef WITH_TESTS
-  virtual
-  ~StatusReport() = default;
+    virtual ~StatusReport() = default;
 #endif
 
-  /** \brief collect status via chosen \p sections
-   *
-   *  This function is blocking. It has exclusive use of \p face.
-   *
-   *  \return if status has been fetched successfully, 0;
-   *          otherwise, error code from any failed section, plus 1000000 * section index
-   */
-  uint32_t
-  collect(Face& face, KeyChain& keyChain, Validator& validator, const CommandOptions& options);
+    /** \brief collect status via chosen \p sections
+     *
+     *  This function is blocking. It has exclusive use of \p face.
+     *
+     *  \return if status has been fetched successfully, 0;
+     *          otherwise, error code from any failed section, plus 1000000 * section index
+     */
+    uint32_t collect(Face& face, KeyChain& keyChain, Validator& validator, const CommandOptions& options);
 
-  /** \brief print an XML report
-   *  \param os output stream
-   */
-  void
-  formatXml(std::ostream& os) const;
+    /** \brief print an XML report
+     *  \param os output stream
+     */
+    void formatXml(std::ostream& os) const;
 
-  /** \brief print a text report
-   *  \param os output stream
-   */
-  void
-  formatText(std::ostream& os) const;
+    /** \brief print a text report
+     *  \param os output stream
+     */
+    void formatText(std::ostream& os) const;
 
-private:
-  VIRTUAL_WITH_TESTS void
-  processEvents(Face& face);
+  private:
+    VIRTUAL_WITH_TESTS void processEvents(Face& face);
 
-public:
-  /** \brief modules through which status is collected
-   */
-  std::vector<unique_ptr<Module>> sections;
+  public:
+    /** \brief modules through which status is collected
+     */
+    std::vector<unique_ptr<Module>> sections;
 };
 
 } // namespace nfdc

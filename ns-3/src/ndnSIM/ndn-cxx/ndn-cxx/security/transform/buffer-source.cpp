@@ -46,18 +46,18 @@ BufferSource::BufferSource(const Buffer& buffer)
 void
 BufferSource::doPump()
 {
-  BOOST_ASSERT(m_next != nullptr);
+    BOOST_ASSERT(m_next != nullptr);
 
-  const uint8_t* buf = m_buf;
-  size_t size = m_size;
+    const uint8_t* buf = m_buf;
+    size_t size = m_size;
 
-  while (0 < size) {
-    size_t nBytesWritten = m_next->write(buf, size);
-    buf += nBytesWritten;
-    size -= nBytesWritten;
-  }
+    while (0 < size) {
+        size_t nBytesWritten = m_next->write(buf, size);
+        buf += nBytesWritten;
+        size -= nBytesWritten;
+    }
 
-  m_next->end();
+    m_next->end();
 }
 
 } // namespace transform

@@ -40,74 +40,74 @@ static const size_t VALUE_OFFSET = 1;
 
 AdditionalDescription::AdditionalDescription(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
 const std::string&
 AdditionalDescription::get(const std::string& key) const
 {
-  auto it = m_info.find(key);
-  if (it == m_info.end())
-    NDN_THROW(Error("Entry does not exist for key (" + key + ")"));
+    auto it = m_info.find(key);
+    if (it == m_info.end())
+        NDN_THROW(Error("Entry does not exist for key (" + key + ")"));
 
-  return it->second;
+    return it->second;
 }
 
 void
 AdditionalDescription::set(const std::string& key, const std::string& value)
 {
-  m_info[key] = value;
+    m_info[key] = value;
 }
 
 bool
 AdditionalDescription::has(const std::string& key) const
 {
-  return (m_info.find(key) != m_info.end());
+    return (m_info.find(key) != m_info.end());
 }
 
 AdditionalDescription::iterator
 AdditionalDescription::begin()
 {
-  return m_info.begin();
+    return m_info.begin();
 }
 
 AdditionalDescription::iterator
 AdditionalDescription::end()
 {
-  return m_info.end();
+    return m_info.end();
 }
 
 AdditionalDescription::const_iterator
 AdditionalDescription::begin() const
 {
-  return m_info.begin();
+    return m_info.begin();
 }
 
 AdditionalDescription::const_iterator
 AdditionalDescription::end() const
 {
-  return m_info.end();
+    return m_info.end();
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 AdditionalDescription::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  for (auto it = m_info.rbegin(); it != m_info.rend(); it++) {
-    size_t entryLength = 0;
-    entryLength += prependStringBlock(encoder, tlv::DescriptionValue, it->second);
-    entryLength += prependStringBlock(encoder, tlv::DescriptionKey, it->first);
-    entryLength += encoder.prependVarNumber(entryLength);
-    entryLength += encoder.prependVarNumber(tlv::DescriptionEntry);
+    for (auto it = m_info.rbegin(); it != m_info.rend(); it++) {
+        size_t entryLength = 0;
+        entryLength += prependStringBlock(encoder, tlv::DescriptionValue, it->second);
+        entryLength += prependStringBlock(encoder, tlv::DescriptionKey, it->first);
+        entryLength += encoder.prependVarNumber(entryLength);
+        entryLength += encoder.prependVarNumber(tlv::DescriptionEntry);
 
-    totalLength += entryLength;
-  }
+        totalLength += entryLength;
+    }
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::AdditionalDescription);
-  return totalLength;
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::AdditionalDescription);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(AdditionalDescription);
@@ -115,65 +115,65 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(AdditionalDescription);
 const Block&
 AdditionalDescription::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
+    m_wire.parse();
+
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  m_wire.parse();
-
-  return m_wire;
 }
 
 void
 AdditionalDescription::wireDecode(const Block& wire)
 {
-   if (!wire.hasWire()) {
-     NDN_THROW(Error("The supplied block does not contain wire format"));
-  }
+    if (!wire.hasWire()) {
+        NDN_THROW(Error("The supplied block does not contain wire format"));
+    }
 
-  m_wire = wire;
-  m_wire.parse();
+    m_wire = wire;
+    m_wire.parse();
 
-  if (m_wire.type() != tlv::AdditionalDescription)
-    NDN_THROW(Error("AdditionalDescription", m_wire.type()));
+    if (m_wire.type() != tlv::AdditionalDescription)
+        NDN_THROW(Error("AdditionalDescription", m_wire.type()));
 
-  auto it = m_wire.elements_begin();
-  while (it != m_wire.elements_end()) {
-    const Block& entry = *it;
-    entry.parse();
+    auto it = m_wire.elements_begin();
+    while (it != m_wire.elements_end()) {
+        const Block& entry = *it;
+        entry.parse();
 
-    if (entry.type() != tlv::DescriptionEntry)
-      NDN_THROW(Error("DescriptionEntry", entry.type()));
+        if (entry.type() != tlv::DescriptionEntry)
+            NDN_THROW(Error("DescriptionEntry", entry.type()));
 
-    if (entry.elements_size() != 2)
-      NDN_THROW(Error("DescriptionEntry does not have two sub-TLVs"));
+        if (entry.elements_size() != 2)
+            NDN_THROW(Error("DescriptionEntry does not have two sub-TLVs"));
 
-    if (entry.elements()[KEY_OFFSET].type() != tlv::DescriptionKey ||
-        entry.elements()[VALUE_OFFSET].type() != tlv::DescriptionValue)
-      NDN_THROW(Error("Invalid DescriptionKey or DescriptionValue field"));
+        if (entry.elements()[KEY_OFFSET].type() != tlv::DescriptionKey
+            || entry.elements()[VALUE_OFFSET].type() != tlv::DescriptionValue)
+            NDN_THROW(Error("Invalid DescriptionKey or DescriptionValue field"));
 
-    m_info[readString(entry.elements()[KEY_OFFSET])] = readString(entry.elements()[VALUE_OFFSET]);
-    it++;
-  }
+        m_info[readString(entry.elements()[KEY_OFFSET])] = readString(entry.elements()[VALUE_OFFSET]);
+        it++;
+    }
 }
 
 std::ostream&
 operator<<(std::ostream& os, const AdditionalDescription& desc)
 {
-  os << "[";
+    os << "[";
 
-  auto join = make_ostream_joiner(os, ", ");
-  for (const auto& entry : desc) {
-    join = "(" + entry.first + ":" + entry.second + ")";
-  }
+    auto join = make_ostream_joiner(os, ", ");
+    for (const auto& entry : desc) {
+        join = "(" + entry.first + ":" + entry.second + ")";
+    }
 
-  return os << "]";
+    return os << "]";
 }
 
 } // namespace v2

@@ -36,225 +36,230 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Face)
 BOOST_FIXTURE_TEST_SUITE(TestWebSocketTransport, IpTransportFixture<WebSocketTransportFixture>)
 
-using WebSocketTransportFixtures = boost::mpl::vector<
-  GENERATE_IP_TRANSPORT_FIXTURE_INSTANTIATIONS(WebSocketTransportFixture)
->;
+using WebSocketTransportFixtures =
+  boost::mpl::vector<GENERATE_IP_TRANSPORT_FIXTURE_INSTANTIATIONS(WebSocketTransportFixture)>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(StaticProperties, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  checkStaticPropertiesInitialized(*this->transport);
+    checkStaticPropertiesInitialized(*this->transport);
 
-  BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(ip::tcp::endpoint(this->address, 20070), "ws"));
-  BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->remoteEp, "wsclient"));
-  BOOST_CHECK_EQUAL(this->transport->getScope(),
-                    this->addressScope == AddressScope::Loopback ? ndn::nfd::FACE_SCOPE_LOCAL
-                                                                 : ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
-  BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  BOOST_CHECK_EQUAL(this->transport->getMtu(), MTU_UNLIMITED);
-  BOOST_CHECK_EQUAL(this->transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
+    BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(ip::tcp::endpoint(this->address, 20070), "ws"));
+    BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->remoteEp, "wsclient"));
+    BOOST_CHECK_EQUAL(this->transport->getScope(), this->addressScope == AddressScope::Loopback
+                                                     ? ndn::nfd::FACE_SCOPE_LOCAL
+                                                     : ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    BOOST_CHECK_EQUAL(this->transport->getMtu(), MTU_UNLIMITED);
+    BOOST_CHECK_EQUAL(this->transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
 }
 
-using StaticPropertiesV4MappedFixtures = boost::mpl::vector<
-  IpTransportFixture<WebSocketTransportFixture, AddressFamily::V4, AddressScope::Loopback>,
-  IpTransportFixture<WebSocketTransportFixture, AddressFamily::V4, AddressScope::Global>
->;
+using StaticPropertiesV4MappedFixtures =
+  boost::mpl::vector<IpTransportFixture<WebSocketTransportFixture, AddressFamily::V4, AddressScope::Loopback>,
+                     IpTransportFixture<WebSocketTransportFixture, AddressFamily::V4, AddressScope::Global>>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(StaticPropertiesV4Mapped, T, StaticPropertiesV4MappedFixtures, T)
 {
-  TRANSPORT_TEST_CHECK_PRECONDITIONS();
-  auto mappedAddr = ip::address_v6::v4_mapped(this->address.to_v4());
-  BOOST_REQUIRE(mappedAddr.is_v4_mapped());
-  WebSocketTransportFixture::initialize(mappedAddr);
+    TRANSPORT_TEST_CHECK_PRECONDITIONS();
+    auto mappedAddr = ip::address_v6::v4_mapped(this->address.to_v4());
+    BOOST_REQUIRE(mappedAddr.is_v4_mapped());
+    WebSocketTransportFixture::initialize(mappedAddr);
 
-  checkStaticPropertiesInitialized(*this->transport);
+    checkStaticPropertiesInitialized(*this->transport);
 
-  BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(ip::tcp::endpoint(mappedAddr, 20070), "ws"));
-  BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->remoteEp, "wsclient"));
-  BOOST_CHECK_EQUAL(this->transport->getScope(),
-                    this->addressScope == AddressScope::Loopback ? ndn::nfd::FACE_SCOPE_LOCAL
-                                                                 : ndn::nfd::FACE_SCOPE_NON_LOCAL);
-  BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
-  BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  BOOST_CHECK_EQUAL(this->transport->getMtu(), MTU_UNLIMITED);
+    BOOST_CHECK_EQUAL(this->transport->getLocalUri(), FaceUri(ip::tcp::endpoint(mappedAddr, 20070), "ws"));
+    BOOST_CHECK_EQUAL(this->transport->getRemoteUri(), FaceUri(this->remoteEp, "wsclient"));
+    BOOST_CHECK_EQUAL(this->transport->getScope(), this->addressScope == AddressScope::Loopback
+                                                     ? ndn::nfd::FACE_SCOPE_LOCAL
+                                                     : ndn::nfd::FACE_SCOPE_NON_LOCAL);
+    BOOST_CHECK_EQUAL(this->transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_ON_DEMAND);
+    BOOST_CHECK_EQUAL(this->transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    BOOST_CHECK_EQUAL(this->transport->getMtu(), MTU_UNLIMITED);
 }
 
 BOOST_AUTO_TEST_CASE(PersistencyChange)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), true);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), true);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), false);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(PingPong, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT(500_ms, 300_ms);
+    TRANSPORT_TEST_INIT(500_ms, 300_ms);
 
-  BOOST_CHECK_EQUAL(this->limitedIo.run(2, // clientHandlePing, serverHandlePong
-                                        1500_ms), LimitedIo::EXCEED_OPS);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(2, // clientHandlePing, serverHandlePong
+                                          1500_ms),
+                      LimitedIo::EXCEED_OPS);
 
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPings, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPongs, 1);
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPings, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPongs, 1);
 
-  this->clientShouldPong = false;
-  BOOST_CHECK_EQUAL(this->limitedIo.run(2, // clientHandlePing, serverHandlePongTimeout
-                                        2_s), LimitedIo::EXCEED_OPS);
+    this->clientShouldPong = false;
+    BOOST_CHECK_EQUAL(this->limitedIo.run(2, // clientHandlePing, serverHandlePongTimeout
+                                          2_s),
+                      LimitedIo::EXCEED_OPS);
 
-  BOOST_CHECK_MESSAGE(this->transport->getState() == TransportState::FAILED ||
-                      this->transport->getState() == TransportState::CLOSED,
-                      "expected FAILED or CLOSED state, actual state=" << this->transport->getState());
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPings, 2);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPongs, 1);
+    BOOST_CHECK_MESSAGE(this->transport->getState() == TransportState::FAILED
+                          || this->transport->getState() == TransportState::CLOSED,
+                        "expected FAILED or CLOSED state, actual state=" << this->transport->getState());
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPings, 2);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPongs, 1);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Send, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto block1 = ndn::encoding::makeStringBlock(300, "hello");
-  this->transport->send(block1);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // clientHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size());
+    auto block1 = ndn::encoding::makeStringBlock(300, "hello");
+    this->transport->send(block1);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // clientHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size());
 
-  auto block2 = ndn::encoding::makeStringBlock(301, "world");
-  this->transport->send(block2);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // clientHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 2);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size() + block2.size());
+    auto block2 = ndn::encoding::makeStringBlock(301, "world");
+    this->transport->send(block2);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // clientHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 2);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size() + block2.size());
 
-  BOOST_REQUIRE_EQUAL(this->clientReceivedMessages.size(), 2);
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[0].data()),
-    reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[0].data()) + this->clientReceivedMessages[0].size(),
-    block1.begin(), block1.end());
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[1].data()),
-    reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[1].data()) + this->clientReceivedMessages[1].size(),
-    block2.begin(), block2.end());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_REQUIRE_EQUAL(this->clientReceivedMessages.size(), 2);
+    BOOST_CHECK_EQUAL_COLLECTIONS(reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[0].data()),
+                                  reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[0].data())
+                                    + this->clientReceivedMessages[0].size(),
+                                  block1.begin(), block1.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[1].data()),
+                                  reinterpret_cast<const uint8_t*>(this->clientReceivedMessages[1].data())
+                                    + this->clientReceivedMessages[1].size(),
+                                  block2.begin(), block2.end());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveNormal, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
-  this->client.send(this->clientHdl, pkt1.wire(), pkt1.size(), websocketpp::frame::opcode::binary);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
+    auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
+    this->client.send(this->clientHdl, pkt1.wire(), pkt1.size(), websocketpp::frame::opcode::binary);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size());
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size());
 
-  auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
-  this->client.send(this->clientHdl, pkt2.wire(), pkt2.size(), websocketpp::frame::opcode::binary);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
+    auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
+    this->client.send(this->clientHdl, pkt2.wire(), pkt2.size(), websocketpp::frame::opcode::binary);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size() + pkt2.size());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size() + pkt2.size());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 
-  BOOST_REQUIRE_EQUAL(this->serverReceivedPackets->size(), 2);
-  BOOST_CHECK(this->serverReceivedPackets->at(0).packet == pkt1);
-  BOOST_CHECK(this->serverReceivedPackets->at(1).packet == pkt2);
-  BOOST_CHECK_EQUAL(this->serverReceivedPackets->at(0).endpoint, 0);
-  BOOST_CHECK_EQUAL(this->serverReceivedPackets->at(1).endpoint, 0);
+    BOOST_REQUIRE_EQUAL(this->serverReceivedPackets->size(), 2);
+    BOOST_CHECK(this->serverReceivedPackets->at(0).packet == pkt1);
+    BOOST_CHECK(this->serverReceivedPackets->at(1).packet == pkt2);
+    BOOST_CHECK_EQUAL(this->serverReceivedPackets->at(0).endpoint, 0);
+    BOOST_CHECK_EQUAL(this->serverReceivedPackets->at(1).endpoint, 0);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveMalformed, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
-  this->client.send(this->clientHdl, pkt1.wire(), pkt1.size() - 1, // truncated
-                    websocketpp::frame::opcode::binary);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
+    auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
+    this->client.send(this->clientHdl, pkt1.wire(), pkt1.size() - 1, // truncated
+                      websocketpp::frame::opcode::binary);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
 
-  // bad packet is dropped
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
-  BOOST_CHECK_EQUAL(this->serverReceivedPackets->size(), 0);
+    // bad packet is dropped
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->serverReceivedPackets->size(), 0);
 
-  auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
-  this->client.send(this->clientHdl, pkt2.wire(), pkt2.size(), websocketpp::frame::opcode::binary);
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
-                                        1_s), LimitedIo::EXCEED_OPS);
+    auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
+    this->client.send(this->clientHdl, pkt2.wire(), pkt2.size(), websocketpp::frame::opcode::binary);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleMessage
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
 
-  // next valid packet is still received normally
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
-  BOOST_REQUIRE_EQUAL(this->serverReceivedPackets->size(), 1);
-  BOOST_CHECK(this->serverReceivedPackets->at(0).packet == pkt2);
+    // next valid packet is still received normally
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_REQUIRE_EQUAL(this->serverReceivedPackets->size(), 1);
+    BOOST_CHECK(this->serverReceivedPackets->at(0).packet == pkt2);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Close, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  int nStateChanges = 0;
-  this->transport->afterStateChange.connect(
-    [&nStateChanges] (auto oldState, auto newState) {
-      switch (nStateChanges) {
-      case 0:
-        BOOST_CHECK_EQUAL(oldState, TransportState::UP);
-        BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
-        break;
-      case 1:
-        BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
-        BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
-        break;
-      default:
-        BOOST_CHECK(false);
-      }
-      nStateChanges++;
+    int nStateChanges = 0;
+    this->transport->afterStateChange.connect([&nStateChanges](auto oldState, auto newState) {
+        switch (nStateChanges) {
+            case 0:
+                BOOST_CHECK_EQUAL(oldState, TransportState::UP);
+                BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
+                break;
+            case 1:
+                BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
+                BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
+                break;
+            default:
+                BOOST_CHECK(false);
+        }
+        nStateChanges++;
     });
 
-  this->transport->close();
-  BOOST_CHECK_EQUAL(nStateChanges, 2);
+    this->transport->close();
+    BOOST_CHECK_EQUAL(nStateChanges, 2);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(RemoteClose, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  int nStateChanges = 0;
-  this->transport->afterStateChange.connect(
-    [&nStateChanges] (auto oldState, auto newState) {
-      switch (nStateChanges) {
-      case 0:
-        BOOST_CHECK_EQUAL(oldState, TransportState::UP);
-        BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
-        break;
-      case 1:
-        BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
-        BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
-        break;
-      default:
-        BOOST_CHECK(false);
-      }
-      nStateChanges++;
+    int nStateChanges = 0;
+    this->transport->afterStateChange.connect([&nStateChanges](auto oldState, auto newState) {
+        switch (nStateChanges) {
+            case 0:
+                BOOST_CHECK_EQUAL(oldState, TransportState::UP);
+                BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
+                break;
+            case 1:
+                BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
+                BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
+                break;
+            default:
+                BOOST_CHECK(false);
+        }
+        nStateChanges++;
     });
 
-  this->client.close(this->clientHdl, websocketpp::close::status::going_away, "");
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleClose
-                                        1_s), LimitedIo::EXCEED_OPS);
+    this->client.close(this->clientHdl, websocketpp::close::status::going_away, "");
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, // serverHandleClose
+                                          1_s),
+                      LimitedIo::EXCEED_OPS);
 
-  BOOST_CHECK_EQUAL(nStateChanges, 2);
+    BOOST_CHECK_EQUAL(nStateChanges, 2);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(SendQueueLength, T, WebSocketTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  BOOST_CHECK_EQUAL(this->transport->getSendQueueLength(), QUEUE_UNSUPPORTED);
+    BOOST_CHECK_EQUAL(this->transport->getSendQueueLength(), QUEUE_UNSUPPORTED);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestWebSocketTransport

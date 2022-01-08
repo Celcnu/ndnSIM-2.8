@@ -38,54 +38,53 @@ RandomStrategy::RandomStrategy(Forwarder& forwarder, const Name& name)
   : Strategy(forwarder)
   , ProcessNackTraits(this)
 {
-  ParsedInstanceName parsed = parseInstanceName(name);
-  if (!parsed.parameters.empty()) {
-    NDN_THROW(std::invalid_argument("RandomStrategy does not accept parameters"));
-  }
-  if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
-    NDN_THROW(std::invalid_argument(
-      "RandomStrategy does not support version " + to_string(*parsed.version)));
-  }
-  this->setInstanceName(makeInstanceName(name, getStrategyName()));
+    ParsedInstanceName parsed = parseInstanceName(name);
+    if (!parsed.parameters.empty()) {
+        NDN_THROW(std::invalid_argument("RandomStrategy does not accept parameters"));
+    }
+    if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
+        NDN_THROW(std::invalid_argument("RandomStrategy does not support version " + to_string(*parsed.version)));
+    }
+    this->setInstanceName(makeInstanceName(name, getStrategyName()));
 }
 
 const Name&
 RandomStrategy::getStrategyName()
 {
-  static Name strategyName("/localhost/nfd/strategy/random/%FD%01");
-  return strategyName;
+    static Name strategyName("/localhost/nfd/strategy/random/%FD%01");
+    return strategyName;
 }
 
 void
 RandomStrategy::afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
                                      const shared_ptr<pit::Entry>& pitEntry)
 {
-  const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
-  const Face& inFace = ingress.face;
-  fib::NextHopList nhs;
+    const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
+    const Face& inFace = ingress.face;
+    fib::NextHopList nhs;
 
-  std::copy_if(fibEntry.getNextHops().begin(), fibEntry.getNextHops().end(), std::back_inserter(nhs),
-               [&] (const auto& nh) { return isNextHopEligible(inFace, interest, nh, pitEntry); });
+    std::copy_if(fibEntry.getNextHops().begin(), fibEntry.getNextHops().end(), std::back_inserter(nhs),
+                 [&](const auto& nh) { return isNextHopEligible(inFace, interest, nh, pitEntry); });
 
-  if (nhs.empty()) {
-    NFD_LOG_DEBUG(interest << " from=" << ingress << " no nexthop");
+    if (nhs.empty()) {
+        NFD_LOG_DEBUG(interest << " from=" << ingress << " no nexthop");
 
-    lp::NackHeader nackHeader;
-    nackHeader.setReason(lp::NackReason::NO_ROUTE);
-    this->sendNack(pitEntry, ingress, nackHeader);
-    this->rejectPendingInterest(pitEntry);
-    return;
-  }
+        lp::NackHeader nackHeader;
+        nackHeader.setReason(lp::NackReason::NO_ROUTE);
+        this->sendNack(pitEntry, ingress, nackHeader);
+        this->rejectPendingInterest(pitEntry);
+        return;
+    }
 
-  std::shuffle(nhs.begin(), nhs.end(), ndn::random::getRandomNumberEngine());
-  this->sendInterest(pitEntry, FaceEndpoint(nhs.front().getFace(), 0), interest);
+    std::shuffle(nhs.begin(), nhs.end(), ndn::random::getRandomNumberEngine());
+    this->sendInterest(pitEntry, FaceEndpoint(nhs.front().getFace(), 0), interest);
 }
 
 void
 RandomStrategy::afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
                                  const shared_ptr<pit::Entry>& pitEntry)
 {
-  this->processNack(ingress.face, nack, pitEntry);
+    this->processNack(ingress.face, nack, pitEntry);
 }
 
 } // namespace fw

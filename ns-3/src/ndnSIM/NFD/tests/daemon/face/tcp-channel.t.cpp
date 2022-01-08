@@ -35,30 +35,30 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Face)
 BOOST_FIXTURE_TEST_SUITE(TestTcpChannel, TcpChannelFixture)
 
-using AddressFamilies = boost::mpl::vector<
-  std::integral_constant<AddressFamily, AddressFamily::V4>,
-  std::integral_constant<AddressFamily, AddressFamily::V6>>;
+using AddressFamilies = boost::mpl::vector<std::integral_constant<AddressFamily, AddressFamily::V4>,
+                                           std::integral_constant<AddressFamily, AddressFamily::V6>>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ConnectTimeout, F, AddressFamilies)
 {
-  auto address = getTestIp(F::value, AddressScope::Loopback);
-  SKIP_IF_IP_UNAVAILABLE(address);
-  // do not listen
+    auto address = getTestIp(F::value, AddressScope::Loopback);
+    SKIP_IF_IP_UNAVAILABLE(address);
+    // do not listen
 
-  auto channel = this->makeChannel(typename IpAddressFromFamily<F::value>::type());
-  channel->connect(tcp::Endpoint(address, 7040), {},
-    [this] (const shared_ptr<nfd::Face>&) {
-      BOOST_FAIL("Connect succeeded when it should have failed");
-      this->limitedIo.afterOp();
-    },
-    [this] (uint32_t, const std::string& reason) {
-      BOOST_CHECK_EQUAL(reason.empty(), false);
-      this->limitedIo.afterOp();
-    },
-    1_s);
+    auto channel = this->makeChannel(typename IpAddressFromFamily<F::value>::type());
+    channel->connect(
+      tcp::Endpoint(address, 7040), {},
+      [this](const shared_ptr<nfd::Face>&) {
+          BOOST_FAIL("Connect succeeded when it should have failed");
+          this->limitedIo.afterOp();
+      },
+      [this](uint32_t, const std::string& reason) {
+          BOOST_CHECK_EQUAL(reason.empty(), false);
+          this->limitedIo.afterOp();
+      },
+      1_s);
 
-  BOOST_CHECK_EQUAL(this->limitedIo.run(1, 2_s), LimitedIo::EXCEED_OPS);
-  BOOST_CHECK_EQUAL(channel->size(), 0);
+    BOOST_CHECK_EQUAL(this->limitedIo.run(1, 2_s), LimitedIo::EXCEED_OPS);
+    BOOST_CHECK_EQUAL(channel->size(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTcpChannel

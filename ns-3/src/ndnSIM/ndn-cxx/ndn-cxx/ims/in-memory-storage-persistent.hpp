@@ -29,23 +29,21 @@ namespace ndn {
 /** @brief Provides application cache with persistent storage, of which no replacement policy will
  *  be employed. Entries will only be deleted by explicit application control.
  */
-class InMemoryStoragePersistent : public InMemoryStorage
-{
-public:
-  InMemoryStoragePersistent();
+class InMemoryStoragePersistent : public InMemoryStorage {
+  public:
+    InMemoryStoragePersistent();
 
-  explicit
-  InMemoryStoragePersistent(DummyIoService& ioService);
+    explicit InMemoryStoragePersistent(DummyIoService& ioService);
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  /** @brief Do nothing.
-   *
-   *  This storage is persistent, and does not support eviction.
-   *
-   *  @return false
-   */
-  bool
-  evictItem() override;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED :
+      /** @brief Do nothing.
+       *
+       *  This storage is persistent, and does not support eviction.
+       *
+       *  @return false
+       */
+      bool
+      evictItem() override;
 };
 
 } // namespace ndn

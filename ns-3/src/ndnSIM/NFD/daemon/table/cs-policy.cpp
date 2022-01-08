@@ -24,8 +24,8 @@
  */
 
 #include "cs-policy.hpp"
-#include "cs.hpp"
 #include "common/logger.hpp"
+#include "cs.hpp"
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
@@ -38,25 +38,24 @@ namespace cs {
 Policy::Registry&
 Policy::getRegistry()
 {
-  static Registry registry;
-  return registry;
+    static Registry registry;
+    return registry;
 }
 
 unique_ptr<Policy>
 Policy::create(const std::string& policyName)
 {
-  Registry& registry = getRegistry();
-  auto i = registry.find(policyName);
-  return i == registry.end() ? nullptr : i->second();
+    Registry& registry = getRegistry();
+    auto i = registry.find(policyName);
+    return i == registry.end() ? nullptr : i->second();
 }
 
 std::set<std::string>
 Policy::getPolicyNames()
 {
-  std::set<std::string> policyNames;
-  boost::copy(getRegistry() | boost::adaptors::map_keys,
-              std::inserter(policyNames, policyNames.end()));
-  return policyNames;
+    std::set<std::string> policyNames;
+    boost::copy(getRegistry() | boost::adaptors::map_keys, std::inserter(policyNames, policyNames.end()));
+    return policyNames;
 }
 
 Policy::Policy(const std::string& policyName)
@@ -67,37 +66,37 @@ Policy::Policy(const std::string& policyName)
 void
 Policy::setLimit(size_t nMaxEntries)
 {
-  NFD_LOG_INFO("setLimit " << nMaxEntries);
-  m_limit = nMaxEntries;
-  this->evictEntries();
+    NFD_LOG_INFO("setLimit " << nMaxEntries);
+    m_limit = nMaxEntries;
+    this->evictEntries();
 }
 
 void
 Policy::afterInsert(EntryRef i)
 {
-  BOOST_ASSERT(m_cs != nullptr);
-  this->doAfterInsert(i);
+    BOOST_ASSERT(m_cs != nullptr);
+    this->doAfterInsert(i);
 }
 
 void
 Policy::afterRefresh(EntryRef i)
 {
-  BOOST_ASSERT(m_cs != nullptr);
-  this->doAfterRefresh(i);
+    BOOST_ASSERT(m_cs != nullptr);
+    this->doAfterRefresh(i);
 }
 
 void
 Policy::beforeErase(EntryRef i)
 {
-  BOOST_ASSERT(m_cs != nullptr);
-  this->doBeforeErase(i);
+    BOOST_ASSERT(m_cs != nullptr);
+    this->doBeforeErase(i);
 }
 
 void
 Policy::beforeUse(EntryRef i)
 {
-  BOOST_ASSERT(m_cs != nullptr);
-  this->doBeforeUse(i);
+    BOOST_ASSERT(m_cs != nullptr);
+    this->doBeforeUse(i);
 }
 
 } // namespace cs

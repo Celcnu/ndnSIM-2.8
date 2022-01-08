@@ -39,20 +39,27 @@ namespace log {
 
 /// Stub logger that ignores all input
 class stub {
-public:
+  public:
     /// Construct the logger
     /**
      * @param hint A channel type specific hint for how to construct the logger
      */
-    explicit stub(channel_type_hint::value) {}
+    explicit stub(channel_type_hint::value)
+    {
+    }
 
     /// Construct the logger
     /**
      * @param default_channels A set of channels to statically enable
      * @param hint A channel type specific hint for how to construct the logger
      */
-    stub(level, channel_type_hint::value) {}
-    _WEBSOCKETPP_CONSTEXPR_TOKEN_ stub() {}
+    stub(level, channel_type_hint::value)
+    {
+    }
+    _WEBSOCKETPP_CONSTEXPR_TOKEN_
+    stub()
+    {
+    }
 
     /// Dynamically enable the given list of channels
     /**
@@ -61,7 +68,9 @@ public:
      *
      * @param channels The package of channels to enable
      */
-    void set_channels(level) {}
+    void set_channels(level)
+    {
+    }
 
     /// Dynamically disable the given list of channels
     /**
@@ -70,7 +79,9 @@ public:
      *
      * @param channels The package of channels to disable
      */
-    void clear_channels(level) {}
+    void clear_channels(level)
+    {
+    }
 
     /// Write a string message to the given channel
     /**
@@ -79,7 +90,10 @@ public:
      * @param channel The channel to write to
      * @param msg The message to write
      */
-    void write(level, std::string const &) {}
+    void
+    write(level, std::string const&)
+    {
+    }
 
     /// Write a cstring message to the given channel
     /**
@@ -88,7 +102,10 @@ public:
      * @param channel The channel to write to
      * @param msg The message to write
      */
-    void write(level, char const *) {}
+    void
+    write(level, char const*)
+    {
+    }
 
     /// Test whether a channel is statically enabled
     /**
@@ -97,7 +114,8 @@ public:
      *
      * @param channel The package of channels to test
      */
-    _WEBSOCKETPP_CONSTEXPR_TOKEN_ bool static_test(level) const {
+    _WEBSOCKETPP_CONSTEXPR_TOKEN_ bool static_test(level) const
+    {
         return false;
     }
 
@@ -108,7 +126,8 @@ public:
      *
      * @param channel The package of channels to test
      */
-    bool dynamic_test(level) {
+    bool dynamic_test(level)
+    {
         return false;
     }
 };

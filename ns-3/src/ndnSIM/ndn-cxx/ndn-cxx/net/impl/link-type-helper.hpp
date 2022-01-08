@@ -31,8 +31,7 @@ namespace detail {
 /**
  * @brief Obtain information about WiFi link type
  */
-ndn::nfd::LinkType
-getLinkType(const std::string& ifName);
+ndn::nfd::LinkType getLinkType(const std::string& ifName);
 
 } // namespace detail
 } // namespace net

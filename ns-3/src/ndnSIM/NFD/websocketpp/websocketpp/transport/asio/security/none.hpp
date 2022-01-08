@@ -47,8 +47,7 @@ namespace asio {
 namespace basic_socket {
 
 /// The signature of the socket init handler for this socket policy
-typedef lib::function<void(connection_hdl,lib::asio::ip::tcp::socket&)>
-    socket_init_handler;
+typedef lib::function<void(connection_hdl, lib::asio::ip::tcp::socket&)> socket_init_handler;
 
 /// Basic Asio connection socket component
 /**
@@ -56,7 +55,7 @@ typedef lib::function<void(connection_hdl,lib::asio::ip::tcp::socket&)>
  * component using Asio ip::tcp::socket.
  */
 class connection : public lib::enable_shared_from_this<connection> {
-public:
+  public:
     /// Type of this connection socket component
     typedef connection type;
     /// Type of a shared pointer to this connection socket component
@@ -71,13 +70,17 @@ public:
     /// Type of a shared pointer to the socket being used.
     typedef lib::shared_ptr<socket_type> socket_ptr;
 
-    explicit connection() : m_state(UNINITIALIZED) {
-        //std::cout << "transport::asio::basic_socket::connection constructor"
+    explicit connection()
+      : m_state(UNINITIALIZED)
+    {
+        // std::cout << "transport::asio::basic_socket::connection constructor"
         //          << std::endl;
     }
 
     /// Get a shared pointer to this component
-    ptr get_shared() {
+    ptr
+    get_shared()
+    {
         return shared_from_this();
     }
 
@@ -85,7 +88,9 @@ public:
     /**
      * @return Whether or not this connection is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return false;
     }
 
@@ -97,7 +102,9 @@ public:
      *
      * @param h The new socket_init_handler
      */
-    void set_socket_init_handler(socket_init_handler h) {
+    void
+    set_socket_init_handler(socket_init_handler h)
+    {
         m_socket_init_handler = h;
     }
 
@@ -105,7 +112,9 @@ public:
     /**
      * This is used internally. It can also be used to set socket options, etc
      */
-    lib::asio::ip::tcp::socket & get_socket() {
+    lib::asio::ip::tcp::socket&
+    get_socket()
+    {
         return *m_socket;
     }
 
@@ -113,7 +122,9 @@ public:
     /**
      * This is used internally.
      */
-    lib::asio::ip::tcp::socket & get_next_layer() {
+    lib::asio::ip::tcp::socket&
+    get_next_layer()
+    {
         return *m_socket;
     }
 
@@ -121,7 +132,9 @@ public:
     /**
      * This is used internally. It can also be used to set socket options, etc
      */
-    lib::asio::ip::tcp::socket & get_raw_socket() {
+    lib::asio::ip::tcp::socket&
+    get_raw_socket()
+    {
         return *m_socket;
     }
 
@@ -135,7 +148,9 @@ public:
      *
      * @return A string identifying the address of the remote endpoint
      */
-    std::string get_remote_endpoint(lib::error_code & ec) const {
+    std::string
+    get_remote_endpoint(lib::error_code& ec) const
+    {
         std::stringstream s;
 
         lib::asio::error_code aec;
@@ -143,16 +158,17 @@ public:
 
         if (aec) {
             ec = error::make_error_code(error::pass_through);
-            s << "Error getting remote endpoint: " << aec
-               << " (" << aec.message() << ")";
+            s << "Error getting remote endpoint: " << aec << " (" << aec.message() << ")";
             return s.str();
-        } else {
+        }
+        else {
             ec = lib::error_code();
             s << ep;
             return s.str();
         }
     }
-protected:
+
+  protected:
     /// Perform one time initializations
     /**
      * init_asio is called once immediately after construction to initialize
@@ -162,14 +178,14 @@ protected:
      * @param strand A shared pointer to the connection's asio strand
      * @param is_server Whether or not the endpoint is a server or not.
      */
-    lib::error_code init_asio (io_service_ptr service, strand_ptr, bool)
+    lib::error_code
+    init_asio(io_service_ptr service, strand_ptr, bool)
     {
         if (m_state != UNINITIALIZED) {
             return socket::make_error_code(socket::error::invalid_state);
         }
 
-        m_socket = lib::make_shared<lib::asio::ip::tcp::socket>(
-            *service);
+        m_socket = lib::make_shared<lib::asio::ip::tcp::socket>(*service);
 
         if (m_socket_init_handler) {
             m_socket_init_handler(m_hdl, *m_socket);
@@ -191,7 +207,9 @@ protected:
      *
      * @param u The uri to set
      */
-    void set_uri(uri_ptr) {}
+    void set_uri(uri_ptr)
+    {
+    }
 
     /// Pre-initialize security policy
     /**
@@ -202,7 +220,9 @@ protected:
      *
      * @param callback Handler to call back with completion information
      */
-    void pre_init(init_handler callback) {
+    void
+    pre_init(init_handler callback)
+    {
         if (m_state != READY) {
             callback(socket::make_error_code(socket::error::invalid_state));
             return;
@@ -221,7 +241,9 @@ protected:
      *
      * @param callback Handler to call back with completion information
      */
-    void post_init(init_handler callback) {
+    void
+    post_init(init_handler callback)
+    {
         callback(lib::error_code());
     }
 
@@ -232,7 +254,9 @@ protected:
      *
      * @param hdl The new handle
      */
-    void set_handle(connection_hdl hdl) {
+    void
+    set_handle(connection_hdl hdl)
+    {
         m_hdl = hdl;
     }
 
@@ -245,33 +269,39 @@ protected:
      *
      * @return The error that occurred, if any.
      */
-    lib::asio::error_code cancel_socket() {
+    lib::asio::error_code
+    cancel_socket()
+    {
         lib::asio::error_code ec;
         m_socket->cancel(ec);
         return ec;
     }
 
-    void async_shutdown(socket::shutdown_handler h) {
+    void
+    async_shutdown(socket::shutdown_handler h)
+    {
         lib::asio::error_code ec;
         m_socket->shutdown(lib::asio::ip::tcp::socket::shutdown_both, ec);
         h(ec);
     }
 
-    lib::error_code get_ec() const {
+    lib::error_code
+    get_ec() const
+    {
         return lib::error_code();
     }
 
-public:
+  public:
     /// Translate any security policy specific information about an error code
     /**
-     * Translate_ec takes an Asio error code and attempts to convert its value 
+     * Translate_ec takes an Asio error code and attempts to convert its value
      * to an appropriate websocketpp error code. In the case that the Asio and
      * Websocketpp error types are the same (such as using boost::asio and
      * boost::system_error or using standalone asio and std::system_error the
      * code will be passed through natively.
      *
      * In the case of a mismatch (boost::asio with std::system_error) a
-     * translated code will be returned. The plain socket policy does not have 
+     * translated code will be returned. The plain socket policy does not have
      * any additional information so all such errors will be reported as the
      * generic transport pass_through error.
      *
@@ -281,32 +311,31 @@ public:
      * @return The translated error code
      */
     template <typename ErrorCodeType>
-    static
-    lib::error_code translate_ec(ErrorCodeType) {
+    static lib::error_code translate_ec(ErrorCodeType)
+    {
         // We don't know any more information about this error so pass through
         return make_error_code(transport::error::pass_through);
     }
 
     static
-    /// Overload of translate_ec to catch cases where lib::error_code is the 
-    /// same type as lib::asio::error_code
-    lib::error_code translate_ec(lib::error_code ec) {
+      /// Overload of translate_ec to catch cases where lib::error_code is the
+      /// same type as lib::asio::error_code
+      lib::error_code
+      translate_ec(lib::error_code ec)
+    {
         // We don't know any more information about this error, but the error is
         // the same type as the one we are translating to, so pass through
         // untranslated.
         return ec;
     }
-private:
-    enum state {
-        UNINITIALIZED = 0,
-        READY = 1,
-        READING = 2
-    };
 
-    socket_ptr          m_socket;
-    state               m_state;
+  private:
+    enum state { UNINITIALIZED = 0, READY = 1, READING = 2 };
 
-    connection_hdl      m_hdl;
+    socket_ptr m_socket;
+    state m_state;
+
+    connection_hdl m_hdl;
     socket_init_handler m_socket_init_handler;
 };
 
@@ -316,7 +345,7 @@ private:
  * component that uses Boost ASIO's ip::tcp::socket.
  */
 class endpoint {
-public:
+  public:
     /// The type of this endpoint socket component
     typedef endpoint type;
 
@@ -326,13 +355,17 @@ public:
     /// component.
     typedef socket_con_type::ptr socket_con_ptr;
 
-    explicit endpoint() {}
+    explicit endpoint()
+    {
+    }
 
     /// Checks whether the endpoint creates secure connections
     /**
      * @return Whether or not the endpoint creates secure connections
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return false;
     }
 
@@ -344,10 +377,13 @@ public:
      *
      * @param h The new socket_init_handler
      */
-    void set_socket_init_handler(socket_init_handler h) {
+    void
+    set_socket_init_handler(socket_init_handler h)
+    {
         m_socket_init_handler = h;
     }
-protected:
+
+  protected:
     /// Initialize a connection
     /**
      * Called by the transport after a new connection is created to initialize
@@ -357,11 +393,14 @@ protected:
      *
      * @return Error code (empty on success)
      */
-    lib::error_code init(socket_con_ptr scon) {
+    lib::error_code
+    init(socket_con_ptr scon)
+    {
         scon->set_socket_init_handler(m_socket_init_handler);
         return lib::error_code();
     }
-private:
+
+  private:
     socket_init_handler m_socket_init_handler;
 };
 

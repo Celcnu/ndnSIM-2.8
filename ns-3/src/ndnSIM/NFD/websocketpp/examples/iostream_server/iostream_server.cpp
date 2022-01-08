@@ -7,32 +7,36 @@
 
 typedef websocketpp::server<websocketpp::config::core> server;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
 // Define a callback to handle incoming messages
-void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
+void
+on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg)
+{
     if (msg->get_opcode() == websocketpp::frame::opcode::text) {
+        s->get_alog().write(websocketpp::log::alevel::app, "Text Message Received: " + msg->get_payload());
+    }
+    else {
         s->get_alog().write(websocketpp::log::alevel::app,
-                    "Text Message Received: "+msg->get_payload());
-    } else {
-        s->get_alog().write(websocketpp::log::alevel::app,
-                    "Binary Message Received: "+websocketpp::utility::to_hex(msg->get_payload()));
+                            "Binary Message Received: " + websocketpp::utility::to_hex(msg->get_payload()));
     }
 
     try {
         s->send(hdl, msg->get_payload(), msg->get_opcode());
-    } catch (websocketpp::exception const & e) {
-        s->get_alog().write(websocketpp::log::alevel::app,
-                    std::string("Echo Failed: ")+e.what());
+    }
+    catch (websocketpp::exception const& e) {
+        s->get_alog().write(websocketpp::log::alevel::app, std::string("Echo Failed: ") + e.what());
     }
 }
 
-int main() {
+int
+main()
+{
     server s;
     std::ofstream log;
 
@@ -53,7 +57,7 @@ int main() {
         s.register_ostream(&std::cout);
 
         // Register our message handler
-        s.set_message_handler(bind(&on_message,&s,::_1,::_2));
+        s.set_message_handler(bind(&on_message, &s, ::_1, ::_2));
 
         server::connection_ptr con = s.get_connection();
 
@@ -75,14 +79,16 @@ int main() {
         if (buffered_io) {
             std::cin >> *con;
             con->eof();
-        } else {
+        }
+        else {
             char a;
-            while(std::cin.get(a)) {
-                con->read_some(&a,1);
+            while (std::cin.get(a)) {
+                con->read_some(&a, 1);
             }
             con->eof();
         }
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
     }
     log.close();

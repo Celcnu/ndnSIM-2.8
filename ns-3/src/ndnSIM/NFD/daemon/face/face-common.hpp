@@ -69,15 +69,14 @@ using EndpointId = uint64_t;
  *  Parameters are passed as a struct rather than individually, so that a future change in the list
  *  of parameters does not require an update to the method signature in all subclasses.
  */
-struct FaceParams
-{
-  ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT;
-  optional<time::nanoseconds> baseCongestionMarkingInterval;
-  optional<uint64_t> defaultCongestionThreshold;
-  optional<ssize_t> mtu;
-  bool wantLocalFields = false;
-  bool wantLpReliability = false;
-  boost::logic::tribool wantCongestionMarking = boost::logic::indeterminate;
+struct FaceParams {
+    ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT;
+    optional<time::nanoseconds> baseCongestionMarkingInterval;
+    optional<uint64_t> defaultCongestionThreshold;
+    optional<ssize_t> mtu;
+    bool wantLocalFields = false;
+    bool wantLpReliability = false;
+    boost::logic::tribool wantCongestionMarking = boost::logic::indeterminate;
 };
 
 /** \brief For internal use by FaceLogging macros.
@@ -88,18 +87,16 @@ struct FaceParams
  *  should be specialized to print "[id=888,local=scheme://local/uri,remote=scheme://remote/uri] "
  *  which will appear as part of the log message.
  */
-template<typename T>
-class FaceLogHelper
-{
-public:
-  explicit
-  FaceLogHelper(const T& obj1) noexcept
-    : obj(obj1)
-  {
-  }
+template <typename T>
+class FaceLogHelper {
+  public:
+    explicit FaceLogHelper(const T& obj1) noexcept
+      : obj(obj1)
+    {
+    }
 
-public:
-  const T& obj;
+  public:
+    const T& obj;
 };
 
 } // namespace face
@@ -120,13 +117,10 @@ using face::FaceId;
 
 /** \cond */
 // implementation detail
-#define NFD_LOG_FACE(level, msg) NFD_LOG_##level( \
-  ::nfd::face::FaceLogHelper< \
-    typename std::remove_cv< \
-      typename std::remove_reference<decltype(*this)>::type \
-    >::type \
-  >(*this) \
-  << msg)
+#define NFD_LOG_FACE(level, msg)                                                                                       \
+    NFD_LOG_##level(::nfd::face::FaceLogHelper<                                                                        \
+                      typename std::remove_cv<typename std::remove_reference<decltype(*this)>::type>::type>(*this)     \
+                    << msg)
 /** \endcond */
 
 /** \brief Log a message at TRACE level */
@@ -136,10 +130,10 @@ using face::FaceId;
 #define NFD_LOG_FACE_DEBUG(msg) NFD_LOG_FACE(DEBUG, msg)
 
 /** \brief Log a message at INFO level */
-#define NFD_LOG_FACE_INFO(msg)  NFD_LOG_FACE(INFO,  msg)
+#define NFD_LOG_FACE_INFO(msg) NFD_LOG_FACE(INFO, msg)
 
 /** \brief Log a message at WARN level */
-#define NFD_LOG_FACE_WARN(msg)  NFD_LOG_FACE(WARN,  msg)
+#define NFD_LOG_FACE_WARN(msg) NFD_LOG_FACE(WARN, msg)
 
 /** \brief Log a message at ERROR level */
 #define NFD_LOG_FACE_ERROR(msg) NFD_LOG_FACE(ERROR, msg)

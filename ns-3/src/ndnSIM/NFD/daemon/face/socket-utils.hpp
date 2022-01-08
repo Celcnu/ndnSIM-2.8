@@ -39,8 +39,7 @@ namespace face {
  *  On Linux, ioctl() is used to obtain the value of SIOCOUTQ from the socket.
  *  On macOS, getsockopt() is used to obtain the value of SO_NWRITE from the socket.
  */
-ssize_t
-getTxQueueLength(int fd);
+ssize_t getTxQueueLength(int fd);
 
 } // namespace face
 } // namespace nfd

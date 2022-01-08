@@ -38,39 +38,37 @@ static_assert(sizeof(const RegisteredPrefixId*) == sizeof(RecordId), "");
 /**
  * @brief stores information about a prefix registered in NDN forwarder
  */
-class RegisteredPrefix : public RecordBase<RegisteredPrefix>
-{
-public:
-  RegisteredPrefix(const Name& prefix, const nfd::CommandOptions& options,
-                   RecordId filterId = 0)
-    : m_prefix(prefix)
-    , m_options(options)
-    , m_filterId(filterId)
-  {
-  }
+class RegisteredPrefix : public RecordBase<RegisteredPrefix> {
+  public:
+    RegisteredPrefix(const Name& prefix, const nfd::CommandOptions& options, RecordId filterId = 0)
+      : m_prefix(prefix)
+      , m_options(options)
+      , m_filterId(filterId)
+    {
+    }
 
-  const Name&
-  getPrefix() const
-  {
-    return m_prefix;
-  }
+    const Name&
+    getPrefix() const
+    {
+        return m_prefix;
+    }
 
-  const nfd::CommandOptions&
-  getCommandOptions() const
-  {
-    return m_options;
-  }
+    const nfd::CommandOptions&
+    getCommandOptions() const
+    {
+        return m_options;
+    }
 
-  RecordId
-  getFilterId() const
-  {
-    return m_filterId;
-  }
+    RecordId
+    getFilterId() const
+    {
+        return m_filterId;
+    }
 
-private:
-  Name m_prefix;
-  nfd::CommandOptions m_options;
-  RecordId m_filterId;
+  private:
+    Name m_prefix;
+    nfd::CommandOptions m_options;
+    RecordId m_filterId;
 };
 
 } // namespace ndn

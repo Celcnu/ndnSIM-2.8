@@ -31,8 +31,8 @@ DigestSha256::DigestSha256()
 DigestSha256::DigestSha256(const Signature& signature)
   : Signature(signature)
 {
-  if (getType() != tlv::DigestSha256)
-    NDN_THROW(Error("Cannot construct DigestSha256 from SignatureType " + to_string(getType())));
+    if (getType() != tlv::DigestSha256)
+        NDN_THROW(Error("Cannot construct DigestSha256 from SignatureType " + to_string(getType())));
 }
 
 } // namespace ndn

@@ -42,37 +42,37 @@ NextHopRecord::NextHopRecord()
 
 NextHopRecord::NextHopRecord(const Block& block)
 {
-  this->wireDecode(block);
+    this->wireDecode(block);
 }
 
 NextHopRecord&
 NextHopRecord::setFaceId(uint64_t faceId)
 {
-  m_faceId = faceId;
-  m_wire.reset();
-  return *this;
+    m_faceId = faceId;
+    m_wire.reset();
+    return *this;
 }
 
 NextHopRecord&
 NextHopRecord::setCost(uint64_t cost)
 {
-  m_cost = cost;
-  m_wire.reset();
-  return *this;
+    m_cost = cost;
+    m_wire.reset();
+    return *this;
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 NextHopRecord::wireEncode(EncodingImpl<TAG>& block) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  totalLength += prependNonNegativeIntegerBlock(block, ndn::tlv::nfd::Cost, m_cost);
-  totalLength += prependNonNegativeIntegerBlock(block, ndn::tlv::nfd::FaceId, m_faceId);
+    totalLength += prependNonNegativeIntegerBlock(block, ndn::tlv::nfd::Cost, m_cost);
+    totalLength += prependNonNegativeIntegerBlock(block, ndn::tlv::nfd::FaceId, m_faceId);
 
-  totalLength += block.prependVarNumber(totalLength);
-  totalLength += block.prependVarNumber(ndn::tlv::nfd::NextHopRecord);
-  return totalLength;
+    totalLength += block.prependVarNumber(totalLength);
+    totalLength += block.prependVarNumber(ndn::tlv::nfd::NextHopRecord);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(NextHopRecord);
@@ -80,63 +80,61 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(NextHopRecord);
 const Block&
 NextHopRecord::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  return m_wire;
 }
 
 void
 NextHopRecord::wireDecode(const Block& block)
 {
-  if (block.type() != tlv::nfd::NextHopRecord) {
-    NDN_THROW(Error("NextHopRecord", block.type()));
-  }
+    if (block.type() != tlv::nfd::NextHopRecord) {
+        NDN_THROW(Error("NextHopRecord", block.type()));
+    }
 
-  m_wire = block;
-  m_wire.parse();
-  auto val = m_wire.elements_begin();
+    m_wire = block;
+    m_wire.parse();
+    auto val = m_wire.elements_begin();
 
-  if (val == m_wire.elements_end()) {
-    NDN_THROW(Error("unexpected end of NextHopRecord"));
-  }
-  else if (val->type() != tlv::nfd::FaceId) {
-    NDN_THROW(Error("FaceId", val->type()));
-  }
-  m_faceId = readNonNegativeInteger(*val);
-  ++val;
+    if (val == m_wire.elements_end()) {
+        NDN_THROW(Error("unexpected end of NextHopRecord"));
+    }
+    else if (val->type() != tlv::nfd::FaceId) {
+        NDN_THROW(Error("FaceId", val->type()));
+    }
+    m_faceId = readNonNegativeInteger(*val);
+    ++val;
 
-  if (val == m_wire.elements_end()) {
-    NDN_THROW(Error("unexpected end of NextHopRecord"));
-  }
-  else if (val->type() != tlv::nfd::Cost) {
-    NDN_THROW(Error("Cost", val->type()));
-  }
-  m_cost = readNonNegativeInteger(*val);
-  ++val;
+    if (val == m_wire.elements_end()) {
+        NDN_THROW(Error("unexpected end of NextHopRecord"));
+    }
+    else if (val->type() != tlv::nfd::Cost) {
+        NDN_THROW(Error("Cost", val->type()));
+    }
+    m_cost = readNonNegativeInteger(*val);
+    ++val;
 }
 
 bool
 operator==(const NextHopRecord& a, const NextHopRecord& b)
 {
-  return a.getFaceId() == b.getFaceId() &&
-      a.getCost() == b.getCost();
+    return a.getFaceId() == b.getFaceId() && a.getCost() == b.getCost();
 }
 
 std::ostream&
 operator<<(std::ostream& os, const NextHopRecord& nh)
 {
-  return os << "NextHopRecord("
-            << "FaceId: " << nh.getFaceId() << ", "
-            << "Cost: " << nh.getCost()
-            << ")";
+    return os << "NextHopRecord("
+              << "FaceId: " << nh.getFaceId() << ", "
+              << "Cost: " << nh.getCost() << ")";
 }
 
 ////////////////////
@@ -145,47 +143,47 @@ FibEntry::FibEntry() = default;
 
 FibEntry::FibEntry(const Block& block)
 {
-  this->wireDecode(block);
+    this->wireDecode(block);
 }
 
 FibEntry&
 FibEntry::setPrefix(const Name& prefix)
 {
-  m_prefix = prefix;
-  m_wire.reset();
-  return *this;
+    m_prefix = prefix;
+    m_wire.reset();
+    return *this;
 }
 
 FibEntry&
 FibEntry::addNextHopRecord(const NextHopRecord& nh)
 {
-  m_nextHopRecords.push_back(nh);
-  m_wire.reset();
-  return *this;
+    m_nextHopRecords.push_back(nh);
+    m_wire.reset();
+    return *this;
 }
 
 FibEntry&
 FibEntry::clearNextHopRecords()
 {
-  m_nextHopRecords.clear();
-  m_wire.reset();
-  return *this;
+    m_nextHopRecords.clear();
+    m_wire.reset();
+    return *this;
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 FibEntry::wireEncode(EncodingImpl<TAG>& block) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  for (const auto& nh : m_nextHopRecords | boost::adaptors::reversed) {
-    totalLength += nh.wireEncode(block);
-  }
-  totalLength += m_prefix.wireEncode(block);
+    for (const auto& nh : m_nextHopRecords | boost::adaptors::reversed) {
+        totalLength += nh.wireEncode(block);
+    }
+    totalLength += m_prefix.wireEncode(block);
 
-  totalLength += block.prependVarNumber(totalLength);
-  totalLength += block.prependVarNumber(tlv::nfd::FibEntry);
-  return totalLength;
+    totalLength += block.prependVarNumber(totalLength);
+    totalLength += block.prependVarNumber(tlv::nfd::FibEntry);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(FibEntry);
@@ -193,83 +191,81 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(FibEntry);
 const Block&
 FibEntry::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  return m_wire;
 }
 
 void
 FibEntry::wireDecode(const Block& block)
 {
-  if (block.type() != tlv::nfd::FibEntry) {
-    NDN_THROW(Error("FibEntry", block.type()));
-  }
-
-  m_wire = block;
-  m_wire.parse();
-  auto val = m_wire.elements_begin();
-
-  if (val == m_wire.elements_end()) {
-    NDN_THROW(Error("unexpected end of FibEntry"));
-  }
-  else if (val->type() != tlv::Name) {
-    NDN_THROW(Error("Name", val->type()));
-  }
-  m_prefix.wireDecode(*val);
-  ++val;
-
-  m_nextHopRecords.clear();
-  for (; val != m_wire.elements_end(); ++val) {
-    if (val->type() != tlv::nfd::NextHopRecord) {
-      NDN_THROW(Error("NextHopRecord", val->type()));
+    if (block.type() != tlv::nfd::FibEntry) {
+        NDN_THROW(Error("FibEntry", block.type()));
     }
-    m_nextHopRecords.emplace_back(*val);
-  }
+
+    m_wire = block;
+    m_wire.parse();
+    auto val = m_wire.elements_begin();
+
+    if (val == m_wire.elements_end()) {
+        NDN_THROW(Error("unexpected end of FibEntry"));
+    }
+    else if (val->type() != tlv::Name) {
+        NDN_THROW(Error("Name", val->type()));
+    }
+    m_prefix.wireDecode(*val);
+    ++val;
+
+    m_nextHopRecords.clear();
+    for (; val != m_wire.elements_end(); ++val) {
+        if (val->type() != tlv::nfd::NextHopRecord) {
+            NDN_THROW(Error("NextHopRecord", val->type()));
+        }
+        m_nextHopRecords.emplace_back(*val);
+    }
 }
 
 bool
 operator==(const FibEntry& a, const FibEntry& b)
 {
-  const auto& aNextHops = a.getNextHopRecords();
-  const auto& bNextHops = b.getNextHopRecords();
+    const auto& aNextHops = a.getNextHopRecords();
+    const auto& bNextHops = b.getNextHopRecords();
 
-  if (a.getPrefix() != b.getPrefix() ||
-      aNextHops.size() != bNextHops.size())
-    return false;
+    if (a.getPrefix() != b.getPrefix() || aNextHops.size() != bNextHops.size())
+        return false;
 
-  std::vector<bool> matched(bNextHops.size(), false);
-  return std::all_of(aNextHops.begin(), aNextHops.end(),
-                     [&] (const NextHopRecord& nh) {
-                       for (size_t i = 0; i < bNextHops.size(); ++i) {
-                         if (!matched[i] && bNextHops[i] == nh) {
-                           matched[i] = true;
-                           return true;
-                         }
-                       }
-                       return false;
-                     });
+    std::vector<bool> matched(bNextHops.size(), false);
+    return std::all_of(aNextHops.begin(), aNextHops.end(), [&](const NextHopRecord& nh) {
+        for (size_t i = 0; i < bNextHops.size(); ++i) {
+            if (!matched[i] && bNextHops[i] == nh) {
+                matched[i] = true;
+                return true;
+            }
+        }
+        return false;
+    });
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FibEntry& entry)
 {
-  os << "FibEntry(Prefix: " << entry.getPrefix() << ",\n"
-     << "         NextHops: [";
+    os << "FibEntry(Prefix: " << entry.getPrefix() << ",\n"
+       << "         NextHops: [";
 
-  std::copy(entry.getNextHopRecords().begin(), entry.getNextHopRecords().end(),
-            make_ostream_joiner(os, ",\n                    "));
+    std::copy(entry.getNextHopRecords().begin(), entry.getNextHopRecords().end(),
+              make_ostream_joiner(os, ",\n                    "));
 
-  os << "]\n";
+    os << "]\n";
 
-  return os << "         )";
+    return os << "         )";
 }
 
 } // namespace nfd

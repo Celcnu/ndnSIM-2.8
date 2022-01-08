@@ -36,42 +36,37 @@ namespace transform {
  *
  * If the total length of input is not even (2n + 1), the module will throw Error.
  */
-class HexDecode : public Transform
-{
-public:
-  /**
-   * @brief Create a hex decoding module
-   */
-  HexDecode();
+class HexDecode : public Transform {
+  public:
+    /**
+     * @brief Create a hex decoding module
+     */
+    HexDecode();
 
-private:
-  /**
-   * @brief Decode data @p buf, and write the result into output buffer directly.
-   *
-   * @return number of input bytes that are accepted
-   */
-  size_t
-  convert(const uint8_t* buf, size_t size) final;
+  private:
+    /**
+     * @brief Decode data @p buf, and write the result into output buffer directly.
+     *
+     * @return number of input bytes that are accepted
+     */
+    size_t convert(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @throws Error if pending byte exists.
-   */
-  void
-  finalize() final;
+    /**
+     * @throws Error if pending byte exists.
+     */
+    void finalize() final;
 
-  /**
-   * @return results of decoding concatenation of @p oddByte and @p hex.
-   */
-  unique_ptr<Transform::OBuffer>
-  toBytes(const uint8_t* hex, size_t hexLen);
+    /**
+     * @return results of decoding concatenation of @p oddByte and @p hex.
+     */
+    unique_ptr<Transform::OBuffer> toBytes(const uint8_t* hex, size_t hexLen);
 
-private:
-  bool m_hasOddByte;
-  uint8_t m_oddByte;
+  private:
+    bool m_hasOddByte;
+    uint8_t m_oddByte;
 };
 
-unique_ptr<Transform>
-hexDecode();
+unique_ptr<Transform> hexDecode();
 
 } // namespace transform
 } // namespace security

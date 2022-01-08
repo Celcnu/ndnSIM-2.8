@@ -32,49 +32,49 @@ Error::Error(const char* expectedType, uint32_t actualType)
 std::ostream&
 operator<<(std::ostream& os, SignatureTypeValue st)
 {
-  switch (st) {
-    case DigestSha256:
-      return os << "DigestSha256";
-    case SignatureSha256WithRsa:
-      return os << "SignatureSha256WithRsa";
-    case SignatureSha256WithEcdsa:
-      return os << "SignatureSha256WithEcdsa";
-    case SignatureHmacWithSha256:
-      return os << "SignatureHmacWithSha256";
-  }
-  return os << "Unknown(" << static_cast<uint32_t>(st) << ')';
+    switch (st) {
+        case DigestSha256:
+            return os << "DigestSha256";
+        case SignatureSha256WithRsa:
+            return os << "SignatureSha256WithRsa";
+        case SignatureSha256WithEcdsa:
+            return os << "SignatureSha256WithEcdsa";
+        case SignatureHmacWithSha256:
+            return os << "SignatureHmacWithSha256";
+    }
+    return os << "Unknown(" << static_cast<uint32_t>(st) << ')';
 }
 
 std::ostream&
 operator<<(std::ostream& os, ContentTypeValue ct)
 {
-  switch (ct) {
-    case ContentType_Blob:
-      return os << "Blob";
-    case ContentType_Link:
-      return os << "Link";
-    case ContentType_Key:
-      return os << "Key";
-    case ContentType_Nack:
-      return os << "Nack";
-    case ContentType_Manifest:
-      return os << "Manifest";
-    case ContentType_PrefixAnn:
-      return os << "PrefixAnn";
-    case ContentType_Flic:
-      return os << "FLIC";
-  }
+    switch (ct) {
+        case ContentType_Blob:
+            return os << "Blob";
+        case ContentType_Link:
+            return os << "Link";
+        case ContentType_Key:
+            return os << "Key";
+        case ContentType_Nack:
+            return os << "Nack";
+        case ContentType_Manifest:
+            return os << "Manifest";
+        case ContentType_PrefixAnn:
+            return os << "PrefixAnn";
+        case ContentType_Flic:
+            return os << "FLIC";
+    }
 
-  if (ct >= 6 && ct <= 1023) {
-    os << "Reserved(";
-  }
-  else if (ct >= 9000 && ct <= 9999) {
-    os << "Experimental(";
-  }
-  else {
-    os << "Unknown(";
-  }
-  return os << static_cast<uint32_t>(ct) << ')';
+    if (ct >= 6 && ct <= 1023) {
+        os << "Reserved(";
+    }
+    else if (ct >= 9000 && ct <= 9999) {
+        os << "Experimental(";
+    }
+    else {
+        os << "Unknown(";
+    }
+    return os << static_cast<uint32_t>(ct) << ')';
 }
 
 } // namespace tlv

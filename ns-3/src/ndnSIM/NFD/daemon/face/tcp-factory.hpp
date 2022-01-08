@@ -34,53 +34,43 @@ namespace face {
 
 /** \brief Protocol factory for TCP over IPv4 and IPv6
  */
-class TcpFactory : public ProtocolFactory
-{
-public:
-  static const std::string&
-  getId() noexcept;
+class TcpFactory : public ProtocolFactory {
+  public:
+    static const std::string& getId() noexcept;
 
-  using ProtocolFactory::ProtocolFactory;
+    using ProtocolFactory::ProtocolFactory;
 
-  /**
-   * \brief Create TCP-based channel using tcp::Endpoint
-   *
-   * tcp::Endpoint is really an alias for boost::asio::ip::tcp::endpoint.
-   *
-   * If this method is called twice with the same endpoint, only one channel
-   * will be created. The second call will just return the existing channel.
-   *
-   * \return always a valid pointer to a TcpChannel object, an exception
-   *         is thrown if it cannot be created.
-   */
-  shared_ptr<TcpChannel>
-  createChannel(const tcp::Endpoint& localEndpoint);
+    /**
+     * \brief Create TCP-based channel using tcp::Endpoint
+     *
+     * tcp::Endpoint is really an alias for boost::asio::ip::tcp::endpoint.
+     *
+     * If this method is called twice with the same endpoint, only one channel
+     * will be created. The second call will just return the existing channel.
+     *
+     * \return always a valid pointer to a TcpChannel object, an exception
+     *         is thrown if it cannot be created.
+     */
+    shared_ptr<TcpChannel> createChannel(const tcp::Endpoint& localEndpoint);
 
-private:
-  /** \brief process face_system.tcp config section
-   */
-  void
-  doProcessConfig(OptionalConfigSection configSection,
-                  FaceSystem::ConfigContext& context) override;
+  private:
+    /** \brief process face_system.tcp config section
+     */
+    void doProcessConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context) override;
 
-  void
-  doCreateFace(const CreateFaceRequest& req,
-               const FaceCreatedCallback& onCreated,
-               const FaceCreationFailedCallback& onFailure) override;
+    void doCreateFace(const CreateFaceRequest& req, const FaceCreatedCallback& onCreated,
+                      const FaceCreationFailedCallback& onFailure) override;
 
-  std::vector<shared_ptr<const Channel>>
-  doGetChannels() const override;
+    std::vector<shared_ptr<const Channel>> doGetChannels() const override;
 
-  ndn::nfd::FaceScope
-  determineFaceScopeFromAddresses(const boost::asio::ip::address& local,
-                                  const boost::asio::ip::address& remote) const;
+    ndn::nfd::FaceScope determineFaceScopeFromAddresses(const boost::asio::ip::address& local,
+                                                        const boost::asio::ip::address& remote) const;
 
-private:
-  bool m_wantCongestionMarking = false;
-  std::map<tcp::Endpoint, shared_ptr<TcpChannel>> m_channels;
+  private:
+    bool m_wantCongestionMarking = false;
+    std::map<tcp::Endpoint, shared_ptr<TcpChannel>> m_channels;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  IpAddressPredicate m_local;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : IpAddressPredicate m_local;
 };
 
 } // namespace face

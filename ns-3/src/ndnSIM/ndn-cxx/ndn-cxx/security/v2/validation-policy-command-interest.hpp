@@ -39,117 +39,101 @@ namespace v2 {
  *  This policy checks the timestamp field of a stop-and-wait command Interest.
  *  Signed Interest validation and Data validation requests are delegated to an inner policy.
  */
-class ValidationPolicyCommandInterest : public ValidationPolicy
-{
-public:
-  class Options
-  {
+class ValidationPolicyCommandInterest : public ValidationPolicy {
   public:
-    Options()
-    {
-    }
+    class Options {
+      public:
+        Options()
+        {
+        }
 
-  public:
-    /** \brief tolerance of initial timestamp
-     *
-     *  A stop-and-wait command Interest is considered "initial" if the validator
-     *  has not recorded the last timestamp from the same public key, or when
-     *  such knowledge has been erased.
-     *  For an initial command Interest, its timestamp is compared to the current
-     *  system clock, and the command Interest is rejected if the absolute difference
-     *  is greater than the grace interval.
-     *
-     *  This should be positive.
-     *  Setting this option to 0 or negative causes the validator to require exactly same
-     *  timestamp as the system clock, which most likely rejects all command Interests.
+      public:
+        /** \brief tolerance of initial timestamp
+         *
+         *  A stop-and-wait command Interest is considered "initial" if the validator
+         *  has not recorded the last timestamp from the same public key, or when
+         *  such knowledge has been erased.
+         *  For an initial command Interest, its timestamp is compared to the current
+         *  system clock, and the command Interest is rejected if the absolute difference
+         *  is greater than the grace interval.
+         *
+         *  This should be positive.
+         *  Setting this option to 0 or negative causes the validator to require exactly same
+         *  timestamp as the system clock, which most likely rejects all command Interests.
+         */
+        time::nanoseconds gracePeriod = 2_min;
+
+        /** \brief max number of distinct public keys of which to record the last timestamp
+         *
+         *  The validator records last timestamps for every public key.
+         *  For a subsequent command Interest using the same public key,
+         *  its timestamp is compared to the last timestamp from that public key,
+         *  and the command Interest is rejected if its timestamp is
+         *  less than or equal to the recorded timestamp.
+         *
+         *  This option limits the number of distinct public keys being tracked.
+         *  If the limit is exceeded, the oldest record is deleted.
+         *
+         *  Setting this option to -1 allows tracking unlimited public keys.
+         *  Setting this option to 0 disables last timestamp records and causes
+         *  every command Interest to be processed as initial.
+         */
+        ssize_t maxRecords = 1000;
+
+        /** \brief max lifetime of a last timestamp record
+         *
+         *  A last timestamp record expires and can be deleted if it has not been refreshed
+         *  within this duration.
+         *  Setting this option to 0 or negative makes last timestamp records expire immediately
+         *  and causes every command Interest to be processed as initial.
+         */
+        time::nanoseconds recordLifetime = 1_h;
+    };
+
+    /** \brief constructor
+     *  \param inner a Validator for signed Interest signature validation and Data validation;
+     *               this must not be nullptr
+     *  \param options stop-and-wait command Interest validation options
+     *  \throw std::invalid_argument inner policy is nullptr
      */
-    time::nanoseconds gracePeriod = 2_min;
+    explicit ValidationPolicyCommandInterest(unique_ptr<ValidationPolicy> inner, const Options& options = {});
 
-    /** \brief max number of distinct public keys of which to record the last timestamp
-     *
-     *  The validator records last timestamps for every public key.
-     *  For a subsequent command Interest using the same public key,
-     *  its timestamp is compared to the last timestamp from that public key,
-     *  and the command Interest is rejected if its timestamp is
-     *  less than or equal to the recorded timestamp.
-     *
-     *  This option limits the number of distinct public keys being tracked.
-     *  If the limit is exceeded, the oldest record is deleted.
-     *
-     *  Setting this option to -1 allows tracking unlimited public keys.
-     *  Setting this option to 0 disables last timestamp records and causes
-     *  every command Interest to be processed as initial.
-     */
-    ssize_t maxRecords = 1000;
+  protected:
+    void checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 
-    /** \brief max lifetime of a last timestamp record
-     *
-     *  A last timestamp record expires and can be deleted if it has not been refreshed
-     *  within this duration.
-     *  Setting this option to 0 or negative makes last timestamp records expire immediately
-     *  and causes every command Interest to be processed as initial.
-     */
-    time::nanoseconds recordLifetime = 1_h;
-  };
+    void checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 
-  /** \brief constructor
-   *  \param inner a Validator for signed Interest signature validation and Data validation;
-   *               this must not be nullptr
-   *  \param options stop-and-wait command Interest validation options
-   *  \throw std::invalid_argument inner policy is nullptr
-   */
-  explicit
-  ValidationPolicyCommandInterest(unique_ptr<ValidationPolicy> inner,
-                                  const Options& options = {});
+  private:
+    void cleanup();
 
-protected:
-  void
-  checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+    std::tuple<bool, Name, uint64_t>
+    parseCommandInterest(const Interest& interest, const shared_ptr<ValidationState>& state) const;
 
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+    bool checkTimestamp(const shared_ptr<ValidationState>& state, const Name& keyName, uint64_t timestamp);
 
-private:
-  void
-  cleanup();
+    void insertNewRecord(const Name& keyName, uint64_t timestamp);
 
-  std::tuple<bool, Name, uint64_t>
-  parseCommandInterest(const Interest& interest, const shared_ptr<ValidationState>& state) const;
+  private:
+    Options m_options;
 
-  bool
-  checkTimestamp(const shared_ptr<ValidationState>& state,
-                 const Name& keyName, uint64_t timestamp);
+    struct LastTimestampRecord {
+        Name keyName;
+        uint64_t timestamp;
+        time::steady_clock::TimePoint lastRefreshed;
+    };
 
-  void
-  insertNewRecord(const Name& keyName, uint64_t timestamp);
+    using Container = boost::multi_index_container<
+      LastTimestampRecord, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<
+                                                            LastTimestampRecord, Name, &LastTimestampRecord::keyName>>,
+                                                          boost::multi_index::sequenced<>>>;
+    using Index = Container::nth_index<0>::type;
+    using Queue = Container::nth_index<1>::type;
 
-private:
-  Options m_options;
-
-  struct LastTimestampRecord
-  {
-    Name keyName;
-    uint64_t timestamp;
-    time::steady_clock::TimePoint lastRefreshed;
-  };
-
-  using Container = boost::multi_index_container<
-    LastTimestampRecord,
-    boost::multi_index::indexed_by<
-      boost::multi_index::ordered_unique<
-        boost::multi_index::member<LastTimestampRecord, Name, &LastTimestampRecord::keyName>
-      >,
-      boost::multi_index::sequenced<>
-    >
-  >;
-  using Index = Container::nth_index<0>::type;
-  using Queue = Container::nth_index<1>::type;
-
-  Container m_container;
-  Index& m_index;
-  Queue& m_queue;
+    Container m_container;
+    Index& m_index;
+    Queue& m_queue;
 };
 
 } // namespace v2

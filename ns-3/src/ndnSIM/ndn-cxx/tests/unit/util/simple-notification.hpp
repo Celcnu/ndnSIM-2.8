@@ -34,57 +34,52 @@ namespace ndn {
 namespace util {
 namespace tests {
 
-class SimpleNotification
-{
-public:
-  SimpleNotification() = default;
+class SimpleNotification {
+  public:
+    SimpleNotification() = default;
 
-  explicit
-  SimpleNotification(const Block& block)
-  {
-    wireDecode(block);
-  }
+    explicit SimpleNotification(const Block& block)
+    {
+        wireDecode(block);
+    }
 
-  SimpleNotification(const std::string& message)
-    : m_message(message)
-  {
-  }
+    SimpleNotification(const std::string& message)
+      : m_message(message)
+    {
+    }
 
-  Block
-  wireEncode() const
-  {
-    ndn::EncodingBuffer buffer;
-    buffer.prependByteArrayBlock(0x8888,
-                                 reinterpret_cast<const uint8_t*>(m_message.c_str()),
-                                 m_message.size());
-    return buffer.block();
-  }
+    Block
+    wireEncode() const
+    {
+        ndn::EncodingBuffer buffer;
+        buffer.prependByteArrayBlock(0x8888, reinterpret_cast<const uint8_t*>(m_message.c_str()), m_message.size());
+        return buffer.block();
+    }
 
-  void
-  wireDecode(const Block& block)
-  {
-    m_message.assign(reinterpret_cast<const char*>(block.value()),
-                     block.value_size());
+    void
+    wireDecode(const Block& block)
+    {
+        m_message.assign(reinterpret_cast<const char*>(block.value()), block.value_size());
 
-    // error for testing
-    if (!m_message.empty() && m_message[0] == '\x07')
-      NDN_THROW(tlv::Error("0x07 error"));
-  }
+        // error for testing
+        if (!m_message.empty() && m_message[0] == '\x07')
+            NDN_THROW(tlv::Error("0x07 error"));
+    }
 
-  const std::string&
-  getMessage() const
-  {
-    return m_message;
-  }
+    const std::string&
+    getMessage() const
+    {
+        return m_message;
+    }
 
-  void
-  setMessage(const std::string& message)
-  {
-    m_message = message;
-  }
+    void
+    setMessage(const std::string& message)
+    {
+        m_message = message;
+    }
 
-private:
-  std::string m_message;
+  private:
+    std::string m_message;
 };
 
 } // namespace tests

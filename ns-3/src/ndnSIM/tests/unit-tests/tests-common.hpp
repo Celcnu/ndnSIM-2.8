@@ -29,20 +29,18 @@
 namespace ns3 {
 namespace ndn {
 
-class CleanupFixture
-{
-public:
-  ~CleanupFixture()
-  {
-    Simulator::Destroy();
-    Names::Clear();
-    GlobalRouter::clear();
-  }
+class CleanupFixture {
+  public:
+    ~CleanupFixture()
+    {
+        Simulator::Destroy();
+        Names::Clear();
+        GlobalRouter::clear();
+    }
 };
 
-class ScenarioHelperWithCleanupFixture : public ScenarioHelper, public CleanupFixture
-{
-public:
+class ScenarioHelperWithCleanupFixture : public ScenarioHelper, public CleanupFixture {
+  public:
 };
 
 } // namespace ndn

@@ -40,80 +40,77 @@ const time::milliseconds MulticastStrategy::RETX_SUPPRESSION_MAX(250);
 MulticastStrategy::MulticastStrategy(Forwarder& forwarder, const Name& name)
   : Strategy(forwarder)
   , ProcessNackTraits(this)
-  , m_retxSuppression(RETX_SUPPRESSION_INITIAL,
-                      RetxSuppressionExponential::DEFAULT_MULTIPLIER,
-                      RETX_SUPPRESSION_MAX)
+  , m_retxSuppression(RETX_SUPPRESSION_INITIAL, RetxSuppressionExponential::DEFAULT_MULTIPLIER, RETX_SUPPRESSION_MAX)
 {
-  ParsedInstanceName parsed = parseInstanceName(name);
-  if (!parsed.parameters.empty()) {
-    NDN_THROW(std::invalid_argument("MulticastStrategy does not accept parameters"));
-  }
-  if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
-    NDN_THROW(std::invalid_argument(
-      "MulticastStrategy does not support version " + to_string(*parsed.version)));
-  }
-  this->setInstanceName(makeInstanceName(name, getStrategyName()));
+    ParsedInstanceName parsed = parseInstanceName(name);
+    if (!parsed.parameters.empty()) {
+        NDN_THROW(std::invalid_argument("MulticastStrategy does not accept parameters"));
+    }
+    if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
+        NDN_THROW(std::invalid_argument("MulticastStrategy does not support version " + to_string(*parsed.version)));
+    }
+    this->setInstanceName(makeInstanceName(name, getStrategyName()));
 }
 
 const Name&
 MulticastStrategy::getStrategyName()
 {
-  static Name strategyName("/localhost/nfd/strategy/multicast/%FD%03");
-  return strategyName;
+    static Name strategyName("/localhost/nfd/strategy/multicast/%FD%03");
+    return strategyName;
 }
 
 void
 MulticastStrategy::afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
                                         const shared_ptr<pit::Entry>& pitEntry)
 {
-  const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
-  const fib::NextHopList& nexthops = fibEntry.getNextHops();
+    const fib::Entry& fibEntry = this->lookupFib(*pitEntry);
+    const fib::NextHopList& nexthops = fibEntry.getNextHops();
 
-  int nEligibleNextHops = 0;
+    int nEligibleNextHops = 0;
 
-  bool isSuppressed = false;
+    bool isSuppressed = false;
 
-  for (const auto& nexthop : nexthops) {
-    Face& outFace = nexthop.getFace();
+    for (const auto& nexthop : nexthops) {
+        Face& outFace = nexthop.getFace();
 
-    RetxSuppressionResult suppressResult = m_retxSuppression.decidePerUpstream(*pitEntry, outFace);
+        RetxSuppressionResult suppressResult = m_retxSuppression.decidePerUpstream(*pitEntry, outFace);
 
-    if (suppressResult == RetxSuppressionResult::SUPPRESS) {
-      NFD_LOG_DEBUG(interest << " from=" << ingress << " to=" << outFace.getId() << " suppressed");
-      isSuppressed = true;
-      continue;
+        if (suppressResult == RetxSuppressionResult::SUPPRESS) {
+            NFD_LOG_DEBUG(interest << " from=" << ingress << " to=" << outFace.getId() << " suppressed");
+            isSuppressed = true;
+            continue;
+        }
+
+        if ((outFace.getId() == ingress.face.getId() && outFace.getLinkType() != ndn::nfd::LINK_TYPE_AD_HOC)
+            || wouldViolateScope(ingress.face, interest, outFace)) {
+            continue;
+        }
+
+        this->sendInterest(pitEntry, FaceEndpoint(outFace, 0), interest);
+        NFD_LOG_DEBUG(interest << " from=" << ingress << " pitEntry-to=" << outFace.getId());
+
+        if (suppressResult == RetxSuppressionResult::FORWARD) {
+            m_retxSuppression.incrementIntervalForOutRecord(*pitEntry->getOutRecord(outFace));
+        }
+        ++nEligibleNextHops;
     }
 
-    if ((outFace.getId() == ingress.face.getId() && outFace.getLinkType() != ndn::nfd::LINK_TYPE_AD_HOC) ||
-        wouldViolateScope(ingress.face, interest, outFace)) {
-      continue;
+    if (nEligibleNextHops == 0 && !isSuppressed) {
+        NFD_LOG_DEBUG(interest << " from=" << ingress << " noNextHop");
+
+        lp::NackHeader nackHeader;
+        nackHeader.setReason(lp::NackReason::NO_ROUTE);
+        this->sendNack(pitEntry, ingress, nackHeader);
+
+        this->rejectPendingInterest(pitEntry);
     }
-
-    this->sendInterest(pitEntry, FaceEndpoint(outFace, 0), interest);
-    NFD_LOG_DEBUG(interest << " from=" << ingress << " pitEntry-to=" << outFace.getId());
-
-    if (suppressResult == RetxSuppressionResult::FORWARD) {
-      m_retxSuppression.incrementIntervalForOutRecord(*pitEntry->getOutRecord(outFace));
-    }
-    ++nEligibleNextHops;
-  }
-
-  if (nEligibleNextHops == 0 && !isSuppressed) {
-    NFD_LOG_DEBUG(interest << " from=" << ingress << " noNextHop");
-
-    lp::NackHeader nackHeader;
-    nackHeader.setReason(lp::NackReason::NO_ROUTE);
-    this->sendNack(pitEntry, ingress, nackHeader);
-
-    this->rejectPendingInterest(pitEntry);
-  }
 }
 
 void
 MulticastStrategy::afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
                                     const shared_ptr<pit::Entry>& pitEntry)
 {
-  this->processNack(ingress.face, nack, pitEntry);
+    this->processNack(ingress.face, nack, pitEntry);
 }
 
 } // namespace fw

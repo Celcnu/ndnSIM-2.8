@@ -38,8 +38,7 @@
  */
 
 /** \cond */
-#define NFD_LOG_CHAN(level, msg) NFD_LOG_##level( \
-  "[" << this->getUri() << "] " << msg)
+#define NFD_LOG_CHAN(level, msg) NFD_LOG_##level("[" << this->getUri() << "] " << msg)
 /** \endcond */
 
 /** \brief Log a message at TRACE level */
@@ -49,10 +48,10 @@
 #define NFD_LOG_CHAN_DEBUG(msg) NFD_LOG_CHAN(DEBUG, msg)
 
 /** \brief Log a message at INFO level */
-#define NFD_LOG_CHAN_INFO(msg)  NFD_LOG_CHAN(INFO,  msg)
+#define NFD_LOG_CHAN_INFO(msg) NFD_LOG_CHAN(INFO, msg)
 
 /** \brief Log a message at WARN level */
-#define NFD_LOG_CHAN_WARN(msg)  NFD_LOG_CHAN(WARN,  msg)
+#define NFD_LOG_CHAN_WARN(msg) NFD_LOG_CHAN(WARN, msg)
 
 /** \brief Log a message at ERROR level */
 #define NFD_LOG_CHAN_ERROR(msg) NFD_LOG_CHAN(ERROR, msg)

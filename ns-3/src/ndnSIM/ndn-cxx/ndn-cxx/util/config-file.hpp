@@ -45,82 +45,74 @@ namespace ndn {
  *
  * @sa Manpage of ndn-client.conf
  */
-class ConfigFile : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class ConfigFile : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  typedef boost::property_tree::ptree Parsed;
+    typedef boost::property_tree::ptree Parsed;
 
-  /**
-   * @brief Locate, open, and parse a library configuration file.
-   *
-   * @throws ConfigFile::Error on parse error
-   */
-  ConfigFile();
+    /**
+     * @brief Locate, open, and parse a library configuration file.
+     *
+     * @throws ConfigFile::Error on parse error
+     */
+    ConfigFile();
 
-  ~ConfigFile();
+    ~ConfigFile();
 
-  const boost::filesystem::path&
-  getPath() const;
+    const boost::filesystem::path& getPath() const;
 
-  const Parsed&
-  getParsedConfiguration() const;
+    const Parsed& getParsedConfiguration() const;
 
-private:
-  bool
-  open();
+  private:
+    bool open();
 
-  void
-  close();
+    void close();
 
-  /**
-   * @brief Parse a previously discovered and opened configuration file.
-   *
-   * For convenience this method will attempt to open the file
-   * if it has previously been located, but open() has not been called.
-   *
-   * @throws ConfigFile::Error on parse error
-   * @throws ConfigFile::Error on failure to open previously un-open configuration file
-   * @throws ConfigFile::Error if no configuration file was previously located
-   */
-  const Parsed&
-  parse();
+    /**
+     * @brief Parse a previously discovered and opened configuration file.
+     *
+     * For convenience this method will attempt to open the file
+     * if it has previously been located, but open() has not been called.
+     *
+     * @throws ConfigFile::Error on parse error
+     * @throws ConfigFile::Error on failure to open previously un-open configuration file
+     * @throws ConfigFile::Error if no configuration file was previously located
+     */
+    const Parsed& parse();
 
-  /**
-   * @brief Find the configuration file in well-known locations
-   *
-   * The well-known locations include (in order):
-   *
-   * - `$HOME/.ndn/client.conf`
-   * - `@SYSCONFDIR@/ndn/client.conf`
-   * - `/etc/ndn/client.conf`
-   *
-   * @return path to preferred configuration (according to above order) or empty path on failure
-   */
-  boost::filesystem::path
-  findConfigFile();
+    /**
+     * @brief Find the configuration file in well-known locations
+     *
+     * The well-known locations include (in order):
+     *
+     * - `$HOME/.ndn/client.conf`
+     * - `@SYSCONFDIR@/ndn/client.conf`
+     * - `/etc/ndn/client.conf`
+     *
+     * @return path to preferred configuration (according to above order) or empty path on failure
+     */
+    boost::filesystem::path findConfigFile();
 
-private:
-  boost::filesystem::path m_path; // absolute path to active configuration file (if any)
-  std::ifstream m_input;
-  Parsed m_config;
+  private:
+    boost::filesystem::path m_path; // absolute path to active configuration file (if any)
+    std::ifstream m_input;
+    Parsed m_config;
 };
 
 inline const boost::filesystem::path&
 ConfigFile::getPath() const
 {
-  return m_path;
+    return m_path;
 }
 
 inline const ConfigFile::Parsed&
 ConfigFile::getParsedConfiguration() const
 {
-  return m_config;
+    return m_config;
 }
 
 } // namespace ndn

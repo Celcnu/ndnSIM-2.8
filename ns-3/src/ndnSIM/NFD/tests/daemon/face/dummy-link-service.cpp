@@ -32,35 +32,35 @@ namespace tests {
 void
 DummyLinkService::doSendInterest(const Interest& interest, const EndpointId&)
 {
-  if (m_loggingFlags & LogSentInterests)
-    sentInterests.push_back(interest);
+    if (m_loggingFlags & LogSentInterests)
+        sentInterests.push_back(interest);
 
-  afterSend(tlv::Interest);
+    afterSend(tlv::Interest);
 }
 
 void
 DummyLinkService::doSendData(const Data& data, const EndpointId&)
 {
-  if (m_loggingFlags & LogSentData)
-    sentData.push_back(data);
+    if (m_loggingFlags & LogSentData)
+        sentData.push_back(data);
 
-  afterSend(tlv::Data);
+    afterSend(tlv::Data);
 }
 
 void
 DummyLinkService::doSendNack(const lp::Nack& nack, const EndpointId&)
 {
-  if (m_loggingFlags & LogSentNacks)
-    sentNacks.push_back(nack);
+    if (m_loggingFlags & LogSentNacks)
+        sentNacks.push_back(nack);
 
-  afterSend(lp::tlv::Nack);
+    afterSend(lp::tlv::Nack);
 }
 
 void
 DummyLinkService::doReceivePacket(const Block& packet, const EndpointId& endpoint)
 {
-  if (m_loggingFlags & LogReceivedPackets)
-    receivedPackets.push_back({packet, endpoint});
+    if (m_loggingFlags & LogReceivedPackets)
+        receivedPackets.push_back({packet, endpoint});
 }
 
 } // namespace tests

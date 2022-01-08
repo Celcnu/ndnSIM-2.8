@@ -37,90 +37,81 @@ namespace rib {
  *
  *  \note This type is copyable so that it can be stored in STL containers.
  */
-class RibUpdate
-{
-public:
-  enum Action {
-    REGISTER     = 0,
-    UNREGISTER   = 1,
+class RibUpdate {
+  public:
+    enum Action {
+        REGISTER = 0,
+        UNREGISTER = 1,
 
-    /** \brief An update triggered by a face destruction notification
-     *
-     *  \note indicates a Route needs to be removed after a face is destroyed
-     */
-    REMOVE_FACE = 2
-  };
+        /** \brief An update triggered by a face destruction notification
+         *
+         *  \note indicates a Route needs to be removed after a face is destroyed
+         */
+        REMOVE_FACE = 2
+    };
 
-  RibUpdate();
+    RibUpdate();
 
-  RibUpdate&
-  setAction(Action action);
+    RibUpdate& setAction(Action action);
 
-  Action
-  getAction() const;
+    Action getAction() const;
 
-  RibUpdate&
-  setName(const Name& name);
+    RibUpdate& setName(const Name& name);
 
-  const Name&
-  getName() const;
+    const Name& getName() const;
 
-  RibUpdate&
-  setRoute(const Route& route);
+    RibUpdate& setRoute(const Route& route);
 
-  const Route&
-  getRoute() const;
+    const Route& getRoute() const;
 
-private:
-  Action m_action;
-  Name m_name;
-  Route m_route;
+  private:
+    Action m_action;
+    Name m_name;
+    Route m_route;
 };
 
 inline RibUpdate&
 RibUpdate::setAction(Action action)
 {
-  m_action = action;
-  return *this;
+    m_action = action;
+    return *this;
 }
 
 inline RibUpdate::Action
 RibUpdate::getAction() const
 {
-  return m_action;
+    return m_action;
 }
 
 inline RibUpdate&
 RibUpdate::setName(const Name& name)
 {
-  m_name = name;
-  return *this;
+    m_name = name;
+    return *this;
 }
 
 inline const Name&
 RibUpdate::getName() const
 {
-  return m_name;
+    return m_name;
 }
 
 inline RibUpdate&
 RibUpdate::setRoute(const Route& route)
 {
-  m_route = route;
-  return *this;
+    m_route = route;
+    return *this;
 }
 
 inline const Route&
 RibUpdate::getRoute() const
 {
-  return m_route;
+    return m_route;
 }
 
-std::ostream&
-operator<<(std::ostream& os, const RibUpdate::Action action);
+std::ostream& operator<<(std::ostream& os, const RibUpdate::Action action);
 
-std::ostream&
-operator<<(std::ostream& os, const RibUpdate& update);
+std::ostream& operator<<(std::ostream& os, const RibUpdate& update);
 
 } // namespace rib
 } // namespace nfd

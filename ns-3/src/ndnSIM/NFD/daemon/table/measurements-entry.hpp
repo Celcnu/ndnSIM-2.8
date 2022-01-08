@@ -38,30 +38,28 @@ namespace measurements {
 
 /** \brief Represents a Measurements entry
  */
-class Entry : public StrategyInfoHost, noncopyable
-{
-public:
-  explicit
-  Entry(const Name& name)
-    : m_name(name)
-  {
-  }
+class Entry : public StrategyInfoHost, noncopyable {
+  public:
+    explicit Entry(const Name& name)
+      : m_name(name)
+    {
+    }
 
-  const Name&
-  getName() const
-  {
-    return m_name;
-  }
+    const Name&
+    getName() const
+    {
+        return m_name;
+    }
 
-private:
-  Name m_name;
-  time::steady_clock::TimePoint m_expiry = time::steady_clock::TimePoint::min();
-  scheduler::EventId m_cleanup;
+  private:
+    Name m_name;
+    time::steady_clock::TimePoint m_expiry = time::steady_clock::TimePoint::min();
+    scheduler::EventId m_cleanup;
 
-  name_tree::Entry* m_nameTreeEntry = nullptr;
+    name_tree::Entry* m_nameTreeEntry = nullptr;
 
-  friend class Measurements;
-  friend class name_tree::Entry;
+    friend class Measurements;
+    friend class name_tree::Entry;
 };
 
 } // namespace measurements

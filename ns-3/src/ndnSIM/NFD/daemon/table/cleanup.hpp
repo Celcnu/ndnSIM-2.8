@@ -44,8 +44,7 @@ namespace nfd {
  *        classes is to perform both FIB and PIT cleanups in one pass of NameTree enumeration,
  *        so as to reduce performance overhead.
  */
-void
-cleanupOnFaceRemoval(NameTree& nt, Fib& fib, Pit& pit, const Face& face);
+void cleanupOnFaceRemoval(NameTree& nt, Fib& fib, Pit& pit, const Face& face);
 
 } // namespace nfd
 

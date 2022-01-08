@@ -32,30 +32,26 @@ namespace ndn {
 
 class RegexPseudoMatcher;
 
-class RegexComponentMatcher : public RegexMatcher
-{
-public:
-  /**
-   * @brief Create a RegexComponent matcher from expr
-   * @param expr The standard regular expression to match a component
-   * @param backrefManager The back reference manager
-   * @param isExactMatch The flag to provide exact match
-   */
-  RegexComponentMatcher(const std::string& expr,
-                        shared_ptr<RegexBackrefManager> backrefManager,
-                        bool isExactMatch = true);
+class RegexComponentMatcher : public RegexMatcher {
+  public:
+    /**
+     * @brief Create a RegexComponent matcher from expr
+     * @param expr The standard regular expression to match a component
+     * @param backrefManager The back reference manager
+     * @param isExactMatch The flag to provide exact match
+     */
+    RegexComponentMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager,
+                          bool isExactMatch = true);
 
-  bool
-  match(const Name& name, size_t offset, size_t len = 1) override;
+    bool match(const Name& name, size_t offset, size_t len = 1) override;
 
-protected:
-  void
-  compile() override;
+  protected:
+    void compile() override;
 
-private:
-  bool m_isExactMatch;
-  std::regex m_componentRegex;
-  std::vector<shared_ptr<RegexPseudoMatcher>> m_pseudoMatchers;
+  private:
+    bool m_isExactMatch;
+    std::regex m_componentRegex;
+    std::vector<shared_ptr<RegexPseudoMatcher>> m_pseudoMatchers;
 };
 
 } // namespace ndn

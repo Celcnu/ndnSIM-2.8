@@ -38,81 +38,76 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class RibServiceFixture : public RibIoFixture
-{
-protected:
-  static ConfigSection
-  makeSection(const std::string& text, bool wantUnixSocketPath = true)
-  {
-    std::istringstream is(text);
-    ConfigSection section;
-    boost::property_tree::read_info(is, section);
-    if (wantUnixSocketPath)
-      section.put("face_system.unix.path", "/dev/null");
-    return section;
-  }
+class RibServiceFixture : public RibIoFixture {
+  protected:
+    static ConfigSection
+    makeSection(const std::string& text, bool wantUnixSocketPath = true)
+    {
+        std::istringstream is(text);
+        ConfigSection section;
+        boost::property_tree::read_info(is, section);
+        if (wantUnixSocketPath)
+            section.put("face_system.unix.path", "/dev/null");
+        return section;
+    }
 
-protected:
-  ndn::KeyChain m_ribKeyChain;
+  protected:
+    ndn::KeyChain m_ribKeyChain;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestService, RibServiceFixture)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  auto section = makeSection("");
+    auto section = makeSection("");
 
-  BOOST_CHECK_THROW(Service::get(), std::logic_error);
-  BOOST_CHECK_THROW(Service(section, m_ribKeyChain), std::logic_error);
-
-  runOnRibIoService([&] {
-    {
-      BOOST_CHECK_THROW(Service::get(), std::logic_error);
-      Service ribService(section, m_ribKeyChain);
-      BOOST_CHECK_EQUAL(&ribService, &Service::get());
-    }
     BOOST_CHECK_THROW(Service::get(), std::logic_error);
-    Service ribService(section, m_ribKeyChain);
     BOOST_CHECK_THROW(Service(section, m_ribKeyChain), std::logic_error);
-  });
-  poll();
+
+    runOnRibIoService([&] {
+        {
+            BOOST_CHECK_THROW(Service::get(), std::logic_error);
+            Service ribService(section, m_ribKeyChain);
+            BOOST_CHECK_EQUAL(&ribService, &Service::get());
+        }
+        BOOST_CHECK_THROW(Service::get(), std::logic_error);
+        Service ribService(section, m_ribKeyChain);
+        BOOST_CHECK_THROW(Service(section, m_ribKeyChain), std::logic_error);
+    });
+    poll();
 }
 
 BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(EmptyLocalhostSecurity)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     rib
     {
       localhost_security
     }
   )CONFIG";
 
-  runOnRibIoService([&] {
-    BOOST_CHECK_NO_THROW(Service(makeSection(CONFIG), m_ribKeyChain));
-  });
-  poll();
+    runOnRibIoService([&] { BOOST_CHECK_NO_THROW(Service(makeSection(CONFIG), m_ribKeyChain)); });
+    poll();
 }
 
 BOOST_AUTO_TEST_CASE(EmptyPrefixAnnouncementValidation)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     rib
     {
       prefix_announcement_validation
     }
   )CONFIG";
 
-  runOnRibIoService([&] {
-    BOOST_CHECK_NO_THROW(Service(makeSection(CONFIG), m_ribKeyChain));
-  });
-  poll();
+    runOnRibIoService([&] { BOOST_CHECK_NO_THROW(Service(makeSection(CONFIG), m_ribKeyChain)); });
+    poll();
 }
 
 BOOST_AUTO_TEST_CASE(LocalhopAndPropagate)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     rib
     {
       localhost_security
@@ -133,14 +128,14 @@ BOOST_AUTO_TEST_CASE(LocalhopAndPropagate)
     }
   )CONFIG";
 
-  runOnRibIoService([&] {
-    BOOST_CHECK_EXCEPTION(Service(makeSection(CONFIG), m_ribKeyChain), ConfigFile::Error,
-                          [] (const auto& e) {
-                            return e.what() == "localhop_security and auto_prefix_propagate "
-                                               "cannot be enabled at the same time"s;
-                          });
-  });
-  poll();
+    runOnRibIoService([&] {
+        BOOST_CHECK_EXCEPTION(Service(makeSection(CONFIG), m_ribKeyChain), ConfigFile::Error, [](const auto& e) {
+            return e.what()
+                   == "localhop_security and auto_prefix_propagate "
+                      "cannot be enabled at the same time"s;
+        });
+    });
+    poll();
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig

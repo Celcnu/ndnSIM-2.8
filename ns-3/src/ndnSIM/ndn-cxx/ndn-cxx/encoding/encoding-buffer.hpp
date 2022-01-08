@@ -32,34 +32,29 @@ namespace encoding {
 /**
  * @brief EncodingImpl specialization for actual TLV encoding
  */
-template<>
-class EncodingImpl<EncoderTag> : public Encoder
-{
-public:
-  explicit
-  EncodingImpl(size_t totalReserve = MAX_NDN_PACKET_SIZE, size_t reserveFromBack = 400)
-    : Encoder(totalReserve, reserveFromBack)
-  {
-  }
+template <>
+class EncodingImpl<EncoderTag> : public Encoder {
+  public:
+    explicit EncodingImpl(size_t totalReserve = MAX_NDN_PACKET_SIZE, size_t reserveFromBack = 400)
+      : Encoder(totalReserve, reserveFromBack)
+    {
+    }
 
-  explicit
-  EncodingImpl(const Block& block)
-    : Encoder(block)
-  {
-  }
+    explicit EncodingImpl(const Block& block)
+      : Encoder(block)
+    {
+    }
 };
 
 /**
  * @brief EncodingImpl specialization for TLV size estimation
  */
-template<>
-class EncodingImpl<EstimatorTag> : public Estimator
-{
-public:
-  explicit
-  EncodingImpl(size_t totalReserve = 0, size_t totalFromBack = 0)
-  {
-  }
+template <>
+class EncodingImpl<EstimatorTag> : public Estimator {
+  public:
+    explicit EncodingImpl(size_t totalReserve = 0, size_t totalFromBack = 0)
+    {
+    }
 };
 
 } // namespace encoding

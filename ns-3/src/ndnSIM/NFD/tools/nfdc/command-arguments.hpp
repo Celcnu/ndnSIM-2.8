@@ -42,37 +42,36 @@ using ndn::nfd::RouteOrigin;
 
 /** \brief contains named command arguments
  */
-class CommandArguments : public std::map<std::string, ndn::any>
-{
-public:
-  /** \return the argument value, or nullopt if the argument is omitted on command line
-   */
-  template<typename T>
-  optional<T>
-  getOptional(const std::string& key) const
-  {
-    auto i = find(key);
-    return i == end() ? nullopt : ndn::make_optional(ndn::any_cast<T>(i->second));
-  }
+class CommandArguments : public std::map<std::string, ndn::any> {
+  public:
+    /** \return the argument value, or nullopt if the argument is omitted on command line
+     */
+    template <typename T>
+    optional<T>
+    getOptional(const std::string& key) const
+    {
+        auto i = find(key);
+        return i == end() ? nullopt : ndn::make_optional(ndn::any_cast<T>(i->second));
+    }
 
-  /** \return the argument value, or a default value if the argument is omitted on command line
-   */
-  template<typename T>
-  T
-  get(const std::string& key, const T& defaultValue = T()) const
-  {
-    return getOptional<T>(key).value_or(defaultValue);
-  }
+    /** \return the argument value, or a default value if the argument is omitted on command line
+     */
+    template <typename T>
+    T
+    get(const std::string& key, const T& defaultValue = T()) const
+    {
+        return getOptional<T>(key).value_or(defaultValue);
+    }
 
-  /** \brief get an optional boolean argument as tribool
-   *  \return the argument value, or boost::logic::indeterminate if the argument is omitted on command line
-   */
-  boost::logic::tribool
-  getTribool(const std::string& key) const
-  {
-    auto value = getOptional<bool>(key);
-    return value ? boost::logic::tribool(*value) : boost::logic::indeterminate;
-  }
+    /** \brief get an optional boolean argument as tribool
+     *  \return the argument value, or boost::logic::indeterminate if the argument is omitted on command line
+     */
+    boost::logic::tribool
+    getTribool(const std::string& key) const
+    {
+        auto value = getOptional<bool>(key);
+        return value ? boost::logic::tribool(*value) : boost::logic::indeterminate;
+    }
 };
 
 } // namespace nfdc

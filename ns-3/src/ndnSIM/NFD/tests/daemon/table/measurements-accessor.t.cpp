@@ -37,55 +37,50 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class MeasurementsAccessorTestStrategy : public DummyStrategy
-{
-public:
-  static void
-  registerAs(const Name& strategyName)
-  {
-    registerAsImpl<MeasurementsAccessorTestStrategy>(strategyName);
-  }
+class MeasurementsAccessorTestStrategy : public DummyStrategy {
+  public:
+    static void
+    registerAs(const Name& strategyName)
+    {
+        registerAsImpl<MeasurementsAccessorTestStrategy>(strategyName);
+    }
 
-  MeasurementsAccessorTestStrategy(Forwarder& forwarder, const Name& name)
-    : DummyStrategy(forwarder, name)
-  {
-  }
+    MeasurementsAccessorTestStrategy(Forwarder& forwarder, const Name& name)
+      : DummyStrategy(forwarder, name)
+    {
+    }
 
-  MeasurementsAccessor&
-  getMeasurementsAccessor()
-  {
-    return this->getMeasurements();
-  }
+    MeasurementsAccessor&
+    getMeasurementsAccessor()
+    {
+        return this->getMeasurements();
+    }
 };
 
-class MeasurementsAccessorFixture : public GlobalIoFixture
-{
-protected:
-  MeasurementsAccessorFixture()
-  {
-    const Name strategyP("/measurements-accessor-test-strategy-P/%FD%01");
-    const Name strategyQ("/measurements-accessor-test-strategy-Q/%FD%01");
-    MeasurementsAccessorTestStrategy::registerAs(strategyP);
-    MeasurementsAccessorTestStrategy::registerAs(strategyQ);
+class MeasurementsAccessorFixture : public GlobalIoFixture {
+  protected:
+    MeasurementsAccessorFixture()
+    {
+        const Name strategyP("/measurements-accessor-test-strategy-P/%FD%01");
+        const Name strategyQ("/measurements-accessor-test-strategy-Q/%FD%01");
+        MeasurementsAccessorTestStrategy::registerAs(strategyP);
+        MeasurementsAccessorTestStrategy::registerAs(strategyQ);
 
-    accessor1 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/", strategyP)
-                  .getMeasurementsAccessor();
-    accessor2 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/A", strategyQ)
-                  .getMeasurementsAccessor();
-    accessor3 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/A/B", strategyP)
-                  .getMeasurementsAccessor();
+        accessor1 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/", strategyP).getMeasurementsAccessor();
+        accessor2 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/A", strategyQ).getMeasurementsAccessor();
+        accessor3 = &choose<MeasurementsAccessorTestStrategy>(forwarder, "/A/B", strategyP).getMeasurementsAccessor();
 
-    // Despite accessor1 and accessor3 are associated with the same strategy name,
-    // they are different strategy instances and thus cannot access each other's measurements.
-  }
+        // Despite accessor1 and accessor3 are associated with the same strategy name,
+        // they are different strategy instances and thus cannot access each other's measurements.
+    }
 
-protected:
-  FaceTable faceTable;
-  Forwarder forwarder{faceTable};
-  Measurements& measurements{forwarder.getMeasurements()};
-  MeasurementsAccessor* accessor1;
-  MeasurementsAccessor* accessor2;
-  MeasurementsAccessor* accessor3;
+  protected:
+    FaceTable faceTable;
+    Forwarder forwarder{faceTable};
+    Measurements& measurements{forwarder.getMeasurements()};
+    MeasurementsAccessor* accessor1;
+    MeasurementsAccessor* accessor2;
+    MeasurementsAccessor* accessor3;
 };
 
 BOOST_AUTO_TEST_SUITE(Table)
@@ -93,84 +88,84 @@ BOOST_FIXTURE_TEST_SUITE(TestMeasurementsAccessor, MeasurementsAccessorFixture)
 
 BOOST_AUTO_TEST_CASE(Get)
 {
-  BOOST_CHECK(accessor1->get("/"     ) != nullptr);
-  BOOST_CHECK(accessor1->get("/A"    ) == nullptr);
-  BOOST_CHECK(accessor1->get("/A/B"  ) == nullptr);
-  BOOST_CHECK(accessor1->get("/A/B/C") == nullptr);
-  BOOST_CHECK(accessor1->get("/A/D"  ) == nullptr);
+    BOOST_CHECK(accessor1->get("/") != nullptr);
+    BOOST_CHECK(accessor1->get("/A") == nullptr);
+    BOOST_CHECK(accessor1->get("/A/B") == nullptr);
+    BOOST_CHECK(accessor1->get("/A/B/C") == nullptr);
+    BOOST_CHECK(accessor1->get("/A/D") == nullptr);
 
-  BOOST_CHECK(accessor2->get("/"     ) == nullptr);
-  BOOST_CHECK(accessor2->get("/A"    ) != nullptr);
-  BOOST_CHECK(accessor2->get("/A/B"  ) == nullptr);
-  BOOST_CHECK(accessor2->get("/A/B/C") == nullptr);
-  BOOST_CHECK(accessor2->get("/A/D"  ) != nullptr);
+    BOOST_CHECK(accessor2->get("/") == nullptr);
+    BOOST_CHECK(accessor2->get("/A") != nullptr);
+    BOOST_CHECK(accessor2->get("/A/B") == nullptr);
+    BOOST_CHECK(accessor2->get("/A/B/C") == nullptr);
+    BOOST_CHECK(accessor2->get("/A/D") != nullptr);
 
-  BOOST_CHECK(accessor3->get("/"     ) == nullptr);
-  BOOST_CHECK(accessor3->get("/A"    ) == nullptr);
-  BOOST_CHECK(accessor3->get("/A/B"  ) != nullptr);
-  BOOST_CHECK(accessor3->get("/A/B/C") != nullptr);
-  BOOST_CHECK(accessor3->get("/A/D"  ) == nullptr);
+    BOOST_CHECK(accessor3->get("/") == nullptr);
+    BOOST_CHECK(accessor3->get("/A") == nullptr);
+    BOOST_CHECK(accessor3->get("/A/B") != nullptr);
+    BOOST_CHECK(accessor3->get("/A/B/C") != nullptr);
+    BOOST_CHECK(accessor3->get("/A/D") == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(GetParent)
 {
-  Entry& entryRoot = measurements.get("/");
-  BOOST_CHECK(accessor1->getParent(entryRoot) == nullptr);
-  BOOST_CHECK(accessor2->getParent(entryRoot) == nullptr);
+    Entry& entryRoot = measurements.get("/");
+    BOOST_CHECK(accessor1->getParent(entryRoot) == nullptr);
+    BOOST_CHECK(accessor2->getParent(entryRoot) == nullptr);
 
-  Entry& entryA = measurements.get("/A");
-  BOOST_CHECK(accessor2->getParent(entryA) == nullptr);
-  Entry& entryAD = measurements.get("/A/D");
-  BOOST_CHECK(accessor2->getParent(entryAD) != nullptr);
-  // whether accessor1 and accessor3 can getParent(entryA) and getParent(entryAD) is undefined,
-  // because they shouldn't have obtained those entries in the first place
+    Entry& entryA = measurements.get("/A");
+    BOOST_CHECK(accessor2->getParent(entryA) == nullptr);
+    Entry& entryAD = measurements.get("/A/D");
+    BOOST_CHECK(accessor2->getParent(entryAD) != nullptr);
+    // whether accessor1 and accessor3 can getParent(entryA) and getParent(entryAD) is undefined,
+    // because they shouldn't have obtained those entries in the first place
 }
 
 BOOST_AUTO_TEST_CASE(FindLongestPrefixMatch)
 {
-  shared_ptr<Interest> interest = makeInterest("/A/B/C");
-  shared_ptr<pit::Entry> pitEntry = forwarder.getPit().insert(*interest).first;
+    shared_ptr<Interest> interest = makeInterest("/A/B/C");
+    shared_ptr<pit::Entry> pitEntry = forwarder.getPit().insert(*interest).first;
 
-  measurements.get("/");
-  BOOST_CHECK(accessor1->findLongestPrefixMatch("/A/B") != nullptr);
-  BOOST_CHECK(accessor1->findLongestPrefixMatch(*pitEntry) != nullptr);
+    measurements.get("/");
+    BOOST_CHECK(accessor1->findLongestPrefixMatch("/A/B") != nullptr);
+    BOOST_CHECK(accessor1->findLongestPrefixMatch(*pitEntry) != nullptr);
 
-  measurements.get("/A");
-  BOOST_CHECK(accessor1->findLongestPrefixMatch("/A/B") == nullptr);
-  BOOST_CHECK(accessor1->findLongestPrefixMatch(*pitEntry) == nullptr);
+    measurements.get("/A");
+    BOOST_CHECK(accessor1->findLongestPrefixMatch("/A/B") == nullptr);
+    BOOST_CHECK(accessor1->findLongestPrefixMatch(*pitEntry) == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(FindExactMatch)
 {
-  measurements.get("/");
-  measurements.get("/A");
-  measurements.get("/A/B");
-  measurements.get("/A/B/C");
-  measurements.get("/A/D");
+    measurements.get("/");
+    measurements.get("/A");
+    measurements.get("/A/B");
+    measurements.get("/A/B/C");
+    measurements.get("/A/D");
 
-  BOOST_CHECK(accessor1->findExactMatch("/"     ) != nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/A"    ) == nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/A/B"  ) == nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/A/B/C") == nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/A/D"  ) == nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/A/E"  ) == nullptr);
-  BOOST_CHECK(accessor1->findExactMatch("/F"    ) == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/") != nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/A") == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/A/B") == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/A/B/C") == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/A/D") == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/A/E") == nullptr);
+    BOOST_CHECK(accessor1->findExactMatch("/F") == nullptr);
 
-  BOOST_CHECK(accessor2->findExactMatch("/"     ) == nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/A"    ) != nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/A/B"  ) == nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/A/B/C") == nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/A/D"  ) != nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/A/E"  ) == nullptr);
-  BOOST_CHECK(accessor2->findExactMatch("/F"    ) == nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/") == nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/A") != nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/A/B") == nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/A/B/C") == nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/A/D") != nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/A/E") == nullptr);
+    BOOST_CHECK(accessor2->findExactMatch("/F") == nullptr);
 
-  BOOST_CHECK(accessor3->findExactMatch("/"     ) == nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/A"    ) == nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/A/B"  ) != nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/A/B/C") != nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/A/D"  ) == nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/A/E"  ) == nullptr);
-  BOOST_CHECK(accessor3->findExactMatch("/F"    ) == nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/") == nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/A") == nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/A/B") != nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/A/B/C") != nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/A/D") == nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/A/E") == nullptr);
+    BOOST_CHECK(accessor3->findExactMatch("/F") == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestMeasurementsAccessor

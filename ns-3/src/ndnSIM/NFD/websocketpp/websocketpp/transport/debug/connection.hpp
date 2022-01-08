@@ -49,12 +49,15 @@ namespace debug {
 /// Empty timer class to stub out for timer functionality that stub
 /// transport doesn't support
 struct timer {
-    void cancel() {}
+    void
+    cancel()
+    {
+    }
 };
 
 template <typename config>
-class connection : public lib::enable_shared_from_this< connection<config> > {
-public:
+class connection : public lib::enable_shared_from_this<connection<config>> {
+  public:
     /// Type of this connection transport component
     typedef connection<config> type;
     /// Type of a shared pointer to this connection transport component
@@ -73,14 +76,19 @@ public:
 
     typedef lib::shared_ptr<timer> timer_ptr;
 
-    explicit connection(bool is_server, const lib::shared_ptr<alog_type> & alog, const lib::shared_ptr<elog_type> & elog)
-      : m_reading(false), m_is_server(is_server), m_alog(alog), m_elog(elog)
+    explicit connection(bool is_server, const lib::shared_ptr<alog_type>& alog, const lib::shared_ptr<elog_type>& elog)
+      : m_reading(false)
+      , m_is_server(is_server)
+      , m_alog(alog)
+      , m_elog(elog)
     {
-        m_alog->write(log::alevel::devel,"debug con transport constructor");
+        m_alog->write(log::alevel::devel, "debug con transport constructor");
     }
 
     /// Get a shared pointer to this component
-    ptr get_shared() {
+    ptr
+    get_shared()
+    {
         return type::shared_from_this();
     }
 
@@ -92,7 +100,10 @@ public:
      *
      * @param value Whether or not this connection is secure.
      */
-    void set_secure(bool) {}
+    void
+    set_secure(bool)
+    {
+    }
 
     /// Tests whether or not the underlying transport is secure
     /**
@@ -100,7 +111,9 @@ public:
      *
      * @return Whether or not the underlying transport is secure
      */
-    bool is_secure() const {
+    bool
+    is_secure() const
+    {
         return false;
     }
 
@@ -116,7 +129,9 @@ public:
      *
      * @param u The uri to set
      */
-    void set_uri(uri_ptr) {}
+    void set_uri(uri_ptr)
+    {
+    }
 
     /// Set human readable remote endpoint address
     /**
@@ -132,7 +147,9 @@ public:
      *
      * @param value The remote endpoint address to set.
      */
-    void set_remote_endpoint(std::string) {}
+    void set_remote_endpoint(std::string)
+    {
+    }
 
     /// Get human readable remote endpoint address
     /**
@@ -143,7 +160,9 @@ public:
      *
      * @return A string identifying the address of the remote endpoint
      */
-    std::string get_remote_endpoint() const {
+    std::string
+    get_remote_endpoint() const
+    {
         return "unknown (debug transport)";
     }
 
@@ -151,7 +170,9 @@ public:
     /**
      * @return The handle for this connection.
      */
-    connection_hdl get_handle() const {
+    connection_hdl
+    get_handle() const
+    {
         return connection_hdl();
     }
 
@@ -165,12 +186,14 @@ public:
      * @return A handle that can be used to cancel the timer if it is no longer
      * needed.
      */
-    timer_ptr set_timer(long, timer_handler handler) {
-        m_alog->write(log::alevel::devel,"debug connection set timer");
+    timer_ptr
+    set_timer(long, timer_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "debug connection set timer");
         m_timer_handler = handler;
         return timer_ptr();
     }
-    
+
     /// Manual input supply (read all)
     /**
      * Similar to read_some, but continues to read until all bytes in the
@@ -187,35 +210,44 @@ public:
      * @param len Length of buf
      * @return The number of characters from buf actually read.
      */
-    size_t read_all(char const * buf, size_t len) {        
+    size_t
+    read_all(char const* buf, size_t len)
+    {
         size_t total_read = 0;
         size_t temp_read = 0;
 
         do {
-            temp_read = this->read_some_impl(buf+total_read,len-total_read);
+            temp_read = this->read_some_impl(buf + total_read, len - total_read);
             total_read += temp_read;
         } while (temp_read != 0 && total_read < len);
 
         return total_read;
     }
-    
+
     // debug stuff to invoke the async handlers
-    void expire_timer(lib::error_code const & ec) {
+    void
+    expire_timer(lib::error_code const& ec)
+    {
         m_timer_handler(ec);
     }
-    
-    void fullfil_write() {
+
+    void
+    fullfil_write()
+    {
         m_write_handler(lib::error_code());
     }
-protected:
+
+  protected:
     /// Initialize the connection transport
     /**
      * Initialize the connection's transport component.
      *
      * @param handler The `init_handler` to call when initialization is done
      */
-    void init(init_handler handler) {
-        m_alog->write(log::alevel::devel,"debug connection init");
+    void
+    init(init_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "debug connection init");
         handler(lib::error_code());
     }
 
@@ -243,25 +275,25 @@ protected:
      * @param handler The callback to invoke when the operation is complete or
      * ends in an error
      */
-    void async_read_at_least(size_t num_bytes, char * buf, size_t len,
-        read_handler handler)
+    void
+    async_read_at_least(size_t num_bytes, char* buf, size_t len, read_handler handler)
     {
         std::stringstream s;
         s << "debug_con async_read_at_least: " << num_bytes;
-        m_alog->write(log::alevel::devel,s.str());
+        m_alog->write(log::alevel::devel, s.str());
 
         if (num_bytes > len) {
-            handler(make_error_code(error::invalid_num_bytes),size_t(0));
+            handler(make_error_code(error::invalid_num_bytes), size_t(0));
             return;
         }
 
         if (m_reading == true) {
-            handler(make_error_code(error::double_read),size_t(0));
+            handler(make_error_code(error::double_read), size_t(0));
             return;
         }
 
         if (num_bytes == 0 || len == 0) {
-            handler(lib::error_code(),size_t(0));
+            handler(lib::error_code(), size_t(0));
             return;
         }
 
@@ -285,8 +317,10 @@ protected:
      * @param len number of bytes to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(char const *, size_t, write_handler handler) {
-        m_alog->write(log::alevel::devel,"debug_con async_write");
+    void
+    async_write(char const*, size_t, write_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "debug_con async_write");
         m_write_handler = handler;
     }
 
@@ -301,8 +335,10 @@ protected:
      * @param bufs vector of buffers to write
      * @param handler Callback to invoke with operation status.
      */
-    void async_write(std::vector<buffer> const &, write_handler handler) {
-        m_alog->write(log::alevel::devel,"debug_con async_write buffer list");
+    void
+    async_write(std::vector<buffer> const&, write_handler handler)
+    {
+        m_alog->write(log::alevel::devel, "debug_con async_write buffer list");
         m_write_handler = handler;
     }
 
@@ -310,7 +346,9 @@ protected:
     /**
      * @param hdl The new handle
      */
-    void set_handle(connection_hdl) {}
+    void set_handle(connection_hdl)
+    {
+    }
 
     /// Call given handler back within the transport's event system (if present)
     /**
@@ -323,7 +361,9 @@ protected:
      * @return Whether or not the transport was able to register the handler for
      * callback.
      */
-    lib::error_code dispatch(dispatch_handler handler) {
+    lib::error_code
+    dispatch(dispatch_handler handler)
+    {
         handler();
         return lib::error_code();
     }
@@ -332,21 +372,25 @@ protected:
     /**
      * @param h The `shutdown_handler` to call back when complete
      */
-    void async_shutdown(shutdown_handler handler) {
+    void
+    async_shutdown(shutdown_handler handler)
+    {
         handler(lib::error_code());
     }
-    
-    size_t read_some_impl(char const * buf, size_t len) {
-        m_alog->write(log::alevel::devel,"debug_con read_some");
+
+    size_t
+    read_some_impl(char const* buf, size_t len)
+    {
+        m_alog->write(log::alevel::devel, "debug_con read_some");
 
         if (!m_reading) {
-            m_elog->write(log::elevel::devel,"write while not reading");
+            m_elog->write(log::elevel::devel, "write while not reading");
             return 0;
         }
 
-        size_t bytes_to_copy = (std::min)(len,m_len-m_cursor);
+        size_t bytes_to_copy = (std::min)(len, m_len - m_cursor);
 
-        std::copy(buf,buf+bytes_to_copy,m_buf+m_cursor);
+        std::copy(buf, buf + bytes_to_copy, m_buf + m_cursor);
 
         m_cursor += bytes_to_copy;
 
@@ -373,37 +417,39 @@ protected:
      *
      * @param ec The error code to forward to the read handler
      */
-    void complete_read(lib::error_code const & ec) {
+    void
+    complete_read(lib::error_code const& ec)
+    {
         m_reading = false;
 
         read_handler handler = m_read_handler;
         m_read_handler = read_handler();
 
-        handler(ec,m_cursor);
+        handler(ec, m_cursor);
     }
-private:
+
+  private:
     timer_handler m_timer_handler;
-    
+
     // Read space (Protected by m_read_mutex)
-    char *          m_buf;
-    size_t          m_len;
-    size_t          m_bytes_needed;
-    read_handler    m_read_handler;
-    size_t          m_cursor;
+    char* m_buf;
+    size_t m_len;
+    size_t m_bytes_needed;
+    read_handler m_read_handler;
+    size_t m_cursor;
 
     // transport resources
-    connection_hdl  m_connection_hdl;
-    write_handler   m_write_handler;
-    shutdown_handler    m_shutdown_handler;
+    connection_hdl m_connection_hdl;
+    write_handler m_write_handler;
+    shutdown_handler m_shutdown_handler;
 
-    bool            m_reading;
-    bool const      m_is_server;
-    bool            m_is_secure;
-    lib::shared_ptr<alog_type>     m_alog;
-    lib::shared_ptr<elog_type>     m_elog;
-    std::string     m_remote_endpoint;
+    bool m_reading;
+    bool const m_is_server;
+    bool m_is_secure;
+    lib::shared_ptr<alog_type> m_alog;
+    lib::shared_ptr<elog_type> m_elog;
+    std::string m_remote_endpoint;
 };
-
 
 } // namespace debug
 } // namespace transport

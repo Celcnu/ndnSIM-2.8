@@ -45,35 +45,26 @@ namespace ndn {
  *
  */
 class RttMeanDeviation : public RttEstimator {
-public:
-  static TypeId
-  GetTypeId(void);
+  public:
+    static TypeId GetTypeId(void);
 
-  RttMeanDeviation();
-  RttMeanDeviation(const RttMeanDeviation&);
+    RttMeanDeviation();
+    RttMeanDeviation(const RttMeanDeviation&);
 
-  virtual TypeId
-  GetInstanceTypeId(void) const;
+    virtual TypeId GetInstanceTypeId(void) const;
 
-  void
-  SentSeq(SequenceNumber32 seq, uint32_t size);
-  Time
-  AckSeq(SequenceNumber32 ackSeq);
-  void
-  Measurement(Time measure);
-  Time
-  RetransmitTimeout();
-  Ptr<RttEstimator>
-  Copy() const;
-  void
-  Reset();
-  void
-  Gain(double g);
+    void SentSeq(SequenceNumber32 seq, uint32_t size);
+    Time AckSeq(SequenceNumber32 ackSeq);
+    void Measurement(Time measure);
+    Time RetransmitTimeout();
+    Ptr<RttEstimator> Copy() const;
+    void Reset();
+    void Gain(double g);
 
-private:
-  double m_gain;   // Filter gain
-  double m_gain2;  // Filter gain
-  Time m_variance; // Current variance
+  private:
+    double m_gain;   // Filter gain
+    double m_gain2;  // Filter gain
+    Time m_variance; // Current variance
 };
 
 } // namespace ndn

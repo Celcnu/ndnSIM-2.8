@@ -35,21 +35,18 @@ namespace nfd {
 namespace fw {
 
 class RandomLoadBalancerStrategy : public Strategy {
-public:
-  RandomLoadBalancerStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+  public:
+    RandomLoadBalancerStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  virtual
-  ~RandomLoadBalancerStrategy() override;
+    virtual ~RandomLoadBalancerStrategy() override;
 
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-protected:
-  boost::random::mt19937 m_randomGenerator;
+  protected:
+    boost::random::mt19937 m_randomGenerator;
 };
 
 } // namespace fw

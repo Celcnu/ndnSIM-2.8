@@ -37,60 +37,60 @@ CongestionMarkStrategy::CongestionMarkStrategy(Forwarder& forwarder, const Name&
   , m_congestionMark(1)
   , m_shouldPreserveMark(true)
 {
-  ParsedInstanceName parsed = parseInstanceName(name);
-  switch (parsed.parameters.size()) {
-  case 2:
-    if (parsed.parameters.at(1).toUri() != "true" && parsed.parameters.at(1).toUri() != "false") {
-      NDN_THROW(std::invalid_argument(
-        "Second parameter to CongestionMarkStrategy must be either 'true' or 'false'"));
+    ParsedInstanceName parsed = parseInstanceName(name);
+    switch (parsed.parameters.size()) {
+        case 2:
+            if (parsed.parameters.at(1).toUri() != "true" && parsed.parameters.at(1).toUri() != "false") {
+                NDN_THROW(
+                  std::invalid_argument("Second parameter to CongestionMarkStrategy must be either 'true' or 'false'"));
+            }
+            m_shouldPreserveMark = parsed.parameters.at(1).toUri() == "true";
+            NDN_CXX_FALLTHROUGH;
+        case 1:
+            try {
+                auto s = parsed.parameters.at(0).toUri();
+                if (!s.empty() && s[0] == '-')
+                    NDN_THROW(boost::bad_lexical_cast());
+                m_congestionMark = boost::lexical_cast<uint64_t>(s);
+            }
+            catch (const boost::bad_lexical_cast&) {
+                NDN_THROW(
+                  std::invalid_argument("First parameter to CongestionMarkStrategy must be a non-negative integer"));
+            }
+            NDN_CXX_FALLTHROUGH;
+        case 0:
+            break;
+        default:
+            NDN_THROW(std::invalid_argument("CongestionMarkStrategy does not accept more than 2 parameters"));
     }
-    m_shouldPreserveMark = parsed.parameters.at(1).toUri() == "true";
-    NDN_CXX_FALLTHROUGH;
-  case 1:
-    try {
-      auto s = parsed.parameters.at(0).toUri();
-      if (!s.empty() && s[0] == '-')
-        NDN_THROW(boost::bad_lexical_cast());
-      m_congestionMark = boost::lexical_cast<uint64_t>(s);
-    }
-    catch (const boost::bad_lexical_cast&) {
-      NDN_THROW(std::invalid_argument(
-        "First parameter to CongestionMarkStrategy must be a non-negative integer"));
-    }
-    NDN_CXX_FALLTHROUGH;
-  case 0:
-    break;
-  default:
-    NDN_THROW(std::invalid_argument("CongestionMarkStrategy does not accept more than 2 parameters"));
-  }
 
-  if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
-    NDN_THROW(std::invalid_argument(
-      "CongestionMarkStrategy does not support version " + to_string(*parsed.version)));
-  }
-  this->setInstanceName(makeInstanceName(name, getStrategyName()));
+    if (parsed.version && *parsed.version != getStrategyName()[-1].toVersion()) {
+        NDN_THROW(
+          std::invalid_argument("CongestionMarkStrategy does not support version " + to_string(*parsed.version)));
+    }
+    this->setInstanceName(makeInstanceName(name, getStrategyName()));
 }
 
 const Name&
 CongestionMarkStrategy::getStrategyName()
 {
-  static Name strategyName("/localhost/nfd/strategy/congestion-mark/%FD%01");
-  return strategyName;
+    static Name strategyName("/localhost/nfd/strategy/congestion-mark/%FD%01");
+    return strategyName;
 }
 
 void
 CongestionMarkStrategy::afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
                                              const shared_ptr<pit::Entry>& pitEntry)
 {
-  auto mark = interest.getCongestionMark();
-  if (mark != m_congestionMark && (!m_shouldPreserveMark || mark == 0)) {
-    Interest markedInterest(interest);
-    markedInterest.setCongestionMark(m_congestionMark);
-    BestRouteStrategy2::afterReceiveInterest(ingress, markedInterest, pitEntry);
-  }
-  else {
-    BestRouteStrategy2::afterReceiveInterest(ingress, interest, pitEntry);
-  }
+    auto mark = interest.getCongestionMark();
+    if (mark != m_congestionMark && (!m_shouldPreserveMark || mark == 0)) {
+        Interest markedInterest(interest);
+        markedInterest.setCongestionMark(m_congestionMark);
+        BestRouteStrategy2::afterReceiveInterest(ingress, markedInterest, pitEntry);
+    }
+    else {
+        BestRouteStrategy2::afterReceiveInterest(ingress, interest, pitEntry);
+    }
 }
 
 } // namespace fw

@@ -36,83 +36,83 @@ Identity::Identity(weak_ptr<detail::IdentityImpl> impl)
 const Name&
 Identity::getName() const
 {
-  return lock()->getName();
+    return lock()->getName();
 }
 
 Key
 Identity::addKey(const uint8_t* key, size_t keyLen, const Name& keyName) const
 {
-  return lock()->addKey(key, keyLen, keyName);
+    return lock()->addKey(key, keyLen, keyName);
 }
 
 void
 Identity::removeKey(const Name& keyName) const
 {
-  return lock()->removeKey(keyName);
+    return lock()->removeKey(keyName);
 }
 
 Key
 Identity::getKey(const Name& keyName) const
 {
-  return lock()->getKey(keyName);
+    return lock()->getKey(keyName);
 }
 
 const KeyContainer&
 Identity::getKeys() const
 {
-  return lock()->getKeys();
+    return lock()->getKeys();
 }
 
 const Key&
 Identity::setDefaultKey(const Name& keyName) const
 {
-  return lock()->setDefaultKey(keyName);
+    return lock()->setDefaultKey(keyName);
 }
 
 const Key&
 Identity::setDefaultKey(const uint8_t* key, size_t keyLen, const Name& keyName) const
 {
-  return lock()->setDefaultKey(key, keyLen, keyName);
+    return lock()->setDefaultKey(key, keyLen, keyName);
 }
 
 const Key&
 Identity::getDefaultKey() const
 {
-  return lock()->getDefaultKey();
+    return lock()->getDefaultKey();
 }
 
 Identity::operator bool() const
 {
-  return !m_impl.expired();
+    return !m_impl.expired();
 }
 
 shared_ptr<detail::IdentityImpl>
 Identity::lock() const
 {
-  auto impl = m_impl.lock();
+    auto impl = m_impl.lock();
 
-  if (impl == nullptr)
-    NDN_THROW(std::domain_error("Invalid Identity instance"));
+    if (impl == nullptr)
+        NDN_THROW(std::domain_error("Invalid Identity instance"));
 
-  return impl;
+    return impl;
 }
 
 bool
 operator!=(const Identity& lhs, const Identity& rhs)
 {
-  return lhs.m_impl.owner_before(rhs.m_impl) || rhs.m_impl.owner_before(lhs.m_impl);
+    return lhs.m_impl.owner_before(rhs.m_impl) || rhs.m_impl.owner_before(lhs.m_impl);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Identity& id)
 {
-  if (id) {
-    os << id.getName();
-  }
-  else {
-    os << "(empty)";
-  }
-  return os;
+    if (id) {
+        os << id.getName();
+    }
+    else {
+        os << "(empty)";
+    }
+    return os;
 }
 
 } // namespace pib

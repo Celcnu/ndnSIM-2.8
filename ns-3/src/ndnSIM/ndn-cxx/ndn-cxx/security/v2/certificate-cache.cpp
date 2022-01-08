@@ -31,7 +31,7 @@ NDN_LOG_INIT(ndn.security.v2.CertificateCache);
 time::nanoseconds
 CertificateCache::getDefaultLifetime()
 {
-  return 1_h;
+    return 1_h;
 }
 
 CertificateCache::CertificateCache(const time::nanoseconds& maxLifetime)
@@ -44,67 +44,66 @@ CertificateCache::CertificateCache(const time::nanoseconds& maxLifetime)
 void
 CertificateCache::insert(const Certificate& cert)
 {
-  time::system_clock::TimePoint notAfterTime = cert.getValidityPeriod().getPeriod().second;
-  time::system_clock::TimePoint now = time::system_clock::now();
-  if (notAfterTime < now) {
-    NDN_LOG_DEBUG("Not adding " << cert.getName() << ": already expired at " << time::toIsoString(notAfterTime));
-    return;
-  }
+    time::system_clock::TimePoint notAfterTime = cert.getValidityPeriod().getPeriod().second;
+    time::system_clock::TimePoint now = time::system_clock::now();
+    if (notAfterTime < now) {
+        NDN_LOG_DEBUG("Not adding " << cert.getName() << ": already expired at " << time::toIsoString(notAfterTime));
+        return;
+    }
 
-  time::system_clock::TimePoint removalTime = std::min(notAfterTime, now + m_maxLifetime);
-  NDN_LOG_DEBUG("Adding " << cert.getName() << ", will remove in "
-                << time::duration_cast<time::seconds>(removalTime - now));
-  m_certs.insert(Entry(cert, removalTime));
+    time::system_clock::TimePoint removalTime = std::min(notAfterTime, now + m_maxLifetime);
+    NDN_LOG_DEBUG("Adding " << cert.getName() << ", will remove in "
+                            << time::duration_cast<time::seconds>(removalTime - now));
+    m_certs.insert(Entry(cert, removalTime));
 }
 
 void
 CertificateCache::clear()
 {
-  m_certs.clear();
+    m_certs.clear();
 }
 
 const Certificate*
 CertificateCache::find(const Name& certPrefix) const
 {
-  const_cast<CertificateCache*>(this)->refresh();
-  if (certPrefix.size() > 0 && certPrefix[-1].isImplicitSha256Digest()) {
-    NDN_LOG_INFO("Certificate search using name with the implicit digest is not yet supported");
-  }
-  auto itr = m_certsByName.lower_bound(certPrefix);
-  if (itr == m_certsByName.end() || !certPrefix.isPrefixOf(itr->getCertName()))
-    return nullptr;
-  return &itr->cert;
+    const_cast<CertificateCache*>(this)->refresh();
+    if (certPrefix.size() > 0 && certPrefix[-1].isImplicitSha256Digest()) {
+        NDN_LOG_INFO("Certificate search using name with the implicit digest is not yet supported");
+    }
+    auto itr = m_certsByName.lower_bound(certPrefix);
+    if (itr == m_certsByName.end() || !certPrefix.isPrefixOf(itr->getCertName()))
+        return nullptr;
+    return &itr->cert;
 }
 
 const Certificate*
 CertificateCache::find(const Interest& interest) const
 {
-  if (interest.getName().size() > 0 && interest.getName()[-1].isImplicitSha256Digest()) {
-    NDN_LOG_INFO("Certificate search using name with implicit digest is not yet supported");
-  }
-  const_cast<CertificateCache*>(this)->refresh();
-
-  for (auto i = m_certsByName.lower_bound(interest.getName());
-       i != m_certsByName.end() && interest.getName().isPrefixOf(i->getCertName());
-       ++i) {
-    const auto& cert = i->cert;
-    if (interest.matchesData(cert)) {
-      return &cert;
+    if (interest.getName().size() > 0 && interest.getName()[-1].isImplicitSha256Digest()) {
+        NDN_LOG_INFO("Certificate search using name with implicit digest is not yet supported");
     }
-  }
-  return nullptr;
+    const_cast<CertificateCache*>(this)->refresh();
+
+    for (auto i = m_certsByName.lower_bound(interest.getName());
+         i != m_certsByName.end() && interest.getName().isPrefixOf(i->getCertName()); ++i) {
+        const auto& cert = i->cert;
+        if (interest.matchesData(cert)) {
+            return &cert;
+        }
+    }
+    return nullptr;
 }
 
 void
 CertificateCache::refresh()
 {
-  time::system_clock::TimePoint now = time::system_clock::now();
+    time::system_clock::TimePoint now = time::system_clock::now();
 
-  auto cIt = m_certsByTime.begin();
-  while (cIt != m_certsByTime.end() && cIt->removalTime < now) {
-    m_certsByTime.erase(cIt);
-    cIt = m_certsByTime.begin();
-  }
+    auto cIt = m_certsByTime.begin();
+    while (cIt != m_certsByTime.end() && cIt->removalTime < now) {
+        m_certsByTime.erase(cIt);
+        cIt = m_certsByTime.begin();
+    }
 }
 
 } // namespace v2

@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_SUITE(TestStripSpace)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  const char* input = R"STR(
+    const char* input = R"STR(
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
     incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
     exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
@@ -46,26 +46,24 @@ BOOST_AUTO_TEST_CASE(Basic)
     pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
     deserunt mollit anim id est laborum.
   )STR";
-  size_t inputLen = strlen(input);
+    size_t inputLen = strlen(input);
 
-  OBufferStream os;
-  StepSource source;
-  source >> stripSpace() >> streamSink(os);
+    OBufferStream os;
+    StepSource source;
+    source >> stripSpace() >> streamSink(os);
 
-  for (size_t offset = 0; offset < inputLen; offset += 40) {
-    source.write(reinterpret_cast<const uint8_t*>(input + offset),
-                 std::min<size_t>(40, inputLen - offset));
-  }
-  source.end();
+    for (size_t offset = 0; offset < inputLen; offset += 40) {
+        source.write(reinterpret_cast<const uint8_t*>(input + offset), std::min<size_t>(40, inputLen - offset));
+    }
+    source.end();
 
-  std::string expected(
-    "Loremipsumdolorsitamet,consecteturadipiscingelit,seddoeiusmodtemporincididuntutl"
-    "aboreetdoloremagnaaliqua.Utenimadminimveniam,quisnostrudexercitationullamcolabor"
-    "isnisiutaliquipexeacommodoconsequat.Duisauteiruredolorinreprehenderitinvoluptate"
-    "velitessecillumdoloreeufugiatnullapariatur.Excepteursintoccaecatcupidatatnonproi"
-    "dent,suntinculpaquiofficiadeseruntmollitanimidestlaborum.");
-  ConstBufferPtr buf = os.buf();
-  BOOST_CHECK_EQUAL(std::string(buf->get<char>(), buf->size()), expected);
+    std::string expected("Loremipsumdolorsitamet,consecteturadipiscingelit,seddoeiusmodtemporincididuntutl"
+                         "aboreetdoloremagnaaliqua.Utenimadminimveniam,quisnostrudexercitationullamcolabor"
+                         "isnisiutaliquipexeacommodoconsequat.Duisauteiruredolorinreprehenderitinvoluptate"
+                         "velitessecillumdoloreeufugiatnullapariatur.Excepteursintoccaecatcupidatatnonproi"
+                         "dent,suntinculpaquiofficiadeseruntmollitanimidestlaborum.");
+    ConstBufferPtr buf = os.buf();
+    BOOST_CHECK_EQUAL(std::string(buf->get<char>(), buf->size()), expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStripSpace

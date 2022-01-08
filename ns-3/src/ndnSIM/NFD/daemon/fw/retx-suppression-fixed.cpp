@@ -33,22 +33,22 @@ const time::milliseconds RetxSuppressionFixed::DEFAULT_MIN_RETX_INTERVAL = 100_m
 RetxSuppressionFixed::RetxSuppressionFixed(const time::milliseconds& minRetxInterval)
   : m_minRetxInterval(minRetxInterval)
 {
-  BOOST_ASSERT(minRetxInterval > 0_ms);
+    BOOST_ASSERT(minRetxInterval > 0_ms);
 }
 
 RetxSuppressionResult
 RetxSuppressionFixed::decidePerPitEntry(pit::Entry& pitEntry) const
 {
-  bool isNewPitEntry = !hasPendingOutRecords(pitEntry);
-  if (isNewPitEntry) {
-    return RetxSuppressionResult::NEW;
-  }
+    bool isNewPitEntry = !hasPendingOutRecords(pitEntry);
+    if (isNewPitEntry) {
+        return RetxSuppressionResult::NEW;
+    }
 
-  time::steady_clock::TimePoint lastOutgoing = getLastOutgoing(pitEntry);
-  time::steady_clock::TimePoint now = time::steady_clock::now();
-  time::steady_clock::Duration sinceLastOutgoing = now - lastOutgoing;
-  bool shouldSuppress = sinceLastOutgoing < m_minRetxInterval;
-  return shouldSuppress ? RetxSuppressionResult::SUPPRESS : RetxSuppressionResult::FORWARD;
+    time::steady_clock::TimePoint lastOutgoing = getLastOutgoing(pitEntry);
+    time::steady_clock::TimePoint now = time::steady_clock::now();
+    time::steady_clock::Duration sinceLastOutgoing = now - lastOutgoing;
+    bool shouldSuppress = sinceLastOutgoing < m_minRetxInterval;
+    return shouldSuppress ? RetxSuppressionResult::SUPPRESS : RetxSuppressionResult::FORWARD;
 }
 
 } // namespace fw

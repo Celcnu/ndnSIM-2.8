@@ -33,39 +33,32 @@ namespace rib {
 
 /** \brief a destination to readvertise into
  */
-class ReadvertiseDestination : noncopyable
-{
-public:
-  virtual
-  ~ReadvertiseDestination() = default;
+class ReadvertiseDestination : noncopyable {
+  public:
+    virtual ~ReadvertiseDestination() = default;
 
-  virtual void
-  advertise(const ReadvertisedRoute& rr,
-            std::function<void()> successCb,
-            std::function<void(const std::string&)> failureCb) = 0;
+    virtual void advertise(const ReadvertisedRoute& rr, std::function<void()> successCb,
+                           std::function<void(const std::string&)> failureCb) = 0;
 
-  virtual void
-  withdraw(const ReadvertisedRoute& rr,
-           std::function<void()> successCb,
-           std::function<void(const std::string&)> failureCb) = 0;
+    virtual void withdraw(const ReadvertisedRoute& rr, std::function<void()> successCb,
+                          std::function<void(const std::string&)> failureCb) = 0;
 
-  bool
-  isAvailable() const
-  {
-    return m_isAvailable;
-  }
+    bool
+    isAvailable() const
+    {
+        return m_isAvailable;
+    }
 
-protected:
-  void
-  setAvailability(bool isAvailable);
+  protected:
+    void setAvailability(bool isAvailable);
 
-public:
-  /** \brief signals when the destination becomes available or unavailable
-   */
-  signal::Signal<ReadvertiseDestination, bool> afterAvailabilityChange;
+  public:
+    /** \brief signals when the destination becomes available or unavailable
+     */
+    signal::Signal<ReadvertiseDestination, bool> afterAvailabilityChange;
 
-private:
-  bool m_isAvailable = false;
+  private:
+    bool m_isAvailable = false;
 };
 
 } // namespace rib

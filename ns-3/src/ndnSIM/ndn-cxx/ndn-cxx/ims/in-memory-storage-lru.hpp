@@ -34,63 +34,53 @@ namespace ndn {
 
 /** @brief Provides in-memory storage employing Least Recently Used (LRU) replacement policy.
  */
-class InMemoryStorageLru : public InMemoryStorage
-{
-public:
-  explicit
-  InMemoryStorageLru(size_t limit = 16);
+class InMemoryStorageLru : public InMemoryStorage {
+  public:
+    explicit InMemoryStorageLru(size_t limit = 16);
 
-  InMemoryStorageLru(DummyIoService& ioService, size_t limit = 16);
+    InMemoryStorageLru(DummyIoService& ioService, size_t limit = 16);
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  /** @brief Removes one Data packet from in-memory storage based on LRU, i.e. evict the least
-   *  recently accessed Data packet
-   *  @return{ whether the Data was removed }
-   */
-  bool
-  evictItem() override;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED :
+      /** @brief Removes one Data packet from in-memory storage based on LRU, i.e. evict the least
+       *  recently accessed Data packet
+       *  @return{ whether the Data was removed }
+       */
+      bool
+      evictItem() override;
 
-  /** @brief Update the entry when the entry is returned by the find() function,
-   *  update the last used time according to LRU
-   */
-  void
-  afterAccess(InMemoryStorageEntry* entry) override;
+    /** @brief Update the entry when the entry is returned by the find() function,
+     *  update the last used time according to LRU
+     */
+    void afterAccess(InMemoryStorageEntry* entry) override;
 
-  /** @brief Update the entry after a entry is successfully inserted, add it to the cleanupIndex
-   */
-  void
-  afterInsert(InMemoryStorageEntry* entry) override;
+    /** @brief Update the entry after a entry is successfully inserted, add it to the cleanupIndex
+     */
+    void afterInsert(InMemoryStorageEntry* entry) override;
 
-  /** @brief Update the entry or other data structures before a entry is successfully erased,
-   *  erase it from the cleanupIndex
-   */
-  void
-  beforeErase(InMemoryStorageEntry* entry) override;
+    /** @brief Update the entry or other data structures before a entry is successfully erased,
+     *  erase it from the cleanupIndex
+     */
+    void beforeErase(InMemoryStorageEntry* entry) override;
 
-private:
-  // multi_index_container to implement LRU
-  class byUsedTime;
-  class byEntity;
+  private:
+    // multi_index_container to implement LRU
+    class byUsedTime;
+    class byEntity;
 
-  typedef boost::multi_index_container<
-    InMemoryStorageEntry*,
-    boost::multi_index::indexed_by<
+    typedef boost::multi_index_container<
+      InMemoryStorageEntry*, boost::multi_index::indexed_by<
 
-      // by Entry itself
-      boost::multi_index::hashed_unique<
-        boost::multi_index::tag<byEntity>,
-        boost::multi_index::identity<InMemoryStorageEntry*>
-      >,
+                               // by Entry itself
+                               boost::multi_index::hashed_unique<boost::multi_index::tag<byEntity>,
+                                                                 boost::multi_index::identity<InMemoryStorageEntry*>>,
 
-      // by last used time (LRU)
-      boost::multi_index::sequenced<
-        boost::multi_index::tag<byUsedTime>
-      >
+                               // by last used time (LRU)
+                               boost::multi_index::sequenced<boost::multi_index::tag<byUsedTime>>
 
-    >
-  > CleanupIndex;
+                               >>
+      CleanupIndex;
 
-  CleanupIndex m_cleanupIndex;
+    CleanupIndex m_cleanupIndex;
 };
 
 } // namespace ndn

@@ -42,20 +42,19 @@ namespace tools {
 namespace nfdc {
 namespace tests {
 
+using boost::test_tools::output_test_stream;
 using ndn::Face;
 using ndn::KeyChain;
 using ndn::security::v2::Validator;
 using ndn::security::v2::ValidatorNull;
-using boost::test_tools::output_test_stream;
 
-class MakeValidatorNull
-{
-public:
-  unique_ptr<ValidatorNull>
-  operator()(Face&, KeyChain&) const
-  {
-    return make_unique<ValidatorNull>();
-  }
+class MakeValidatorNull {
+  public:
+    unique_ptr<ValidatorNull>
+    operator()(Face&, KeyChain&) const
+    {
+        return make_unique<ValidatorNull>();
+    }
 };
 
 /** \brief fixture to test status fetching routines in a \p Module
@@ -64,63 +63,60 @@ public:
  *                        MakeValidator()(Face&, KeyChain&) should return a unique_ptr
  *                        to Validator or its subclass
  */
-template<typename M, typename MakeValidator = MakeValidatorNull>
-class StatusFixture : public MockNfdMgmtFixture
-{
-protected:
-  using ValidatorUniquePtr = typename std::result_of<MakeValidator(Face&, KeyChain&)>::type;
+template <typename M, typename MakeValidator = MakeValidatorNull>
+class StatusFixture : public MockNfdMgmtFixture {
+  protected:
+    using ValidatorUniquePtr = typename std::result_of<MakeValidator(Face&, KeyChain&)>::type;
 
-  StatusFixture()
-    : validator(MakeValidator()(face, m_keyChain))
-    , controller(face, m_keyChain, *validator)
-    , nFetchStatusSuccess(0)
-  {
-  }
+    StatusFixture()
+      : validator(MakeValidator()(face, m_keyChain))
+      , controller(face, m_keyChain, *validator)
+      , nFetchStatusSuccess(0)
+    {
+    }
 
-protected: // status fetching
-  /** \brief start fetching status
-   *
-   *  A test case should call \p fetchStatus, \p sendDataset, and \p prepareStatusOutput
-   *  in this order, and then check \p statusXml and \p statusText contain the correct outputs.
-   *  No advanceClocks is needed in between, as they are handled by the fixture.
-   */
-  void
-  fetchStatus()
-  {
-    nFetchStatusSuccess = 0;
-    module.fetchStatus(controller,
-                       [this] { ++nFetchStatusSuccess; },
-                       [] (uint32_t code, const std::string& reason) {
-                         BOOST_FAIL("fetchStatus failure " << code << " " << reason);
-                       },
-                       CommandOptions());
-    this->advanceClocks(1_ms);
-  }
+  protected: // status fetching
+    /** \brief start fetching status
+     *
+     *  A test case should call \p fetchStatus, \p sendDataset, and \p prepareStatusOutput
+     *  in this order, and then check \p statusXml and \p statusText contain the correct outputs.
+     *  No advanceClocks is needed in between, as they are handled by the fixture.
+     */
+    void
+    fetchStatus()
+    {
+        nFetchStatusSuccess = 0;
+        module.fetchStatus(
+          controller, [this] { ++nFetchStatusSuccess; },
+          [](uint32_t code, const std::string& reason) { BOOST_FAIL("fetchStatus failure " << code << " " << reason); },
+          CommandOptions());
+        this->advanceClocks(1_ms);
+    }
 
-  /** \brief prepare status output as XML and text
-   *  \pre sendDataset has been invoked
-   */
-  void
-  prepareStatusOutput()
-  {
-    this->advanceClocks(1_ms);
-    BOOST_REQUIRE_EQUAL(nFetchStatusSuccess, 1);
+    /** \brief prepare status output as XML and text
+     *  \pre sendDataset has been invoked
+     */
+    void
+    prepareStatusOutput()
+    {
+        this->advanceClocks(1_ms);
+        BOOST_REQUIRE_EQUAL(nFetchStatusSuccess, 1);
 
-    statusXml.str("");
-    module.formatStatusXml(statusXml);
-    statusText.str("");
-    module.formatStatusText(statusText);
-  }
+        statusXml.str("");
+        module.formatStatusXml(statusXml);
+        statusText.str("");
+        module.formatStatusText(statusText);
+    }
 
-protected:
-  ValidatorUniquePtr validator;
-  Controller controller;
+  protected:
+    ValidatorUniquePtr validator;
+    Controller controller;
 
-  M module;
+    M module;
 
-  int nFetchStatusSuccess;
-  output_test_stream statusXml;
-  output_test_stream statusText;
+    int nFetchStatusSuccess;
+    output_test_stream statusXml;
+    output_test_stream statusText;
 };
 
 /** \brief strips leading spaces on every line in expected XML
@@ -141,19 +137,18 @@ protected:
 inline std::string
 stripXmlSpaces(const std::string& xml)
 {
-  std::string s;
-  bool isSkipping = true;
-  std::copy_if(xml.begin(), xml.end(), std::back_inserter(s),
-               [&isSkipping] (char ch) {
-                 if (ch == '\n') {
-                   isSkipping = true;
-                 }
-                 else if (ch != ' ') {
-                   isSkipping = false;
-                 }
-                 return !isSkipping;
-               });
-  return s;
+    std::string s;
+    bool isSkipping = true;
+    std::copy_if(xml.begin(), xml.end(), std::back_inserter(s), [&isSkipping](char ch) {
+        if (ch == '\n') {
+            isSkipping = true;
+        }
+        else if (ch != ' ') {
+            isSkipping = false;
+        }
+        return !isSkipping;
+    });
+    return s;
 }
 
 } // namespace tests

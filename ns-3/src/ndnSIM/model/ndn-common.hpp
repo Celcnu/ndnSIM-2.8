@@ -86,8 +86,8 @@ namespace face {
 inline std::ostream&
 operator<<(std::ostream& os, const Face& face)
 {
-  os << face.getLocalUri();
-  return os;
+    os << face.getLocalUri();
+    return os;
 }
 
 } // namespace face

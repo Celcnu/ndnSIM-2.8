@@ -28,88 +28,87 @@ namespace util {
 
 Sqlite3Statement::~Sqlite3Statement()
 {
-  sqlite3_finalize(m_stmt);
+    sqlite3_finalize(m_stmt);
 }
 
 Sqlite3Statement::Sqlite3Statement(sqlite3* database, const std::string& statement)
 {
-  int res = sqlite3_prepare_v2(database, statement.data(), -1, &m_stmt, nullptr);
-  if (res != SQLITE_OK)
-    NDN_THROW(std::domain_error("bad SQL statement: " + statement));
+    int res = sqlite3_prepare_v2(database, statement.data(), -1, &m_stmt, nullptr);
+    if (res != SQLITE_OK)
+        NDN_THROW(std::domain_error("bad SQL statement: " + statement));
 }
 
 int
-Sqlite3Statement::bind(int index, const char* value, size_t size, void(*destructor)(void*))
+Sqlite3Statement::bind(int index, const char* value, size_t size, void (*destructor)(void*))
 {
-  return sqlite3_bind_text(m_stmt, index, value, size, destructor);
+    return sqlite3_bind_text(m_stmt, index, value, size, destructor);
 }
 
 int
-Sqlite3Statement::bind(int index, const std::string& value, void(*destructor)(void*))
+Sqlite3Statement::bind(int index, const std::string& value, void (*destructor)(void*))
 {
-  return sqlite3_bind_text(m_stmt, index, value.c_str(), value.size(), destructor);
+    return sqlite3_bind_text(m_stmt, index, value.c_str(), value.size(), destructor);
 }
 
 int
-Sqlite3Statement::bind(int index, const void* buf, size_t size, void(*destructor)(void*))
+Sqlite3Statement::bind(int index, const void* buf, size_t size, void (*destructor)(void*))
 {
-  return sqlite3_bind_blob(m_stmt, index, buf, size, destructor);
+    return sqlite3_bind_blob(m_stmt, index, buf, size, destructor);
 }
 
 int
-Sqlite3Statement::bind(int index, const Block& block, void(*destructor)(void*))
+Sqlite3Statement::bind(int index, const Block& block, void (*destructor)(void*))
 {
-  return sqlite3_bind_blob(m_stmt, index, block.wire(), block.size(), destructor);
+    return sqlite3_bind_blob(m_stmt, index, block.wire(), block.size(), destructor);
 }
 
 int
 Sqlite3Statement::bind(int index, int number)
 {
-  return sqlite3_bind_int(m_stmt, index, number);
+    return sqlite3_bind_int(m_stmt, index, number);
 }
 
 std::string
 Sqlite3Statement::getString(int column)
 {
-  return std::string(reinterpret_cast<const char*>(sqlite3_column_text(m_stmt, column)),
-                     sqlite3_column_bytes(m_stmt, column));
+    return std::string(reinterpret_cast<const char*>(sqlite3_column_text(m_stmt, column)),
+                       sqlite3_column_bytes(m_stmt, column));
 }
 
 Block
 Sqlite3Statement::getBlock(int column)
 {
-  return Block(reinterpret_cast<const uint8_t*>(sqlite3_column_blob(m_stmt, column)),
-               sqlite3_column_bytes(m_stmt, column));
+    return Block(reinterpret_cast<const uint8_t*>(sqlite3_column_blob(m_stmt, column)),
+                 sqlite3_column_bytes(m_stmt, column));
 }
 
 int
 Sqlite3Statement::getInt(int column)
 {
-  return sqlite3_column_int(m_stmt, column);
+    return sqlite3_column_int(m_stmt, column);
 }
-
 
 const uint8_t*
 Sqlite3Statement::getBlob(int column)
 {
-  return static_cast<const uint8_t*>(sqlite3_column_blob(m_stmt, column));
+    return static_cast<const uint8_t*>(sqlite3_column_blob(m_stmt, column));
 }
 
 int
 Sqlite3Statement::getSize(int column)
 {
-  return sqlite3_column_bytes(m_stmt, column);
+    return sqlite3_column_bytes(m_stmt, column);
 }
 
 int
 Sqlite3Statement::step()
 {
-  return sqlite3_step(m_stmt);
+    return sqlite3_step(m_stmt);
 }
 
 Sqlite3Statement::operator sqlite3_stmt*()
 {
-  return m_stmt;
+    return m_stmt;
 }
 
 } // namespace util

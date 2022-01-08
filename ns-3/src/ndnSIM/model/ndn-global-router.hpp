@@ -41,104 +41,94 @@ class L3Protocol;
  * @brief Class representing global router interface for ndnSIM
  */
 class GlobalRouter : public Object {
-public:
-  /**
-   * @brief Graph edge
-   */
-  typedef std::tuple<Ptr<GlobalRouter>, shared_ptr<Face>, Ptr<GlobalRouter>> Incidency;
-  /**
-   * @brief List of graph edges
-   */
-  typedef std::list<Incidency> IncidencyList;
-  /**
-   * @brief List of locally exported prefixes
-   */
-  typedef std::list<shared_ptr<Name>> LocalPrefixList;
+  public:
+    /**
+     * @brief Graph edge
+     */
+    typedef std::tuple<Ptr<GlobalRouter>, shared_ptr<Face>, Ptr<GlobalRouter>> Incidency;
+    /**
+     * @brief List of graph edges
+     */
+    typedef std::list<Incidency> IncidencyList;
+    /**
+     * @brief List of locally exported prefixes
+     */
+    typedef std::list<shared_ptr<Name>> LocalPrefixList;
 
-  /**
-   * \brief Interface ID
-   *
-   * \return interface ID
-   */
-  static TypeId
-  GetTypeId();
+    /**
+     * \brief Interface ID
+     *
+     * \return interface ID
+     */
+    static TypeId GetTypeId();
 
-  /**
-   * @brief Default constructor
-   */
-  GlobalRouter();
+    /**
+     * @brief Default constructor
+     */
+    GlobalRouter();
 
-  /**
-   * @brief Get numeric ID of the node (internally assigned)
-   */
-  uint32_t
-  GetId() const;
+    /**
+     * @brief Get numeric ID of the node (internally assigned)
+     */
+    uint32_t GetId() const;
 
-  /**
-   * @brief Helper function to get smart pointer to ndn::L3Protocol object (basically, self)
-   */
-  Ptr<L3Protocol>
-  GetL3Protocol() const;
+    /**
+     * @brief Helper function to get smart pointer to ndn::L3Protocol object (basically, self)
+     */
+    Ptr<L3Protocol> GetL3Protocol() const;
 
-  /**
-   * @brief Add new locally exported prefix
-   * @param prefix Prefix
-   */
-  void
-  AddLocalPrefix(shared_ptr<Name> prefix);
+    /**
+     * @brief Add new locally exported prefix
+     * @param prefix Prefix
+     */
+    void AddLocalPrefix(shared_ptr<Name> prefix);
 
-  /**
-   * @brief Add edge to the node
-   * @param face Face of the edge
-   * @param ndn GlobalRouter of another node
-   */
-  void
-  AddIncidency(shared_ptr<Face> face, Ptr<GlobalRouter> ndn);
+    /**
+     * @brief Add edge to the node
+     * @param face Face of the edge
+     * @param ndn GlobalRouter of another node
+     */
+    void AddIncidency(shared_ptr<Face> face, Ptr<GlobalRouter> ndn);
 
-  /**
-   * @brief Get list of edges that are connected to this node
-   */
-  IncidencyList&
-  GetIncidencies();
+    /**
+     * @brief Get list of edges that are connected to this node
+     */
+    IncidencyList& GetIncidencies();
 
-  /**
-   * @brief Get list of locally exported prefixes
-   */
-  const LocalPrefixList&
-  GetLocalPrefixes() const;
+    /**
+     * @brief Get list of locally exported prefixes
+     */
+    const LocalPrefixList& GetLocalPrefixes() const;
 
-  /**
-   * @brief Clear global state
-   */
-  static void
-  clear();
+    /**
+     * @brief Clear global state
+     */
+    static void clear();
 
-protected:
-  virtual void
-  NotifyNewAggregate(); ///< @brief Notify when the object is aggregated to another object (e.g.,
-                        /// Node)
+  protected:
+    virtual void NotifyNewAggregate(); ///< @brief Notify when the object is aggregated to another object (e.g.,
+                                       /// Node)
 
-private:
-  uint32_t m_id;
+  private:
+    uint32_t m_id;
 
-  Ptr<L3Protocol> m_ndn;
-  LocalPrefixList m_localPrefixes;
-  IncidencyList m_incidencies;
+    Ptr<L3Protocol> m_ndn;
+    LocalPrefixList m_localPrefixes;
+    IncidencyList m_incidencies;
 
-  static uint32_t m_idCounter;
+    static uint32_t m_idCounter;
 };
 
 inline bool
 operator==(const GlobalRouter::Incidency& a, const GlobalRouter::Incidency& b)
 {
-  return std::get<0>(a) == std::get<0>(b) && std::get<1>(a) == std::get<1>(b)
-         && std::get<2>(a) == std::get<2>(b);
+    return std::get<0>(a) == std::get<0>(b) && std::get<1>(a) == std::get<1>(b) && std::get<2>(a) == std::get<2>(b);
 }
 
 inline bool
 operator!=(const GlobalRouter::Incidency& a, const GlobalRouter::Incidency& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
 } // namespace ndn

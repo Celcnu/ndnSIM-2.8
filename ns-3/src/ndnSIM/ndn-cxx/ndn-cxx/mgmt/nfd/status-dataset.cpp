@@ -35,10 +35,10 @@ StatusDataset::~StatusDataset() = default;
 Name
 StatusDataset::getDatasetPrefix(const Name& prefix) const
 {
-  Name name;
-  name.append(prefix).append(m_datasetName);
-  this->addParameters(name);
-  return name;
+    Name name;
+    name.append(prefix).append(m_datasetName);
+    this->addParameters(name);
+    return name;
 }
 
 void
@@ -53,28 +53,28 @@ StatusDataset::addParameters(Name& name) const
  * \return a vector of T
  * \throw tlv::Error cannot parse payload
  */
-template<typename T>
+template <typename T>
 static std::vector<T>
 parseDatasetVector(ConstBufferPtr payload)
 {
-  BOOST_CONCEPT_ASSERT((WireDecodable<T>));
+    BOOST_CONCEPT_ASSERT((WireDecodable<T>));
 
-  std::vector<T> result;
+    std::vector<T> result;
 
-  size_t offset = 0;
-  while (offset < payload->size()) {
-    bool isOk = false;
-    Block block;
-    std::tie(isOk, block) = Block::fromBuffer(payload, offset);
-    if (!isOk) {
-      NDN_THROW(StatusDataset::ParseResultError("cannot decode Block"));
+    size_t offset = 0;
+    while (offset < payload->size()) {
+        bool isOk = false;
+        Block block;
+        std::tie(isOk, block) = Block::fromBuffer(payload, offset);
+        if (!isOk) {
+            NDN_THROW(StatusDataset::ParseResultError("cannot decode Block"));
+        }
+
+        offset += block.size();
+        result.emplace_back(block);
     }
 
-    offset += block.size();
-    result.emplace_back(block);
-  }
-
-  return result;
+    return result;
 }
 
 ForwarderGeneralStatusDataset::ForwarderGeneralStatusDataset()
@@ -85,7 +85,7 @@ ForwarderGeneralStatusDataset::ForwarderGeneralStatusDataset()
 ForwarderGeneralStatusDataset::ResultType
 ForwarderGeneralStatusDataset::parseResult(ConstBufferPtr payload) const
 {
-  return ForwarderStatus(Block(tlv::Content, std::move(payload)));
+    return ForwarderStatus(Block(tlv::Content, std::move(payload)));
 }
 
 FaceDatasetBase::FaceDatasetBase(const PartialName& datasetName)
@@ -96,7 +96,7 @@ FaceDatasetBase::FaceDatasetBase(const PartialName& datasetName)
 FaceDatasetBase::ResultType
 FaceDatasetBase::parseResult(ConstBufferPtr payload) const
 {
-  return parseDatasetVector<FaceStatus>(std::move(payload));
+    return parseDatasetVector<FaceStatus>(std::move(payload));
 }
 
 FaceDataset::FaceDataset()
@@ -113,7 +113,7 @@ FaceQueryDataset::FaceQueryDataset(const FaceQueryFilter& filter)
 void
 FaceQueryDataset::addParameters(Name& name) const
 {
-  name.append(m_filter.wireEncode());
+    name.append(m_filter.wireEncode());
 }
 
 ChannelDataset::ChannelDataset()
@@ -124,7 +124,7 @@ ChannelDataset::ChannelDataset()
 ChannelDataset::ResultType
 ChannelDataset::parseResult(ConstBufferPtr payload) const
 {
-  return parseDatasetVector<ChannelStatus>(std::move(payload));
+    return parseDatasetVector<ChannelStatus>(std::move(payload));
 }
 
 FibDataset::FibDataset()
@@ -135,7 +135,7 @@ FibDataset::FibDataset()
 FibDataset::ResultType
 FibDataset::parseResult(ConstBufferPtr payload) const
 {
-  return parseDatasetVector<FibEntry>(std::move(payload));
+    return parseDatasetVector<FibEntry>(std::move(payload));
 }
 
 CsInfoDataset::CsInfoDataset()
@@ -146,7 +146,7 @@ CsInfoDataset::CsInfoDataset()
 CsInfoDataset::ResultType
 CsInfoDataset::parseResult(ConstBufferPtr payload) const
 {
-  return CsInfo(Block(std::move(payload)));
+    return CsInfo(Block(std::move(payload)));
 }
 
 StrategyChoiceDataset::StrategyChoiceDataset()
@@ -157,7 +157,7 @@ StrategyChoiceDataset::StrategyChoiceDataset()
 StrategyChoiceDataset::ResultType
 StrategyChoiceDataset::parseResult(ConstBufferPtr payload) const
 {
-  return parseDatasetVector<StrategyChoice>(std::move(payload));
+    return parseDatasetVector<StrategyChoice>(std::move(payload));
 }
 
 RibDataset::RibDataset()
@@ -168,7 +168,7 @@ RibDataset::RibDataset()
 RibDataset::ResultType
 RibDataset::parseResult(ConstBufferPtr payload) const
 {
-  return parseDatasetVector<RibEntry>(std::move(payload));
+    return parseDatasetVector<RibEntry>(std::move(payload));
 }
 
 } // namespace nfd

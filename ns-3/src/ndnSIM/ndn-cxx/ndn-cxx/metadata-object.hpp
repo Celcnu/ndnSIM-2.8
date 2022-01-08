@@ -42,83 +42,75 @@ namespace ndn {
  * @li the **metadata name** is the name of the metadata object itself, and includes
  *     a keyword name component `32=metadata`, as well as version and segment components.
  */
-class MetadataObject
-{
-public:
-  class Error : public tlv::Error
-  {
+class MetadataObject {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  /**
-   * @brief Create an empty metadata object
-   */
-  MetadataObject();
+    /**
+     * @brief Create an empty metadata object
+     */
+    MetadataObject();
 
-  /**
-   * @brief Construct a metadata object by decoding of the given Data packet
-   * @throw tlv::Error the Data is not a valid metadata packet
-   */
-  explicit
-  MetadataObject(const Data& data);
+    /**
+     * @brief Construct a metadata object by decoding of the given Data packet
+     * @throw tlv::Error the Data is not a valid metadata packet
+     */
+    explicit MetadataObject(const Data& data);
 
-  /**
-   * @brief Create a Data packet representing this metadata object
-   *
-   * @param discoveryInterestName the discovery Interest's name, which must end with
-   *                              a keyword name component `32=metadata`
-   * @param keyChain KeyChain to sign the Data
-   * @param si signing parameters
-   * @param version version number of metadata packet; if nullopt, use current Unix
-   *                timestamp (in milliseconds) as the version number
-   * @param freshnessPeriod freshness period of metadata packet
-   *
-   * @throw tlv::Error @p discoveryInterestName is not valid
-   */
-  NDN_CXX_NODISCARD Data
-  makeData(Name discoveryInterestName,
-           KeyChain& keyChain,
-           const ndn::security::SigningInfo& si = KeyChain::getDefaultSigningInfo(),
-           optional<uint64_t> version = nullopt,
-           time::milliseconds freshnessPeriod = 10_ms) const;
+    /**
+     * @brief Create a Data packet representing this metadata object
+     *
+     * @param discoveryInterestName the discovery Interest's name, which must end with
+     *                              a keyword name component `32=metadata`
+     * @param keyChain KeyChain to sign the Data
+     * @param si signing parameters
+     * @param version version number of metadata packet; if nullopt, use current Unix
+     *                timestamp (in milliseconds) as the version number
+     * @param freshnessPeriod freshness period of metadata packet
+     *
+     * @throw tlv::Error @p discoveryInterestName is not valid
+     */
+    NDN_CXX_NODISCARD Data makeData(Name discoveryInterestName, KeyChain& keyChain,
+                                    const ndn::security::SigningInfo& si = KeyChain::getDefaultSigningInfo(),
+                                    optional<uint64_t> version = nullopt,
+                                    time::milliseconds freshnessPeriod = 10_ms) const;
 
-  /**
-   * @brief Return the versioned name (i.e., the name inside the content)
-   */
-  const Name&
-  getVersionedName() const
-  {
-    return m_versionedName;
-  }
+    /**
+     * @brief Return the versioned name (i.e., the name inside the content)
+     */
+    const Name&
+    getVersionedName() const
+    {
+        return m_versionedName;
+    }
 
-  /**
-   * @brief Set the versioned name
-   *
-   * Any metadata packet carries a versioned name in its payload where it shows the name
-   * and the latest version of a data stream. For instance, `/ndn/test/%FD%97%47%1E%6C` is
-   * a versioned name that shows the latest version of `/ndn/test`.
-   */
-  MetadataObject&
-  setVersionedName(const Name& name);
+    /**
+     * @brief Set the versioned name
+     *
+     * Any metadata packet carries a versioned name in its payload where it shows the name
+     * and the latest version of a data stream. For instance, `/ndn/test/%FD%97%47%1E%6C` is
+     * a versioned name that shows the latest version of `/ndn/test`.
+     */
+    MetadataObject& setVersionedName(const Name& name);
 
-public: // static methods
-  /**
-   * @brief Check whether @p name can be a valid metadata name
-   */
-  static bool
-  isValidName(const Name& name);
+  public: // static methods
+    /**
+     * @brief Check whether @p name can be a valid metadata name
+     */
+    static bool isValidName(const Name& name);
 
-  /**
-   * @brief Generate a discovery interest packet based on @p name
-   *
-   * @param name prefix of data collection
-   */
-  NDN_CXX_NODISCARD static Interest
-  makeDiscoveryInterest(Name name);
+    /**
+     * @brief Generate a discovery interest packet based on @p name
+     *
+     * @param name prefix of data collection
+     */
+    NDN_CXX_NODISCARD static Interest makeDiscoveryInterest(Name name);
 
-private:
-  Name m_versionedName;
+  private:
+    Name m_versionedName;
 };
 
 } // namespace ndn

@@ -46,19 +46,17 @@ namespace autoconfig {
  *     The DNS server should answer with an SRV record that contains the hostname and UDP port
  *     number of the NDN router.
  */
-class GuessFromSearchDomains : public Stage
-{
-public:
-  const std::string&
-  getName() const override
-  {
-    static const std::string STAGE_NAME("guess from search domains");
-    return STAGE_NAME;
-  }
+class GuessFromSearchDomains : public Stage {
+  public:
+    const std::string&
+    getName() const override
+    {
+        static const std::string STAGE_NAME("guess from search domains");
+        return STAGE_NAME;
+    }
 
-private:
-  void
-  doStart() override;
+  private:
+    void doStart() override;
 };
 
 } // namespace autoconfig

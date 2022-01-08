@@ -28,52 +28,52 @@ namespace random {
 uint32_t
 generateSecureWord32()
 {
-  uint32_t random;
-  generateSecureBytes(reinterpret_cast<uint8_t*>(&random), sizeof(random));
-  return random;
+    uint32_t random;
+    generateSecureBytes(reinterpret_cast<uint8_t*>(&random), sizeof(random));
+    return random;
 }
 
 uint64_t
 generateSecureWord64()
 {
-  uint64_t random;
-  generateSecureBytes(reinterpret_cast<uint8_t*>(&random), sizeof(random));
-  return random;
+    uint64_t random;
+    generateSecureBytes(reinterpret_cast<uint8_t*>(&random), sizeof(random));
+    return random;
 }
 
 void
 generateSecureBytes(uint8_t* bytes, size_t size)
 {
-  if (RAND_bytes(bytes, size) != 1) {
-    NDN_THROW(std::runtime_error("Failed to generate random bytes (error code " +
-                                 to_string(ERR_get_error()) + ")"));
-  }
+    if (RAND_bytes(bytes, size) != 1) {
+        NDN_THROW(
+          std::runtime_error("Failed to generate random bytes (error code " + to_string(ERR_get_error()) + ")"));
+    }
 }
 
 RandomNumberEngine&
 getRandomNumberEngine()
 {
-  thread_local std::mt19937 rng = [] {
-    std::random_device rd;
-    // seed with 256 bits of entropy
-    std::seed_seq seeds{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
-    return std::mt19937{seeds};
-  }();
-  return rng;
+    thread_local std::mt19937 rng = [] {
+        std::random_device rd;
+        // seed with 256 bits of entropy
+        std::seed_seq seeds{rd(), rd(), rd(), rd(), rd(), rd(), rd(), rd()};
+        return std::mt19937{seeds};
+    }();
+    return rng;
 }
 
 uint32_t
 generateWord32()
 {
-  thread_local std::uniform_int_distribution<uint32_t> distribution;
-  return distribution(getRandomNumberEngine());
+    thread_local std::uniform_int_distribution<uint32_t> distribution;
+    return distribution(getRandomNumberEngine());
 }
 
 uint64_t
 generateWord64()
 {
-  thread_local std::uniform_int_distribution<uint64_t> distribution;
-  return distribution(getRandomNumberEngine());
+    thread_local std::uniform_int_distribution<uint64_t> distribution;
+    return distribution(getRandomNumberEngine());
 }
 
 } // namespace random

@@ -26,8 +26,7 @@ namespace ndn {
 namespace security {
 
 ValidatorConfig::ValidatorConfig(std::unique_ptr<v2::CertificateFetcher> fetcher, const Options& options)
-  : v2::Validator(make_unique<v2::ValidationPolicyCommandInterest>(make_unique<v2::ValidationPolicyConfig>(),
-                                                                   options),
+  : v2::Validator(make_unique<v2::ValidationPolicyCommandInterest>(make_unique<v2::ValidationPolicyConfig>(), options),
                   std::move(fetcher))
   , m_policyConfig(static_cast<v2::ValidationPolicyConfig&>(getPolicy().getInnerPolicy()))
 {
@@ -41,26 +40,25 @@ ValidatorConfig::ValidatorConfig(Face& face, const Options& options)
 void
 ValidatorConfig::load(const std::string& filename)
 {
-  m_policyConfig.load(filename);
+    m_policyConfig.load(filename);
 }
 
 void
 ValidatorConfig::load(const std::string& input, const std::string& filename)
 {
-  m_policyConfig.load(input, filename);
+    m_policyConfig.load(input, filename);
 }
 
 void
 ValidatorConfig::load(std::istream& input, const std::string& filename)
 {
-  m_policyConfig.load(input, filename);
+    m_policyConfig.load(input, filename);
 }
 
 void
-ValidatorConfig::load(const v2::validator_config::ConfigSection& configSection,
-                      const std::string& filename)
+ValidatorConfig::load(const v2::validator_config::ConfigSection& configSection, const std::string& filename)
 {
-  m_policyConfig.load(configSection, filename);
+    m_policyConfig.load(configSection, filename);
 }
 
 } // namespace security

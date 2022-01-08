@@ -37,72 +37,66 @@ namespace ndn {
  *        on a set of nodes
  */
 class AppHelper {
-public:
-  /**
-   * \brief Create an NdnAppHelper to make it easier to work with Ndn apps
-   *
-   * \param app Class of the application
-   */
-  AppHelper(const std::string& prefix);
+  public:
+    /**
+     * \brief Create an NdnAppHelper to make it easier to work with Ndn apps
+     *
+     * \param app Class of the application
+     */
+    AppHelper(const std::string& prefix);
 
-  /**
-   * @brief Set the prefix consumer will be requesting
-   */
-  void
-  SetPrefix(const std::string& prefix);
+    /**
+     * @brief Set the prefix consumer will be requesting
+     */
+    void SetPrefix(const std::string& prefix);
 
-  /**
-   * \brief Helper function used to set the underlying application attributes.
-   *
-   * \param name the name of the application attribute to set
-   * \param value the value of the application attribute to set
-   */
-  void
-  SetAttribute(std::string name, const AttributeValue& value);
+    /**
+     * \brief Helper function used to set the underlying application attributes.
+     *
+     * \param name the name of the application attribute to set
+     * \param value the value of the application attribute to set
+     */
+    void SetAttribute(std::string name, const AttributeValue& value);
 
-  /**
-   * Install an ns3::NdnConsumer on each node of the input container
-   * configured with all the attributes set with SetAttribute.
-   *
-   * \param c NodeContainer of the set of nodes on which an NdnConsumer
-   * will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
-  ApplicationContainer
-  Install(NodeContainer c);
+    /**
+     * Install an ns3::NdnConsumer on each node of the input container
+     * configured with all the attributes set with SetAttribute.
+     *
+     * \param c NodeContainer of the set of nodes on which an NdnConsumer
+     * will be installed.
+     * \returns Container of Ptr to the applications installed.
+     */
+    ApplicationContainer Install(NodeContainer c);
 
-  /**
-   * Install an ns3::NdnConsumer on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param node The node on which an NdnConsumer will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
-  ApplicationContainer
-  Install(Ptr<Node> node);
+    /**
+     * Install an ns3::NdnConsumer on the node configured with all the
+     * attributes set with SetAttribute.
+     *
+     * \param node The node on which an NdnConsumer will be installed.
+     * \returns Container of Ptr to the applications installed.
+     */
+    ApplicationContainer Install(Ptr<Node> node);
 
-  /**
-   * Install an ns3::NdnConsumer on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param nodeName The node on which an NdnConsumer will be installed.
-   * \returns Container of Ptr to the applications installed.
-   */
-  ApplicationContainer
-  Install(std::string nodeName);
+    /**
+     * Install an ns3::NdnConsumer on the node configured with all the
+     * attributes set with SetAttribute.
+     *
+     * \param nodeName The node on which an NdnConsumer will be installed.
+     * \returns Container of Ptr to the applications installed.
+     */
+    ApplicationContainer Install(std::string nodeName);
 
-private:
-  /**
-   * \internal
-   * Install an ns3::NdnConsumer on the node configured with all the
-   * attributes set with SetAttribute.
-   *
-   * \param node The node on which an NdnConsumer will be installed.
-   * \returns Ptr to the application installed.
-   */
-  Ptr<Application>
-  InstallPriv(Ptr<Node> node);
-  ObjectFactory m_factory;
+  private:
+    /**
+     * \internal
+     * Install an ns3::NdnConsumer on the node configured with all the
+     * attributes set with SetAttribute.
+     *
+     * \param node The node on which an NdnConsumer will be installed.
+     * \returns Ptr to the application installed.
+     */
+    Ptr<Application> InstallPriv(Ptr<Node> node);
+    ObjectFactory m_factory;
 };
 
 /**
@@ -122,28 +116,24 @@ private:
  *       })
  *       .Start(Seconds(1.01));
  */
-class FactoryCallbackApp : public Application
-{
-public:
-  typedef std::function<shared_ptr<void>()> FactoryCallback;
+class FactoryCallbackApp : public Application {
+  public:
+    typedef std::function<shared_ptr<void>()> FactoryCallback;
 
-  FactoryCallbackApp(const FactoryCallback& factory);
+    FactoryCallbackApp(const FactoryCallback& factory);
 
-public:
-  static ApplicationContainer
-  Install(Ptr<Node> node, const FactoryCallback& factory);
+  public:
+    static ApplicationContainer Install(Ptr<Node> node, const FactoryCallback& factory);
 
-protected:
-  // inherited from Application base class.
-  virtual void
-  StartApplication();
+  protected:
+    // inherited from Application base class.
+    virtual void StartApplication();
 
-  virtual void
-  StopApplication();
+    virtual void StopApplication();
 
-private:
-  FactoryCallback m_factory;
-  std::shared_ptr<void> m_impl;
+  private:
+    FactoryCallback m_factory;
+    std::shared_ptr<void> m_impl;
 };
 
 } // namespace ndn

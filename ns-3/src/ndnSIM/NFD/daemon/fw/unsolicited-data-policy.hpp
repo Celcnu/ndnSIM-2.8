@@ -34,12 +34,11 @@ namespace fw {
 /** \brief a decision made by UnsolicitedDataPolicy
  */
 enum class UnsolicitedDataDecision {
-  DROP, ///< the Data should be dropped
-  CACHE ///< the Data should be cached in the ContentStore
+    DROP, ///< the Data should be dropped
+    CACHE ///< the Data should be cached in the ContentStore
 };
 
-std::ostream&
-operator<<(std::ostream& os, UnsolicitedDataDecision d);
+std::ostream& operator<<(std::ostream& os, UnsolicitedDataDecision d);
 
 /** \brief determines how to process an unsolicited Data
  *
@@ -47,90 +46,76 @@ operator<<(std::ostream& os, UnsolicitedDataDecision d);
  *  This class assists forwarding pipelines to decide whether to drop an unsolicited Data
  *  or admit it into the ContentStore.
  */
-class UnsolicitedDataPolicy : noncopyable
-{
-public:
-  virtual
-  ~UnsolicitedDataPolicy() = default;
+class UnsolicitedDataPolicy : noncopyable {
+  public:
+    virtual ~UnsolicitedDataPolicy() = default;
 
-  virtual UnsolicitedDataDecision
-  decide(const Face& inFace, const Data& data) const = 0;
+    virtual UnsolicitedDataDecision decide(const Face& inFace, const Data& data) const = 0;
 
-public: // registry
-  template<typename P>
-  static void
-  registerPolicy(const std::string& policyName = P::POLICY_NAME)
-  {
-    Registry& registry = getRegistry();
-    BOOST_ASSERT(registry.count(policyName) == 0);
-    registry[policyName] = [] { return make_unique<P>(); };
-  }
+  public: // registry
+    template <typename P>
+    static void
+    registerPolicy(const std::string& policyName = P::POLICY_NAME)
+    {
+        Registry& registry = getRegistry();
+        BOOST_ASSERT(registry.count(policyName) == 0);
+        registry[policyName] = [] { return make_unique<P>(); };
+    }
 
-  /** \return an UnsolicitedDataPolicy identified by \p policyName,
-   *          or nullptr if \p policyName is unknown
-   */
-  static unique_ptr<UnsolicitedDataPolicy>
-  create(const std::string& policyName);
+    /** \return an UnsolicitedDataPolicy identified by \p policyName,
+     *          or nullptr if \p policyName is unknown
+     */
+    static unique_ptr<UnsolicitedDataPolicy> create(const std::string& policyName);
 
-  /** \return a list of available policy names
-   */
-  static std::set<std::string>
-  getPolicyNames();
+    /** \return a list of available policy names
+     */
+    static std::set<std::string> getPolicyNames();
 
-private:
-  typedef std::function<unique_ptr<UnsolicitedDataPolicy>()> CreateFunc;
-  typedef std::map<std::string, CreateFunc> Registry; // indexed by policy name
+  private:
+    typedef std::function<unique_ptr<UnsolicitedDataPolicy>()> CreateFunc;
+    typedef std::map<std::string, CreateFunc> Registry; // indexed by policy name
 
-  static Registry&
-  getRegistry();
+    static Registry& getRegistry();
 };
 
 /** \brief drops all unsolicited Data
  */
-class DropAllUnsolicitedDataPolicy : public UnsolicitedDataPolicy
-{
-public:
-  UnsolicitedDataDecision
-  decide(const Face& inFace, const Data& data) const final;
+class DropAllUnsolicitedDataPolicy : public UnsolicitedDataPolicy {
+  public:
+    UnsolicitedDataDecision decide(const Face& inFace, const Data& data) const final;
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 };
 
 /** \brief admits unsolicited Data from local faces
  */
-class AdmitLocalUnsolicitedDataPolicy : public UnsolicitedDataPolicy
-{
-public:
-  UnsolicitedDataDecision
-  decide(const Face& inFace, const Data& data) const final;
+class AdmitLocalUnsolicitedDataPolicy : public UnsolicitedDataPolicy {
+  public:
+    UnsolicitedDataDecision decide(const Face& inFace, const Data& data) const final;
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 };
 
 /** \brief admits unsolicited Data from non-local faces
  */
-class AdmitNetworkUnsolicitedDataPolicy : public UnsolicitedDataPolicy
-{
-public:
-  UnsolicitedDataDecision
-  decide(const Face& inFace, const Data& data) const final;
+class AdmitNetworkUnsolicitedDataPolicy : public UnsolicitedDataPolicy {
+  public:
+    UnsolicitedDataDecision decide(const Face& inFace, const Data& data) const final;
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 };
 
 /** \brief admits all unsolicited Data
  */
-class AdmitAllUnsolicitedDataPolicy : public UnsolicitedDataPolicy
-{
-public:
-  UnsolicitedDataDecision
-  decide(const Face& inFace, const Data& data) const final;
+class AdmitAllUnsolicitedDataPolicy : public UnsolicitedDataPolicy {
+  public:
+    UnsolicitedDataDecision decide(const Face& inFace, const Data& data) const final;
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 };
 
 /** \brief the default UnsolicitedDataPolicy
@@ -144,14 +129,13 @@ typedef DropAllUnsolicitedDataPolicy DefaultUnsolicitedDataPolicy;
  *  \param P a subclass of nfd::fw::UnsolicitedDataPolicy;
  *           P::POLICY_NAME must be a string that contains policy name
  */
-#define NFD_REGISTER_UNSOLICITED_DATA_POLICY(P)                     \
-static class NfdAuto ## P ## UnsolicitedDataPolicyRegistrationClass \
-{                                                                   \
-public:                                                             \
-  NfdAuto ## P ## UnsolicitedDataPolicyRegistrationClass()          \
-  {                                                                 \
-    ::nfd::fw::UnsolicitedDataPolicy::registerPolicy<P>();          \
-  }                                                                 \
-} g_nfdAuto ## P ## UnsolicitedDataPolicyRegistrationVariable
+#define NFD_REGISTER_UNSOLICITED_DATA_POLICY(P)                                                                        \
+    static class NfdAuto##P##UnsolicitedDataPolicyRegistrationClass {                                                  \
+      public:                                                                                                          \
+        NfdAuto##P##UnsolicitedDataPolicyRegistrationClass()                                                           \
+        {                                                                                                              \
+            ::nfd::fw::UnsolicitedDataPolicy::registerPolicy<P>();                                                     \
+        }                                                                                                              \
+    } g_nfdAuto##P##UnsolicitedDataPolicyRegistrationVariable
 
 #endif // NFD_DAEMON_FW_UNSOLICITED_DATA_POLICY_HPP

@@ -41,115 +41,115 @@ BOOST_FIXTURE_TEST_SUITE(TestValidatorConfig, IdentityManagementFixture)
 
 BOOST_AUTO_TEST_CASE(Construct)
 {
-  util::DummyClientFace face;
+    util::DummyClientFace face;
 
-  ValidatorConfig v1(face);
-  BOOST_CHECK_EQUAL(v1.m_policyConfig.m_isConfigured, false);
+    ValidatorConfig v1(face);
+    BOOST_CHECK_EQUAL(v1.m_policyConfig.m_isConfigured, false);
 
-  ValidatorConfig v2(make_unique<v2::CertificateFetcherOffline>());
-  BOOST_CHECK_EQUAL(v2.m_policyConfig.m_isConfigured, false);
+    ValidatorConfig v2(make_unique<v2::CertificateFetcherOffline>());
+    BOOST_CHECK_EQUAL(v2.m_policyConfig.m_isConfigured, false);
 }
 
-class ValidatorConfigFixture : public IdentityManagementFixture
-{
-public:
-  ValidatorConfigFixture()
-    : path(boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "security" / "validator-config")
-    , validator(make_unique<v2::CertificateFetcherOffline>())
-  {
-    boost::filesystem::create_directories(path);
-    config = R"CONF(
+class ValidatorConfigFixture : public IdentityManagementFixture {
+  public:
+    ValidatorConfigFixture()
+      : path(boost::filesystem::path(UNIT_TEST_CONFIG_PATH) / "security" / "validator-config")
+      , validator(make_unique<v2::CertificateFetcherOffline>())
+    {
+        boost::filesystem::create_directories(path);
+        config = R"CONF(
         trust-anchor
         {
           type any
         }
       )CONF";
-    configFile = (this->path / "config.conf").string();
-    std::ofstream f(configFile.c_str());
-    f << config;
-  }
+        configFile = (this->path / "config.conf").string();
+        std::ofstream f(configFile.c_str());
+        f << config;
+    }
 
-  ~ValidatorConfigFixture()
-  {
-    boost::filesystem::remove_all(path);
-  }
+    ~ValidatorConfigFixture()
+    {
+        boost::filesystem::remove_all(path);
+    }
 
-public:
-  const boost::filesystem::path path;
-  std::string config;
-  std::string configFile;
-  ValidatorConfig validator;
+  public:
+    const boost::filesystem::path path;
+    std::string config;
+    std::string configFile;
+    ValidatorConfig validator;
 };
 
 BOOST_FIXTURE_TEST_SUITE(Loads, ValidatorConfigFixture)
 
 BOOST_AUTO_TEST_CASE(FromFile)
 {
-  validator.load(configFile);
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    validator.load(configFile);
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 
-  // should reload policy
-  validator.load(configFile);
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    // should reload policy
+    validator.load(configFile);
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 }
 
 BOOST_AUTO_TEST_CASE(FromString)
 {
-  validator.load(config, "config-file-from-string");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    validator.load(config, "config-file-from-string");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 
-  // should reload policy
-  validator.load(config, "config-file-from-string");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    // should reload policy
+    validator.load(config, "config-file-from-string");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 }
 
 BOOST_AUTO_TEST_CASE(FromIstream)
 {
-  std::istringstream is(config);
-  validator.load(is, "config-file-from-istream");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    std::istringstream is(config);
+    validator.load(is, "config-file-from-istream");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 
-  // should reload policy
-  std::istringstream is2(config);
-  validator.load(is2, "config-file-from-istream");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    // should reload policy
+    std::istringstream is2(config);
+    validator.load(is2, "config-file-from-istream");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 }
 
 BOOST_AUTO_TEST_CASE(FromSection)
 {
-  validator.load(v2::validator_config::tests::makeSection(config), "config-file-from-section");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    validator.load(v2::validator_config::tests::makeSection(config), "config-file-from-section");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 
-  // should reload policy
-  validator.load(v2::validator_config::tests::makeSection(config), "config-file-from-section");
-  BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
+    // should reload policy
+    validator.load(v2::validator_config::tests::makeSection(config), "config-file-from-section");
+    BOOST_CHECK_EQUAL(validator.m_policyConfig.m_isConfigured, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Loads
 
-
 BOOST_FIXTURE_TEST_CASE(ValidateCommandInterestWithDigestSha256, ValidatorConfigFixture) // Bug 4635
 {
-  validator.load(configFile);
+    validator.load(configFile);
 
-  CommandInterestSigner signer(m_keyChain);
-  auto i = signer.makeCommandInterest("/hello/world/CMD", signingWithSha256());
-  size_t nValidated = 0, nFailed = 0;
+    CommandInterestSigner signer(m_keyChain);
+    auto i = signer.makeCommandInterest("/hello/world/CMD", signingWithSha256());
+    size_t nValidated = 0, nFailed = 0;
 
-  validator.validate(i, [&] (auto&&...) { ++nValidated; }, [&] (auto&&...) { ++nFailed; });
-  BOOST_CHECK_EQUAL(nValidated, 1);
-  BOOST_CHECK_EQUAL(nFailed, 0);
+    validator.validate(
+      i, [&](auto&&...) { ++nValidated; }, [&](auto&&...) { ++nFailed; });
+    BOOST_CHECK_EQUAL(nValidated, 1);
+    BOOST_CHECK_EQUAL(nFailed, 0);
 
-  validator.validate(i, [&] (auto&&...) { ++nValidated; }, [&] (auto&&...) { ++nFailed; });
-  BOOST_CHECK_EQUAL(nValidated, 1);
-  BOOST_CHECK_EQUAL(nFailed, 1);
+    validator.validate(
+      i, [&](auto&&...) { ++nValidated; }, [&](auto&&...) { ++nFailed; });
+    BOOST_CHECK_EQUAL(nValidated, 1);
+    BOOST_CHECK_EQUAL(nFailed, 1);
 
-  i = signer.makeCommandInterest("/hello/world/CMD", signingWithSha256());
-  validator.validate(i, [&] (auto&&...) { ++nValidated; }, [&] (auto&&...) { ++nFailed; });
-  BOOST_CHECK_EQUAL(nValidated, 2);
-  BOOST_CHECK_EQUAL(nFailed, 1);
+    i = signer.makeCommandInterest("/hello/world/CMD", signingWithSha256());
+    validator.validate(
+      i, [&](auto&&...) { ++nValidated; }, [&](auto&&...) { ++nFailed; });
+    BOOST_CHECK_EQUAL(nValidated, 2);
+    BOOST_CHECK_EQUAL(nFailed, 1);
 }
-
 
 BOOST_AUTO_TEST_SUITE_END() // TestValidatorConfig
 BOOST_AUTO_TEST_SUITE_END() // Security

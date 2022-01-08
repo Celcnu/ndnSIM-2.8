@@ -32,61 +32,54 @@ MetadataObject::MetadataObject() = default;
 
 MetadataObject::MetadataObject(const Data& data)
 {
-  if (data.getContentType() != tlv::ContentType_Blob) {
-    NDN_THROW(Error("Expecting ContentType Blob, got " + to_string(data.getContentType())));
-  }
+    if (data.getContentType() != tlv::ContentType_Blob) {
+        NDN_THROW(Error("Expecting ContentType Blob, got " + to_string(data.getContentType())));
+    }
 
-  if (!isValidName(data.getName())) {
-    NDN_THROW(Error("Name " + data.getName().toUri() + " is not a valid MetadataObject name"));
-  }
+    if (!isValidName(data.getName())) {
+        NDN_THROW(Error("Name " + data.getName().toUri() + " is not a valid MetadataObject name"));
+    }
 
-  data.getContent().parse();
-  // ignore non-Name elements before the first one
-  m_versionedName.wireDecode(data.getContent().get(tlv::Name));
+    data.getContent().parse();
+    // ignore non-Name elements before the first one
+    m_versionedName.wireDecode(data.getContent().get(tlv::Name));
 }
 
 Data
-MetadataObject::makeData(Name discoveryInterestName,
-                         KeyChain& keyChain,
-                         const ndn::security::SigningInfo& si,
-                         optional<uint64_t> version,
-                         time::milliseconds freshnessPeriod) const
+MetadataObject::makeData(Name discoveryInterestName, KeyChain& keyChain, const ndn::security::SigningInfo& si,
+                         optional<uint64_t> version, time::milliseconds freshnessPeriod) const
 {
-  if (discoveryInterestName.empty() || discoveryInterestName[-1] != KEYWORD_METADATA_COMP) {
-    NDN_THROW(Error("Name " + discoveryInterestName.toUri() +
-                    " is not a valid discovery Interest name"));
-  }
-  discoveryInterestName.appendVersion(version);
-  discoveryInterestName.appendSegment(0);
+    if (discoveryInterestName.empty() || discoveryInterestName[-1] != KEYWORD_METADATA_COMP) {
+        NDN_THROW(Error("Name " + discoveryInterestName.toUri() + " is not a valid discovery Interest name"));
+    }
+    discoveryInterestName.appendVersion(version);
+    discoveryInterestName.appendSegment(0);
 
-  Data data(discoveryInterestName);
-  data.setContent(m_versionedName.wireEncode());
-  data.setFreshnessPeriod(freshnessPeriod);
-  keyChain.sign(data, si);
+    Data data(discoveryInterestName);
+    data.setContent(m_versionedName.wireEncode());
+    data.setFreshnessPeriod(freshnessPeriod);
+    keyChain.sign(data, si);
 
-  return data;
+    return data;
 }
 
 MetadataObject&
 MetadataObject::setVersionedName(const Name& name)
 {
-  m_versionedName = name;
-  return *this;
+    m_versionedName = name;
+    return *this;
 }
 
 bool
 MetadataObject::isValidName(const Name& name)
 {
-  return name.size() >= 3 && name[-3] == KEYWORD_METADATA_COMP &&
-         name[-2].isVersion() && name[-1].isSegment();
+    return name.size() >= 3 && name[-3] == KEYWORD_METADATA_COMP && name[-2].isVersion() && name[-1].isSegment();
 }
 
 Interest
 MetadataObject::makeDiscoveryInterest(Name name)
 {
-  return Interest(name.append(KEYWORD_METADATA_COMP))
-         .setCanBePrefix(true)
-         .setMustBeFresh(true);
+    return Interest(name.append(KEYWORD_METADATA_COMP)).setCanBePrefix(true).setMustBeFresh(true);
 }
 
 } // namespace ndn

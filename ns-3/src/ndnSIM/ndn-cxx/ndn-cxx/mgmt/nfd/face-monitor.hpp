@@ -37,11 +37,9 @@ namespace nfd {
 /** \brief A subscriber for Face status change notification stream
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Face-Status-Change-Notification
  */
-class FaceMonitor : public util::NotificationSubscriber<FaceEventNotification>
-{
-public:
-  explicit
-  FaceMonitor(Face& face);
+class FaceMonitor : public util::NotificationSubscriber<FaceEventNotification> {
+  public:
+    explicit FaceMonitor(Face& face);
 };
 
 } // namespace nfd

@@ -40,117 +40,90 @@ namespace net {
 
 class NetlinkMessage;
 
-class NetlinkSocket : noncopyable
-{
-public:
-  using Error = NetworkMonitor::Error;
-  using MessageCallback = std::function<void(const NetlinkMessage&)>;
+class NetlinkSocket : noncopyable {
+  public:
+    using Error = NetworkMonitor::Error;
+    using MessageCallback = std::function<void(const NetlinkMessage&)>;
 
-  void
-  joinGroup(int group);
+    void joinGroup(int group);
 
-  void
-  registerNotificationCallback(MessageCallback cb);
+    void registerNotificationCallback(MessageCallback cb);
 
-protected:
-  explicit
-  NetlinkSocket(boost::asio::io_service& io);
+  protected:
+    explicit NetlinkSocket(boost::asio::io_service& io);
 
-  ~NetlinkSocket();
+    ~NetlinkSocket();
 
-  void
-  open(int protocol);
+    void open(int protocol);
 
-  void
-  registerRequestCallback(uint32_t seq, MessageCallback cb);
+    void registerRequestCallback(uint32_t seq, MessageCallback cb);
 
-  virtual std::string
-  nlmsgTypeToString(uint16_t type) const;
+    virtual std::string nlmsgTypeToString(uint16_t type) const;
 
-private:
-  void
-  asyncWait();
+  private:
+    void asyncWait();
 
-  void
-  receiveAndValidate();
+    void receiveAndValidate();
 
-protected:
-  shared_ptr<boost::asio::generic::raw_protocol::socket> m_sock; ///< netlink socket descriptor
-  uint32_t m_pid; ///< port ID of this socket
-  uint32_t m_seqNum; ///< sequence number of the last netlink request sent to the kernel
+  protected:
+    shared_ptr<boost::asio::generic::raw_protocol::socket> m_sock; ///< netlink socket descriptor
+    uint32_t m_pid;                                                ///< port ID of this socket
+    uint32_t m_seqNum; ///< sequence number of the last netlink request sent to the kernel
 
-private:
-  std::vector<uint8_t> m_buffer; ///< buffer for netlink messages from the kernel
-  std::map<uint32_t, MessageCallback> m_pendingRequests; ///< request sequence number => callback
+  private:
+    std::vector<uint8_t> m_buffer;                         ///< buffer for netlink messages from the kernel
+    std::map<uint32_t, MessageCallback> m_pendingRequests; ///< request sequence number => callback
 };
 
-class RtnlSocket final : public NetlinkSocket
-{
-public:
-  explicit
-  RtnlSocket(boost::asio::io_service& io);
+class RtnlSocket final : public NetlinkSocket {
+  public:
+    explicit RtnlSocket(boost::asio::io_service& io);
 
-  void
-  open();
+    void open();
 
-  void
-  sendDumpRequest(uint16_t nlmsgType,
-                  const void* payload, size_t payloadLen,
-                  MessageCallback cb);
+    void sendDumpRequest(uint16_t nlmsgType, const void* payload, size_t payloadLen, MessageCallback cb);
 
-protected:
-  std::string
-  nlmsgTypeToString(uint16_t type) const final;
+  protected:
+    std::string nlmsgTypeToString(uint16_t type) const final;
 };
 
 class GenlSocket;
 
-class GenlFamilyResolver : noncopyable
-{
-public:
-  GenlFamilyResolver(std::string familyName, GenlSocket& socket);
+class GenlFamilyResolver : noncopyable {
+  public:
+    GenlFamilyResolver(std::string familyName, GenlSocket& socket);
 
-  util::Signal<GenlFamilyResolver, uint16_t> onResolved;
-  util::Signal<GenlFamilyResolver> onError;
+    util::Signal<GenlFamilyResolver, uint16_t> onResolved;
+    util::Signal<GenlFamilyResolver> onError;
 
-private:
-  void
-  asyncResolve();
+  private:
+    void asyncResolve();
 
-  void
-  handleResolve(const NetlinkMessage& nlmsg);
+    void handleResolve(const NetlinkMessage& nlmsg);
 
-private:
-  GenlSocket& m_sock;
-  std::string m_family;
+  private:
+    GenlSocket& m_sock;
+    std::string m_family;
 };
 
-class GenlSocket final : public NetlinkSocket
-{
-public:
-  explicit
-  GenlSocket(boost::asio::io_service& io);
+class GenlSocket final : public NetlinkSocket {
+  public:
+    explicit GenlSocket(boost::asio::io_service& io);
 
-  void
-  open();
+    void open();
 
-  void
-  sendRequest(const std::string& familyName, uint8_t command,
-              const void* payload, size_t payloadLen,
-              MessageCallback messageCb, std::function<void()> errorCb);
+    void sendRequest(const std::string& familyName, uint8_t command, const void* payload, size_t payloadLen,
+                     MessageCallback messageCb, std::function<void()> errorCb);
 
-  void
-  sendRequest(uint16_t familyId, uint8_t command,
-              const void* payload, size_t payloadLen,
-              MessageCallback messageCb);
+    void
+    sendRequest(uint16_t familyId, uint8_t command, const void* payload, size_t payloadLen, MessageCallback messageCb);
 
-protected:
-  std::string
-  nlmsgTypeToString(uint16_t type) const final;
+  protected:
+    std::string nlmsgTypeToString(uint16_t type) const final;
 
-private:
-  std::map<std::string, uint16_t> m_cachedFamilyIds; ///< family name => family id
-  std::map<std::string, GenlFamilyResolver> m_familyResolvers; ///< family name => resolver instance
+  private:
+    std::map<std::string, uint16_t> m_cachedFamilyIds;           ///< family name => family id
+    std::map<std::string, GenlFamilyResolver> m_familyResolvers; ///< family name => resolver instance
 };
 
 } // namespace net

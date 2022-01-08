@@ -34,40 +34,36 @@
 namespace nfd {
 namespace tests {
 
-class FaceManagerCommandNode
-{
-public:
-  FaceManagerCommandNode(ndn::KeyChain& keyChain, uint16_t port);
+class FaceManagerCommandNode {
+  public:
+    FaceManagerCommandNode(ndn::KeyChain& keyChain, uint16_t port);
 
-  ~FaceManagerCommandNode();
+    ~FaceManagerCommandNode();
 
-public:
-  const Face*
-  findFaceByUri(const std::string& uri) const;
+  public:
+    const Face* findFaceByUri(const std::string& uri) const;
 
-  FaceId
-  findFaceIdByUri(const std::string& uri) const;
+    FaceId findFaceIdByUri(const std::string& uri) const;
 
-public:
-  ndn::util::DummyClientFace face;
-  Dispatcher dispatcher;
-  shared_ptr<CommandAuthenticator> authenticator;
+  public:
+    ndn::util::DummyClientFace face;
+    Dispatcher dispatcher;
+    shared_ptr<CommandAuthenticator> authenticator;
 
-  FaceTable faceTable;
-  FaceSystem faceSystem;
-  FaceManager manager;
+    FaceTable faceTable;
+    FaceSystem faceSystem;
+    FaceManager manager;
 };
 
-class FaceManagerCommandFixture : public CommandInterestSignerFixture
-{
-public:
-  FaceManagerCommandFixture();
+class FaceManagerCommandFixture : public CommandInterestSignerFixture {
+  public:
+    FaceManagerCommandFixture();
 
-  ~FaceManagerCommandFixture();
+    ~FaceManagerCommandFixture();
 
-public:
-  FaceManagerCommandNode node1; // used to test FaceManager
-  FaceManagerCommandNode node2; // acts as a remote endpoint
+  public:
+    FaceManagerCommandNode node1; // used to test FaceManager
+    FaceManagerCommandNode node2; // acts as a remote endpoint
 };
 
 } // namespace tests

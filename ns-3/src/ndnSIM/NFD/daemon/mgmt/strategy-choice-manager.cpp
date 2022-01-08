@@ -34,66 +34,61 @@ namespace nfd {
 
 NFD_LOG_INIT(StrategyChoiceManager);
 
-StrategyChoiceManager::StrategyChoiceManager(StrategyChoice& strategyChoice,
-                                             Dispatcher& dispatcher,
+StrategyChoiceManager::StrategyChoiceManager(StrategyChoice& strategyChoice, Dispatcher& dispatcher,
                                              CommandAuthenticator& authenticator)
   : ManagerBase("strategy-choice", dispatcher, authenticator)
   , m_table(strategyChoice)
 {
-  registerCommandHandler<ndn::nfd::StrategyChoiceSetCommand>("set",
-    bind(&StrategyChoiceManager::setStrategy, this, _4, _5));
-  registerCommandHandler<ndn::nfd::StrategyChoiceUnsetCommand>("unset",
-    bind(&StrategyChoiceManager::unsetStrategy, this, _4, _5));
+    registerCommandHandler<ndn::nfd::StrategyChoiceSetCommand>("set",
+                                                               bind(&StrategyChoiceManager::setStrategy, this, _4, _5));
+    registerCommandHandler<ndn::nfd::StrategyChoiceUnsetCommand>("unset", bind(&StrategyChoiceManager::unsetStrategy,
+                                                                               this, _4, _5));
 
-  registerStatusDatasetHandler("list",
-    bind(&StrategyChoiceManager::listChoices, this, _3));
+    registerStatusDatasetHandler("list", bind(&StrategyChoiceManager::listChoices, this, _3));
 }
 
 void
-StrategyChoiceManager::setStrategy(ControlParameters parameters,
-                                   const ndn::mgmt::CommandContinuation& done)
+StrategyChoiceManager::setStrategy(ControlParameters parameters, const ndn::mgmt::CommandContinuation& done)
 {
-  const Name& prefix = parameters.getName();
-  const Name& strategy = parameters.getStrategy();
+    const Name& prefix = parameters.getName();
+    const Name& strategy = parameters.getStrategy();
 
-  StrategyChoice::InsertResult res = m_table.insert(prefix, strategy);
-  if (!res) {
-    NFD_LOG_DEBUG("strategy-choice/set(" << prefix << "," << strategy << "): cannot-create " << res);
-    return done(ControlResponse(res.getStatusCode(), boost::lexical_cast<std::string>(res)));
-  }
+    StrategyChoice::InsertResult res = m_table.insert(prefix, strategy);
+    if (!res) {
+        NFD_LOG_DEBUG("strategy-choice/set(" << prefix << "," << strategy << "): cannot-create " << res);
+        return done(ControlResponse(res.getStatusCode(), boost::lexical_cast<std::string>(res)));
+    }
 
-  NFD_LOG_DEBUG("strategy-choice/set(" << prefix << "," << strategy << "): OK");
-  bool hasEntry = false;
-  Name instanceName;
-  std::tie(hasEntry, instanceName) = m_table.get(prefix);
-  BOOST_ASSERT_MSG(hasEntry, "StrategyChoice entry must exist after StrategyChoice::insert");
-  parameters.setStrategy(instanceName);
-  return done(ControlResponse(200, "OK").setBody(parameters.wireEncode()));
+    NFD_LOG_DEBUG("strategy-choice/set(" << prefix << "," << strategy << "): OK");
+    bool hasEntry = false;
+    Name instanceName;
+    std::tie(hasEntry, instanceName) = m_table.get(prefix);
+    BOOST_ASSERT_MSG(hasEntry, "StrategyChoice entry must exist after StrategyChoice::insert");
+    parameters.setStrategy(instanceName);
+    return done(ControlResponse(200, "OK").setBody(parameters.wireEncode()));
 }
 
 void
-StrategyChoiceManager::unsetStrategy(ControlParameters parameters,
-                                     const ndn::mgmt::CommandContinuation& done)
+StrategyChoiceManager::unsetStrategy(ControlParameters parameters, const ndn::mgmt::CommandContinuation& done)
 {
-  const Name& prefix = parameters.getName();
-  // no need to test for ndn:/ , parameter validation takes care of that
+    const Name& prefix = parameters.getName();
+    // no need to test for ndn:/ , parameter validation takes care of that
 
-  m_table.erase(parameters.getName());
+    m_table.erase(parameters.getName());
 
-  NFD_LOG_DEBUG("strategy-choice/unset(" << prefix << "): OK");
-  done(ControlResponse(200, "OK").setBody(parameters.wireEncode()));
+    NFD_LOG_DEBUG("strategy-choice/unset(" << prefix << "): OK");
+    done(ControlResponse(200, "OK").setBody(parameters.wireEncode()));
 }
 
 void
 StrategyChoiceManager::listChoices(ndn::mgmt::StatusDatasetContext& context)
 {
-  for (const auto& i : m_table) {
-    ndn::nfd::StrategyChoice entry;
-    entry.setName(i.getPrefix())
-         .setStrategy(i.getStrategyInstanceName());
-    context.append(entry.wireEncode());
-  }
-  context.end();
+    for (const auto& i : m_table) {
+        ndn::nfd::StrategyChoice entry;
+        entry.setName(i.getPrefix()).setStrategy(i.getStrategyInstanceName());
+        context.append(entry.wireEncode());
+    }
+    context.end();
 }
 
 } // namespace nfd

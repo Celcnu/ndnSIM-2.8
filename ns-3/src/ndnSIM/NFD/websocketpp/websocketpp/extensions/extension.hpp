@@ -59,15 +59,21 @@ enum value {
 };
 
 class category : public lib::error_category {
-public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    const char *name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    const char*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.extension";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case general:
                 return "Generic extension error";
             case disabled:
@@ -78,12 +84,16 @@ public:
     }
 };
 
-inline lib::error_category const & get_category() {
+inline lib::error_category const&
+get_category()
+{
     static category instance;
     return instance;
 }
 
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -92,9 +102,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace websocketpp
 
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum
-    <websocketpp::extensions::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::extensions::error::value> {
     static const bool value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_

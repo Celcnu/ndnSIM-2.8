@@ -40,109 +40,107 @@ NetdevBound::NetdevBound(const ProtocolFactoryCtorParams& params, const FaceSyst
 }
 
 void
-NetdevBound::processConfig(OptionalConfigSection configSection,
-                           FaceSystem::ConfigContext& context)
+NetdevBound::processConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context)
 {
-  std::vector<Rule> rules;
-  if (configSection) {
-    int ruleIndex = 0;
-    for (const auto& pair : *configSection) {
-      const std::string& key = pair.first;
-      const ConfigSection& value = pair.second;
-      if (key == "rule") {
-        rules.push_back(parseRule(ruleIndex++, value));
-      }
-      else {
-        NDN_THROW(ConfigFile::Error("Unrecognized option face_system.netdev_bound." + key));
-      }
+    std::vector<Rule> rules;
+    if (configSection) {
+        int ruleIndex = 0;
+        for (const auto& pair : *configSection) {
+            const std::string& key = pair.first;
+            const ConfigSection& value = pair.second;
+            if (key == "rule") {
+                rules.push_back(parseRule(ruleIndex++, value));
+            }
+            else {
+                NDN_THROW(ConfigFile::Error("Unrecognized option face_system.netdev_bound." + key));
+            }
+        }
     }
-  }
 
-  if (context.isDryRun) {
-    return;
-  }
-
-  ///\todo #3521 this should be verified in dry-run, but PFs won't publish their *+dev schemes
-  ///            in dry-run
-  for (size_t i = 0; i < rules.size(); ++i) {
-    const Rule& rule = rules[i];
-    for (const FaceUri& remote : rule.remotes) {
-      std::string devScheme = remote.getScheme() + "+dev";
-      if (!m_faceSystem.hasFactoryForScheme(devScheme)) {
-        NDN_THROW(RuleParseError(i, "scheme '" + devScheme + "' for " +
-                                 remote.toString() + " is unavailable"));
-      }
+    if (context.isDryRun) {
+        return;
     }
-  }
-  NFD_LOG_DEBUG("processConfig: processed " << rules.size() << " rules");
 
-  m_rules.swap(rules);
-  std::map<Key, shared_ptr<Face>> oldFaces;
-  oldFaces.swap(m_faces);
+    ///\todo #3521 this should be verified in dry-run, but PFs won't publish their *+dev schemes
+    ///            in dry-run
+    for (size_t i = 0; i < rules.size(); ++i) {
+        const Rule& rule = rules[i];
+        for (const FaceUri& remote : rule.remotes) {
+            std::string devScheme = remote.getScheme() + "+dev";
+            if (!m_faceSystem.hasFactoryForScheme(devScheme)) {
+                NDN_THROW(RuleParseError(i, "scheme '" + devScheme + "' for " + remote.toString() + " is unavailable"));
+            }
+        }
+    }
+    NFD_LOG_DEBUG("processConfig: processed " << rules.size() << " rules");
 
-  ///\todo #3521 for each face needed under m_rules:
-  ///            if it's in oldFaces, add to m_faces and remove from oldFaces;
-  ///            otherwise, create via factory and add to m_faces
+    m_rules.swap(rules);
+    std::map<Key, shared_ptr<Face>> oldFaces;
+    oldFaces.swap(m_faces);
 
-  ///\todo #3521 close faces in oldFaces
+    ///\todo #3521 for each face needed under m_rules:
+    ///            if it's in oldFaces, add to m_faces and remove from oldFaces;
+    ///            otherwise, create via factory and add to m_faces
+
+    ///\todo #3521 close faces in oldFaces
 }
 
 NetdevBound::Rule
 NetdevBound::parseRule(int index, const ConfigSection& confRule) const
 {
-  Rule rule;
+    Rule rule;
 
-  bool hasWhitelist = false;
-  bool hasBlacklist = false;
-  for (const auto& pair : confRule) {
-    const std::string& key = pair.first;
-    const ConfigSection& value = pair.second;
-    if (key == "remote") {
-      try {
-        rule.remotes.emplace_back(value.get_value<std::string>());
-      }
-      catch (const FaceUri::Error&) {
-        NDN_THROW_NESTED(RuleParseError(index, "invalid remote FaceUri"));
-      }
-      if (!rule.remotes.back().isCanonical()) {
-        NDN_THROW(RuleParseError(index, "remote FaceUri is not canonical"));
-      }
+    bool hasWhitelist = false;
+    bool hasBlacklist = false;
+    for (const auto& pair : confRule) {
+        const std::string& key = pair.first;
+        const ConfigSection& value = pair.second;
+        if (key == "remote") {
+            try {
+                rule.remotes.emplace_back(value.get_value<std::string>());
+            }
+            catch (const FaceUri::Error&) {
+                NDN_THROW_NESTED(RuleParseError(index, "invalid remote FaceUri"));
+            }
+            if (!rule.remotes.back().isCanonical()) {
+                NDN_THROW(RuleParseError(index, "remote FaceUri is not canonical"));
+            }
+        }
+        else if (key == "whitelist") {
+            if (hasWhitelist) {
+                NDN_THROW(RuleParseError(index, "duplicate whitelist"));
+            }
+            try {
+                rule.netifPredicate.parseWhitelist(value);
+            }
+            catch (const ConfigFile::Error&) {
+                NDN_THROW_NESTED(RuleParseError(index, "invalid whitelist"));
+            }
+            hasWhitelist = true;
+        }
+        else if (key == "blacklist") {
+            if (hasBlacklist) {
+                NDN_THROW(RuleParseError(index, "duplicate blacklist"));
+            }
+            try {
+                rule.netifPredicate.parseBlacklist(value);
+            }
+            catch (const ConfigFile::Error&) {
+                NDN_THROW_NESTED(RuleParseError(index, "invalid blacklist"));
+            }
+            hasBlacklist = true;
+        }
+        else {
+            NDN_THROW(RuleParseError(index, "unrecognized option " + key));
+        }
     }
-    else if (key == "whitelist") {
-      if (hasWhitelist) {
-        NDN_THROW(RuleParseError(index, "duplicate whitelist"));
-      }
-      try {
-        rule.netifPredicate.parseWhitelist(value);
-      }
-      catch (const ConfigFile::Error&) {
-        NDN_THROW_NESTED(RuleParseError(index, "invalid whitelist"));
-      }
-      hasWhitelist = true;
-    }
-    else if (key == "blacklist") {
-      if (hasBlacklist) {
-        NDN_THROW(RuleParseError(index, "duplicate blacklist"));
-      }
-      try {
-        rule.netifPredicate.parseBlacklist(value);
-      }
-      catch (const ConfigFile::Error&) {
-        NDN_THROW_NESTED(RuleParseError(index, "invalid blacklist"));
-      }
-      hasBlacklist = true;
-    }
-    else {
-      NDN_THROW(RuleParseError(index, "unrecognized option " + key));
-    }
-  }
 
-  if (rule.remotes.empty()) {
-    NDN_THROW(RuleParseError(index, "remote FaceUri is missing"));
-  }
+    if (rule.remotes.empty()) {
+        NDN_THROW(RuleParseError(index, "remote FaceUri is missing"));
+    }
 
-  ///\todo #3521 for each remote, check that there is a factory providing scheme+dev scheme
-  return rule;
+    ///\todo #3521 for each remote, check that there is a factory providing scheme+dev scheme
+    return rule;
 }
 
 } // namespace face

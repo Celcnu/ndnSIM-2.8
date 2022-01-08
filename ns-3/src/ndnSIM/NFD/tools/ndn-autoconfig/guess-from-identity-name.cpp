@@ -43,23 +43,23 @@ GuessFromIdentityName::GuessFromIdentityName(KeyChain& keyChain)
 void
 GuessFromIdentityName::doStart()
 {
-  std::cerr << "Trying default identity name..." << std::endl;
+    std::cerr << "Trying default identity name..." << std::endl;
 
-  Name identity = m_keyChain.getPib().getDefaultIdentity().getName();
+    Name identity = m_keyChain.getPib().getDefaultIdentity().getName();
 
-  std::ostringstream serverName;
-  for (auto i = identity.rbegin(); i != identity.rend(); ++i) {
-    serverName << i->toUri() << ".";
-  }
-  serverName << "_homehub._autoconf.named-data.net";
+    std::ostringstream serverName;
+    for (auto i = identity.rbegin(); i != identity.rend(); ++i) {
+        serverName << i->toUri() << ".";
+    }
+    serverName << "_homehub._autoconf.named-data.net";
 
-  try {
-    std::string hubUri = querySrvRr(serverName.str());
-    this->provideHubFaceUri(hubUri);
-  }
-  catch (const DnsSrvError& e) {
-    this->fail(e.what());
-  }
+    try {
+        std::string hubUri = querySrvRr(serverName.str());
+        this->provideHubFaceUri(hubUri);
+    }
+    catch (const DnsSrvError& e) {
+        this->fail(e.what());
+    }
 }
 
 } // namespace autoconfig

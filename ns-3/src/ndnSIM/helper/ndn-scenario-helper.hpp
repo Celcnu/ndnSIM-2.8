@@ -60,138 +60,125 @@ namespace ndn {
  *       });
  *
  */
-class ScenarioHelper
-{
-public:
-  /**
-   * @brief Route information for addRoutes method
-   *
-   * It is preferred to use initializer list to indirectly pass RouteInfo's to addRoutes
-   * method.
-   */
-  struct RouteInfo
-  {
-    std::string node1;
-    std::string node2;
-    Name prefix;
-    int32_t metric;
-  };
+class ScenarioHelper {
+  public:
+    /**
+     * @brief Route information for addRoutes method
+     *
+     * It is preferred to use initializer list to indirectly pass RouteInfo's to addRoutes
+     * method.
+     */
+    struct RouteInfo {
+        std::string node1;
+        std::string node2;
+        Name prefix;
+        int32_t metric;
+    };
 
-  /*
-   * @brief Application information for addApps method
-   *
-   * It is preferred to use initializer list to indirectly pass AppInfo's to addApps
-   * method.
-   */
-  struct AppInfo
-  {
-    std::string node;
-    std::string name;
-    std::initializer_list<std::pair<std::string, std::string>> params;
-    std::string start;
-    std::string end;
-  };
+    /*
+     * @brief Application information for addApps method
+     *
+     * It is preferred to use initializer list to indirectly pass AppInfo's to addApps
+     * method.
+     */
+    struct AppInfo {
+        std::string node;
+        std::string name;
+        std::initializer_list<std::pair<std::string, std::string>> params;
+        std::string start;
+        std::string end;
+    };
 
-public:
-  ScenarioHelper();
+  public:
+    ScenarioHelper();
 
-  /**
-   * @brief Create topology
-   * @throw std::logic_error if createTopology is called more than once
-   *
-   * Example:
-   *
-   *     ScenarioHelper helper;
-   *     helper.createTopology({
-   *         {"1", "2"},
-   *         {"2", "3"}
-   *       });
-   */
-  void
-  createTopology(std::initializer_list<std::initializer_list<std::string>/*node clique*/> topology,
-                 bool shouldInstallNdnStack = true);
+    /**
+     * @brief Create topology
+     * @throw std::logic_error if createTopology is called more than once
+     *
+     * Example:
+     *
+     *     ScenarioHelper helper;
+     *     helper.createTopology({
+     *         {"1", "2"},
+     *         {"2", "3"}
+     *       });
+     */
+    void createTopology(std::initializer_list<std::initializer_list<std::string> /*node clique*/> topology,
+                        bool shouldInstallNdnStack = true);
 
-  /**
-   * @brief Create routes between topology nodes
-   * @throw std::invalid_argument if the nodes or links between nodes do not exist
-   *
-   * Example:
-   *
-   *     helper.addRoutes({
-   *         {"1", "2", "/prefix", 1},
-   *         {"2", "3", "/prefix", 1}
-   *       });
-   */
-  void
-  addRoutes(std::initializer_list<RouteInfo> routes);
+    /**
+     * @brief Create routes between topology nodes
+     * @throw std::invalid_argument if the nodes or links between nodes do not exist
+     *
+     * Example:
+     *
+     *     helper.addRoutes({
+     *         {"1", "2", "/prefix", 1},
+     *         {"2", "3", "/prefix", 1}
+     *       });
+     */
+    void addRoutes(std::initializer_list<RouteInfo> routes);
 
-  /**
-   * @brief Create and install application on nodes
-   * @throw std::invalid_argument if the nodes or links between nodes do not exist
-   *
-   * Example:
-   *
-   *     helper.addApps({
-   *         {"1", "ns3::ndn::ConsumerCbr",
-   *             {{"Prefix", "/prefix"}, {"Frequency", "1"}},
-   *             "0s", "100s"},
-   *         {"3", "ns3::ndn::Producer",
-   *             {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}},
-   *             "0s", "100s"}
-   *       });
-   */
-  void
-  addApps(std::initializer_list<AppInfo> apps);
+    /**
+     * @brief Create and install application on nodes
+     * @throw std::invalid_argument if the nodes or links between nodes do not exist
+     *
+     * Example:
+     *
+     *     helper.addApps({
+     *         {"1", "ns3::ndn::ConsumerCbr",
+     *             {{"Prefix", "/prefix"}, {"Frequency", "1"}},
+     *             "0s", "100s"},
+     *         {"3", "ns3::ndn::Producer",
+     *             {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}},
+     *             "0s", "100s"}
+     *       });
+     */
+    void addApps(std::initializer_list<AppInfo> apps);
 
-public: // topology accessors
-  /**
-   * @brief Get node
-   * @throw std::invalid_argument if the node does not exist
-   */
-  Ptr<Node>
-  getNode(const std::string& nodeName);
+  public: // topology accessors
+    /**
+     * @brief Get node
+     * @throw std::invalid_argument if the node does not exist
+     */
+    Ptr<Node> getNode(const std::string& nodeName);
 
-  /**
-   * @brief Get face on the @p node1 pointing towards @p node2
-   * @throw std::invalid_argument if the link does not exist
-   */
-  shared_ptr<Face>
-  getFace(const std::string& node1, const std::string& node2);
+    /**
+     * @brief Get face on the @p node1 pointing towards @p node2
+     * @throw std::invalid_argument if the link does not exist
+     */
+    shared_ptr<Face> getFace(const std::string& node1, const std::string& node2);
 
-  /**
-   * @brief Get NetDevice on the @p node1 pointing towards @p node2
-   * @throw std::invalid_argument if the link does not exist
-   */
-  Ptr<NetDevice>
-  getNetDevice(const std::string& node1, const std::string& node2);
+    /**
+     * @brief Get NetDevice on the @p node1 pointing towards @p node2
+     * @throw std::invalid_argument if the link does not exist
+     */
+    Ptr<NetDevice> getNetDevice(const std::string& node1, const std::string& node2);
 
-  /**
-   * \brief Disable Strategy Choice Manager
-   */
-  void
-  disableStrategyChoiceManager();
+    /**
+     * \brief Disable Strategy Choice Manager
+     */
+    void disableStrategyChoiceManager();
 
-  /**
-   * \brief Disable Forwarder Status Manager
-   */
-  void
-  disableForwarderStatusManager();
+    /**
+     * \brief Disable Forwarder Status Manager
+     */
+    void disableForwarderStatusManager();
 
-  /**
-   * \brief Get NDN stack helper, e.g., to adjust its parameters
-   */
-  StackHelper&
-  getStackHelper();
+    /**
+     * \brief Get NDN stack helper, e.g., to adjust its parameters
+     */
+    StackHelper& getStackHelper();
 
-private:
-  Ptr<Node>
-  getOrCreateNode(const std::string& nodeName);
+  private:
+    Ptr<Node> getOrCreateNode(const std::string& nodeName);
 
-private:
-  bool m_isTopologyInitialized;
-  StackHelper ndnHelper;
-  std::map<std::string, std::map<std::string, Ptr<NetDevice>>> links;
-  std::map<std::string, Ptr<Node>> nodes;
+  private:
+    bool m_isTopologyInitialized;
+    StackHelper ndnHelper;
+    std::map<std::string, std::map<std::string, Ptr<NetDevice>>> links;
+    std::map<std::string, Ptr<Node>> nodes;
 };
 
 } // namespace ndn

@@ -26,10 +26,10 @@ ATTRIBUTE_HELPER_CPP(Batches);
 std::ostream&
 operator<<(std::ostream& os, const Batches& batch)
 {
-  for (Batches::const_iterator i = batch.begin(); i != batch.end(); i++)
-    os << std::get<0>(*i) << " " << std::get<1>(*i) << " ";
+    for (Batches::const_iterator i = batch.begin(); i != batch.end(); i++)
+        os << std::get<0>(*i) << " " << std::get<1>(*i) << " ";
 
-  return os;
+    return os;
 }
 
 /**
@@ -39,14 +39,14 @@ operator<<(std::ostream& os, const Batches& batch)
 std::istream&
 operator>>(std::istream& is, Batches& batch)
 {
-  Time time;
-  uint32_t amount;
-  while (!is.eof()) {
-    is >> time >> amount;
-    batch.Add(time, amount);
-    // std::cout << time << ", " << amount << ". \n";
-  }
+    Time time;
+    uint32_t amount;
+    while (!is.eof()) {
+        is >> time >> amount;
+        batch.Add(time, amount);
+        // std::cout << time << ", " << amount << ". \n";
+    }
 
-  return is;
+    return is;
 }
 }

@@ -44,111 +44,110 @@ LinkService::~LinkService()
 void
 LinkService::setFaceAndTransport(Face& face, Transport& transport)
 {
-  BOOST_ASSERT(m_face == nullptr);
-  BOOST_ASSERT(m_transport == nullptr);
+    BOOST_ASSERT(m_face == nullptr);
+    BOOST_ASSERT(m_transport == nullptr);
 
-  m_face = &face;
-  m_transport = &transport;
+    m_face = &face;
+    m_transport = &transport;
 }
 
 void
 LinkService::sendInterest(const Interest& interest, const EndpointId& endpoint)
 {
-  BOOST_ASSERT(m_transport != nullptr);
-  NFD_LOG_FACE_TRACE(__func__);
+    BOOST_ASSERT(m_transport != nullptr);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nOutInterests;
+    ++this->nOutInterests;
 
-  // 对于ndn-simple.cpp中的节点2来说,作为producer,它具有App特性
-  // 因此其链路层是AppLinkService,而非GenericLinkService
-  // TODO: 这个是在哪里设置的?
-  doSendInterest(interest, endpoint);
+    // 对于ndn-simple.cpp中的节点2来说,作为producer,它具有App特性
+    // 因此其链路层是AppLinkService,而非GenericLinkService
+    // TODO: 这个是在哪里设置的?
+    doSendInterest(interest, endpoint);
 
-  afterSendInterest(interest);
+    afterSendInterest(interest);
 }
 
 void
 LinkService::sendData(const Data& data, const EndpointId& endpoint)
 {
-  BOOST_ASSERT(m_transport != nullptr);
-  NFD_LOG_FACE_TRACE(__func__);
+    BOOST_ASSERT(m_transport != nullptr);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nOutData;
+    ++this->nOutData;
 
-  doSendData(data, endpoint);
+    doSendData(data, endpoint);
 
-  afterSendData(data);
+    afterSendData(data);
 }
 
 void
 LinkService::sendNack(const ndn::lp::Nack& nack, const EndpointId& endpoint)
 {
-  BOOST_ASSERT(m_transport != nullptr);
-  NFD_LOG_FACE_TRACE(__func__);
+    BOOST_ASSERT(m_transport != nullptr);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nOutNacks;
+    ++this->nOutNacks;
 
-  doSendNack(nack, endpoint);
+    doSendNack(nack, endpoint);
 
-  afterSendNack(nack);
+    afterSendNack(nack);
 }
 
 void
 LinkService::receiveInterest(const Interest& interest, const EndpointId& endpoint)
 {
-  NFD_LOG_FACE_TRACE(__func__);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nInInterests;
+    ++this->nInInterests;
 
-  // 然后到这里就和之前的章节连上了 ↓↓↓
+    // 然后到这里就和之前的章节连上了 ↓↓↓
 
-  // 触发信号 afterReceiveInterest
-  // 该信号连接到 Forwarder::startProcessInterest !  
-  // TODO: 怎么连接的? 通过Forwarder的构造函数
-  // 里面的 faceTable 将里面每个 face 的 afterReceiveInterest 信号都连接到了 Forwarder::startProcessInterest 上
-  afterReceiveInterest(interest, endpoint);
+    // 触发信号 afterReceiveInterest
+    // 该信号连接到 Forwarder::startProcessInterest !
+    // TODO: 怎么连接的? 通过Forwarder的构造函数
+    // 里面的 faceTable 将里面每个 face 的 afterReceiveInterest 信号都连接到了 Forwarder::startProcessInterest 上
+    afterReceiveInterest(interest, endpoint);
 }
 
 void
 LinkService::receiveData(const Data& data, const EndpointId& endpoint)
 {
-  NFD_LOG_FACE_TRACE(__func__);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nInData;
+    ++this->nInData;
 
-  // 触发信号afterReceiveData,该信号连接到Forwarder::startProcessData 
-  afterReceiveData(data, endpoint);
+    // 触发信号afterReceiveData,该信号连接到Forwarder::startProcessData
+    afterReceiveData(data, endpoint);
 }
 
 void
 LinkService::receiveNack(const ndn::lp::Nack& nack, const EndpointId& endpoint)
 {
-  NFD_LOG_FACE_TRACE(__func__);
+    NFD_LOG_FACE_TRACE(__func__);
 
-  ++this->nInNacks;
+    ++this->nInNacks;
 
-  afterReceiveNack(nack, endpoint);
+    afterReceiveNack(nack, endpoint);
 }
 
 void
 LinkService::notifyDroppedInterest(const Interest& interest)
 {
-  ++this->nDroppedInterests;
-  onDroppedInterest(interest);
+    ++this->nDroppedInterests;
+    onDroppedInterest(interest);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FaceLogHelper<LinkService>& flh)
 {
-  const Face* face = flh.obj.getFace();
-  if (face == nullptr) {
-    os << "[id=0,local=unknown,remote=unknown] ";
-  }
-  else {
-    os << "[id=" << face->getId() << ",local=" << face->getLocalUri()
-       << ",remote=" << face->getRemoteUri() << "] ";
-  }
-  return os;
+    const Face* face = flh.obj.getFace();
+    if (face == nullptr) {
+        os << "[id=0,local=unknown,remote=unknown] ";
+    }
+    else {
+        os << "[id=" << face->getId() << ",local=" << face->getLocalUri() << ",remote=" << face->getRemoteUri() << "] ";
+    }
+    return os;
 }
 
 } // namespace face

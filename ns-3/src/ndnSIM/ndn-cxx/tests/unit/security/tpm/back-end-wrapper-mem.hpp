@@ -32,28 +32,27 @@ namespace tests {
 /**
  * @brief A wrapper of tpm::BackEndMem for unit test template.
  */
-class BackEndWrapperMem
-{
-public:
-  BackEndWrapperMem()
-    : m_impl(make_unique<BackEndMem>())
-  {
-  }
+class BackEndWrapperMem {
+  public:
+    BackEndWrapperMem()
+      : m_impl(make_unique<BackEndMem>())
+    {
+    }
 
-  BackEnd&
-  getTpm()
-  {
-    return *m_impl;
-  }
+    BackEnd&
+    getTpm()
+    {
+        return *m_impl;
+    }
 
-  std::string
-  getScheme() const
-  {
-    return "tpm-memory";
-  }
+    std::string
+    getScheme() const
+    {
+        return "tpm-memory";
+    }
 
-private:
-  const unique_ptr<BackEnd> m_impl;
+  private:
+    const unique_ptr<BackEnd> m_impl;
 };
 
 } // namespace tests

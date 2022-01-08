@@ -52,30 +52,23 @@ namespace fw {
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class BestRouteStrategy2 : public Strategy
-                         , public ProcessNackTraits<BestRouteStrategy2>
-{
-public:
-  explicit
-  BestRouteStrategy2(Forwarder& forwarder, const Name& name = getStrategyName());
+class BestRouteStrategy2 : public Strategy, public ProcessNackTraits<BestRouteStrategy2> {
+  public:
+    explicit BestRouteStrategy2(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-  void
-  afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                   const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
+                          const shared_ptr<pit::Entry>& pitEntry) override;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  static const time::milliseconds RETX_SUPPRESSION_INITIAL;
-  static const time::milliseconds RETX_SUPPRESSION_MAX;
-  RetxSuppressionExponential m_retxSuppression;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : static const time::milliseconds RETX_SUPPRESSION_INITIAL;
+    static const time::milliseconds RETX_SUPPRESSION_MAX;
+    RetxSuppressionExponential m_retxSuppression;
 
-  friend ProcessNackTraits<BestRouteStrategy2>;
+    friend ProcessNackTraits<BestRouteStrategy2>;
 };
 
 } // namespace fw

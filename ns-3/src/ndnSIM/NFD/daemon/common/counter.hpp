@@ -35,63 +35,60 @@ namespace nfd {
  *  SimpleCounter is noncopyable, because increment should be called on the counter,
  *  not a copy of it; it's implicitly convertible to an integral type to be observed
  */
-class SimpleCounter : noncopyable
-{
-public:
-  typedef uint64_t rep;
+class SimpleCounter : noncopyable {
+  public:
+    typedef uint64_t rep;
 
-  /** \brief observe the counter
-   */
-  operator rep() const noexcept
-  {
-    return m_value;
-  }
+    /** \brief observe the counter
+     */
+    operator rep() const noexcept
+    {
+        return m_value;
+    }
 
-  /** \brief replace the counter value
-   */
-  void
-  set(rep value) noexcept
-  {
-    m_value = value;
-  }
+    /** \brief replace the counter value
+     */
+    void
+    set(rep value) noexcept
+    {
+        m_value = value;
+    }
 
-protected:
-  rep m_value = 0;
+  protected:
+    rep m_value = 0;
 };
 
 /** \brief represents a counter of number of packets
  *
  *  \warning The counter value may wrap after exceeding the range of underlying integer type.
  */
-class PacketCounter : public SimpleCounter
-{
-public:
-  /** \brief increment the counter by one
-   */
-  PacketCounter&
-  operator++() noexcept
-  {
-    ++m_value;
-    return *this;
-  }
-  // postfix ++ operator is not provided because it's not needed
+class PacketCounter : public SimpleCounter {
+  public:
+    /** \brief increment the counter by one
+     */
+    PacketCounter&
+    operator++() noexcept
+    {
+        ++m_value;
+        return *this;
+    }
+    // postfix ++ operator is not provided because it's not needed
 };
 
 /** \brief represents a counter of number of bytes
  *
  *  \warning The counter value may wrap after exceeding the range of underlying integer type.
  */
-class ByteCounter : public SimpleCounter
-{
-public:
-  /** \brief increase the counter
-   */
-  ByteCounter&
-  operator+=(rep n) noexcept
-  {
-    m_value += n;
-    return *this;
-  }
+class ByteCounter : public SimpleCounter {
+  public:
+    /** \brief increase the counter
+     */
+    ByteCounter&
+    operator+=(rep n) noexcept
+    {
+        m_value += n;
+        return *this;
+    }
 };
 
 /** \brief provides a counter that observes the size of a table
@@ -99,34 +96,32 @@ public:
  *
  *  if table not specified in constructor, it can be added later by invoking observe()
  */
-template<typename T>
-class SizeCounter : noncopyable
-{
-public:
-  typedef size_t Rep;
+template <typename T>
+class SizeCounter : noncopyable {
+  public:
+    typedef size_t Rep;
 
-  explicit constexpr
-  SizeCounter(const T* table = nullptr) noexcept
-    : m_table(table)
-  {
-  }
+    explicit constexpr SizeCounter(const T* table = nullptr) noexcept
+      : m_table(table)
+    {
+    }
 
-  void
-  observe(const T* table) noexcept
-  {
-    m_table = table;
-  }
+    void
+    observe(const T* table) noexcept
+    {
+        m_table = table;
+    }
 
-  /** \brief observe the counter
-   */
-  operator Rep() const
-  {
-    BOOST_ASSERT(m_table != nullptr);
-    return m_table->size();
-  }
+    /** \brief observe the counter
+     */
+    operator Rep() const
+    {
+        BOOST_ASSERT(m_table != nullptr);
+        return m_table->size();
+    }
 
-private:
-  const T* m_table;
+  private:
+    const T* m_table;
 };
 
 } // namespace nfd

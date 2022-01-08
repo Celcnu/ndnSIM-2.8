@@ -33,26 +33,25 @@ namespace ns3 {
 L2Tracer::L2Tracer(Ptr<Node> node)
   : m_nodePtr(node)
 {
-  m_node = boost::lexical_cast<std::string>(m_nodePtr->GetId());
+    m_node = boost::lexical_cast<std::string>(m_nodePtr->GetId());
 
-  Connect();
+    Connect();
 
-  std::string name = Names::FindName(node);
-  if (!name.empty()) {
-    m_node = name;
-  }
+    std::string name = Names::FindName(node);
+    if (!name.empty()) {
+        m_node = name;
+    }
 }
 
 void
 L2Tracer::Connect()
 {
-  for (uint32_t devId = 0; devId < m_nodePtr->GetNDevices(); devId++) {
-    Ptr<PointToPointNetDevice> p2pnd =
-      DynamicCast<PointToPointNetDevice>(m_nodePtr->GetDevice(devId));
-    if (p2pnd) {
-      p2pnd->GetQueue()->TraceConnectWithoutContext("Drop", MakeCallback(&L2Tracer::Drop, this));
+    for (uint32_t devId = 0; devId < m_nodePtr->GetNDevices(); devId++) {
+        Ptr<PointToPointNetDevice> p2pnd = DynamicCast<PointToPointNetDevice>(m_nodePtr->GetDevice(devId));
+        if (p2pnd) {
+            p2pnd->GetQueue()->TraceConnectWithoutContext("Drop", MakeCallback(&L2Tracer::Drop, this));
+        }
     }
-  }
 }
 
 } // namespace ns3

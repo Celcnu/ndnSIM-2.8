@@ -29,25 +29,21 @@ namespace net {
 std::ostream&
 operator<<(std::ostream& os, AddressScope scope)
 {
-  switch (scope) {
-    case AddressScope::NOWHERE:
-      return os << "nowhere";
-    case AddressScope::HOST:
-      return os << "host";
-    case AddressScope::LINK:
-      return os << "link";
-    case AddressScope::GLOBAL:
-      return os << "global";
-  }
-  return os;
+    switch (scope) {
+        case AddressScope::NOWHERE:
+            return os << "nowhere";
+        case AddressScope::HOST:
+            return os << "host";
+        case AddressScope::LINK:
+            return os << "link";
+        case AddressScope::GLOBAL:
+            return os << "global";
+    }
+    return os;
 }
 
-NetworkAddress::NetworkAddress(AddressFamily family,
-                               boost::asio::ip::address ip,
-                               boost::asio::ip::address broadcast,
-                               uint8_t prefixLength,
-                               AddressScope scope,
-                               uint32_t flags)
+NetworkAddress::NetworkAddress(AddressFamily family, boost::asio::ip::address ip, boost::asio::ip::address broadcast,
+                               uint8_t prefixLength, AddressScope scope, uint32_t flags)
   : m_family(family)
   , m_ip(ip)
   , m_broadcast(broadcast)
@@ -60,7 +56,7 @@ NetworkAddress::NetworkAddress(AddressFamily family,
 std::ostream&
 operator<<(std::ostream& os, const NetworkAddress& addr)
 {
-  return os << addr.getIp() << '/' << static_cast<unsigned int>(addr.getPrefixLength());
+    return os << addr.getIp() << '/' << static_cast<unsigned int>(addr.getPrefixLength());
 }
 
 } // namespace net

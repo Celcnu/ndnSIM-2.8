@@ -44,22 +44,19 @@ namespace cfstring {
  * @brief Create a CFString by copying bytes from a raw buffer
  * @throw std::runtime_error creation failed
  */
-CFReleaser<CFStringRef>
-fromBuffer(const uint8_t* buf, size_t buflen);
+CFReleaser<CFStringRef> fromBuffer(const uint8_t* buf, size_t buflen);
 
 /**
  * @brief Create a CFString by copying characters from a std::string
  * @throw std::runtime_error creation failed
  */
-CFReleaser<CFStringRef>
-fromStdString(const std::string& str);
+CFReleaser<CFStringRef> fromStdString(const std::string& str);
 
 /**
  * @brief Convert a CFString to a std::string
  * @throw std::runtime_error conversion failed
  */
-std::string
-toStdString(CFStringRef cfStr);
+std::string toStdString(CFStringRef cfStr);
 
 } // namespace cfstring
 } // namespace detail

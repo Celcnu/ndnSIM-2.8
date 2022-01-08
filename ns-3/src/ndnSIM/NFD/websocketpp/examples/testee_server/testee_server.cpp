@@ -58,41 +58,44 @@ struct testee_config : public websocketpp::config::asio {
         static bool const enable_multithreading = true;
     };
 
-    typedef websocketpp::transport::asio::endpoint<transport_config>
-        transport_type;
+    typedef websocketpp::transport::asio::endpoint<transport_config> transport_type;
 
-    static const websocketpp::log::level elog_level =
-        websocketpp::log::elevel::none;
-    static const websocketpp::log::level alog_level =
-        websocketpp::log::alevel::none;
-        
+    static const websocketpp::log::level elog_level = websocketpp::log::elevel::none;
+    static const websocketpp::log::level alog_level = websocketpp::log::alevel::none;
+
     /// permessage_compress extension
-    struct permessage_deflate_config {};
+    struct permessage_deflate_config {
+    };
 
-    typedef websocketpp::extensions::permessage_deflate::enabled
-        <permessage_deflate_config> permessage_deflate_type;
+    typedef websocketpp::extensions::permessage_deflate::enabled<permessage_deflate_config> permessage_deflate_type;
 };
 
 typedef websocketpp::server<testee_config> server;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
 // Define a callback to handle incoming messages
-void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
+void
+on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg)
+{
     s->send(hdl, msg->get_payload(), msg->get_opcode());
 }
 
-void on_socket_init(websocketpp::connection_hdl, boost::asio::ip::tcp::socket & s) {
+void
+on_socket_init(websocketpp::connection_hdl, boost::asio::ip::tcp::socket& s)
+{
     boost::asio::ip::tcp::no_delay option(true);
     s.set_option(option);
 }
 
-int main(int argc, char * argv[]) {
+int
+main(int argc, char* argv[])
+{
     // Create a server endpoint
     server testee_server;
 
@@ -114,8 +117,8 @@ int main(int argc, char * argv[]) {
         testee_server.set_reuse_addr(true);
 
         // Register our message handler
-        testee_server.set_message_handler(bind(&on_message,&testee_server,::_1,::_2));
-        testee_server.set_socket_init_handler(bind(&on_socket_init,::_1,::_2));
+        testee_server.set_message_handler(bind(&on_message, &testee_server, ::_1, ::_2));
+        testee_server.set_socket_init_handler(bind(&on_socket_init, ::_1, ::_2));
 
         // Listen on specified port with extended listen backlog
         testee_server.set_listen_backlog(8192);
@@ -127,7 +130,8 @@ int main(int argc, char * argv[]) {
         // Start the ASIO io_service run loop
         if (num_threads == 1) {
             testee_server.run();
-        } else {
+        }
+        else {
             typedef websocketpp::lib::shared_ptr<websocketpp::lib::thread> thread_ptr;
             std::vector<thread_ptr> ts;
             for (size_t i = 0; i < num_threads; i++) {
@@ -138,8 +142,8 @@ int main(int argc, char * argv[]) {
                 ts[i]->join();
             }
         }
-
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << "exception: " << e.what() << std::endl;
     }
 }

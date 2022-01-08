@@ -32,47 +32,47 @@ BOOST_AUTO_TEST_SUITE(TestTransform)
 
 BOOST_AUTO_TEST_CASE(SymbolVisibility)
 {
-  transform::BufferSource* bufferSource = nullptr;
-  BOOST_CHECK(bufferSource == nullptr);
+    transform::BufferSource* bufferSource = nullptr;
+    BOOST_CHECK(bufferSource == nullptr);
 
-  transform::StreamSource* streamSource = nullptr;
-  BOOST_CHECK(streamSource == nullptr);
+    transform::StreamSource* streamSource = nullptr;
+    BOOST_CHECK(streamSource == nullptr);
 
-  transform::StepSource* stepSource = nullptr;
-  BOOST_CHECK(stepSource == nullptr);
+    transform::StepSource* stepSource = nullptr;
+    BOOST_CHECK(stepSource == nullptr);
 
-  transform::BoolSink* boolSink = nullptr;
-  BOOST_CHECK(boolSink == nullptr);
+    transform::BoolSink* boolSink = nullptr;
+    BOOST_CHECK(boolSink == nullptr);
 
-  transform::StreamSink* streamSink = nullptr;
-  BOOST_CHECK(streamSink == nullptr);
+    transform::StreamSink* streamSink = nullptr;
+    BOOST_CHECK(streamSink == nullptr);
 
-  transform::HexEncode* hexEncode = nullptr;
-  BOOST_CHECK(hexEncode == nullptr);
+    transform::HexEncode* hexEncode = nullptr;
+    BOOST_CHECK(hexEncode == nullptr);
 
-  transform::StripSpace* stripSpace = nullptr;
-  BOOST_CHECK(stripSpace == nullptr);
+    transform::StripSpace* stripSpace = nullptr;
+    BOOST_CHECK(stripSpace == nullptr);
 
-  transform::HexDecode* hexDecode = nullptr;
-  BOOST_CHECK(hexDecode == nullptr);
+    transform::HexDecode* hexDecode = nullptr;
+    BOOST_CHECK(hexDecode == nullptr);
 
-  transform::Base64Encode* base64Encode = nullptr;
-  BOOST_CHECK(base64Encode == nullptr);
+    transform::Base64Encode* base64Encode = nullptr;
+    BOOST_CHECK(base64Encode == nullptr);
 
-  transform::Base64Decode* base64Decode = nullptr;
-  BOOST_CHECK(base64Decode == nullptr);
+    transform::Base64Decode* base64Decode = nullptr;
+    BOOST_CHECK(base64Decode == nullptr);
 
-  transform::DigestFilter* digestFilter = nullptr;
-  BOOST_CHECK(digestFilter == nullptr);
+    transform::DigestFilter* digestFilter = nullptr;
+    BOOST_CHECK(digestFilter == nullptr);
 
-  transform::BlockCipher* blockCipher = nullptr;
-  BOOST_CHECK(blockCipher == nullptr);
+    transform::BlockCipher* blockCipher = nullptr;
+    BOOST_CHECK(blockCipher == nullptr);
 
-  transform::SignerFilter* signerFilter = nullptr;
-  BOOST_CHECK(signerFilter == nullptr);
+    transform::SignerFilter* signerFilter = nullptr;
+    BOOST_CHECK(signerFilter == nullptr);
 
-  transform::VerifierFilter* verifierFilter = nullptr;
-  BOOST_CHECK(verifierFilter == nullptr);
+    transform::VerifierFilter* verifierFilter = nullptr;
+    BOOST_CHECK(verifierFilter == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTransform

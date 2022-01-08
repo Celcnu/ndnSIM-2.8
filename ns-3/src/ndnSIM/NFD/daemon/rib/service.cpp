@@ -56,14 +56,13 @@ const uint64_t PROPAGATE_DEFAULT_COST = 15;
 const time::milliseconds PROPAGATE_DEFAULT_TIMEOUT = 10_s;
 
 Service::Service(const ConfigSection& configSection, ndn::Face& face, ndn::KeyChain& keyChain)
-  : Service(keyChain, face,
-            [&configSection] (ConfigFile& config, bool isDryRun) {
-              config.parse(configSection, isDryRun, "internal://nfd.conf");
-            })
+  : Service(keyChain, face, [&configSection](ConfigFile& config, bool isDryRun) {
+      config.parse(configSection, isDryRun, "internal://nfd.conf");
+  })
 {
 }
 
-template<typename ConfigParseFunc>
+template <typename ConfigParseFunc>
 Service::Service(ndn::KeyChain& keyChain, ndn::Face& face, const ConfigParseFunc& configParse)
   : m_keyChain(keyChain)
   , m_face(face)
@@ -73,13 +72,13 @@ Service::Service(ndn::KeyChain& keyChain, ndn::Face& face, const ConfigParseFunc
   , m_dispatcher(m_face, m_keyChain)
   , m_ribManager(m_rib, m_face, m_keyChain, m_nfdController, m_dispatcher)
 {
-  ConfigFile config(ConfigFile::ignoreUnknownSection);
-  config.addSectionHandler(CFG_SECTION, bind(&Service::processConfig, this, _1, _2, _3));
-  configParse(config, true);
-  configParse(config, false);
+    ConfigFile config(ConfigFile::ignoreUnknownSection);
+    config.addSectionHandler(CFG_SECTION, bind(&Service::processConfig, this, _1, _2, _3));
+    configParse(config, true);
+    configParse(config, false);
 
-  m_ribManager.registerWithNfd();
-  m_ribManager.enableLocalFields();
+    m_ribManager.registerWithNfd();
+    m_ribManager.enableLocalFields();
 }
 
 Service::~Service()
@@ -89,119 +88,118 @@ Service::~Service()
 Service&
 Service::get()
 {
-  auto node = ::ns3::NodeList::GetNode(::ns3::Simulator::GetContext());
-  auto l3 = node->GetObject<::ns3::ndn::L3Protocol>();
-  return l3->getRibService();
+    auto node = ::ns3::NodeList::GetNode(::ns3::Simulator::GetContext());
+    auto l3 = node->GetObject<::ns3::ndn::L3Protocol>();
+    return l3->getRibService();
 }
 
 void
 Service::processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename)
 {
-  if (isDryRun) {
-    checkConfig(section, filename);
-  }
-  else {
-    applyConfig(section, filename);
-  }
+    if (isDryRun) {
+        checkConfig(section, filename);
+    }
+    else {
+        applyConfig(section, filename);
+    }
 }
 
 void
 Service::checkConfig(const ConfigSection& section, const std::string& filename)
 {
-  bool hasLocalhop = false;
-  bool hasPropagate = false;
+    bool hasLocalhop = false;
+    bool hasPropagate = false;
 
-  for (const auto& item : section) {
-    const std::string& key = item.first;
-    const ConfigSection& value = item.second;
-    if (key == CFG_LOCALHOST_SECURITY || key == CFG_LOCALHOP_SECURITY || key == CFG_PA_VALIDATION) {
-      hasLocalhop = key == CFG_LOCALHOP_SECURITY;
-      ndn::ValidatorConfig testValidator(m_face);
-      testValidator.load(value, filename);
+    for (const auto& item : section) {
+        const std::string& key = item.first;
+        const ConfigSection& value = item.second;
+        if (key == CFG_LOCALHOST_SECURITY || key == CFG_LOCALHOP_SECURITY || key == CFG_PA_VALIDATION) {
+            hasLocalhop = key == CFG_LOCALHOP_SECURITY;
+            ndn::ValidatorConfig testValidator(m_face);
+            testValidator.load(value, filename);
+        }
+        else if (key == CFG_PREFIX_PROPAGATE) {
+            hasPropagate = true;
+            // AutoPrefixPropagator does not support config dry-run
+        }
+        else if (key == CFG_READVERTISE_NLSR) {
+            ConfigFile::parseYesNo(item, CFG_SECTION + "." + CFG_READVERTISE_NLSR);
+        }
+        else {
+            NDN_THROW(ConfigFile::Error("Unrecognized option " + CFG_SECTION + "." + key));
+        }
     }
-    else if (key == CFG_PREFIX_PROPAGATE) {
-      hasPropagate = true;
-      // AutoPrefixPropagator does not support config dry-run
-    }
-    else if (key == CFG_READVERTISE_NLSR) {
-      ConfigFile::parseYesNo(item, CFG_SECTION + "." + CFG_READVERTISE_NLSR);
-    }
-    else {
-      NDN_THROW(ConfigFile::Error("Unrecognized option " + CFG_SECTION + "." + key));
-    }
-  }
 
-  if (hasLocalhop && hasPropagate) {
-    NDN_THROW(ConfigFile::Error(CFG_LOCALHOP_SECURITY + " and " + CFG_PREFIX_PROPAGATE +
-                                " cannot be enabled at the same time"));
-  }
+    if (hasLocalhop && hasPropagate) {
+        NDN_THROW(ConfigFile::Error(CFG_LOCALHOP_SECURITY + " and " + CFG_PREFIX_PROPAGATE
+                                    + " cannot be enabled at the same time"));
+    }
 }
 
 void
 Service::applyConfig(const ConfigSection& section, const std::string& filename)
 {
-  bool wantPrefixPropagate = false;
-  bool wantReadvertiseNlsr = false;
+    bool wantPrefixPropagate = false;
+    bool wantReadvertiseNlsr = false;
 
-  for (const auto& item : section) {
-    const std::string& key = item.first;
-    const ConfigSection& value = item.second;
-    if (key == CFG_LOCALHOST_SECURITY) {
-      m_ribManager.applyLocalhostConfig(value, filename);
+    for (const auto& item : section) {
+        const std::string& key = item.first;
+        const ConfigSection& value = item.second;
+        if (key == CFG_LOCALHOST_SECURITY) {
+            m_ribManager.applyLocalhostConfig(value, filename);
+        }
+        else if (key == CFG_LOCALHOP_SECURITY) {
+            m_ribManager.enableLocalhop(value, filename);
+        }
+        else if (key == CFG_PA_VALIDATION) {
+            m_ribManager.applyPaConfig(value, filename);
+        }
+        else if (key == CFG_PREFIX_PROPAGATE) {
+            wantPrefixPropagate = true;
+
+            if (!m_readvertisePropagation) {
+                NFD_LOG_DEBUG("Enabling automatic prefix propagation");
+
+                auto cost = item.second.get_optional<uint64_t>("cost");
+                auto parameters = ndn::nfd::ControlParameters()
+                                    .setCost(cost.value_or(PROPAGATE_DEFAULT_COST))
+                                    .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT);
+
+                auto timeout = item.second.get_optional<uint64_t>("timeout");
+                auto options = ndn::nfd::CommandOptions()
+                                 .setPrefix(RibManager::LOCALHOP_TOP_PREFIX)
+                                 .setTimeout(timeout ? time::milliseconds(*timeout) : PROPAGATE_DEFAULT_TIMEOUT);
+
+                m_readvertisePropagation =
+                  make_unique<Readvertise>(m_rib, make_unique<HostToGatewayReadvertisePolicy>(m_keyChain, item.second),
+                                           make_unique<NfdRibReadvertiseDestination>(m_nfdController, m_rib, options,
+                                                                                     parameters));
+            }
+        }
+        else if (key == CFG_READVERTISE_NLSR) {
+            wantReadvertiseNlsr = ConfigFile::parseYesNo(item, CFG_SECTION + "." + CFG_READVERTISE_NLSR);
+        }
+        else {
+            NDN_THROW(ConfigFile::Error("Unrecognized option " + CFG_SECTION + "." + key));
+        }
     }
-    else if (key == CFG_LOCALHOP_SECURITY) {
-      m_ribManager.enableLocalhop(value, filename);
+
+    if (!wantPrefixPropagate && m_readvertisePropagation != nullptr) {
+        NFD_LOG_DEBUG("Disabling automatic prefix propagation");
+        m_readvertisePropagation.reset();
     }
-    else if (key == CFG_PA_VALIDATION) {
-      m_ribManager.applyPaConfig(value, filename);
+
+    if (wantReadvertiseNlsr && m_readvertiseNlsr == nullptr) {
+        NFD_LOG_DEBUG("Enabling readvertise-to-nlsr");
+        auto options = ndn::nfd::CommandOptions().setPrefix(READVERTISE_NLSR_PREFIX);
+        m_readvertiseNlsr =
+          make_unique<Readvertise>(m_rib, make_unique<ClientToNlsrReadvertisePolicy>(),
+                                   make_unique<NfdRibReadvertiseDestination>(m_nfdController, m_rib, options));
     }
-    else if (key == CFG_PREFIX_PROPAGATE) {
-      wantPrefixPropagate = true;
-
-      if (!m_readvertisePropagation) {
-        NFD_LOG_DEBUG("Enabling automatic prefix propagation");
-
-        auto cost = item.second.get_optional<uint64_t>("cost");
-        auto parameters = ndn::nfd::ControlParameters()
-                          .setCost(cost.value_or(PROPAGATE_DEFAULT_COST))
-                          .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT);
-
-        auto timeout = item.second.get_optional<uint64_t>("timeout");
-        auto options = ndn::nfd::CommandOptions()
-                       .setPrefix(RibManager::LOCALHOP_TOP_PREFIX)
-                       .setTimeout(timeout ? time::milliseconds(*timeout) : PROPAGATE_DEFAULT_TIMEOUT);
-
-        m_readvertisePropagation = make_unique<Readvertise>(
-          m_rib,
-          make_unique<HostToGatewayReadvertisePolicy>(m_keyChain, item.second),
-          make_unique<NfdRibReadvertiseDestination>(m_nfdController, m_rib, options, parameters));
-      }
+    else if (!wantReadvertiseNlsr && m_readvertiseNlsr != nullptr) {
+        NFD_LOG_DEBUG("Disabling readvertise-to-nlsr");
+        m_readvertiseNlsr.reset();
     }
-    else if (key == CFG_READVERTISE_NLSR) {
-      wantReadvertiseNlsr = ConfigFile::parseYesNo(item, CFG_SECTION + "." + CFG_READVERTISE_NLSR);
-    }
-    else {
-      NDN_THROW(ConfigFile::Error("Unrecognized option " + CFG_SECTION + "." + key));
-    }
-  }
-
-  if (!wantPrefixPropagate && m_readvertisePropagation != nullptr) {
-    NFD_LOG_DEBUG("Disabling automatic prefix propagation");
-    m_readvertisePropagation.reset();
-  }
-
-  if (wantReadvertiseNlsr && m_readvertiseNlsr == nullptr) {
-    NFD_LOG_DEBUG("Enabling readvertise-to-nlsr");
-    auto options = ndn::nfd::CommandOptions().setPrefix(READVERTISE_NLSR_PREFIX);
-    m_readvertiseNlsr = make_unique<Readvertise>(
-      m_rib,
-      make_unique<ClientToNlsrReadvertisePolicy>(),
-      make_unique<NfdRibReadvertiseDestination>(m_nfdController, m_rib, options));
-  }
-  else if (!wantReadvertiseNlsr && m_readvertiseNlsr != nullptr) {
-    NFD_LOG_DEBUG("Disabling readvertise-to-nlsr");
-    m_readvertiseNlsr.reset();
-  }
 }
 
 } // namespace rib

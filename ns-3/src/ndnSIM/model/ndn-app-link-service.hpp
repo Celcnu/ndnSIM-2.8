@@ -38,46 +38,39 @@ class App;
  *
  * \see NetDeviceLinkService
  */
-class AppLinkService : public nfd::face::LinkService
-{
-public:
-  /**
-   * \brief Default constructor
-   */
-  AppLinkService(Ptr<App> app);
+class AppLinkService : public nfd::face::LinkService {
+  public:
+    /**
+     * \brief Default constructor
+     */
+    AppLinkService(Ptr<App> app);
 
-  virtual ~AppLinkService();
+    virtual ~AppLinkService();
 
-public:
-  void
-  onReceiveInterest(const Interest& interest);
+  public:
+    void onReceiveInterest(const Interest& interest);
 
-  void
-  onReceiveData(const Data& data);
+    void onReceiveData(const Data& data);
 
-  void
-  onReceiveNack(const lp::Nack& nack);
+    void onReceiveNack(const lp::Nack& nack);
 
-private:
-  virtual void
-  doSendInterest(const Interest& interest, const nfd::EndpointId& endpoint) override;
+  private:
+    virtual void doSendInterest(const Interest& interest, const nfd::EndpointId& endpoint) override;
 
-  virtual void
-  doSendData(const Data& data, const nfd::EndpointId& endpoint) override;
+    virtual void doSendData(const Data& data, const nfd::EndpointId& endpoint) override;
 
-  virtual void
-  doSendNack(const lp::Nack& nack, const nfd::EndpointId& endpoint) override;
+    virtual void doSendNack(const lp::Nack& nack, const nfd::EndpointId& endpoint) override;
 
-  virtual void
-  doReceivePacket(const Block& packet, const nfd::EndpointId& endpoint) override
-  {
-    // does nothing (all operations for now handled by LinkService)
-    BOOST_ASSERT(false);
-  }
+    virtual void
+    doReceivePacket(const Block& packet, const nfd::EndpointId& endpoint) override
+    {
+        // does nothing (all operations for now handled by LinkService)
+        BOOST_ASSERT(false);
+    }
 
-private:
-  Ptr<Node> m_node;
-  Ptr<App> m_app;
+  private:
+    Ptr<Node> m_node;
+    Ptr<App> m_app;
 };
 
 } // namespace ndn

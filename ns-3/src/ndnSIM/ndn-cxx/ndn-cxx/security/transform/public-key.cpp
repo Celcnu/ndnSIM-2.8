@@ -28,37 +28,36 @@
 #include "ndn-cxx/security/impl/openssl-helper.hpp"
 #include "ndn-cxx/encoding/buffer-stream.hpp"
 
-#define ENSURE_PUBLIC_KEY_LOADED(key) \
-  do { \
-    if ((key) == nullptr) \
-      NDN_THROW(Error("Public key has not been loaded yet")); \
-  } while (false)
+#define ENSURE_PUBLIC_KEY_LOADED(key)                                                                                  \
+    do {                                                                                                               \
+        if ((key) == nullptr)                                                                                          \
+            NDN_THROW(Error("Public key has not been loaded yet"));                                                    \
+    } while (false)
 
-#define ENSURE_PUBLIC_KEY_NOT_LOADED(key) \
-  do { \
-    if ((key) != nullptr) \
-      NDN_THROW(Error("Public key has already been loaded")); \
-  } while (false)
+#define ENSURE_PUBLIC_KEY_NOT_LOADED(key)                                                                              \
+    do {                                                                                                               \
+        if ((key) != nullptr)                                                                                          \
+            NDN_THROW(Error("Public key has already been loaded"));                                                    \
+    } while (false)
 
 namespace ndn {
 namespace security {
 namespace transform {
 
-class PublicKey::Impl
-{
-public:
-  Impl() noexcept
-    : key(nullptr)
-  {
-  }
+class PublicKey::Impl {
+  public:
+    Impl() noexcept
+      : key(nullptr)
+    {
+    }
 
-  ~Impl()
-  {
-    EVP_PKEY_free(key);
-  }
+    ~Impl()
+    {
+        EVP_PKEY_free(key);
+    }
 
-public:
-  EVP_PKEY* key;
+  public:
+    EVP_PKEY* key;
 };
 
 PublicKey::PublicKey()
@@ -71,124 +70,124 @@ PublicKey::~PublicKey() = default;
 KeyType
 PublicKey::getKeyType() const
 {
-  if (!m_impl->key)
-    return KeyType::NONE;
+    if (!m_impl->key)
+        return KeyType::NONE;
 
-  switch (detail::getEvpPkeyType(m_impl->key)) {
-  case EVP_PKEY_RSA:
-    return KeyType::RSA;
-  case EVP_PKEY_EC:
-    return KeyType::EC;
-  default:
-    return KeyType::NONE;
-  }
+    switch (detail::getEvpPkeyType(m_impl->key)) {
+        case EVP_PKEY_RSA:
+            return KeyType::RSA;
+        case EVP_PKEY_EC:
+            return KeyType::EC;
+        default:
+            return KeyType::NONE;
+    }
 }
 
 void
 PublicKey::loadPkcs8(const uint8_t* buf, size_t size)
 {
-  ENSURE_PUBLIC_KEY_NOT_LOADED(m_impl->key);
+    ENSURE_PUBLIC_KEY_NOT_LOADED(m_impl->key);
 
-  if (d2i_PUBKEY(&m_impl->key, &buf, static_cast<long>(size)) == nullptr)
-    NDN_THROW(Error("Failed to load public key"));
+    if (d2i_PUBKEY(&m_impl->key, &buf, static_cast<long>(size)) == nullptr)
+        NDN_THROW(Error("Failed to load public key"));
 }
 
 void
 PublicKey::loadPkcs8(std::istream& is)
 {
-  OBufferStream os;
-  streamSource(is) >> streamSink(os);
-  this->loadPkcs8(os.buf()->data(), os.buf()->size());
+    OBufferStream os;
+    streamSource(is) >> streamSink(os);
+    this->loadPkcs8(os.buf()->data(), os.buf()->size());
 }
 
 void
 PublicKey::loadPkcs8Base64(const uint8_t* buf, size_t size)
 {
-  OBufferStream os;
-  bufferSource(buf, size) >> base64Decode() >> streamSink(os);
-  this->loadPkcs8(os.buf()->data(), os.buf()->size());
+    OBufferStream os;
+    bufferSource(buf, size) >> base64Decode() >> streamSink(os);
+    this->loadPkcs8(os.buf()->data(), os.buf()->size());
 }
 
 void
 PublicKey::loadPkcs8Base64(std::istream& is)
 {
-  OBufferStream os;
-  streamSource(is) >> base64Decode() >> streamSink(os);
-  this->loadPkcs8(os.buf()->data(), os.buf()->size());
+    OBufferStream os;
+    streamSource(is) >> base64Decode() >> streamSink(os);
+    this->loadPkcs8(os.buf()->data(), os.buf()->size());
 }
 
 void
 PublicKey::savePkcs8(std::ostream& os) const
 {
-  bufferSource(*this->toPkcs8()) >> streamSink(os);
+    bufferSource(*this->toPkcs8()) >> streamSink(os);
 }
 
 void
 PublicKey::savePkcs8Base64(std::ostream& os) const
 {
-  bufferSource(*this->toPkcs8()) >> base64Encode() >> streamSink(os);
+    bufferSource(*this->toPkcs8()) >> base64Encode() >> streamSink(os);
 }
 
 ConstBufferPtr
 PublicKey::encrypt(const uint8_t* plainText, size_t plainLen) const
 {
-  ENSURE_PUBLIC_KEY_LOADED(m_impl->key);
+    ENSURE_PUBLIC_KEY_LOADED(m_impl->key);
 
-  int keyType = detail::getEvpPkeyType(m_impl->key);
-  switch (keyType) {
-    case EVP_PKEY_NONE:
-      NDN_THROW(Error("Failed to determine key type"));
-    case EVP_PKEY_RSA:
-      return rsaEncrypt(plainText, plainLen);
-    default:
-      NDN_THROW(Error("Encryption is not supported for key type " + to_string(keyType)));
-  }
+    int keyType = detail::getEvpPkeyType(m_impl->key);
+    switch (keyType) {
+        case EVP_PKEY_NONE:
+            NDN_THROW(Error("Failed to determine key type"));
+        case EVP_PKEY_RSA:
+            return rsaEncrypt(plainText, plainLen);
+        default:
+            NDN_THROW(Error("Encryption is not supported for key type " + to_string(keyType)));
+    }
 }
 
 void*
 PublicKey::getEvpPkey() const
 {
-  return m_impl->key;
+    return m_impl->key;
 }
 
 ConstBufferPtr
 PublicKey::toPkcs8() const
 {
-  ENSURE_PUBLIC_KEY_LOADED(m_impl->key);
+    ENSURE_PUBLIC_KEY_LOADED(m_impl->key);
 
-  uint8_t* pkcs8 = nullptr;
-  int len = i2d_PUBKEY(m_impl->key, &pkcs8);
-  if (len < 0)
-    NDN_THROW(Error("Cannot convert key to PKCS #8 format"));
+    uint8_t* pkcs8 = nullptr;
+    int len = i2d_PUBKEY(m_impl->key, &pkcs8);
+    if (len < 0)
+        NDN_THROW(Error("Cannot convert key to PKCS #8 format"));
 
-  auto buffer = make_shared<Buffer>(pkcs8, len);
-  OPENSSL_free(pkcs8);
+    auto buffer = make_shared<Buffer>(pkcs8, len);
+    OPENSSL_free(pkcs8);
 
-  return buffer;
+    return buffer;
 }
 
 ConstBufferPtr
 PublicKey::rsaEncrypt(const uint8_t* plainText, size_t plainLen) const
 {
-  detail::EvpPkeyCtx ctx(m_impl->key);
+    detail::EvpPkeyCtx ctx(m_impl->key);
 
-  if (EVP_PKEY_encrypt_init(ctx) <= 0)
-    NDN_THROW(Error("Failed to initialize encryption context"));
+    if (EVP_PKEY_encrypt_init(ctx) <= 0)
+        NDN_THROW(Error("Failed to initialize encryption context"));
 
-  if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0)
-    NDN_THROW(Error("Failed to set padding"));
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0)
+        NDN_THROW(Error("Failed to set padding"));
 
-  size_t outlen = 0;
-  // Determine buffer length
-  if (EVP_PKEY_encrypt(ctx, nullptr, &outlen, plainText, plainLen) <= 0)
-    NDN_THROW(Error("Failed to estimate output length"));
+    size_t outlen = 0;
+    // Determine buffer length
+    if (EVP_PKEY_encrypt(ctx, nullptr, &outlen, plainText, plainLen) <= 0)
+        NDN_THROW(Error("Failed to estimate output length"));
 
-  auto out = make_shared<Buffer>(outlen);
-  if (EVP_PKEY_encrypt(ctx, out->data(), &outlen, plainText, plainLen) <= 0)
-    NDN_THROW(Error("Failed to encrypt plaintext"));
+    auto out = make_shared<Buffer>(outlen);
+    if (EVP_PKEY_encrypt(ctx, out->data(), &outlen, plainText, plainLen) <= 0)
+        NDN_THROW(Error("Failed to encrypt plaintext"));
 
-  out->resize(outlen);
-  return out;
+    out->resize(outlen);
+    return out;
 }
 
 } // namespace transform

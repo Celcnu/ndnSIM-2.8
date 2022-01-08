@@ -31,7 +31,7 @@ namespace pit {
 static inline bool
 nteHasPitEntries(const name_tree::Entry& nte)
 {
-  return nte.hasPitEntries();
+    return nte.hasPitEntries();
 }
 
 Pit::Pit(NameTree& nameTree)
@@ -42,90 +42,89 @@ Pit::Pit(NameTree& nameTree)
 std::pair<shared_ptr<Entry>, bool>
 Pit::findOrInsert(const Interest& interest, bool allowInsert)
 {
-  // determine which NameTree entry should the PIT entry be attached onto
-  const Name& name = interest.getName();
-  bool hasDigest = name.size() > 0 && name[-1].isImplicitSha256Digest();
-  size_t nteDepth = name.size() - static_cast<int>(hasDigest);
-  nteDepth = std::min(nteDepth, NameTree::getMaxDepth());
+    // determine which NameTree entry should the PIT entry be attached onto
+    const Name& name = interest.getName();
+    bool hasDigest = name.size() > 0 && name[-1].isImplicitSha256Digest();
+    size_t nteDepth = name.size() - static_cast<int>(hasDigest);
+    nteDepth = std::min(nteDepth, NameTree::getMaxDepth());
 
-  // ensure NameTree entry exists
-  name_tree::Entry* nte = nullptr;
-  if (allowInsert) {
-    nte = &m_nameTree.lookup(name, nteDepth);
-  }
-  else {
-    nte = m_nameTree.findExactMatch(name, nteDepth);
-    if (nte == nullptr) {
-      return {nullptr, true};
+    // ensure NameTree entry exists
+    name_tree::Entry* nte = nullptr;
+    if (allowInsert) {
+        nte = &m_nameTree.lookup(name, nteDepth);
     }
-  }
+    else {
+        nte = m_nameTree.findExactMatch(name, nteDepth);
+        if (nte == nullptr) {
+            return {nullptr, true};
+        }
+    }
 
-  // check if PIT entry already exists
-  const auto& pitEntries = nte->getPitEntries();
-  auto it = std::find_if(pitEntries.begin(), pitEntries.end(),
-    [&interest, nteDepth] (const shared_ptr<Entry>& entry) {
-      // NameTree guarantees first nteDepth components are equal
-      return entry->canMatch(interest, nteDepth);
+    // check if PIT entry already exists
+    const auto& pitEntries = nte->getPitEntries();
+    auto it = std::find_if(pitEntries.begin(), pitEntries.end(), [&interest, nteDepth](const shared_ptr<Entry>& entry) {
+        // NameTree guarantees first nteDepth components are equal
+        return entry->canMatch(interest, nteDepth);
     });
-  if (it != pitEntries.end()) {
-    return {*it, false};
-  }
+    if (it != pitEntries.end()) {
+        return {*it, false};
+    }
 
-  if (!allowInsert) {
-    BOOST_ASSERT(!nte->isEmpty()); // nte shouldn't be created in this call
-    return {nullptr, true};
-  }
+    if (!allowInsert) {
+        BOOST_ASSERT(!nte->isEmpty()); // nte shouldn't be created in this call
+        return {nullptr, true};
+    }
 
-  auto entry = make_shared<Entry>(interest);
-  nte->insertPitEntry(entry);
-  ++m_nItems;
-  return {entry, true};
+    auto entry = make_shared<Entry>(interest);
+    nte->insertPitEntry(entry);
+    ++m_nItems;
+    return {entry, true};
 }
 
 DataMatchResult
 Pit::findAllDataMatches(const Data& data) const
 {
-  auto&& ntMatches = m_nameTree.findAllMatches(data.getName(), &nteHasPitEntries);
+    auto&& ntMatches = m_nameTree.findAllMatches(data.getName(), &nteHasPitEntries);
 
-  DataMatchResult matches;
-  for (const auto& nte : ntMatches) {
-    for (const auto& pitEntry : nte.getPitEntries()) {
-      if (pitEntry->getInterest().matchesData(data))
-        matches.emplace_back(pitEntry);
+    DataMatchResult matches;
+    for (const auto& nte : ntMatches) {
+        for (const auto& pitEntry : nte.getPitEntries()) {
+            if (pitEntry->getInterest().matchesData(data))
+                matches.emplace_back(pitEntry);
+        }
     }
-  }
 
-  return matches;
+    return matches;
 }
 
 void
 Pit::erase(Entry* entry, bool canDeleteNte)
 {
-  name_tree::Entry* nte = m_nameTree.getEntry(*entry);
-  BOOST_ASSERT(nte != nullptr);
+    name_tree::Entry* nte = m_nameTree.getEntry(*entry);
+    BOOST_ASSERT(nte != nullptr);
 
-  nte->erasePitEntry(entry);
-  if (canDeleteNte) {
-    m_nameTree.eraseIfEmpty(nte);
-  }
-  --m_nItems;
+    nte->erasePitEntry(entry);
+    if (canDeleteNte) {
+        m_nameTree.eraseIfEmpty(nte);
+    }
+    --m_nItems;
 }
 
 void
 Pit::deleteInOutRecords(Entry* entry, const Face& face)
 {
-  BOOST_ASSERT(entry != nullptr);
+    BOOST_ASSERT(entry != nullptr);
 
-  entry->deleteInRecord(face);
-  entry->deleteOutRecord(face);
+    entry->deleteInRecord(face);
+    entry->deleteOutRecord(face);
 
-  /// \todo decide whether to delete PIT entry if there's no more in/out-record left
+    /// \todo decide whether to delete PIT entry if there's no more in/out-record left
 }
 
 Pit::const_iterator
 Pit::begin() const
 {
-  return const_iterator(m_nameTree.fullEnumerate(&nteHasPitEntries).begin());
+    return const_iterator(m_nameTree.fullEnumerate(&nteHasPitEntries).begin());
 }
 
 } // namespace pit

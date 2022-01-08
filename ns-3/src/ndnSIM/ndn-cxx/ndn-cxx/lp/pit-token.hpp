@@ -31,41 +31,37 @@ namespace lp {
 /** \brief represent a PIT token field
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/NDNLPv2#PIT-Token
  */
-class PitToken : public Buffer, public Tag
-{
-public:
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return 98;
-  }
+class PitToken : public Buffer, public Tag {
+  public:
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return 98;
+    }
 
-  /** \brief Construct from header field.
-   *  \throw ndn::tlv::Error element length is out of range.
-   */
-  explicit
-  PitToken(const std::pair<Buffer::const_iterator, Buffer::const_iterator>& value)
-    : Buffer(value.first, value.second)
-  {
-    validate();
-  }
+    /** \brief Construct from header field.
+     *  \throw ndn::tlv::Error element length is out of range.
+     */
+    explicit PitToken(const std::pair<Buffer::const_iterator, Buffer::const_iterator>& value)
+      : Buffer(value.first, value.second)
+    {
+        validate();
+    }
 
-  /** \brief Convert to header field.
-   *  \throw ndn::tlv::Error element length is out of range.
-   */
-  operator std::pair<Buffer::const_iterator, Buffer::const_iterator>() const
-  {
-    validate();
-    return std::make_pair(begin(), end());
-  }
+    /** \brief Convert to header field.
+     *  \throw ndn::tlv::Error element length is out of range.
+     */
+    operator std::pair<Buffer::const_iterator, Buffer::const_iterator>() const
+    {
+        validate();
+        return std::make_pair(begin(), end());
+    }
 
-private:
-  void
-  validate() const;
+  private:
+    void validate() const;
 };
 
-std::ostream&
-operator<<(std::ostream& os, const PitToken& pitToken);
+std::ostream& operator<<(std::ostream& os, const PitToken& pitToken);
 
 } // namespace lp
 } // namespace ndn

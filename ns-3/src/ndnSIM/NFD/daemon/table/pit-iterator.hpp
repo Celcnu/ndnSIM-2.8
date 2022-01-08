@@ -34,57 +34,53 @@ namespace pit {
 
 /** \brief PIT iterator
  */
-class Iterator
-{
-public:
-  using iterator_category = std::forward_iterator_tag;
-  using value_type        = const Entry;
-  using difference_type   = std::ptrdiff_t;
-  using pointer           = value_type*;
-  using reference         = value_type&;
+class Iterator {
+  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = const Entry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
 
-  /** \brief constructor
-   *  \param ntIt a name tree iterator that visits name tree entries with one or more PIT entries
-   *  \param iPitEntry make this iterator to dereference to the i-th PIT entry in name tree entry
-   */
-  explicit
-  Iterator(const NameTree::const_iterator& ntIt = NameTree::const_iterator(), size_t iPitEntry = 0);
+    /** \brief constructor
+     *  \param ntIt a name tree iterator that visits name tree entries with one or more PIT entries
+     *  \param iPitEntry make this iterator to dereference to the i-th PIT entry in name tree entry
+     */
+    explicit Iterator(const NameTree::const_iterator& ntIt = NameTree::const_iterator(), size_t iPitEntry = 0);
 
-  const Entry&
-  operator*() const
-  {
-    return *this->operator->();
-  }
+    const Entry&
+    operator*() const
+    {
+        return *this->operator->();
+    }
 
-  const shared_ptr<Entry>&
-  operator->() const
-  {
-    BOOST_ASSERT(m_ntIt != NameTree::const_iterator());
-    BOOST_ASSERT(m_iPitEntry < m_ntIt->getPitEntries().size());
-    return m_ntIt->getPitEntries()[m_iPitEntry];
-  }
+    const shared_ptr<Entry>&
+    operator->() const
+    {
+        BOOST_ASSERT(m_ntIt != NameTree::const_iterator());
+        BOOST_ASSERT(m_iPitEntry < m_ntIt->getPitEntries().size());
+        return m_ntIt->getPitEntries()[m_iPitEntry];
+    }
 
-  Iterator&
-  operator++();
+    Iterator& operator++();
 
-  Iterator
-  operator++(int);
+    Iterator operator++(int);
 
-  bool
-  operator==(const Iterator& other) const
-  {
-    return m_ntIt == other.m_ntIt && m_iPitEntry == other.m_iPitEntry;
-  }
+    bool
+    operator==(const Iterator& other) const
+    {
+        return m_ntIt == other.m_ntIt && m_iPitEntry == other.m_iPitEntry;
+    }
 
-  bool
-  operator!=(const Iterator& other) const
-  {
-    return !this->operator==(other);
-  }
+    bool
+    operator!=(const Iterator& other) const
+    {
+        return !this->operator==(other);
+    }
 
-private:
-  NameTree::const_iterator m_ntIt; ///< current name tree entry
-  size_t m_iPitEntry; ///< current PIT entry within m_ntIt->getPitEntries()
+  private:
+    NameTree::const_iterator m_ntIt; ///< current name tree entry
+    size_t m_iPitEntry;              ///< current PIT entry within m_ntIt->getPitEntries()
 };
 
 } // namespace pit

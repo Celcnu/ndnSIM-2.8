@@ -58,67 +58,67 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
+    // setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
+    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
 
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  // Creating nodes
-  Ptr<Node> consumer = CreateObject<Node>();
-  Ptr<Node> intRouter = CreateObject<Node>();
-  NodeContainer uclaRegion;
-  uclaRegion.Create(3);
+    // Creating nodes
+    Ptr<Node> consumer = CreateObject<Node>();
+    Ptr<Node> intRouter = CreateObject<Node>();
+    NodeContainer uclaRegion;
+    uclaRegion.Create(3);
 
-  // Connecting nodes using two links
-  PointToPointHelper p2p;
-  p2p.Install(consumer, intRouter);
-  p2p.Install(intRouter, uclaRegion.Get(0));
-  p2p.Install(intRouter, uclaRegion.Get(1));
-  p2p.Install(uclaRegion.Get(0), uclaRegion.Get(1));
-  p2p.Install(uclaRegion.Get(1), uclaRegion.Get(2));
+    // Connecting nodes using two links
+    PointToPointHelper p2p;
+    p2p.Install(consumer, intRouter);
+    p2p.Install(intRouter, uclaRegion.Get(0));
+    p2p.Install(intRouter, uclaRegion.Get(1));
+    p2p.Install(uclaRegion.Get(0), uclaRegion.Get(1));
+    p2p.Install(uclaRegion.Get(1), uclaRegion.Get(2));
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.SetDefaultRoutes(true);
-  ndnHelper.InstallAll();
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.SetDefaultRoutes(true);
+    ndnHelper.InstallAll();
 
-  // Install Routes Manually
-  ndn::FibHelper::AddRoute(intRouter, ndn::Name("/ucla"), uclaRegion.Get(1), 1);
+    // Install Routes Manually
+    ndn::FibHelper::AddRoute(intRouter, ndn::Name("/ucla"), uclaRegion.Get(1), 1);
 
-  // Configure NetworkRegionTable
-  ndn::NetworkRegionTableHelper::AddRegionName(uclaRegion, ndn::Name("/ucla"));
+    // Configure NetworkRegionTable
+    ndn::NetworkRegionTableHelper::AddRegionName(uclaRegion, ndn::Name("/ucla"));
 
-  // Installing applications
+    // Installing applications
 
-  // Consumer
-  ndn::AppHelper requesterHelper("RequesterApp");
-  requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/someData"));
-  requesterHelper.SetAttribute("Delegation", StringValue("/ucla1"));
-  requesterHelper.Install(consumer).Start(Seconds(1));
+    // Consumer
+    ndn::AppHelper requesterHelper("RequesterApp");
+    requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/someData"));
+    requesterHelper.SetAttribute("Delegation", StringValue("/ucla1"));
+    requesterHelper.Install(consumer).Start(Seconds(1));
 
-  requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/anotherData"));
-  requesterHelper.Install(consumer).Start(Seconds(2));
+    requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/anotherData"));
+    requesterHelper.Install(consumer).Start(Seconds(2));
 
-  requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/yetAnotherData"));
-  requesterHelper.SetAttribute("Delegation", StringValue("/non-existing"));
-  requesterHelper.Install(consumer).Start(Seconds(3));
+    requesterHelper.SetAttribute("Name", StringValue("/ndnSIM/yetAnotherData"));
+    requesterHelper.SetAttribute("Delegation", StringValue("/non-existing"));
+    requesterHelper.Install(consumer).Start(Seconds(3));
 
-  // Producer
-  ndn::AppHelper producerHelper("ns3::ndn::Producer");
-  producerHelper.SetPrefix("/ndnSIM");
-  producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
-  producerHelper.Install(uclaRegion.Get(0));
+    // Producer
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    producerHelper.SetPrefix("/ndnSIM");
+    producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+    producerHelper.Install(uclaRegion.Get(0));
 
-  Simulator::Stop(Seconds(20.0));
+    Simulator::Stop(Seconds(20.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -126,5 +126,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

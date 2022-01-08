@@ -38,100 +38,89 @@ namespace ndn {
  * @brief Base class for network-layer (incoming/outgoing Interests and Data) tracing of NDN stack
  */
 class L3Tracer : public SimpleRefCount<L3Tracer> {
-public:
-  /**
-   * @brief Trace constructor that attaches to the node using node pointer
-   * @param node  pointer to the node
-   */
-  L3Tracer(Ptr<Node> node);
+  public:
+    /**
+     * @brief Trace constructor that attaches to the node using node pointer
+     * @param node  pointer to the node
+     */
+    L3Tracer(Ptr<Node> node);
 
-  /**
-   * @brief Trace constructor that attaches to the node using node name
-   * @param nodeName  name of the node registered using Names::Add
-   */
-  L3Tracer(const std::string& node);
+    /**
+     * @brief Trace constructor that attaches to the node using node name
+     * @param nodeName  name of the node registered using Names::Add
+     */
+    L3Tracer(const std::string& node);
 
-  /**
-   * @brief Destructor
-   */
-  virtual ~L3Tracer();
+    /**
+     * @brief Destructor
+     */
+    virtual ~L3Tracer();
 
-  /**
-   * @brief Print head of the trace (e.g., for post-processing)
-   *
-   * @param os reference to output stream
-   */
-  virtual void
-  PrintHeader(std::ostream& os) const = 0;
+    /**
+     * @brief Print head of the trace (e.g., for post-processing)
+     *
+     * @param os reference to output stream
+     */
+    virtual void PrintHeader(std::ostream& os) const = 0;
 
-  /**
-   * @brief Print current trace data
-   *
-   * @param os reference to output stream
-   */
-  virtual void
-  Print(std::ostream& os) const = 0;
+    /**
+     * @brief Print current trace data
+     *
+     * @param os reference to output stream
+     */
+    virtual void Print(std::ostream& os) const = 0;
 
-protected:
-  void
-  Connect();
+  protected:
+    void Connect();
 
-  virtual void
-  OutInterests(const Interest&, const Face&) = 0;
+    virtual void OutInterests(const Interest&, const Face&) = 0;
 
-  virtual void
-  InInterests(const Interest&, const Face&) = 0;
+    virtual void InInterests(const Interest&, const Face&) = 0;
 
-  virtual void
-  OutData(const Data&, const Face&) = 0;
+    virtual void OutData(const Data&, const Face&) = 0;
 
-  virtual void
-  InData(const Data&, const Face&) = 0;
+    virtual void InData(const Data&, const Face&) = 0;
 
-  virtual void
-  OutNack(const lp::Nack& nack, const Face&) = 0;
+    virtual void OutNack(const lp::Nack& nack, const Face&) = 0;
 
-  virtual void
-  InNack(const lp::Nack&, const Face&) = 0;
+    virtual void InNack(const lp::Nack&, const Face&) = 0;
 
-  virtual void
-  SatisfiedInterests(const nfd::pit::Entry&, const Face&, const Data&) = 0;
+    virtual void SatisfiedInterests(const nfd::pit::Entry&, const Face&, const Data&) = 0;
 
-  virtual void
-  TimedOutInterests(const nfd::pit::Entry&) = 0;
+    virtual void TimedOutInterests(const nfd::pit::Entry&) = 0;
 
-protected:
-  std::string m_node;
-  Ptr<Node> m_nodePtr;
+  protected:
+    std::string m_node;
+    Ptr<Node> m_nodePtr;
 
-  struct Stats {
-    inline void
-    Reset()
-    {
-      m_inInterests = 0;
-      m_outInterests = 0;
-      m_inData = 0;
-      m_outData = 0;
-      m_inNack = 0;
-      m_outNack = 0;
-      m_satisfiedInterests = 0;
-      m_timedOutInterests = 0;
+    struct Stats {
+        inline void
+        Reset()
+        {
+            m_inInterests = 0;
+            m_outInterests = 0;
+            m_inData = 0;
+            m_outData = 0;
+            m_inNack = 0;
+            m_outNack = 0;
+            m_satisfiedInterests = 0;
+            m_timedOutInterests = 0;
 
-      m_outSatisfiedInterests = 0;
-      m_outTimedOutInterests = 0;
-    }
+            m_outSatisfiedInterests = 0;
+            m_outTimedOutInterests = 0;
+        }
 
-    double m_inInterests;
-    double m_outInterests;
-    double m_inData;
-    double m_outData;
-    double m_inNack;
-    double m_outNack;
-    double m_satisfiedInterests;
-    double m_timedOutInterests;
-    double m_outSatisfiedInterests;
-    double m_outTimedOutInterests;
-  };
+        double m_inInterests;
+        double m_outInterests;
+        double m_inData;
+        double m_outData;
+        double m_inNack;
+        double m_outNack;
+        double m_satisfiedInterests;
+        double m_timedOutInterests;
+        double m_outSatisfiedInterests;
+        double m_outTimedOutInterests;
+    };
 };
 
 /**
@@ -140,11 +129,11 @@ protected:
 inline std::ostream&
 operator<<(std::ostream& os, const L3Tracer& tracer)
 {
-  os << "# ";
-  tracer.PrintHeader(os);
-  os << "\n";
-  tracer.Print(os);
-  return os;
+    os << "# ";
+    tracer.PrintHeader(os);
+    os << "\n";
+    tracer.Print(os);
+    return os;
 }
 
 } // namespace ndn

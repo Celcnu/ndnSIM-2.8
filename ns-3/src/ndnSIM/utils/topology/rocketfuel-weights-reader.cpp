@@ -55,140 +55,136 @@ NS_LOG_COMPONENT_DEFINE("RocketfuelWeightsReader");
 
 namespace ns3 {
 
-RocketfuelWeightsReader::RocketfuelWeightsReader(const std::string& path /*=""*/,
-                                                 double scale /*=1.0*/)
+RocketfuelWeightsReader::RocketfuelWeightsReader(const std::string& path /*=""*/, double scale /*=1.0*/)
   : AnnotatedTopologyReader(path, scale)
   , m_defaultBandwidth("100Mbps")
 {
-  NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this);
 
-  // TypeId tid;
-  // bool ok = TypeId::LookupByNameFailSafe ("ns3::SpringMobilityModel", &tid);
-  // if (ok)
-  //   SetMobilityModel ("ns3::SpringMobilityModel");
-  // else
-  //   Use default mobility model (supplied by AnnotatedTopologyReader)
+    // TypeId tid;
+    // bool ok = TypeId::LookupByNameFailSafe ("ns3::SpringMobilityModel", &tid);
+    // if (ok)
+    //   SetMobilityModel ("ns3::SpringMobilityModel");
+    // else
+    //   Use default mobility model (supplied by AnnotatedTopologyReader)
 }
 
 RocketfuelWeightsReader::~RocketfuelWeightsReader()
 {
-  NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this);
 }
 
 void
 RocketfuelWeightsReader::SetFileType(uint8_t inputType)
 {
-  m_inputType = inputType;
+    m_inputType = inputType;
 }
 
 NodeContainer
 RocketfuelWeightsReader::Read()
 {
-  if (m_inputType == POSITIONS)
-    return AnnotatedTopologyReader::Read();
+    if (m_inputType == POSITIONS)
+        return AnnotatedTopologyReader::Read();
 
-  ifstream topgen;
-  topgen.open(GetFileName().c_str());
+    ifstream topgen;
+    topgen.open(GetFileName().c_str());
 
-  if (!topgen.is_open()) {
-    NS_LOG_ERROR("Cannot open file " << GetFileName() << " for reading");
-    return m_nodes;
-  }
-
-  map<string, set<string>> processedLinks; // to eliminate duplications
-  bool repeatedRun = LinksSize() > 0;
-  std::list<Link>::iterator linkIterator = m_linksList.begin();
-
-  while (!topgen.eof()) {
-    string line;
-    getline(topgen, line);
-    if (line == "")
-      continue;
-    if (line[0] == '#')
-      continue; // comments
-
-    // NS_LOG_DEBUG ("Input: [" << line << "]");
-
-    istringstream lineBuffer(line);
-    string from, to, attribute;
-
-    lineBuffer >> from >> to >> attribute;
-
-    if (processedLinks[to].size() != 0
-        && processedLinks[to].find(from) != processedLinks[to].end()) {
-      continue; // duplicated link
-    }
-    processedLinks[from].insert(to);
-
-    Ptr<Node> fromNode = Names::Find<Node>(m_path, from);
-    if (fromNode == 0) {
-      fromNode = CreateNode(from, 0);
+    if (!topgen.is_open()) {
+        NS_LOG_ERROR("Cannot open file " << GetFileName() << " for reading");
+        return m_nodes;
     }
 
-    Ptr<Node> toNode = Names::Find<Node>(m_path, to);
-    if (toNode == 0) {
-      toNode = CreateNode(to, 0);
+    map<string, set<string>> processedLinks; // to eliminate duplications
+    bool repeatedRun = LinksSize() > 0;
+    std::list<Link>::iterator linkIterator = m_linksList.begin();
+
+    while (!topgen.eof()) {
+        string line;
+        getline(topgen, line);
+        if (line == "")
+            continue;
+        if (line[0] == '#')
+            continue; // comments
+
+        // NS_LOG_DEBUG ("Input: [" << line << "]");
+
+        istringstream lineBuffer(line);
+        string from, to, attribute;
+
+        lineBuffer >> from >> to >> attribute;
+
+        if (processedLinks[to].size() != 0 && processedLinks[to].find(from) != processedLinks[to].end()) {
+            continue; // duplicated link
+        }
+        processedLinks[from].insert(to);
+
+        Ptr<Node> fromNode = Names::Find<Node>(m_path, from);
+        if (fromNode == 0) {
+            fromNode = CreateNode(from, 0);
+        }
+
+        Ptr<Node> toNode = Names::Find<Node>(m_path, to);
+        if (toNode == 0) {
+            toNode = CreateNode(to, 0);
+        }
+
+        Link* link;
+        if (!repeatedRun)
+            link = new Link(fromNode, from, toNode, to);
+        else {
+            NS_ASSERT(linkIterator != m_linksList.end());
+            link = &(*linkIterator);
+
+            linkIterator++;
+        }
+
+        switch (m_inputType) {
+            case LINKS: {
+                // links only
+                // do nothing
+                break;
+            }
+            case WEIGHTS: {
+                if (attribute == "")
+                    attribute = "1";
+                uint16_t metric = boost::lexical_cast<uint16_t>(attribute);
+                link->SetAttribute("OSPF", boost::lexical_cast<string>(metric));
+                break;
+            }
+            case LATENCIES:
+                if (attribute == "")
+                    attribute = "1";
+
+                link->SetAttribute("DataRate", m_defaultBandwidth);
+                link->SetAttribute("Delay", attribute + "ms");
+                if (!m_queue.empty()) {
+                    link->SetAttribute("MaxPackets", m_queue);
+                }
+                break;
+            default:; //
+        }
+
+        NS_LOG_DEBUG("Link " << from << " <==> " << to << " / " << attribute);
+        if (!repeatedRun) {
+            AddLink(*link);
+            delete link;
+        }
     }
 
-    Link* link;
-    if (!repeatedRun)
-      link = new Link(fromNode, from, toNode, to);
-    else {
-      NS_ASSERT(linkIterator != m_linksList.end());
-      link = &(*linkIterator);
+    topgen.close();
 
-      linkIterator++;
-    }
-
-    switch (m_inputType) {
-    case LINKS: {
-      // links only
-      // do nothing
-      break;
-    }
-    case WEIGHTS: {
-      if (attribute == "")
-        attribute = "1";
-      uint16_t metric = boost::lexical_cast<uint16_t>(attribute);
-      link->SetAttribute("OSPF", boost::lexical_cast<string>(metric));
-      break;
-    }
-    case LATENCIES:
-      if (attribute == "")
-        attribute = "1";
-
-      link->SetAttribute("DataRate", m_defaultBandwidth);
-      link->SetAttribute("Delay", attribute + "ms");
-      if (!m_queue.empty()) {
-        link->SetAttribute("MaxPackets", m_queue);
-      }
-      break;
-    default:
-      ; //
-    }
-
-    NS_LOG_DEBUG("Link " << from << " <==> " << to << " / " << attribute);
     if (!repeatedRun) {
-      AddLink(*link);
-      delete link;
+        NS_LOG_INFO("Rocketfuel topology created with " << m_nodes.GetN() << " nodes and " << LinksSize() << " links");
     }
-  }
-
-  topgen.close();
-
-  if (!repeatedRun) {
-    NS_LOG_INFO("Rocketfuel topology created with " << m_nodes.GetN() << " nodes and "
-                                                    << LinksSize() << " links");
-  }
-  return m_nodes;
+    return m_nodes;
 }
 
 void
 RocketfuelWeightsReader::Commit()
 {
-  ApplySettings();
+    ApplySettings();
 
-  // SpringMobilityHelper::InstallSprings (LinksBegin (), LinksEnd ());
+    // SpringMobilityHelper::InstallSprings (LinksBegin (), LinksEnd ());
 }
 
 } /* namespace ns3 */

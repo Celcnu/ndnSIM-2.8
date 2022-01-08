@@ -31,31 +31,30 @@ namespace nfd {
 namespace ethernet {
 
 std::pair<const ether_header*, std::string>
-checkFrameHeader(const uint8_t* packet, size_t length,
-                 const Address& localAddr, const Address& destAddr)
+checkFrameHeader(const uint8_t* packet, size_t length, const Address& localAddr, const Address& destAddr)
 {
-  if (length < HDR_LEN + MIN_DATA_LEN)
-    return {nullptr, "Received frame too short: " + to_string(length) + " bytes"};
+    if (length < HDR_LEN + MIN_DATA_LEN)
+        return {nullptr, "Received frame too short: " + to_string(length) + " bytes"};
 
-  const ether_header* eh = reinterpret_cast<const ether_header*>(packet);
+    const ether_header* eh = reinterpret_cast<const ether_header*>(packet);
 
-  // in some cases VLAN-tagged frames may survive the BPF filter,
-  // make sure we do not process those frames (see #3348)
-  uint16_t ethertype = boost::endian::big_to_native(eh->ether_type);
-  if (ethertype != ETHERTYPE_NDN)
-    return {nullptr, "Received frame with wrong ethertype: " + to_string(ethertype)};
+    // in some cases VLAN-tagged frames may survive the BPF filter,
+    // make sure we do not process those frames (see #3348)
+    uint16_t ethertype = boost::endian::big_to_native(eh->ether_type);
+    if (ethertype != ETHERTYPE_NDN)
+        return {nullptr, "Received frame with wrong ethertype: " + to_string(ethertype)};
 
 #ifdef _DEBUG
-  Address shost(eh->ether_shost);
-  if (shost == localAddr)
-    return {nullptr, "Received frame sent by this host"};
+    Address shost(eh->ether_shost);
+    if (shost == localAddr)
+        return {nullptr, "Received frame sent by this host"};
 
-  Address dhost(eh->ether_dhost);
-  if (dhost != destAddr)
-    return {nullptr, "Received frame addressed to another host or multicast group: " + dhost.toString()};
+    Address dhost(eh->ether_dhost);
+    if (dhost != destAddr)
+        return {nullptr, "Received frame addressed to another host or multicast group: " + dhost.toString()};
 #endif
 
-  return {eh, ""};
+    return {eh, ""};
 }
 
 } // namespace ethernet

@@ -40,86 +40,83 @@ namespace tests {
  * Note that the specified PATH will be removed after fixture is destroyed.
  * **Do not specify non-temporary paths.**
  */
-template<class Path>
-class PibDirFixture
-{
-public:
-  PibDirFixture()
-    : m_pibDir(Path().PATH)
-  {
-    if (std::getenv("NDN_CLIENT_PIB") != nullptr) {
-      m_oldPib = std::getenv("NDN_CLIENT_PIB");
-    }
-    if (std::getenv("NDN_CLIENT_TPM") != nullptr) {
-      m_oldTpm = std::getenv("NDN_CLIENT_TPM");
-    }
+template <class Path>
+class PibDirFixture {
+  public:
+    PibDirFixture()
+      : m_pibDir(Path().PATH)
+    {
+        if (std::getenv("NDN_CLIENT_PIB") != nullptr) {
+            m_oldPib = std::getenv("NDN_CLIENT_PIB");
+        }
+        if (std::getenv("NDN_CLIENT_TPM") != nullptr) {
+            m_oldTpm = std::getenv("NDN_CLIENT_TPM");
+        }
 
-    /// @todo Consider change to an in-memory PIB/TPM
-    setenv("NDN_CLIENT_PIB", ("pib-sqlite3:" + m_pibDir).c_str(), true);
-    setenv("NDN_CLIENT_TPM", ("tpm-file:" + m_pibDir).c_str(), true);
-  }
-
-  ~PibDirFixture()
-  {
-    if (!m_oldPib.empty()) {
-      setenv("NDN_CLIENT_PIB", m_oldPib.data(), true);
-    }
-    else {
-      unsetenv("NDN_CLIENT_PIB");
+        /// @todo Consider change to an in-memory PIB/TPM
+        setenv("NDN_CLIENT_PIB", ("pib-sqlite3:" + m_pibDir).c_str(), true);
+        setenv("NDN_CLIENT_TPM", ("tpm-file:" + m_pibDir).c_str(), true);
     }
 
-    if (!m_oldTpm.empty()) {
-      setenv("NDN_CLIENT_TPM", m_oldTpm.data(), true);
+    ~PibDirFixture()
+    {
+        if (!m_oldPib.empty()) {
+            setenv("NDN_CLIENT_PIB", m_oldPib.data(), true);
+        }
+        else {
+            unsetenv("NDN_CLIENT_PIB");
+        }
+
+        if (!m_oldTpm.empty()) {
+            setenv("NDN_CLIENT_TPM", m_oldTpm.data(), true);
+        }
+        else {
+            unsetenv("NDN_CLIENT_TPM");
+        }
+
+        boost::filesystem::remove_all(m_pibDir);
+        const_cast<std::string&>(security::v2::KeyChain::getDefaultPibLocator()).clear();
+        const_cast<std::string&>(security::v2::KeyChain::getDefaultTpmLocator()).clear();
     }
-    else {
-      unsetenv("NDN_CLIENT_TPM");
-    }
 
-    boost::filesystem::remove_all(m_pibDir);
-    const_cast<std::string&>(security::v2::KeyChain::getDefaultPibLocator()).clear();
-    const_cast<std::string&>(security::v2::KeyChain::getDefaultTpmLocator()).clear();
-  }
+  protected:
+    const std::string m_pibDir;
 
-protected:
-  const std::string m_pibDir;
-
-private:
-  std::string m_oldPib;
-  std::string m_oldTpm;
+  private:
+    std::string m_oldPib;
+    std::string m_oldTpm;
 };
 
 /**
  * @brief Extension of PibDirFixture to set TEST_HOME variable and allow config file creation
  */
-template<class Path>
-class TestHomeFixture : public PibDirFixture<Path>
-{
-public:
-  TestHomeFixture()
-  {
-    setenv("TEST_HOME", this->m_pibDir.c_str(), true);
-  }
-
-  ~TestHomeFixture()
-  {
-    unsetenv("TEST_HOME");
-  }
-
-  void
-  createClientConf(std::initializer_list<std::string> lines) const
-  {
-    boost::filesystem::create_directories(boost::filesystem::path(this->m_pibDir) / ".ndn");
-    std::ofstream of((boost::filesystem::path(this->m_pibDir) / ".ndn" / "client.conf").c_str());
-    for (auto line : lines) {
-      boost::replace_all(line, "%PATH%", this->m_pibDir);
-      of << line << std::endl;
+template <class Path>
+class TestHomeFixture : public PibDirFixture<Path> {
+  public:
+    TestHomeFixture()
+    {
+        setenv("TEST_HOME", this->m_pibDir.c_str(), true);
     }
-  }
+
+    ~TestHomeFixture()
+    {
+        unsetenv("TEST_HOME");
+    }
+
+    void
+    createClientConf(std::initializer_list<std::string> lines) const
+    {
+        boost::filesystem::create_directories(boost::filesystem::path(this->m_pibDir) / ".ndn");
+        std::ofstream of((boost::filesystem::path(this->m_pibDir) / ".ndn" / "client.conf").c_str());
+        for (auto line : lines) {
+            boost::replace_all(line, "%PATH%", this->m_pibDir);
+            of << line << std::endl;
+        }
+    }
 };
 
-struct DefaultPibDir
-{
-  const std::string PATH = "build/keys";
+struct DefaultPibDir {
+    const std::string PATH = "build/keys";
 };
 
 } // namespace tests

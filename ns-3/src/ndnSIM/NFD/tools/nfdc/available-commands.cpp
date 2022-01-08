@@ -37,11 +37,11 @@ namespace nfdc {
 void
 registerCommands(CommandParser& parser)
 {
-  registerStatusCommands(parser);
-  FaceModule::registerCommands(parser);
-  RibModule::registerCommands(parser);
-  CsModule::registerCommands(parser);
-  StrategyChoiceModule::registerCommands(parser);
+    registerStatusCommands(parser);
+    FaceModule::registerCommands(parser);
+    RibModule::registerCommands(parser);
+    CsModule::registerCommands(parser);
+    StrategyChoiceModule::registerCommands(parser);
 }
 
 } // namespace nfdc

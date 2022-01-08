@@ -36,39 +36,39 @@ InMemoryStorageLfu::InMemoryStorageLfu(DummyIoService& ioService, size_t limit)
 void
 InMemoryStorageLfu::afterInsert(InMemoryStorageEntry* entry)
 {
-  BOOST_ASSERT(m_cleanupIndex.size() <= size());
-  CleanupEntry cleanupEntry;
-  cleanupEntry.entry = entry;
-  cleanupEntry.frequency = 0;
-  m_cleanupIndex.insert(cleanupEntry);
+    BOOST_ASSERT(m_cleanupIndex.size() <= size());
+    CleanupEntry cleanupEntry;
+    cleanupEntry.entry = entry;
+    cleanupEntry.frequency = 0;
+    m_cleanupIndex.insert(cleanupEntry);
 }
 
 bool
 InMemoryStorageLfu::evictItem()
 {
-  if (!m_cleanupIndex.get<byFrequency>().empty()) {
-    CleanupIndex::index<byFrequency>::type::iterator it = m_cleanupIndex.get<byFrequency>().begin();
-    eraseImpl(((*it).entry)->getFullName());
-    m_cleanupIndex.get<byFrequency>().erase(it);
-    return true;
-  }
+    if (!m_cleanupIndex.get<byFrequency>().empty()) {
+        CleanupIndex::index<byFrequency>::type::iterator it = m_cleanupIndex.get<byFrequency>().begin();
+        eraseImpl(((*it).entry)->getFullName());
+        m_cleanupIndex.get<byFrequency>().erase(it);
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 void
 InMemoryStorageLfu::beforeErase(InMemoryStorageEntry* entry)
 {
-  CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
-  if (it != m_cleanupIndex.get<byEntity>().end())
-    m_cleanupIndex.get<byEntity>().erase(it);
+    CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
+    if (it != m_cleanupIndex.get<byEntity>().end())
+        m_cleanupIndex.get<byEntity>().erase(it);
 }
 
 void
 InMemoryStorageLfu::afterAccess(InMemoryStorageEntry* entry)
 {
-  CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
-  m_cleanupIndex.get<byEntity>().modify(it, &incrementFrequency);
+    CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
+    m_cleanupIndex.get<byEntity>().modify(it, &incrementFrequency);
 }
 
 } // namespace ndn

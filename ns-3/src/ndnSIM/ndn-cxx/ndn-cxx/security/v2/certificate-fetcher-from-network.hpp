@@ -37,47 +37,39 @@ namespace v2 {
 /**
  * @brief Fetch missing keys from the network
  */
-class CertificateFetcherFromNetwork : public CertificateFetcher
-{
-public:
-  explicit
-  CertificateFetcherFromNetwork(Face& face);
+class CertificateFetcherFromNetwork : public CertificateFetcher {
+  public:
+    explicit CertificateFetcherFromNetwork(Face& face);
 
-protected:
-  void
-  doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-          const ValidationContinuation& continueValidation) override;
+  protected:
+    void doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
+                 const ValidationContinuation& continueValidation) override;
 
-  /**
-   * @brief Callback invoked when certificate is retrieved.
-   */
-  void
-  dataCallback(const Data& data,
-               const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-               const ValidationContinuation& continueValidation);
+    /**
+     * @brief Callback invoked when certificate is retrieved.
+     */
+    void dataCallback(const Data& data, const shared_ptr<CertificateRequest>& certRequest,
+                      const shared_ptr<ValidationState>& state, const ValidationContinuation& continueValidation);
 
-  /**
-   * @brief Callback invoked when interest for fetching certificate gets NACKed.
-   *
-   * Retries with exponential backoff while `certRequest->nRetriesLeft > 0`
-   */
-  void
-  nackCallback(const lp::Nack& nack,
-               const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-               const ValidationContinuation& continueValidation);
+    /**
+     * @brief Callback invoked when interest for fetching certificate gets NACKed.
+     *
+     * Retries with exponential backoff while `certRequest->nRetriesLeft > 0`
+     */
+    void nackCallback(const lp::Nack& nack, const shared_ptr<CertificateRequest>& certRequest,
+                      const shared_ptr<ValidationState>& state, const ValidationContinuation& continueValidation);
 
-  /**
-   * @brief Callback invoked when interest for fetching certificate times out.
-   *
-   * It will retry if `certRequest->nRetriesLeft > 0`
-   */
-  void
-  timeoutCallback(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-                  const ValidationContinuation& continueValidation);
+    /**
+     * @brief Callback invoked when interest for fetching certificate times out.
+     *
+     * It will retry if `certRequest->nRetriesLeft > 0`
+     */
+    void timeoutCallback(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
+                         const ValidationContinuation& continueValidation);
 
-protected:
-  Face& m_face;
-  Scheduler m_scheduler;
+  protected:
+    Face& m_face;
+    Scheduler m_scheduler;
 };
 
 } // namespace v2

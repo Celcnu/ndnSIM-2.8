@@ -34,41 +34,35 @@ namespace face {
 
 /** \brief Protocol factory for WebSocket
  */
-class WebSocketFactory : public ProtocolFactory
-{
-public:
-  static const std::string&
-  getId() noexcept;
+class WebSocketFactory : public ProtocolFactory {
+  public:
+    static const std::string& getId() noexcept;
 
-  using ProtocolFactory::ProtocolFactory;
+    using ProtocolFactory::ProtocolFactory;
 
-  /**
-   * \brief Create WebSocket-based channel using websocket::Endpoint
-   *
-   * websocket::Endpoint is really an alias for boost::asio::ip::tcp::endpoint.
-   *
-   * If this method called twice with the same endpoint, only one channel
-   * will be created.  The second call will just retrieve the existing
-   * channel.
-   *
-   * \returns always a valid pointer to a WebSocketChannel object, an exception
-   *          is thrown if it cannot be created.
-   */
-  shared_ptr<WebSocketChannel>
-  createChannel(const websocket::Endpoint& localEndpoint);
+    /**
+     * \brief Create WebSocket-based channel using websocket::Endpoint
+     *
+     * websocket::Endpoint is really an alias for boost::asio::ip::tcp::endpoint.
+     *
+     * If this method called twice with the same endpoint, only one channel
+     * will be created.  The second call will just retrieve the existing
+     * channel.
+     *
+     * \returns always a valid pointer to a WebSocketChannel object, an exception
+     *          is thrown if it cannot be created.
+     */
+    shared_ptr<WebSocketChannel> createChannel(const websocket::Endpoint& localEndpoint);
 
-private:
-  /** \brief process face_system.websocket config section
-   */
-  void
-  doProcessConfig(OptionalConfigSection configSection,
-                  FaceSystem::ConfigContext& context) override;
+  private:
+    /** \brief process face_system.websocket config section
+     */
+    void doProcessConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context) override;
 
-  std::vector<shared_ptr<const Channel>>
-  doGetChannels() const override;
+    std::vector<shared_ptr<const Channel>> doGetChannels() const override;
 
-private:
-  std::map<websocket::Endpoint, shared_ptr<WebSocketChannel>> m_channels;
+  private:
+    std::map<websocket::Endpoint, shared_ptr<WebSocketChannel>> m_channels;
 };
 
 } // namespace face

@@ -36,18 +36,18 @@ const time::nanoseconds FaceInfo::RTT_TIMEOUT{-2};
 time::nanoseconds
 FaceInfo::scheduleTimeout(const Name& interestName, scheduler::EventCallback cb)
 {
-  BOOST_ASSERT(!m_timeoutEvent);
-  m_lastInterestName = interestName;
-  m_timeoutEvent = getScheduler().schedule(m_rttEstimator.getEstimatedRto(), std::move(cb));
-  return m_rttEstimator.getEstimatedRto();
+    BOOST_ASSERT(!m_timeoutEvent);
+    m_lastInterestName = interestName;
+    m_timeoutEvent = getScheduler().schedule(m_rttEstimator.getEstimatedRto(), std::move(cb));
+    return m_rttEstimator.getEstimatedRto();
 }
 
 void
 FaceInfo::cancelTimeout(const Name& prefix)
 {
-  if (m_lastInterestName.isPrefixOf(prefix)) {
-    m_timeoutEvent.cancel();
-  }
+    if (m_lastInterestName.isPrefixOf(prefix)) {
+        m_timeoutEvent.cancel();
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,28 +56,27 @@ FaceInfo::cancelTimeout(const Name& prefix)
 FaceInfo*
 NamespaceInfo::getFaceInfo(FaceId faceId)
 {
-  auto it = m_fiMap.find(faceId);
-  return it != m_fiMap.end() ? &it->second : nullptr;
+    auto it = m_fiMap.find(faceId);
+    return it != m_fiMap.end() ? &it->second : nullptr;
 }
 
 FaceInfo&
 NamespaceInfo::getOrCreateFaceInfo(FaceId faceId)
 {
-  auto ret = m_fiMap.emplace(std::piecewise_construct,
-                             std::forward_as_tuple(faceId),
-                             std::forward_as_tuple(m_rttEstimatorOpts));
-  auto& faceInfo = ret.first->second;
-  if (ret.second) {
-    extendFaceInfoLifetime(faceInfo, faceId);
-  }
-  return faceInfo;
+    auto ret = m_fiMap.emplace(std::piecewise_construct, std::forward_as_tuple(faceId),
+                               std::forward_as_tuple(m_rttEstimatorOpts));
+    auto& faceInfo = ret.first->second;
+    if (ret.second) {
+        extendFaceInfoLifetime(faceInfo, faceId);
+    }
+    return faceInfo;
 }
 
 void
 NamespaceInfo::extendFaceInfoLifetime(FaceInfo& info, FaceId faceId)
 {
-  info.m_measurementExpiration = getScheduler().schedule(AsfMeasurements::MEASUREMENTS_LIFETIME,
-                                                         [=] { m_fiMap.erase(faceId); });
+    info.m_measurementExpiration =
+      getScheduler().schedule(AsfMeasurements::MEASUREMENTS_LIFETIME, [=] { m_fiMap.erase(faceId); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -94,59 +93,58 @@ AsfMeasurements::AsfMeasurements(MeasurementsAccessor& measurements)
 FaceInfo*
 AsfMeasurements::getFaceInfo(const fib::Entry& fibEntry, const Interest& interest, FaceId faceId)
 {
-  return getOrCreateNamespaceInfo(fibEntry, interest).getFaceInfo(faceId);
+    return getOrCreateNamespaceInfo(fibEntry, interest).getFaceInfo(faceId);
 }
 
 FaceInfo&
-AsfMeasurements::getOrCreateFaceInfo(const fib::Entry& fibEntry, const Interest& interest,
-                                     FaceId faceId)
+AsfMeasurements::getOrCreateFaceInfo(const fib::Entry& fibEntry, const Interest& interest, FaceId faceId)
 {
-  return getOrCreateNamespaceInfo(fibEntry, interest).getOrCreateFaceInfo(faceId);
+    return getOrCreateNamespaceInfo(fibEntry, interest).getOrCreateFaceInfo(faceId);
 }
 
 NamespaceInfo*
 AsfMeasurements::getNamespaceInfo(const Name& prefix)
 {
-  measurements::Entry* me = m_measurements.findLongestPrefixMatch(prefix);
-  if (me == nullptr) {
-    return nullptr;
-  }
+    measurements::Entry* me = m_measurements.findLongestPrefixMatch(prefix);
+    if (me == nullptr) {
+        return nullptr;
+    }
 
-  // Set or update entry lifetime
-  extendLifetime(*me);
+    // Set or update entry lifetime
+    extendLifetime(*me);
 
-  NamespaceInfo* info = me->insertStrategyInfo<NamespaceInfo>(m_rttEstimatorOpts).first;
-  BOOST_ASSERT(info != nullptr);
-  return info;
+    NamespaceInfo* info = me->insertStrategyInfo<NamespaceInfo>(m_rttEstimatorOpts).first;
+    BOOST_ASSERT(info != nullptr);
+    return info;
 }
 
 NamespaceInfo&
 AsfMeasurements::getOrCreateNamespaceInfo(const fib::Entry& fibEntry, const Interest& interest)
 {
-  measurements::Entry* me = m_measurements.get(fibEntry);
+    measurements::Entry* me = m_measurements.get(fibEntry);
 
-  // If the FIB entry is not under the strategy's namespace, find a part of the prefix
-  // that falls under the strategy's namespace
-  for (size_t prefixLen = fibEntry.getPrefix().size() + 1;
-       me == nullptr && prefixLen <= interest.getName().size(); ++prefixLen) {
-    me = m_measurements.get(interest.getName().getPrefix(prefixLen));
-  }
+    // If the FIB entry is not under the strategy's namespace, find a part of the prefix
+    // that falls under the strategy's namespace
+    for (size_t prefixLen = fibEntry.getPrefix().size() + 1; me == nullptr && prefixLen <= interest.getName().size();
+         ++prefixLen) {
+        me = m_measurements.get(interest.getName().getPrefix(prefixLen));
+    }
 
-  // Either the FIB entry or the Interest's name must be under this strategy's namespace
-  BOOST_ASSERT(me != nullptr);
+    // Either the FIB entry or the Interest's name must be under this strategy's namespace
+    BOOST_ASSERT(me != nullptr);
 
-  // Set or update entry lifetime
-  extendLifetime(*me);
+    // Set or update entry lifetime
+    extendLifetime(*me);
 
-  NamespaceInfo* info = me->insertStrategyInfo<NamespaceInfo>(m_rttEstimatorOpts).first;
-  BOOST_ASSERT(info != nullptr);
-  return *info;
+    NamespaceInfo* info = me->insertStrategyInfo<NamespaceInfo>(m_rttEstimatorOpts).first;
+    BOOST_ASSERT(info != nullptr);
+    return *info;
 }
 
 void
 AsfMeasurements::extendLifetime(measurements::Entry& me)
 {
-  m_measurements.extendLifetime(me, MEASUREMENTS_LIFETIME);
+    m_measurements.extendLifetime(me, MEASUREMENTS_LIFETIME);
 }
 
 } // namespace asf

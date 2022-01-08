@@ -31,12 +31,12 @@ namespace pit {
 bool
 OutRecord::setIncomingNack(const lp::Nack& nack)
 {
-  if (nack.getInterest().getNonce() != this->getLastNonce()) {
-    return false;
-  }
+    if (nack.getInterest().getNonce() != this->getLastNonce()) {
+        return false;
+    }
 
-  m_incomingNack = make_unique<lp::NackHeader>(nack.getHeader());
-  return true;
+    m_incomingNack = make_unique<lp::NackHeader>(nack.getHeader());
+    return true;
 }
 
 } // namespace pit

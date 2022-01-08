@@ -37,21 +37,21 @@ namespace tests {
 std::vector<shared_ptr<const NetworkInterface>>
 collectNetworkInterfaces(bool allowCached)
 {
-  static optional<std::vector<shared_ptr<const NetworkInterface>>> cached;
+    static optional<std::vector<shared_ptr<const NetworkInterface>>> cached;
 
-  if (!allowCached || !cached) {
-    boost::asio::io_service io;
-    NetworkMonitor netmon(io);
+    if (!allowCached || !cached) {
+        boost::asio::io_service io;
+        NetworkMonitor netmon(io);
 
-    if (netmon.getCapabilities() & NetworkMonitor::CAP_ENUM) {
-      netmon.onEnumerationCompleted.connect([&io] { io.stop(); });
-      io.run();
-      io.reset();
+        if (netmon.getCapabilities() & NetworkMonitor::CAP_ENUM) {
+            netmon.onEnumerationCompleted.connect([&io] { io.stop(); });
+            io.run();
+            io.reset();
+        }
+        cached = netmon.listNetworkInterfaces();
     }
-    cached = netmon.listNetworkInterfaces();
-  }
 
-  return *cached;
+    return *cached;
 }
 
 } // namespace tests

@@ -28,38 +28,35 @@
 namespace ns3 {
 
 // Class inheriting from ns3::Application
-class RealAppStarter : public Application
-{
-public:
-  static TypeId
-  GetTypeId()
-  {
-    static TypeId tid = TypeId("RealAppStarter")
-      .SetParent<Application>()
-      .AddConstructor<RealAppStarter>();
+class RealAppStarter : public Application {
+  public:
+    static TypeId
+    GetTypeId()
+    {
+        static TypeId tid = TypeId("RealAppStarter").SetParent<Application>().AddConstructor<RealAppStarter>();
 
-    return tid;
-  }
+        return tid;
+    }
 
-protected:
-  // inherited from Application base class.
-  virtual void
-  StartApplication()
-  {
-    // Create an instance of the app, and passing the dummy version of KeyChain (no real signing)
-    m_instance.reset(new app::RealApp(ndn::StackHelper::getKeyChain()));
-    m_instance->run(); // can be omitted
-  }
+  protected:
+    // inherited from Application base class.
+    virtual void
+    StartApplication()
+    {
+        // Create an instance of the app, and passing the dummy version of KeyChain (no real signing)
+        m_instance.reset(new app::RealApp(ndn::StackHelper::getKeyChain()));
+        m_instance->run(); // can be omitted
+    }
 
-  virtual void
-  StopApplication()
-  {
-    // Stop and destroy the instance of the app
-    m_instance.reset();
-  }
+    virtual void
+    StopApplication()
+    {
+        // Stop and destroy the instance of the app
+        m_instance.reset();
+    }
 
-private:
-  std::unique_ptr<app::RealApp> m_instance;
+  private:
+    std::unique_ptr<app::RealApp> m_instance;
 };
 
 } // namespace ns3

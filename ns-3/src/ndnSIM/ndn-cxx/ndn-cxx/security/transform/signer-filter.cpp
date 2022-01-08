@@ -29,26 +29,22 @@ namespace ndn {
 namespace security {
 namespace transform {
 
-class SignerFilter::Impl
-{
-public:
-  detail::EvpMdCtx ctx;
+class SignerFilter::Impl {
+  public:
+    detail::EvpMdCtx ctx;
 };
-
 
 SignerFilter::SignerFilter(DigestAlgorithm algo, const PrivateKey& key)
   : m_impl(make_unique<Impl>())
 {
-  const EVP_MD* md = detail::digestAlgorithmToEvpMd(algo);
-  if (md == nullptr)
-    NDN_THROW(Error(getIndex(), "Unsupported digest algorithm " +
-                    boost::lexical_cast<std::string>(algo)));
+    const EVP_MD* md = detail::digestAlgorithmToEvpMd(algo);
+    if (md == nullptr)
+        NDN_THROW(Error(getIndex(), "Unsupported digest algorithm " + boost::lexical_cast<std::string>(algo)));
 
-  if (EVP_DigestSignInit(m_impl->ctx, nullptr, md, nullptr,
-                         reinterpret_cast<EVP_PKEY*>(key.getEvpPkey())) != 1)
-    NDN_THROW(Error(getIndex(), "Failed to initialize signing context with " +
-                    boost::lexical_cast<std::string>(algo) + " digest and " +
-                    boost::lexical_cast<std::string>(key.getKeyType()) + " key"));
+    if (EVP_DigestSignInit(m_impl->ctx, nullptr, md, nullptr, reinterpret_cast<EVP_PKEY*>(key.getEvpPkey())) != 1)
+        NDN_THROW(Error(getIndex(), "Failed to initialize signing context with "
+                                      + boost::lexical_cast<std::string>(algo) + " digest and "
+                                      + boost::lexical_cast<std::string>(key.getKeyType()) + " key"));
 }
 
 SignerFilter::~SignerFilter() = default;
@@ -56,33 +52,33 @@ SignerFilter::~SignerFilter() = default;
 size_t
 SignerFilter::convert(const uint8_t* buf, size_t size)
 {
-  if (EVP_DigestSignUpdate(m_impl->ctx, buf, size) != 1)
-    NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+    if (EVP_DigestSignUpdate(m_impl->ctx, buf, size) != 1)
+        NDN_THROW(Error(getIndex(), "Failed to accept more input"));
 
-  return size;
+    return size;
 }
 
 void
 SignerFilter::finalize()
 {
-  size_t sigLen = 0;
-  if (EVP_DigestSignFinal(m_impl->ctx, nullptr, &sigLen) != 1)
-    NDN_THROW(Error(getIndex(), "Failed to estimate buffer length"));
+    size_t sigLen = 0;
+    if (EVP_DigestSignFinal(m_impl->ctx, nullptr, &sigLen) != 1)
+        NDN_THROW(Error(getIndex(), "Failed to estimate buffer length"));
 
-  auto buffer = make_unique<OBuffer>(sigLen);
-  if (EVP_DigestSignFinal(m_impl->ctx, buffer->data(), &sigLen) != 1)
-    NDN_THROW(Error(getIndex(), "Failed to finalize signature"));
+    auto buffer = make_unique<OBuffer>(sigLen);
+    if (EVP_DigestSignFinal(m_impl->ctx, buffer->data(), &sigLen) != 1)
+        NDN_THROW(Error(getIndex(), "Failed to finalize signature"));
 
-  buffer->erase(buffer->begin() + sigLen, buffer->end());
-  setOutputBuffer(std::move(buffer));
+    buffer->erase(buffer->begin() + sigLen, buffer->end());
+    setOutputBuffer(std::move(buffer));
 
-  flushAllOutput();
+    flushAllOutput();
 }
 
 unique_ptr<Transform>
 signerFilter(DigestAlgorithm algo, const PrivateKey& key)
 {
-  return make_unique<SignerFilter>(algo, key);
+    return make_unique<SignerFilter>(algo, key);
 }
 
 } // namespace transform

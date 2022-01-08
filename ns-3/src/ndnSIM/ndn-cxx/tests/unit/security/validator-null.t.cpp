@@ -36,26 +36,24 @@ BOOST_FIXTURE_TEST_SUITE(TestValidatorNull, IdentityManagementFixture)
 
 BOOST_AUTO_TEST_CASE(ValidateData)
 {
-  auto identity = addIdentity("/TestValidator/Null");
-  Data data("/Some/Other/Data/Name");
-  m_keyChain.sign(data, signingByIdentity(identity));
+    auto identity = addIdentity("/TestValidator/Null");
+    Data data("/Some/Other/Data/Name");
+    m_keyChain.sign(data, signingByIdentity(identity));
 
-  ValidatorNull validator;
-  validator.validate(data,
-                     bind([] { BOOST_CHECK_MESSAGE(true, "Validation should succeed"); }),
-                     bind([] { BOOST_CHECK_MESSAGE(false, "Validation should not have failed"); }));
+    ValidatorNull validator;
+    validator.validate(data, bind([] { BOOST_CHECK_MESSAGE(true, "Validation should succeed"); }),
+                       bind([] { BOOST_CHECK_MESSAGE(false, "Validation should not have failed"); }));
 }
 
 BOOST_AUTO_TEST_CASE(ValidateInterest)
 {
-  auto identity = addIdentity("/TestValidator/Null");
-  Interest interest("/Some/Other/Interest/Name");
-  m_keyChain.sign(interest, signingByIdentity(identity));
+    auto identity = addIdentity("/TestValidator/Null");
+    Interest interest("/Some/Other/Interest/Name");
+    m_keyChain.sign(interest, signingByIdentity(identity));
 
-  ValidatorNull validator;
-  validator.validate(interest,
-                     bind([] { BOOST_CHECK_MESSAGE(true, "Validation should succeed"); }),
-                     bind([] { BOOST_CHECK_MESSAGE(false, "Validation should not have failed"); }));
+    ValidatorNull validator;
+    validator.validate(interest, bind([] { BOOST_CHECK_MESSAGE(true, "Validation should succeed"); }),
+                       bind([] { BOOST_CHECK_MESSAGE(false, "Validation should not have failed"); }));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestValidatorNull

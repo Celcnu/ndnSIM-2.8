@@ -41,78 +41,75 @@ using namespace nfd::tests;
 namespace ip = boost::asio::ip;
 using ip::udp;
 
-class UnicastUdpTransportFixture : public GlobalIoFixture
-{
-protected:
-  UnicastUdpTransportFixture()
-    : transport(nullptr)
-    , remoteSocket(g_io)
-    , receivedPackets(nullptr)
-  {
-  }
+class UnicastUdpTransportFixture : public GlobalIoFixture {
+  protected:
+    UnicastUdpTransportFixture()
+      : transport(nullptr)
+      , remoteSocket(g_io)
+      , receivedPackets(nullptr)
+    {
+    }
 
-  void
-  initialize(ip::address address,
-             ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT)
-  {
-    udp::socket sock(g_io);
-    sock.connect(udp::endpoint(address, 7070));
-    localEp = sock.local_endpoint();
+    void
+    initialize(ip::address address, ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT)
+    {
+        udp::socket sock(g_io);
+        sock.connect(udp::endpoint(address, 7070));
+        localEp = sock.local_endpoint();
 
-    remoteConnect(address);
+        remoteConnect(address);
 
-    face = make_unique<Face>(make_unique<DummyLinkService>(),
-                             make_unique<UnicastUdpTransport>(std::move(sock), persistency, 3_s));
-    transport = static_cast<UnicastUdpTransport*>(face->getTransport());
-    receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+        face = make_unique<Face>(make_unique<DummyLinkService>(),
+                                 make_unique<UnicastUdpTransport>(std::move(sock), persistency, 3_s));
+        transport = static_cast<UnicastUdpTransport*>(face->getTransport());
+        receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
 
-    BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
-  }
+        BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
+    }
 
-  void
-  remoteConnect(ip::address address = ip::address_v4::loopback())
-  {
-    udp::endpoint remoteEp(address, 7070);
-    remoteSocket.open(remoteEp.protocol());
-    remoteSocket.set_option(udp::socket::reuse_address(true));
-    remoteSocket.bind(remoteEp);
-    remoteSocket.connect(localEp);
-  }
+    void
+    remoteConnect(ip::address address = ip::address_v4::loopback())
+    {
+        udp::endpoint remoteEp(address, 7070);
+        remoteSocket.open(remoteEp.protocol());
+        remoteSocket.set_option(udp::socket::reuse_address(true));
+        remoteSocket.bind(remoteEp);
+        remoteSocket.connect(localEp);
+    }
 
-  void
-  remoteRead(std::vector<uint8_t>& buf, bool needToCheck = true)
-  {
-    remoteSocket.async_receive(boost::asio::buffer(buf),
-      [this, needToCheck] (const boost::system::error_code& error, size_t) {
-        if (needToCheck) {
-          BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-        }
-        limitedIo.afterOp();
-      });
-    BOOST_REQUIRE_EQUAL(limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
-  }
+    void
+    remoteRead(std::vector<uint8_t>& buf, bool needToCheck = true)
+    {
+        remoteSocket.async_receive(boost::asio::buffer(buf),
+                                   [this, needToCheck](const boost::system::error_code& error, size_t) {
+                                       if (needToCheck) {
+                                           BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+                                       }
+                                       limitedIo.afterOp();
+                                   });
+        BOOST_REQUIRE_EQUAL(limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
+    }
 
-  void
-  remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
-  {
-    remoteSocket.async_send(boost::asio::buffer(buf),
-      [needToCheck] (const auto& error, size_t) {
-        if (needToCheck) {
-          BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-        }
-      });
-    limitedIo.defer(1_s);
-  }
+    void
+    remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
+    {
+        remoteSocket.async_send(boost::asio::buffer(buf), [needToCheck](const auto& error, size_t) {
+            if (needToCheck) {
+                BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+            }
+        });
+        limitedIo.defer(1_s);
+    }
 
-protected:
-  LimitedIo limitedIo;
-  UnicastUdpTransport* transport;
-  udp::endpoint localEp;
-  udp::socket remoteSocket;
-  std::vector<RxPacket>* receivedPackets;
+  protected:
+    LimitedIo limitedIo;
+    UnicastUdpTransport* transport;
+    udp::endpoint localEp;
+    udp::socket remoteSocket;
+    std::vector<RxPacket>* receivedPackets;
 
-private:
-  unique_ptr<Face> face;
+  private:
+    unique_ptr<Face> face;
 };
 
 } // namespace tests

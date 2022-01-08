@@ -38,7 +38,7 @@ IndentedStream::IndentedStream(std::ostream& os, const std::string& indent)
 
 IndentedStream::~IndentedStream()
 {
-  flush();
+    flush();
 }
 
 IndentedStream::StreamBuf::StreamBuf(std::ostream& os, const std::string& indent)
@@ -50,20 +50,20 @@ IndentedStream::StreamBuf::StreamBuf(std::ostream& os, const std::string& indent
 int
 IndentedStream::StreamBuf::sync()
 {
-  typedef boost::iterator_range<std::string::const_iterator> StringView;
+    typedef boost::iterator_range<std::string::const_iterator> StringView;
 
-  const std::string& output = str();
-  std::vector<StringView> splitOutput;
-  boost::split(splitOutput, output, boost::is_any_of("\n"));
+    const std::string& output = str();
+    std::vector<StringView> splitOutput;
+    boost::split(splitOutput, output, boost::is_any_of("\n"));
 
-  if (!splitOutput.empty() && splitOutput.back().empty()) {
-    splitOutput.pop_back();
-  }
-  for (const StringView& line : splitOutput) {
-    m_output << m_indent << line << "\n";
-  }
-  str(std::string());
-  return 0; // success
+    if (!splitOutput.empty() && splitOutput.back().empty()) {
+        splitOutput.pop_back();
+    }
+    for (const StringView& line : splitOutput) {
+        m_output << m_indent << line << "\n";
+    }
+    str(std::string());
+    return 0; // success
 }
 
 } // namespace util

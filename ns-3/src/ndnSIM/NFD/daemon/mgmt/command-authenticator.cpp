@@ -54,52 +54,51 @@ using SignerTag = ndn::SimpleTag<Name, 20>;
 static optional<std::string>
 getSignerFromTag(const Interest& interest)
 {
-  shared_ptr<SignerTag> signerTag = interest.getTag<SignerTag>();
-  if (signerTag == nullptr) {
-    return nullopt;
-  }
-  else {
-    return signerTag->get().toUri();
-  }
+    shared_ptr<SignerTag> signerTag = interest.getTag<SignerTag>();
+    if (signerTag == nullptr) {
+        return nullopt;
+    }
+    else {
+        return signerTag->get().toUri();
+    }
 }
 
 /** \brief a validation policy that only permits Interest signed by a trust anchor
  */
-class CommandAuthenticatorValidationPolicy : public sec2::ValidationPolicy
-{
-public:
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<sec2::ValidationState>& state,
-              const ValidationContinuation& continueValidation) final
-  {
-    Name klName = getKeyLocatorName(interest, *state);
-    if (!state->getOutcome()) { // already failed
-      return;
+class CommandAuthenticatorValidationPolicy : public sec2::ValidationPolicy {
+  public:
+    void
+    checkPolicy(const Interest& interest, const shared_ptr<sec2::ValidationState>& state,
+                const ValidationContinuation& continueValidation) final
+    {
+        Name klName = getKeyLocatorName(interest, *state);
+        if (!state->getOutcome()) { // already failed
+            return;
+        }
+
+        // SignerTag must be placed on the 'original Interest' in ValidationState to be available for
+        // InterestValidationSuccessCallback. The 'interest' parameter refers to a different instance
+        // which is copied into 'original Interest'.
+        auto state1 = dynamic_pointer_cast<sec2::InterestValidationState>(state);
+        state1->getOriginalInterest().setTag(make_shared<SignerTag>(klName));
+
+        continueValidation(make_shared<sec2::CertificateRequest>(Interest(klName)), state);
     }
 
-    // SignerTag must be placed on the 'original Interest' in ValidationState to be available for
-    // InterestValidationSuccessCallback. The 'interest' parameter refers to a different instance
-    // which is copied into 'original Interest'.
-    auto state1 = dynamic_pointer_cast<sec2::InterestValidationState>(state);
-    state1->getOriginalInterest().setTag(make_shared<SignerTag>(klName));
-
-    continueValidation(make_shared<sec2::CertificateRequest>(Interest(klName)), state);
-  }
-
-  void
-  checkPolicy(const Data& data, const shared_ptr<sec2::ValidationState>& state,
-              const ValidationContinuation& continueValidation) final
-  {
-    // Non-certificate Data are not handled by CommandAuthenticator.
-    // Non-anchor certificates cannot be retrieved by offline fetcher.
-    BOOST_ASSERT_MSG(false, "Data should not be passed to this policy");
-  }
+    void
+    checkPolicy(const Data& data, const shared_ptr<sec2::ValidationState>& state,
+                const ValidationContinuation& continueValidation) final
+    {
+        // Non-certificate Data are not handled by CommandAuthenticator.
+        // Non-anchor certificates cannot be retrieved by offline fetcher.
+        BOOST_ASSERT_MSG(false, "Data should not be passed to this policy");
+    }
 };
 
 shared_ptr<CommandAuthenticator>
 CommandAuthenticator::create()
 {
-  return shared_ptr<CommandAuthenticator>(new CommandAuthenticator);
+    return shared_ptr<CommandAuthenticator>(new CommandAuthenticator);
 }
 
 CommandAuthenticator::CommandAuthenticator() = default;
@@ -107,147 +106,143 @@ CommandAuthenticator::CommandAuthenticator() = default;
 void
 CommandAuthenticator::setConfigFile(ConfigFile& configFile)
 {
-  configFile.addSectionHandler("authorizations",
-    bind(&CommandAuthenticator::processConfig, this, _1, _2, _3));
+    configFile.addSectionHandler("authorizations", bind(&CommandAuthenticator::processConfig, this, _1, _2, _3));
 }
 
 void
 CommandAuthenticator::processConfig(const ConfigSection& section, bool isDryRun, const std::string& filename)
 {
-  if (!isDryRun) {
-    NFD_LOG_INFO("clear-authorizations");
-    for (auto& kv : m_validators) {
-      kv.second = make_shared<sec2::Validator>(
-        make_unique<sec2::ValidationPolicyCommandInterest>(make_unique<CommandAuthenticatorValidationPolicy>()),
-        make_unique<sec2::CertificateFetcherOffline>());
-    }
-  }
-
-  if (section.empty()) {
-    NDN_THROW(ConfigFile::Error("'authorize' is missing under 'authorizations'"));
-  }
-
-  int authSectionIndex = 0;
-  for (const auto& kv : section) {
-    if (kv.first != "authorize") {
-      NDN_THROW(ConfigFile::Error("'" + kv.first + "' section is not permitted under 'authorizations'"));
-    }
-    const ConfigSection& authSection = kv.second;
-
-    std::string certfile;
-    try {
-      certfile = authSection.get<std::string>("certfile");
-    }
-    catch (const boost::property_tree::ptree_error&) {
-      NDN_THROW(ConfigFile::Error("'certfile' is missing under authorize[" +
-                                  to_string(authSectionIndex) + "]"));
-    }
-
-    bool isAny = false;
-    shared_ptr<sec2::Certificate> cert;
-    if (certfile == "any") {
-      isAny = true;
-      NFD_LOG_WARN("'certfile any' is intended for demo purposes only and "
-                   "SHOULD NOT be used in production environments");
-    }
-    else {
-      using namespace boost::filesystem;
-      path certfilePath = absolute(certfile, path(filename).parent_path());
-      cert = ndn::io::load<sec2::Certificate>(certfilePath.string());
-      if (cert == nullptr) {
-        NDN_THROW(ConfigFile::Error("cannot load certfile " + certfilePath.string() +
-                                    " for authorize[" + to_string(authSectionIndex) + "]"));
-      }
-    }
-
-    const ConfigSection* privSection = nullptr;
-    try {
-      privSection = &authSection.get_child("privileges");
-    }
-    catch (const boost::property_tree::ptree_error&) {
-      NDN_THROW(ConfigFile::Error("'privileges' is missing under authorize[" +
-                                  to_string(authSectionIndex) + "]"));
-    }
-
-    if (privSection->empty()) {
-      NFD_LOG_WARN("No privileges granted to certificate " << certfile);
-    }
-    for (const auto& kv : *privSection) {
-      const std::string& module = kv.first;
-      auto found = m_validators.find(module);
-      if (found == m_validators.end()) {
-        NDN_THROW(ConfigFile::Error("unknown module '" + module +
-                                    "' under authorize[" + to_string(authSectionIndex) + "]"));
-      }
-
-      if (isDryRun) {
-        continue;
-      }
-
-      if (isAny) {
-        found->second = make_shared<sec2::Validator>(make_unique<sec2::ValidationPolicyAcceptAll>(),
+    if (!isDryRun) {
+        NFD_LOG_INFO("clear-authorizations");
+        for (auto& kv : m_validators) {
+            kv.second = make_shared<sec2::Validator>(make_unique<sec2::ValidationPolicyCommandInterest>(
+                                                       make_unique<CommandAuthenticatorValidationPolicy>()),
                                                      make_unique<sec2::CertificateFetcherOffline>());
-        NFD_LOG_INFO("authorize module=" << module << " signer=any");
-      }
-      else {
-        const Name& keyName = cert->getKeyName();
-        sec2::Certificate certCopy = *cert;
-        found->second->loadAnchor(certfile, std::move(certCopy));
-        NFD_LOG_INFO("authorize module=" << module << " signer=" << keyName << " certfile=" << certfile);
-      }
+        }
     }
 
-    ++authSectionIndex;
-  }
+    if (section.empty()) {
+        NDN_THROW(ConfigFile::Error("'authorize' is missing under 'authorizations'"));
+    }
+
+    int authSectionIndex = 0;
+    for (const auto& kv : section) {
+        if (kv.first != "authorize") {
+            NDN_THROW(ConfigFile::Error("'" + kv.first + "' section is not permitted under 'authorizations'"));
+        }
+        const ConfigSection& authSection = kv.second;
+
+        std::string certfile;
+        try {
+            certfile = authSection.get<std::string>("certfile");
+        }
+        catch (const boost::property_tree::ptree_error&) {
+            NDN_THROW(ConfigFile::Error("'certfile' is missing under authorize[" + to_string(authSectionIndex) + "]"));
+        }
+
+        bool isAny = false;
+        shared_ptr<sec2::Certificate> cert;
+        if (certfile == "any") {
+            isAny = true;
+            NFD_LOG_WARN("'certfile any' is intended for demo purposes only and "
+                         "SHOULD NOT be used in production environments");
+        }
+        else {
+            using namespace boost::filesystem;
+            path certfilePath = absolute(certfile, path(filename).parent_path());
+            cert = ndn::io::load<sec2::Certificate>(certfilePath.string());
+            if (cert == nullptr) {
+                NDN_THROW(ConfigFile::Error("cannot load certfile " + certfilePath.string() + " for authorize["
+                                            + to_string(authSectionIndex) + "]"));
+            }
+        }
+
+        const ConfigSection* privSection = nullptr;
+        try {
+            privSection = &authSection.get_child("privileges");
+        }
+        catch (const boost::property_tree::ptree_error&) {
+            NDN_THROW(
+              ConfigFile::Error("'privileges' is missing under authorize[" + to_string(authSectionIndex) + "]"));
+        }
+
+        if (privSection->empty()) {
+            NFD_LOG_WARN("No privileges granted to certificate " << certfile);
+        }
+        for (const auto& kv : *privSection) {
+            const std::string& module = kv.first;
+            auto found = m_validators.find(module);
+            if (found == m_validators.end()) {
+                NDN_THROW(ConfigFile::Error("unknown module '" + module + "' under authorize["
+                                            + to_string(authSectionIndex) + "]"));
+            }
+
+            if (isDryRun) {
+                continue;
+            }
+
+            if (isAny) {
+                found->second = make_shared<sec2::Validator>(make_unique<sec2::ValidationPolicyAcceptAll>(),
+                                                             make_unique<sec2::CertificateFetcherOffline>());
+                NFD_LOG_INFO("authorize module=" << module << " signer=any");
+            }
+            else {
+                const Name& keyName = cert->getKeyName();
+                sec2::Certificate certCopy = *cert;
+                found->second->loadAnchor(certfile, std::move(certCopy));
+                NFD_LOG_INFO("authorize module=" << module << " signer=" << keyName << " certfile=" << certfile);
+            }
+        }
+
+        ++authSectionIndex;
+    }
 }
 
 ndn::mgmt::Authorization
 CommandAuthenticator::makeAuthorization(const std::string& module, const std::string& verb)
 {
-  m_validators[module]; // declares module, so that privilege is recognized
+    m_validators[module]; // declares module, so that privilege is recognized
 
-  auto self = this->shared_from_this();
-  return [=] (const Name&, const Interest& interest,
-              const ndn::mgmt::ControlParameters*,
-              const ndn::mgmt::AcceptContinuation& accept,
-              const ndn::mgmt::RejectContinuation& reject) {
-    auto validator = self->m_validators.at(module);
-    auto successCb = [accept, validator] (const Interest& interest1) {
-      auto signer1 = getSignerFromTag(interest1);
-      BOOST_ASSERT(signer1 || // signer must be available unless 'certfile any'
-                   dynamic_cast<sec2::ValidationPolicyAcceptAll*>(&validator->getPolicy()) != nullptr);
-      std::string signer = signer1.value_or("*");
-      NFD_LOG_DEBUG("accept " << interest1.getName() << " signer=" << signer);
-      accept(signer);
-    };
-    auto failureCb = [reject] (const Interest& interest1, const sec2::ValidationError& err) {
-      using ndn::mgmt::RejectReply;
-      RejectReply reply = RejectReply::STATUS403;
-      switch (err.getCode()) {
-      case sec2::ValidationError::NO_SIGNATURE:
-      case sec2::ValidationError::INVALID_KEY_LOCATOR:
-        reply = RejectReply::SILENT;
-        break;
-      case sec2::ValidationError::POLICY_ERROR:
-        if (interest1.getName().size() < ndn::command_interest::MIN_SIZE) { // "name too short"
-          reply = RejectReply::SILENT;
+    auto self = this->shared_from_this();
+    return [=](const Name&, const Interest& interest, const ndn::mgmt::ControlParameters*,
+               const ndn::mgmt::AcceptContinuation& accept, const ndn::mgmt::RejectContinuation& reject) {
+        auto validator = self->m_validators.at(module);
+        auto successCb = [accept, validator](const Interest& interest1) {
+            auto signer1 = getSignerFromTag(interest1);
+            BOOST_ASSERT(signer1 || // signer must be available unless 'certfile any'
+                         dynamic_cast<sec2::ValidationPolicyAcceptAll*>(&validator->getPolicy()) != nullptr);
+            std::string signer = signer1.value_or("*");
+            NFD_LOG_DEBUG("accept " << interest1.getName() << " signer=" << signer);
+            accept(signer);
+        };
+        auto failureCb = [reject](const Interest& interest1, const sec2::ValidationError& err) {
+            using ndn::mgmt::RejectReply;
+            RejectReply reply = RejectReply::STATUS403;
+            switch (err.getCode()) {
+                case sec2::ValidationError::NO_SIGNATURE:
+                case sec2::ValidationError::INVALID_KEY_LOCATOR:
+                    reply = RejectReply::SILENT;
+                    break;
+                case sec2::ValidationError::POLICY_ERROR:
+                    if (interest1.getName().size() < ndn::command_interest::MIN_SIZE) { // "name too short"
+                        reply = RejectReply::SILENT;
+                    }
+                    break;
+            }
+            NFD_LOG_DEBUG("reject " << interest1.getName() << " signer=" << getSignerFromTag(interest1).value_or("?")
+                                    << " reason=" << err);
+            reject(reply);
+        };
+
+        if (validator) {
+            validator->validate(interest, successCb, failureCb);
         }
-        break;
-      }
-      NFD_LOG_DEBUG("reject " << interest1.getName() << " signer=" <<
-                    getSignerFromTag(interest1).value_or("?") << " reason=" << err);
-      reject(reply);
+        else {
+            NFD_LOG_DEBUG("reject " << interest.getName() << " signer=" << getSignerFromTag(interest).value_or("?")
+                                    << " reason=Unauthorized");
+            reject(ndn::mgmt::RejectReply::STATUS403);
+        }
     };
-
-    if (validator) {
-      validator->validate(interest, successCb, failureCb);
-    }
-    else {
-      NFD_LOG_DEBUG("reject " << interest.getName() << " signer=" <<
-                    getSignerFromTag(interest).value_or("?") << " reason=Unauthorized");
-      reject(ndn::mgmt::RejectReply::STATUS403);
-    }
-  };
 }
 
 } // namespace nfd

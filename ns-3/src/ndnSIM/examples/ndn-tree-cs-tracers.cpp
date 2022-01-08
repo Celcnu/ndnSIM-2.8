@@ -20,8 +20,8 @@
 // ndn-tree-cs-tracers.cpp
 
 #include "ns3/core-module.h"
-#include "ns3/network-module.h"
 #include "ns3/ndnSIM-module.h"
+#include "ns3/network-module.h"
 
 namespace ns3 {
 
@@ -60,61 +60,62 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  AnnotatedTopologyReader topologyReader("", 1);
-  topologyReader.SetFileName("src/ndnSIM/examples/topologies/topo-tree.txt");
-  topologyReader.Read();
+    AnnotatedTopologyReader topologyReader("", 1);
+    topologyReader.SetFileName("src/ndnSIM/examples/topologies/topo-tree.txt");
+    topologyReader.Read();
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.setPolicy("nfd::cs::lru");
-  ndnHelper.setCsSize(100);
-  ndnHelper.InstallAll();
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.setPolicy("nfd::cs::lru");
+    ndnHelper.setCsSize(100);
+    ndnHelper.InstallAll();
 
-  // Choosing forwarding strategy
-  ndn::StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/best-route");
+    // Choosing forwarding strategy
+    ndn::StrategyChoiceHelper::InstallAll("/prefix", "/localhost/nfd/strategy/best-route");
 
-  // Installing global routing interface on all nodes
-  ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
-  ndnGlobalRoutingHelper.InstallAll();
+    // Installing global routing interface on all nodes
+    ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
+    ndnGlobalRoutingHelper.InstallAll();
 
-  // Getting containers for the consumer/producer
-  Ptr<Node> consumers[4] = {Names::Find<Node>("leaf-1"), Names::Find<Node>("leaf-2"),
-                            Names::Find<Node>("leaf-3"), Names::Find<Node>("leaf-4")};
-  Ptr<Node> producer = Names::Find<Node>("root");
+    // Getting containers for the consumer/producer
+    Ptr<Node> consumers[4] = {Names::Find<Node>("leaf-1"), Names::Find<Node>("leaf-2"), Names::Find<Node>("leaf-3"),
+                              Names::Find<Node>("leaf-4")};
+    Ptr<Node> producer = Names::Find<Node>("root");
 
-  for (int i = 0; i < 4; i++) {
-    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
-    consumerHelper.SetAttribute("Frequency", StringValue("10")); // 100 interests a second
+    for (int i = 0; i < 4; i++) { // 并行的, 每个请求
+        ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+        consumerHelper.SetAttribute("Frequency", StringValue("1")); // 100 interests a second
 
-    // Each consumer will express the same data /root/<seq-no>
-    consumerHelper.SetPrefix("/root");
-    ApplicationContainer app = consumerHelper.Install(consumers[i]);
-    app.Start(Seconds(0.01 * i));
-  }
+        // Each consumer will express the same data /root/<seq-no>
+        // 每个消费者都请求相同的数据/root/seqNo++
+        consumerHelper.SetPrefix("/root");
+        ApplicationContainer app = consumerHelper.Install(consumers[i]);
+        app.Start(Seconds(0.01 * i));
+    }
 
-  ndn::AppHelper producerHelper("ns3::ndn::Producer");
-  producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
 
-  // Register /root prefix with global routing controller and
-  // install producer that will satisfy Interests in /root namespace
-  ndnGlobalRoutingHelper.AddOrigins("/root", producer);
-  producerHelper.SetPrefix("/root");
-  producerHelper.Install(producer);
+    // Register /root prefix with global routing controller and
+    // install producer that will satisfy Interests in /root namespace
+    ndnGlobalRoutingHelper.AddOrigins("/root", producer);
+    producerHelper.SetPrefix("/root");
+    producerHelper.Install(producer);
 
-  // Calculate and install FIBs
-  ndn::GlobalRoutingHelper::CalculateRoutes();
+    // Calculate and install FIBs
+    ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  Simulator::Stop(Seconds(20.0));
+    Simulator::Stop(Seconds(20.0));
 
-  ndn::CsTracer::InstallAll("cs-trace.txt", Seconds(1));
+    ndn::CsTracer::InstallAll("cs-trace.txt", Seconds(1));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -122,5 +123,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

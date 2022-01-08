@@ -63,20 +63,20 @@
 
 namespace ndn {
 
+using std::make_shared;
+using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::weak_ptr;
-using std::make_shared;
-using std::make_unique;
 
-using std::static_pointer_cast;
-using std::dynamic_pointer_cast;
 using std::const_pointer_cast;
+using std::dynamic_pointer_cast;
+using std::static_pointer_cast;
 
-using std::function;
 using std::bind;
-using std::ref;
 using std::cref;
+using std::function;
+using std::ref;
 
 using namespace std::string_literals;
 
@@ -89,14 +89,11 @@ using namespace std::placeholders;
 #define BOOST_BIND_NO_PLACEHOLDERS
 #include <boost/is_placeholder.hpp>
 namespace boost {
-#define NDN_CXX_SPECIALIZE_BOOST_IS_PLACEHOLDER_FOR_STD_PLACEHOLDER(N) \
-  template<> \
-  struct is_placeholder<std::remove_const_t<decltype(_##N)>> \
-  { \
-    enum _vt { \
-      value = N \
-    }; \
-  };
+#define NDN_CXX_SPECIALIZE_BOOST_IS_PLACEHOLDER_FOR_STD_PLACEHOLDER(N)                                                 \
+    template <>                                                                                                        \
+    struct is_placeholder<std::remove_const_t<decltype(_##N)>> {                                                       \
+        enum _vt { value = N };                                                                                        \
+    };
 NDN_CXX_SPECIALIZE_BOOST_IS_PLACEHOLDER_FOR_STD_PLACEHOLDER(1)
 NDN_CXX_SPECIALIZE_BOOST_IS_PLACEHOLDER_FOR_STD_PLACEHOLDER(2)
 NDN_CXX_SPECIALIZE_BOOST_IS_PLACEHOLDER_FOR_STD_PLACEHOLDER(3)

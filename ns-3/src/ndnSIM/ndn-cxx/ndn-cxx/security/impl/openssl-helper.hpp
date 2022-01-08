@@ -29,75 +29,65 @@ namespace ndn {
 namespace security {
 namespace detail {
 
-NDN_CXX_NODISCARD const EVP_MD*
-digestAlgorithmToEvpMd(DigestAlgorithm algo);
+NDN_CXX_NODISCARD const EVP_MD* digestAlgorithmToEvpMd(DigestAlgorithm algo);
 
-NDN_CXX_NODISCARD int
-getEvpPkeyType(EVP_PKEY* key);
+NDN_CXX_NODISCARD int getEvpPkeyType(EVP_PKEY* key);
 
-class EvpMdCtx : noncopyable
-{
-public:
-  EvpMdCtx();
+class EvpMdCtx : noncopyable {
+  public:
+    EvpMdCtx();
 
-  ~EvpMdCtx();
+    ~EvpMdCtx();
 
-  operator EVP_MD_CTX*() const
-  {
-    return m_ctx;
-  }
+    operator EVP_MD_CTX*() const
+    {
+        return m_ctx;
+    }
 
-private:
-  EVP_MD_CTX* m_ctx;
+  private:
+    EVP_MD_CTX* m_ctx;
 };
 
-class EvpPkeyCtx : noncopyable
-{
-public:
-  explicit
-  EvpPkeyCtx(EVP_PKEY* key);
+class EvpPkeyCtx : noncopyable {
+  public:
+    explicit EvpPkeyCtx(EVP_PKEY* key);
 
-  explicit
-  EvpPkeyCtx(int id);
+    explicit EvpPkeyCtx(int id);
 
-  ~EvpPkeyCtx();
+    ~EvpPkeyCtx();
 
-  operator EVP_PKEY_CTX*() const
-  {
-    return m_ctx;
-  }
+    operator EVP_PKEY_CTX*() const
+    {
+        return m_ctx;
+    }
 
-private:
-  EVP_PKEY_CTX* m_ctx;
+  private:
+    EVP_PKEY_CTX* m_ctx;
 };
 
-class Bio : noncopyable
-{
-public:
+class Bio : noncopyable {
+  public:
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  using MethodPtr = BIO_METHOD*;
+    using MethodPtr = BIO_METHOD*;
 #else
-  using MethodPtr = const BIO_METHOD*;
+    using MethodPtr = const BIO_METHOD*;
 #endif // OPENSSL_VERSION_NUMBER < 0x1010000fL
 
-  explicit
-  Bio(MethodPtr method);
+    explicit Bio(MethodPtr method);
 
-  ~Bio();
+    ~Bio();
 
-  operator BIO*() const
-  {
-    return m_bio;
-  }
+    operator BIO*() const
+    {
+        return m_bio;
+    }
 
-  NDN_CXX_NODISCARD bool
-  read(uint8_t* buf, size_t buflen) const noexcept;
+    NDN_CXX_NODISCARD bool read(uint8_t* buf, size_t buflen) const noexcept;
 
-  NDN_CXX_NODISCARD bool
-  write(const uint8_t* buf, size_t buflen) noexcept;
+    NDN_CXX_NODISCARD bool write(const uint8_t* buf, size_t buflen) noexcept;
 
-private:
-  BIO* m_bio;
+  private:
+    BIO* m_bio;
 };
 
 } // namespace detail

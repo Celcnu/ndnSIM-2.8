@@ -37,97 +37,92 @@ BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 BOOST_AUTO_TEST_SUITE(TestCertificateFetcherFromNetwork)
 
-class Cert
-{
+class Cert {
 };
 
-class Timeout
-{
+class Timeout {
 };
 
-class Nack
-{
+class Nack {
 };
 
-template<class Response>
-class CertificateFetcherFromNetworkFixture : public HierarchicalValidatorFixture<ValidationPolicySimpleHierarchy,
-                                                                                 CertificateFetcherFromNetwork>
-{
-public:
-  CertificateFetcherFromNetworkFixture()
-    : data("/Security/V2/ValidatorFixture/Sub1/Sub3/Data")
-    , interest("/Security/V2/ValidatorFixture/Sub1/Sub3/Interest")
-  {
-    Identity subSubIdentity = addSubCertificate("/Security/V2/ValidatorFixture/Sub1/Sub3", subIdentity);
-    cache.insert(subSubIdentity.getDefaultKey().getDefaultCertificate());
+template <class Response>
+class CertificateFetcherFromNetworkFixture
+  : public HierarchicalValidatorFixture<ValidationPolicySimpleHierarchy, CertificateFetcherFromNetwork> {
+  public:
+    CertificateFetcherFromNetworkFixture()
+      : data("/Security/V2/ValidatorFixture/Sub1/Sub3/Data")
+      , interest("/Security/V2/ValidatorFixture/Sub1/Sub3/Interest")
+    {
+        Identity subSubIdentity = addSubCertificate("/Security/V2/ValidatorFixture/Sub1/Sub3", subIdentity);
+        cache.insert(subSubIdentity.getDefaultKey().getDefaultCertificate());
 
-    m_keyChain.sign(data, signingByIdentity(subSubIdentity));
-    m_keyChain.sign(interest, signingByIdentity(subSubIdentity));
+        m_keyChain.sign(data, signingByIdentity(subSubIdentity));
+        m_keyChain.sign(interest, signingByIdentity(subSubIdentity));
 
-    processInterest = bind(&CertificateFetcherFromNetworkFixture<Response>::makeResponse, this, _1);
-  }
+        processInterest = bind(&CertificateFetcherFromNetworkFixture<Response>::makeResponse, this, _1);
+    }
 
-  void
-  makeResponse(const Interest& interest);
+    void makeResponse(const Interest& interest);
 
-public:
-  Data data;
-  Interest interest;
+  public:
+    Data data;
+    Interest interest;
 };
 
-template<>
+template <>
 void
 CertificateFetcherFromNetworkFixture<Cert>::makeResponse(const Interest& interest)
 {
-  auto cert = cache.find(interest);
-  if (cert == nullptr) {
-    return;
-  }
-  face.receive(*cert);
+    auto cert = cache.find(interest);
+    if (cert == nullptr) {
+        return;
+    }
+    face.receive(*cert);
 }
 
-template<>
+template <>
 void
 CertificateFetcherFromNetworkFixture<Timeout>::makeResponse(const Interest& interest)
 {
-  // do nothing
+    // do nothing
 }
 
-template<>
+template <>
 void
 CertificateFetcherFromNetworkFixture<Nack>::makeResponse(const Interest& interest)
 {
-  lp::Nack nack(interest);
-  nack.setHeader(lp::NackHeader().setReason(lp::NackReason::NO_ROUTE));
-  face.receive(nack);
+    lp::Nack nack(interest);
+    nack.setHeader(lp::NackHeader().setReason(lp::NackReason::NO_ROUTE));
+    face.receive(nack);
 }
 
 using Failures = boost::mpl::vector<Timeout, Nack>;
 
 BOOST_FIXTURE_TEST_CASE(ValidateSuccess, CertificateFetcherFromNetworkFixture<Cert>)
 {
-  VALIDATE_SUCCESS(this->data, "Should get accepted, as normal interests bring cert");
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 2);
-  this->face.sentInterests.clear();
+    VALIDATE_SUCCESS(this->data, "Should get accepted, as normal interests bring cert");
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 2);
+    this->face.sentInterests.clear();
 
-  this->advanceClocks(1_h, 2); // expire validator caches
+    this->advanceClocks(1_h, 2); // expire validator caches
 
-  VALIDATE_SUCCESS(this->interest, "Should get accepted, as interests bring certs");
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 2);
+    VALIDATE_SUCCESS(this->interest, "Should get accepted, as interests bring certs");
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 2);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ValidateFailure, T, Failures, CertificateFetcherFromNetworkFixture<T>)
 {
-  VALIDATE_FAILURE(this->data, "Should fail, as interests don't bring data");
-  // first interest + 3 retries
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 4);
+    VALIDATE_FAILURE(this->data, "Should fail, as interests don't bring data");
+    // first interest + 3 retries
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 4);
 
-  this->face.sentInterests.clear();
+    this->face.sentInterests.clear();
 
-  this->advanceClocks(1_h, 2); // expire validator caches
+    this->advanceClocks(1_h, 2); // expire validator caches
 
-  VALIDATE_FAILURE(this->interest, "Should fail, as interests don't bring data");
-  BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 4);
+    VALIDATE_FAILURE(this->interest, "Should fail, as interests don't bring data");
+    BOOST_CHECK_EQUAL(this->face.sentInterests.size(), 4);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCertificateFetcherFromNetwork

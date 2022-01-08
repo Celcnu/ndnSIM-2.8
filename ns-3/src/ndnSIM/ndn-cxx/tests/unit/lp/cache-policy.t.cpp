@@ -34,68 +34,59 @@ BOOST_AUTO_TEST_SUITE(TestCachePolicy)
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-  CachePolicy policy;
-  policy.setPolicy(CachePolicyType::NO_CACHE);
+    CachePolicy policy;
+    policy.setPolicy(CachePolicyType::NO_CACHE);
 
-  Block wire;
-  BOOST_REQUIRE_NO_THROW(wire = policy.wireEncode());
+    Block wire;
+    BOOST_REQUIRE_NO_THROW(wire = policy.wireEncode());
 
-  // Sample encoded value obtained with:
-  // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
-  //   printf("0x%02x, ", *it);
-  // }
+    // Sample encoded value obtained with:
+    // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
+    //   printf("0x%02x, ", *it);
+    // }
 
-  // Contains CachePolicyType::NO_CACHE
-  static const uint8_t expectedBlock[] = {
-    0xfd, 0x03, 0x34, 0x05, 0xfd, 0x03, 0x35, 0x01, 0x01
-  };
+    // Contains CachePolicyType::NO_CACHE
+    static const uint8_t expectedBlock[] = {0xfd, 0x03, 0x34, 0x05, 0xfd, 0x03, 0x35, 0x01, 0x01};
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock),
-                                wire.begin(), wire.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock), wire.begin(), wire.end());
 
-  BOOST_REQUIRE_NO_THROW(policy.wireDecode(wire));
+    BOOST_REQUIRE_NO_THROW(policy.wireDecode(wire));
 }
 
 BOOST_AUTO_TEST_CASE(DecodeUnknownPolicyError)
 {
-  static const uint8_t expectedBlock[] = {
-    0xfd, 0x03, 0x34, 0x08, 0xfd, 0x03, 0x35, 0x04, 0xff, 0xff, 0xff, 0xff
-  };
+    static const uint8_t expectedBlock[] = {0xfd, 0x03, 0x34, 0x08, 0xfd, 0x03, 0x35, 0x04, 0xff, 0xff, 0xff, 0xff};
 
-  CachePolicy policy;
-  Block wire(expectedBlock, sizeof(expectedBlock));
-  BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
+    CachePolicy policy;
+    Block wire(expectedBlock, sizeof(expectedBlock));
+    BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
 }
 
 BOOST_AUTO_TEST_CASE(DecodeMissingPolicyError)
 {
-  static const uint8_t inputBlock[] = {
-    0xfd, 0x03, 0x34, 0x00
-  };
+    static const uint8_t inputBlock[] = {0xfd, 0x03, 0x34, 0x00};
 
-  CachePolicy policy;
-  Block wire(inputBlock, sizeof(inputBlock));
-  BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
+    CachePolicy policy;
+    Block wire(inputBlock, sizeof(inputBlock));
+    BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
 }
 
 BOOST_AUTO_TEST_CASE(DecodeInvalidPolicyError)
 {
-  static const uint8_t inputBlock[] = {
-    0xfd, 0x03, 0x34, 0x05, 0xfd, 0x03, 0x35, 0x01, 0x00
-  };
+    static const uint8_t inputBlock[] = {0xfd, 0x03, 0x34, 0x05, 0xfd, 0x03, 0x35, 0x01, 0x00};
 
-  CachePolicy policy;
-  Block wire(inputBlock, sizeof(inputBlock));
-  BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
+    CachePolicy policy;
+    Block wire(inputBlock, sizeof(inputBlock));
+    BOOST_REQUIRE_THROW(policy.wireDecode(wire), CachePolicy::Error);
 }
 
 BOOST_AUTO_TEST_CASE(Policy)
 {
-  CachePolicy policy;
-  BOOST_CHECK_EQUAL(policy.getPolicy(), CachePolicyType::NONE);
+    CachePolicy policy;
+    BOOST_CHECK_EQUAL(policy.getPolicy(), CachePolicyType::NONE);
 
-  policy.setPolicy(CachePolicyType::NO_CACHE);
-  BOOST_CHECK_EQUAL(policy.getPolicy(), CachePolicyType::NO_CACHE);
+    policy.setPolicy(CachePolicyType::NO_CACHE);
+    BOOST_CHECK_EQUAL(policy.getPolicy(), CachePolicyType::NO_CACHE);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCachePolicy

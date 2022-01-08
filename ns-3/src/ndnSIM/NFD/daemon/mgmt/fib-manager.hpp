@@ -40,34 +40,25 @@ class FaceTable;
  * @brief Implements the FIB Management of NFD Management Protocol.
  * @sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt
  */
-class FibManager : public ManagerBase
-{
-public:
-  FibManager(fib::Fib& fib, const FaceTable& faceTable,
-             Dispatcher& dispatcher, CommandAuthenticator& authenticator);
+class FibManager : public ManagerBase {
+  public:
+    FibManager(fib::Fib& fib, const FaceTable& faceTable, Dispatcher& dispatcher, CommandAuthenticator& authenticator);
 
-private:
-  void
-  addNextHop(const Name& topPrefix, const Interest& interest,
-             ControlParameters parameters,
-             const ndn::mgmt::CommandContinuation& done);
+  private:
+    void addNextHop(const Name& topPrefix, const Interest& interest, ControlParameters parameters,
+                    const ndn::mgmt::CommandContinuation& done);
 
-  void
-  removeNextHop(const Name& topPrefix, const Interest& interest,
-                ControlParameters parameters,
-                const ndn::mgmt::CommandContinuation& done);
+    void removeNextHop(const Name& topPrefix, const Interest& interest, ControlParameters parameters,
+                       const ndn::mgmt::CommandContinuation& done);
 
-  void
-  listEntries(const Name& topPrefix, const Interest& interest,
-              ndn::mgmt::StatusDatasetContext& context);
+    void listEntries(const Name& topPrefix, const Interest& interest, ndn::mgmt::StatusDatasetContext& context);
 
-private:
-  void
-  setFaceForSelfRegistration(const Interest& request, ControlParameters& parameters);
+  private:
+    void setFaceForSelfRegistration(const Interest& request, ControlParameters& parameters);
 
-private:
-  fib::Fib& m_fib;
-  const FaceTable& m_faceTable;
+  private:
+    fib::Fib& m_fib;
+    const FaceTable& m_faceTable;
 };
 
 } // namespace nfd

@@ -33,23 +33,23 @@ namespace v2 = security::v2;
 
 IdentityManagementBaseFixture::~IdentityManagementBaseFixture()
 {
-  boost::system::error_code ec;
-  for (const auto& certFile : m_certFiles) {
-    boost::filesystem::remove(certFile, ec); // ignore error
-  }
+    boost::system::error_code ec;
+    for (const auto& certFile : m_certFiles) {
+        boost::filesystem::remove(certFile, ec); // ignore error
+    }
 }
 
 bool
 IdentityManagementBaseFixture::saveCertToFile(const Data& obj, const std::string& filename)
 {
-  m_certFiles.insert(filename);
-  try {
-    io::save(obj, filename);
-    return true;
-  }
-  catch (const io::Error&) {
-    return false;
-  }
+    m_certFiles.insert(filename);
+    try {
+        io::save(obj, filename);
+        return true;
+    }
+    catch (const io::Error&) {
+        return false;
+    }
 }
 
 IdentityManagementFixture::IdentityManagementFixture()
@@ -60,71 +60,69 @@ IdentityManagementFixture::IdentityManagementFixture()
 security::Identity
 IdentityManagementFixture::addIdentity(const Name& identityName, const KeyParams& params)
 {
-  auto identity = m_keyChain.createIdentity(identityName, params);
-  m_identities.insert(identityName);
-  return identity;
+    auto identity = m_keyChain.createIdentity(identityName, params);
+    m_identities.insert(identityName);
+    return identity;
 }
 
 bool
 IdentityManagementFixture::saveCertificate(const security::Identity& identity, const std::string& filename)
 {
-  try {
-    auto cert = identity.getDefaultKey().getDefaultCertificate();
-    return saveCertToFile(cert, filename);
-  }
-  catch (const security::Pib::Error&) {
-    return false;
-  }
+    try {
+        auto cert = identity.getDefaultKey().getDefaultCertificate();
+        return saveCertToFile(cert, filename);
+    }
+    catch (const security::Pib::Error&) {
+        return false;
+    }
 }
 
 security::Identity
-IdentityManagementFixture::addSubCertificate(const Name& subIdentityName,
-                                             const security::Identity& issuer, const KeyParams& params)
+IdentityManagementFixture::addSubCertificate(const Name& subIdentityName, const security::Identity& issuer,
+                                             const KeyParams& params)
 {
-  auto subIdentity = addIdentity(subIdentityName, params);
+    auto subIdentity = addIdentity(subIdentityName, params);
 
-  v2::Certificate request = subIdentity.getDefaultKey().getDefaultCertificate();
+    v2::Certificate request = subIdentity.getDefaultKey().getDefaultCertificate();
 
-  request.setName(request.getKeyName().append("parent").appendVersion());
+    request.setName(request.getKeyName().append("parent").appendVersion());
 
-  SignatureInfo info;
-  auto now = time::system_clock::now();
-  info.setValidityPeriod(security::ValidityPeriod(now, now + 7300_days));
+    SignatureInfo info;
+    auto now = time::system_clock::now();
+    info.setValidityPeriod(security::ValidityPeriod(now, now + 7300_days));
 
-  v2::AdditionalDescription description;
-  description.set("type", "sub-certificate");
-  info.appendTypeSpecificTlv(description.wireEncode());
+    v2::AdditionalDescription description;
+    description.set("type", "sub-certificate");
+    info.appendTypeSpecificTlv(description.wireEncode());
 
-  m_keyChain.sign(request, signingByIdentity(issuer).setSignatureInfo(info));
-  m_keyChain.setDefaultCertificate(subIdentity.getDefaultKey(), request);
+    m_keyChain.sign(request, signingByIdentity(issuer).setSignatureInfo(info));
+    m_keyChain.setDefaultCertificate(subIdentity.getDefaultKey(), request);
 
-  return subIdentity;
+    return subIdentity;
 }
 
 v2::Certificate
 IdentityManagementFixture::addCertificate(const security::Key& key, const std::string& issuer)
 {
-  Name certificateName = key.getName();
-  certificateName
-    .append(issuer)
-    .appendVersion();
-  v2::Certificate certificate;
-  certificate.setName(certificateName);
+    Name certificateName = key.getName();
+    certificateName.append(issuer).appendVersion();
+    v2::Certificate certificate;
+    certificate.setName(certificateName);
 
-  // set metainfo
-  certificate.setContentType(tlv::ContentType_Key);
-  certificate.setFreshnessPeriod(1_h);
+    // set metainfo
+    certificate.setContentType(tlv::ContentType_Key);
+    certificate.setFreshnessPeriod(1_h);
 
-  // set content
-  certificate.setContent(key.getPublicKey().data(), key.getPublicKey().size());
+    // set content
+    certificate.setContent(key.getPublicKey().data(), key.getPublicKey().size());
 
-  // set signature-info
-  SignatureInfo info;
-  auto now = time::system_clock::now();
-  info.setValidityPeriod(security::ValidityPeriod(now, now + 10_days));
+    // set signature-info
+    SignatureInfo info;
+    auto now = time::system_clock::now();
+    info.setValidityPeriod(security::ValidityPeriod(now, now + 10_days));
 
-  m_keyChain.sign(certificate, signingByKey(key).setSignatureInfo(info));
-  return certificate;
+    m_keyChain.sign(certificate, signingByKey(key).setSignatureInfo(info));
+    return certificate;
 }
 
 } // namespace tests

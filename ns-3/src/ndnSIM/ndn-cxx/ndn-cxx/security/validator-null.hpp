@@ -31,19 +31,17 @@ namespace v2 {
 /**
  * @brief Validator with "accept-all" policy and offline certificate fetcher
  */
-class ValidatorNull : public Validator
-{
-public:
-  ValidatorNull();
+class ValidatorNull : public Validator {
+  public:
+    ValidatorNull();
 };
 
-security::v2::Validator&
-getAcceptAllValidator();
+security::v2::Validator& getAcceptAllValidator();
 
 } // namespace v2
 
-using v2::ValidatorNull;
 using v2::getAcceptAllValidator;
+using v2::ValidatorNull;
 
 } // namespace security
 } // namespace ndn

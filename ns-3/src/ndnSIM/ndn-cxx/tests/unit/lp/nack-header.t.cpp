@@ -34,79 +34,81 @@ BOOST_AUTO_TEST_SUITE(TestNackHeader)
 
 BOOST_AUTO_TEST_CASE(IsLessSevere)
 {
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::NONE, NackReason::NONE), false);
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::CONGESTION), false);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::NONE, NackReason::NONE), false);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::CONGESTION), false);
 
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::NONE), true);
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::NONE, NackReason::CONGESTION), false);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::NONE), true);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::NONE, NackReason::CONGESTION), false);
 
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::NO_ROUTE), true);
-  BOOST_CHECK_EQUAL(isLessSevere(NackReason::NO_ROUTE, NackReason::CONGESTION), false);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::CONGESTION, NackReason::NO_ROUTE), true);
+    BOOST_CHECK_EQUAL(isLessSevere(NackReason::NO_ROUTE, NackReason::CONGESTION), false);
 }
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-  NackHeader header;
-  header.setReason(NackReason::DUPLICATE);
+    NackHeader header;
+    header.setReason(NackReason::DUPLICATE);
 
-  Block wire;
-  BOOST_REQUIRE_NO_THROW(wire = header.wireEncode());
+    Block wire;
+    BOOST_REQUIRE_NO_THROW(wire = header.wireEncode());
 
-  // Sample encoded value obtained with:
-  // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
-  //   printf("0x%02x, ", *it);
-  // }
+    // Sample encoded value obtained with:
+    // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
+    //   printf("0x%02x, ", *it);
+    // }
 
-  // Contains NackReason::DUPLICATE
-  static const uint8_t expectedBlock[] = {
-    0xfd, 0x03, 0x20, 0x05, 0xfd, 0x03, 0x21, 0x01, 0x64,
-  };
+    // Contains NackReason::DUPLICATE
+    static const uint8_t expectedBlock[] = {
+      0xfd, 0x03, 0x20, 0x05, 0xfd, 0x03, 0x21, 0x01, 0x64,
+    };
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock),
-                                wire.begin(), wire.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock), wire.begin(), wire.end());
 
-  BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
+    BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
 }
 
 BOOST_AUTO_TEST_CASE(DecodeUnknownReasonCode)
 {
-  static const uint8_t expectedBlock[] = {
-    0xfd, 0x03, 0x20, 0x08, 0xfd, 0x03, 0x21, 0x04, 0xff, 0xff, 0xff, 0xff,
-  };
+    static const uint8_t expectedBlock[] = {
+      0xfd, 0x03, 0x20, 0x08, 0xfd, 0x03, 0x21, 0x04, 0xff, 0xff, 0xff, 0xff,
+    };
 
-  NackHeader header;
-  Block wire(expectedBlock, sizeof(expectedBlock));
-  BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
-  Block wireEncoded;
-  BOOST_REQUIRE_NO_THROW(wireEncoded = header.wireEncode());
-  BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock),
-                                wireEncoded.begin(), wireEncoded.end());
-  BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
+    NackHeader header;
+    Block wire(expectedBlock, sizeof(expectedBlock));
+    BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
+    Block wireEncoded;
+    BOOST_REQUIRE_NO_THROW(wireEncoded = header.wireEncode());
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock), wireEncoded.begin(),
+                                  wireEncoded.end());
+    BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
 }
 
 BOOST_AUTO_TEST_CASE(DecodeOmitReason)
 {
-  static const uint8_t expectedBlock[] = {
-    0xfd, 0x03, 0x20, 0x00,
-  };
+    static const uint8_t expectedBlock[] = {
+      0xfd,
+      0x03,
+      0x20,
+      0x00,
+    };
 
-  NackHeader header;
-  Block wire(expectedBlock, sizeof(expectedBlock));
-  BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
-  Block wireEncoded;
-  BOOST_REQUIRE_NO_THROW(wireEncoded = header.wireEncode());
-  BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock),
-                                wireEncoded.begin(), wireEncoded.end());
-  BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
+    NackHeader header;
+    Block wire(expectedBlock, sizeof(expectedBlock));
+    BOOST_REQUIRE_NO_THROW(header.wireDecode(wire));
+    Block wireEncoded;
+    BOOST_REQUIRE_NO_THROW(wireEncoded = header.wireEncode());
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedBlock, expectedBlock + sizeof(expectedBlock), wireEncoded.begin(),
+                                  wireEncoded.end());
+    BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
 }
 
 BOOST_AUTO_TEST_CASE(Reason)
 {
-  NackHeader header;
-  BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
+    NackHeader header;
+    BOOST_CHECK_EQUAL(header.getReason(), NackReason::NONE);
 
-  header.setReason(NackReason::DUPLICATE);
-  BOOST_CHECK_EQUAL(header.getReason(), NackReason::DUPLICATE);
+    header.setReason(NackReason::DUPLICATE);
+    BOOST_CHECK_EQUAL(header.getReason(), NackReason::DUPLICATE);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNackHeader

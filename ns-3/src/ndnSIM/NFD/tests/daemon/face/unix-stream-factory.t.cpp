@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(Normal)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       unix
@@ -54,32 +54,32 @@ BOOST_AUTO_TEST_CASE(Normal)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_REQUIRE_EQUAL(factory.getChannels().size(), 1);
-  const auto& uri = factory.getChannels().front()->getUri();
-  BOOST_CHECK_EQUAL(uri.getScheme(), "unix");
-  BOOST_CHECK_NE(uri.getPath().find("nfd-test.sock"), std::string::npos);
+    BOOST_REQUIRE_EQUAL(factory.getChannels().size(), 1);
+    const auto& uri = factory.getChannels().front()->getUri();
+    BOOST_CHECK_EQUAL(uri.getScheme(), "unix");
+    BOOST_CHECK_NE(uri.getPath().find("nfd-test.sock"), std::string::npos);
 }
 
 BOOST_AUTO_TEST_CASE(Omitted)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
+    BOOST_CHECK_EQUAL(factory.getChannels().size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(UnknownOption)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       unix
@@ -89,57 +89,51 @@ BOOST_AUTO_TEST_CASE(UnknownOption)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig
 
 BOOST_AUTO_TEST_CASE(GetChannels)
 {
-  BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
+    BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
 
-  std::set<std::string> expected;
-  expected.insert(factory.createChannel(CHANNEL_PATH1)->getUri().toString());
-  expected.insert(factory.createChannel(CHANNEL_PATH2)->getUri().toString());
-  checkChannelListEqual(factory, expected);
+    std::set<std::string> expected;
+    expected.insert(factory.createChannel(CHANNEL_PATH1)->getUri().toString());
+    expected.insert(factory.createChannel(CHANNEL_PATH2)->getUri().toString());
+    checkChannelListEqual(factory, expected);
 }
 
 BOOST_AUTO_TEST_CASE(CreateChannel)
 {
-  auto channel1 = factory.createChannel(CHANNEL_PATH1);
-  auto channel1a = factory.createChannel(CHANNEL_PATH1);
-  BOOST_CHECK_EQUAL(channel1, channel1a);
+    auto channel1 = factory.createChannel(CHANNEL_PATH1);
+    auto channel1a = factory.createChannel(CHANNEL_PATH1);
+    BOOST_CHECK_EQUAL(channel1, channel1a);
 
-  const auto& uri = channel1->getUri();
-  BOOST_CHECK_EQUAL(uri.getScheme(), "unix");
-  BOOST_CHECK_EQUAL(uri.getHost(), "");
-  BOOST_CHECK_EQUAL(uri.getPort(), "");
-  BOOST_CHECK_EQUAL(uri.getPath().rfind(CHANNEL_PATH1), uri.getPath().size() - CHANNEL_PATH1.size());
+    const auto& uri = channel1->getUri();
+    BOOST_CHECK_EQUAL(uri.getScheme(), "unix");
+    BOOST_CHECK_EQUAL(uri.getHost(), "");
+    BOOST_CHECK_EQUAL(uri.getPort(), "");
+    BOOST_CHECK_EQUAL(uri.getPath().rfind(CHANNEL_PATH1), uri.getPath().size() - CHANNEL_PATH1.size());
 
-  auto channel2 = factory.createChannel(CHANNEL_PATH2);
-  BOOST_CHECK_NE(channel1, channel2);
+    auto channel2 = factory.createChannel(CHANNEL_PATH2);
+    BOOST_CHECK_NE(channel1, channel2);
 }
 
 BOOST_AUTO_TEST_CASE(UnsupportedCreateFace)
 {
-  createFace(factory,
-             FaceUri("unix:///var/run/nfd.sock"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("unix:///var/run/nfd.sock"), {},
+               {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 
-  createFace(factory,
-             FaceUri("unix:///var/run/nfd.sock"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("unix:///var/run/nfd.sock"), {},
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 
-  createFace(factory,
-             FaceUri("unix:///var/run/nfd.sock"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
+    createFace(factory, FaceUri("unix:///var/run/nfd.sock"), {},
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Unsupported protocol"});
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestUnixStreamFactory

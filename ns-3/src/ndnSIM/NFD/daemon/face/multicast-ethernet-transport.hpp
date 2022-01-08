@@ -34,26 +34,23 @@ namespace face {
 /**
  * @brief A multicast Transport that uses raw Ethernet II frames
  */
-class MulticastEthernetTransport final : public EthernetTransport
-{
-public:
-  /**
-   * @brief Creates an Ethernet-based transport for multicast communication
-   */
-  MulticastEthernetTransport(const ndn::net::NetworkInterface& localEndpoint,
-                             const ethernet::Address& mcastAddress,
-                             ndn::nfd::LinkType linkType);
+class MulticastEthernetTransport final : public EthernetTransport {
+  public:
+    /**
+     * @brief Creates an Ethernet-based transport for multicast communication
+     */
+    MulticastEthernetTransport(const ndn::net::NetworkInterface& localEndpoint, const ethernet::Address& mcastAddress,
+                               ndn::nfd::LinkType linkType);
 
-private:
-  /**
-   * @brief Enables receiving frames addressed to our MAC multicast group
-   */
-  void
-  joinMulticastGroup();
+  private:
+    /**
+     * @brief Enables receiving frames addressed to our MAC multicast group
+     */
+    void joinMulticastGroup();
 
-private:
+  private:
 #if defined(__linux__)
-  int m_interfaceIndex;
+    int m_interfaceIndex;
 #endif
 };
 

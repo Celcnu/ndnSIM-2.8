@@ -35,36 +35,36 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-class UdpChannelFixture : public ChannelFixture<UdpChannel, udp::Endpoint>
-{
-protected:
-  unique_ptr<UdpChannel>
-  makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
-  {
-    if (port == 0)
-      port = getNextPort();
+class UdpChannelFixture : public ChannelFixture<UdpChannel, udp::Endpoint> {
+  protected:
+    unique_ptr<UdpChannel>
+    makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
+    {
+        if (port == 0)
+            port = getNextPort();
 
-    return make_unique<UdpChannel>(udp::Endpoint(addr, port), 2_s, false);
-  }
+        return make_unique<UdpChannel>(udp::Endpoint(addr, port), 2_s, false);
+    }
 
-  void
-  connect(UdpChannel& channel) final
-  {
-    g_io.post([&] {
-      channel.connect(listenerEp, {},
-        [this] (const shared_ptr<Face>& newFace) {
-          BOOST_REQUIRE(newFace != nullptr);
-          connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
-          clientFaces.push_back(newFace);
-          newFace->getTransport()->send(ndn::encoding::makeStringBlock(300, "hello"));
-          limitedIo.afterOp();
-        },
-        ChannelFixture::unexpectedFailure);
-    });
-  }
+    void
+    connect(UdpChannel& channel) final
+    {
+        g_io.post([&] {
+            channel.connect(
+              listenerEp, {},
+              [this](const shared_ptr<Face>& newFace) {
+                  BOOST_REQUIRE(newFace != nullptr);
+                  connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
+                  clientFaces.push_back(newFace);
+                  newFace->getTransport()->send(ndn::encoding::makeStringBlock(300, "hello"));
+                  limitedIo.afterOp();
+              },
+              ChannelFixture::unexpectedFailure);
+        });
+    }
 
-protected:
-  std::vector<shared_ptr<Face>> clientFaces;
+  protected:
+    std::vector<shared_ptr<Face>> clientFaces;
 };
 
 } // namespace tests

@@ -48,23 +48,29 @@ enum value {
 
     /// not implemented
     not_implemented,
-    
+
     invalid_num_bytes,
-    
+
     double_read
 };
 
 /// debug transport error category
 class category : public lib::error_category {
-    public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.transport.debug";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case general:
                 return "Generic stub transport policy error";
             case not_implemented:
@@ -80,13 +86,17 @@ class category : public lib::error_category {
 };
 
 /// Get a reference to a static copy of the debug transport error category
-inline lib::error_category const & get_category() {
+inline lib::error_category const&
+get_category()
+{
     static category instance;
     return instance;
 }
 
 /// Get an error code with the given value and the debug transport category
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -95,8 +105,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace transport
 } // namespace websocketpp
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum<websocketpp::transport::debug::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::transport::debug::error::value> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_

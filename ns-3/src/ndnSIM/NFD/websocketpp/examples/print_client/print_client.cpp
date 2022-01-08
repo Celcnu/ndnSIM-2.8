@@ -32,11 +32,15 @@
 
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
-void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
-	std::cout << msg->get_payload() << std::endl;
+void
+on_message(websocketpp::connection_hdl, client::message_ptr msg)
+{
+    std::cout << msg->get_payload() << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[])
+{
     client c;
 
     std::string uri = "ws://localhost:9002";
@@ -45,7 +49,7 @@ int main(int argc, char* argv[]) {
         uri = argv[1];
     }
 
-	try {
+    try {
         // Set logging to be pretty verbose (everything except message payloads)
         c.set_access_channels(websocketpp::log::alevel::all);
         c.clear_access_channels(websocketpp::log::alevel::frame_payload);
@@ -72,7 +76,8 @@ int main(int argc, char* argv[]) {
         // this will cause a single connection to be made to the server. c.run()
         // will exit when this connection is closed.
         c.run();
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
     }
 }

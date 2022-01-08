@@ -35,57 +35,48 @@ namespace ndn {
 namespace tools {
 namespace autoconfig {
 
-struct Options
-{
-  std::string ndnFchUrl = "http://ndn-fch.named-data.net"; ///< HTTP base URL of NDN-FCH service
+struct Options {
+    std::string ndnFchUrl = "http://ndn-fch.named-data.net"; ///< HTTP base URL of NDN-FCH service
 };
 
-class Procedure : noncopyable
-{
-public:
-  Procedure(Face& face, KeyChain& keyChain);
+class Procedure : noncopyable {
+  public:
+    Procedure(Face& face, KeyChain& keyChain);
 
-  virtual
-  ~Procedure() = default;
+    virtual ~Procedure() = default;
 
-  void
-  initialize(const Options& options);
+    void initialize(const Options& options);
 
-  /** \brief run HUB discovery procedure once
-   */
-  void
-  runOnce();
+    /** \brief run HUB discovery procedure once
+     */
+    void runOnce();
 
-  boost::asio::io_service&
-  getIoService()
-  {
-    return m_face.getIoService();
-  }
+    boost::asio::io_service&
+    getIoService()
+    {
+        return m_face.getIoService();
+    }
 
-private:
-  VIRTUAL_WITH_TESTS void
-  makeStages(const Options& options);
+  private:
+    VIRTUAL_WITH_TESTS void makeStages(const Options& options);
 
-  void
-  connect(const FaceUri& hubFaceUri);
+    void connect(const FaceUri& hubFaceUri);
 
-  void
-  registerPrefixes(uint64_t hubFaceId, size_t index = 0);
+    void registerPrefixes(uint64_t hubFaceId, size_t index = 0);
 
-public:
-  /** \brief signal when procedure completes
-   *
-   *  Argument indicates whether the procedure succeeds (true) or fails (false).
-   */
-  util::Signal<Procedure, bool> onComplete;
+  public:
+    /** \brief signal when procedure completes
+     *
+     *  Argument indicates whether the procedure succeeds (true) or fails (false).
+     */
+    util::Signal<Procedure, bool> onComplete;
 
-PROTECTED_WITH_TESTS_ELSE_PRIVATE:
-  std::vector<unique_ptr<Stage>> m_stages;
+    PROTECTED_WITH_TESTS_ELSE_PRIVATE : std::vector<unique_ptr<Stage>> m_stages;
 
-private:
-  Face& m_face;
-  KeyChain& m_keyChain;
-  nfd::Controller m_controller;
+  private:
+    Face& m_face;
+    KeyChain& m_keyChain;
+    nfd::Controller m_controller;
 };
 
 } // namespace autoconfig

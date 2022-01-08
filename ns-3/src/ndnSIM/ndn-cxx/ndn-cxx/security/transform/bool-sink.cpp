@@ -34,23 +34,23 @@ BoolSink::BoolSink(bool& value)
 size_t
 BoolSink::doWrite(const uint8_t* buf, size_t size)
 {
-  if (!m_hasValue && size > 0) {
-    m_value = (buf[0] != 0);
-    m_hasValue = true;
-  }
-  return size;
+    if (!m_hasValue && size > 0) {
+        m_value = (buf[0] != 0);
+        m_hasValue = true;
+    }
+    return size;
 }
 
 void
 BoolSink::doEnd()
 {
-  // nothing to do.
+    // nothing to do.
 }
 
 unique_ptr<Sink>
 boolSink(bool& value)
 {
-  return make_unique<BoolSink>(value);
+    return make_unique<BoolSink>(value);
 }
 
 } // namespace transform

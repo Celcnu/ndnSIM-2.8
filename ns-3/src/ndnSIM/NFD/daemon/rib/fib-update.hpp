@@ -34,60 +34,52 @@ namespace rib {
 /** \class FibUpdate
  *  \brief represents a FIB update
  */
-class FibUpdate
-{
-public:
-  FibUpdate()
-    : faceId(0)
-    , cost(0)
-  {
-  }
+class FibUpdate {
+  public:
+    FibUpdate()
+      : faceId(0)
+      , cost(0)
+    {
+    }
 
-  bool
-  operator==(const FibUpdate& other) const
-  {
-    return (this->name == other.name &&
-            this->faceId == other.faceId &&
-            this->cost == other.cost &&
-            this->action == other.action);
-  }
+    bool
+    operator==(const FibUpdate& other) const
+    {
+        return (this->name == other.name && this->faceId == other.faceId && this->cost == other.cost
+                && this->action == other.action);
+    }
 
-  static FibUpdate
-  createAddUpdate(const Name& name, const uint64_t faceId, const uint64_t cost);
+    static FibUpdate createAddUpdate(const Name& name, const uint64_t faceId, const uint64_t cost);
 
-  static FibUpdate
-  createRemoveUpdate(const Name& name, const uint64_t faceId);
+    static FibUpdate createRemoveUpdate(const Name& name, const uint64_t faceId);
 
-  enum Action {
-    ADD_NEXTHOP    = 0,
-    REMOVE_NEXTHOP = 1
-  };
+    enum Action { ADD_NEXTHOP = 0, REMOVE_NEXTHOP = 1 };
 
-public:
-  Name name;
-  uint64_t faceId;
-  uint64_t cost;
-  Action action;
+  public:
+    Name name;
+    uint64_t faceId;
+    uint64_t cost;
+    Action action;
 };
 
 inline std::ostream&
 operator<<(std::ostream& os, const FibUpdate& update)
 {
-  os << "FibUpdate("
-     << " Name: " << update.name << ", "
-     << "faceId: " << update.faceId << ", ";
+    os << "FibUpdate("
+       << " Name: " << update.name << ", "
+       << "faceId: " << update.faceId << ", ";
 
-  if (update.action == FibUpdate::ADD_NEXTHOP) {
-    os << "cost: " << update.cost << ", "
-       << "action: ADD_NEXTHOP";
-  }
-  else {
-    os << "action: REMOVE_NEXTHOP";
-  }
+    if (update.action == FibUpdate::ADD_NEXTHOP) {
+        os << "cost: " << update.cost << ", "
+           << "action: ADD_NEXTHOP";
+    }
+    else {
+        os << "action: REMOVE_NEXTHOP";
+    }
 
-  os << ")";
+    os << ")";
 
-  return os;
+    return os;
 }
 
 } // namespace rib

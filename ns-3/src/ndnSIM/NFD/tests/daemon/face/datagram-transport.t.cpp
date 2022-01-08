@@ -41,134 +41,132 @@ using DatagramTransportFixtures = boost::mpl::vector<
   GENERATE_IP_TRANSPORT_FIXTURE_INSTANTIATIONS(UnicastUdpTransportFixture),
   IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V4, AddressScope::Global, MulticastInterface::Yes>,
   IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::LinkLocal, MulticastInterface::Yes>,
-  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::Global, MulticastInterface::Yes>
->;
+  IpTransportFixture<MulticastUdpTransportFixture, AddressFamily::V6, AddressScope::Global, MulticastInterface::Yes>>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Send, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto block1 = ndn::encoding::makeStringBlock(300, "hello");
-  this->transport->send(block1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size());
+    auto block1 = ndn::encoding::makeStringBlock(300, "hello");
+    this->transport->send(block1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nOutBytes, block1.size());
 
-  std::vector<uint8_t> readBuf(block1.size());
-  this->remoteRead(readBuf);
+    std::vector<uint8_t> readBuf(block1.size());
+    this->remoteRead(readBuf);
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(readBuf.begin(), readBuf.end(), block1.begin(), block1.end());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL_COLLECTIONS(readBuf.begin(), readBuf.end(), block1.begin(), block1.end());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveNormal, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
-  ndn::Buffer buf1(pkt1.begin(), pkt1.end());
-  this->remoteWrite(buf1);
+    auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
+    ndn::Buffer buf1(pkt1.begin(), pkt1.end());
+    this->remoteWrite(buf1);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size());
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size());
 
-  auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
-  ndn::Buffer buf2(pkt2.begin(), pkt2.end());
-  this->remoteWrite(buf2);
+    auto pkt2 = ndn::encoding::makeStringBlock(301, "world!");
+    ndn::Buffer buf2(pkt2.begin(), pkt2.end());
+    this->remoteWrite(buf2);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size() + pkt2.size());
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 2);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, pkt1.size() + pkt2.size());
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 
-  BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 2);
-  BOOST_CHECK(this->receivedPackets->at(0).packet == pkt1);
-  BOOST_CHECK(this->receivedPackets->at(1).packet == pkt2);
-  BOOST_CHECK_EQUAL(this->receivedPackets->at(0).endpoint,
-                    this->receivedPackets->at(1).endpoint);
+    BOOST_REQUIRE_EQUAL(this->receivedPackets->size(), 2);
+    BOOST_CHECK(this->receivedPackets->at(0).packet == pkt1);
+    BOOST_CHECK(this->receivedPackets->at(1).packet == pkt2);
+    BOOST_CHECK_EQUAL(this->receivedPackets->at(0).endpoint, this->receivedPackets->at(1).endpoint);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveIncomplete, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  this->remoteWrite({0x05, 0x03, 0x00, 0x01});
+    this->remoteWrite({0x05, 0x03, 0x00, 0x01});
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 0);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 0);
-  BOOST_CHECK_EQUAL(this->receivedPackets->size(), 0);
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 0);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 0);
+    BOOST_CHECK_EQUAL(this->receivedPackets->size(), 0);
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveTrailingGarbage, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
-  auto pkt2 = ndn::encoding::makeStringBlock(301, "world");
-  ndn::Buffer buf(pkt1.size() + pkt2.size());
-  std::copy(pkt1.begin(), pkt1.end(), buf.begin());
-  std::copy(pkt2.begin(), pkt2.end(), buf.begin() + pkt1.size());
+    auto pkt1 = ndn::encoding::makeStringBlock(300, "hello");
+    auto pkt2 = ndn::encoding::makeStringBlock(301, "world");
+    ndn::Buffer buf(pkt1.size() + pkt2.size());
+    std::copy(pkt1.begin(), pkt1.end(), buf.begin());
+    std::copy(pkt2.begin(), pkt2.end(), buf.begin() + pkt1.size());
 
-  this->remoteWrite(buf);
+    this->remoteWrite(buf);
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 0);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 0);
-  BOOST_CHECK_EQUAL(this->receivedPackets->size(), 0);
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 0);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, 0);
+    BOOST_CHECK_EQUAL(this->receivedPackets->size(), 0);
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(ReceiveTooLarge, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  std::vector<uint8_t> bytes(ndn::MAX_NDN_PACKET_SIZE, 0);
-  auto pkt1 = ndn::encoding::makeBinaryBlock(300, bytes.data(), bytes.size() - 6);
-  ndn::Buffer buf1(pkt1.begin(), pkt1.end());
-  BOOST_REQUIRE_EQUAL(buf1.size(), ndn::MAX_NDN_PACKET_SIZE);
+    std::vector<uint8_t> bytes(ndn::MAX_NDN_PACKET_SIZE, 0);
+    auto pkt1 = ndn::encoding::makeBinaryBlock(300, bytes.data(), bytes.size() - 6);
+    ndn::Buffer buf1(pkt1.begin(), pkt1.end());
+    BOOST_REQUIRE_EQUAL(buf1.size(), ndn::MAX_NDN_PACKET_SIZE);
 
-  auto pkt2 = ndn::encoding::makeBinaryBlock(301, bytes.data(), bytes.size());
-  ndn::Buffer buf2(pkt2.begin(), pkt2.end());
-  BOOST_REQUIRE_GT(buf2.size(), ndn::MAX_NDN_PACKET_SIZE);
+    auto pkt2 = ndn::encoding::makeBinaryBlock(301, bytes.data(), bytes.size());
+    ndn::Buffer buf2(pkt2.begin(), pkt2.end());
+    BOOST_REQUIRE_GT(buf2.size(), ndn::MAX_NDN_PACKET_SIZE);
 
-  this->remoteWrite(buf1); // this should succeed
+    this->remoteWrite(buf1); // this should succeed
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size());
-  BOOST_CHECK_EQUAL(this->receivedPackets->size(), 1);
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size());
+    BOOST_CHECK_EQUAL(this->receivedPackets->size(), 1);
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 
-  this->remoteWrite(buf2, false); // this should fail
+    this->remoteWrite(buf2, false); // this should fail
 
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
-  BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size());
-  BOOST_CHECK_EQUAL(this->receivedPackets->size(), 1);
-  BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInPackets, 1);
+    BOOST_CHECK_EQUAL(this->transport->getCounters().nInBytes, buf1.size());
+    BOOST_CHECK_EQUAL(this->receivedPackets->size(), 1);
+    BOOST_CHECK_EQUAL(this->transport->getState(), TransportState::UP);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Close, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  this->transport->afterStateChange.connectSingleShot([] (auto oldState, auto newState) {
-    BOOST_CHECK_EQUAL(oldState, TransportState::UP);
-    BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
-  });
+    this->transport->afterStateChange.connectSingleShot([](auto oldState, auto newState) {
+        BOOST_CHECK_EQUAL(oldState, TransportState::UP);
+        BOOST_CHECK_EQUAL(newState, TransportState::CLOSING);
+    });
 
-  this->transport->close();
+    this->transport->close();
 
-  this->transport->afterStateChange.connectSingleShot([this] (auto oldState, auto newState) {
-    BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
-    BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
-    this->limitedIo.afterOp();
-  });
+    this->transport->afterStateChange.connectSingleShot([this](auto oldState, auto newState) {
+        BOOST_CHECK_EQUAL(oldState, TransportState::CLOSING);
+        BOOST_CHECK_EQUAL(newState, TransportState::CLOSED);
+        this->limitedIo.afterOp();
+    });
 
-  BOOST_REQUIRE_EQUAL(this->limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
+    BOOST_REQUIRE_EQUAL(this->limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
 }
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(SendQueueLength, T, DatagramTransportFixtures, T)
 {
-  TRANSPORT_TEST_INIT();
+    TRANSPORT_TEST_INIT();
 
-  BOOST_CHECK_EQUAL(this->transport->getSendQueueLength(), 0);
+    BOOST_CHECK_EQUAL(this->transport->getSendQueueLength(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestDatagramTransport

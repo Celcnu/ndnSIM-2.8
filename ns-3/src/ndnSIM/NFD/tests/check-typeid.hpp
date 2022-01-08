@@ -42,10 +42,10 @@
 
 /** (implementation detail)
  */
-#define NFD_TEST_TYPEID_REL(level, a, op, b) \
-  BOOST_##level##_MESSAGE((typeid(a) op typeid(b)), \
-                          "expect typeid(" #a ") " #op " typeid(" #b ") [" << \
-                          NFD_TYPEID_NAME(a) << " " #op " " << NFD_TYPEID_NAME(b) << "]")
+#define NFD_TEST_TYPEID_REL(level, a, op, b)                                                                           \
+    BOOST_##level##_MESSAGE((typeid(a) op typeid(b)), "expect typeid(" #a ") " #op " typeid(" #b ") ["                 \
+                                                        << NFD_TYPEID_NAME(a) << " " #op " " << NFD_TYPEID_NAME(b)     \
+                                                        << "]")
 
 /** (implementation detail)
  */

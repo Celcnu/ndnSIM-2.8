@@ -19,7 +19,7 @@
  * See AUTHORS.md for complete list of ndn-cxx authors and contributors.
  */
 
-#define BOOST_TEST_MODULE ndn-cxx Integrated Tests (DefaultCanBePrefix=0)
+#define BOOST_TEST_MODULE ndn - cxx Integrated Tests(DefaultCanBePrefix = 0)
 #include "tests/boost-test.hpp"
 
 #include "ndn-cxx/interest.hpp"
@@ -31,10 +31,10 @@ BOOST_AUTO_TEST_SUITE(TestInterest)
 
 BOOST_AUTO_TEST_CASE(DefaultCanBePrefix0)
 {
-  Interest::setDefaultCanBePrefix(false);
-  Interest interest1;
-  Interest interest2(interest1.wireEncode());
-  BOOST_CHECK_EQUAL(interest2.getCanBePrefix(), false);
+    Interest::setDefaultCanBePrefix(false);
+    Interest interest1;
+    Interest interest2(interest1.wireEncode());
+    BOOST_CHECK_EQUAL(interest2.getCanBePrefix(), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestInterest

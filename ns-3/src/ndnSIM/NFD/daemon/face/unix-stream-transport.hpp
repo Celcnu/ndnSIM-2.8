@@ -40,11 +40,9 @@ NFD_LOG_MEMBER_DECL_SPECIALIZED(StreamTransport<boost::asio::local::stream_proto
 /**
  * \brief A Transport that communicates on a stream-oriented Unix domain socket
  */
-class UnixStreamTransport final : public StreamTransport<boost::asio::local::stream_protocol>
-{
-public:
-  explicit
-  UnixStreamTransport(protocol::socket&& socket);
+class UnixStreamTransport final : public StreamTransport<boost::asio::local::stream_protocol> {
+  public:
+    explicit UnixStreamTransport(protocol::socket&& socket);
 };
 
 } // namespace face

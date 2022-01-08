@@ -33,30 +33,30 @@ BOOST_AUTO_TEST_SUITE(TestPacketBase)
 
 BOOST_AUTO_TEST_CASE(CongestionMark)
 {
-  Interest interest;
+    Interest interest;
 
-  BOOST_CHECK_EQUAL(interest.getCongestionMark(), 0);
+    BOOST_CHECK_EQUAL(interest.getCongestionMark(), 0);
 
-  auto tag = interest.getTag<lp::CongestionMarkTag>();
-  BOOST_CHECK(!tag);
+    auto tag = interest.getTag<lp::CongestionMarkTag>();
+    BOOST_CHECK(!tag);
 
-  interest.setCongestionMark(true);
-  tag = interest.getTag<lp::CongestionMarkTag>();
-  BOOST_REQUIRE(tag);
-  BOOST_CHECK_EQUAL(*tag, 1);
+    interest.setCongestionMark(true);
+    tag = interest.getTag<lp::CongestionMarkTag>();
+    BOOST_REQUIRE(tag);
+    BOOST_CHECK_EQUAL(*tag, 1);
 
-  interest.setCongestionMark(false);
-  tag = interest.getTag<lp::CongestionMarkTag>();
-  BOOST_CHECK(!tag);
+    interest.setCongestionMark(false);
+    tag = interest.getTag<lp::CongestionMarkTag>();
+    BOOST_CHECK(!tag);
 
-  interest.setCongestionMark(300);
-  tag = interest.getTag<lp::CongestionMarkTag>();
-  BOOST_REQUIRE(tag);
-  BOOST_CHECK_EQUAL(*tag, 300);
+    interest.setCongestionMark(300);
+    tag = interest.getTag<lp::CongestionMarkTag>();
+    BOOST_REQUIRE(tag);
+    BOOST_CHECK_EQUAL(*tag, 300);
 
-  interest.setCongestionMark(0);
-  tag = interest.getTag<lp::CongestionMarkTag>();
-  BOOST_CHECK(!tag);
+    interest.setCongestionMark(0);
+    tag = interest.getTag<lp::CongestionMarkTag>();
+    BOOST_CHECK(!tag);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPacketBase

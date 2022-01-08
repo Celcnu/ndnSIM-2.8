@@ -34,65 +34,67 @@
 struct deflate_config : public websocketpp::config::asio_client {
     typedef deflate_config type;
     typedef asio_client base;
-    
+
     typedef base::concurrency_type concurrency_type;
-    
+
     typedef base::request_type request_type;
     typedef base::response_type response_type;
 
     typedef base::message_type message_type;
     typedef base::con_msg_manager_type con_msg_manager_type;
     typedef base::endpoint_msg_manager_type endpoint_msg_manager_type;
-    
+
     typedef base::alog_type alog_type;
     typedef base::elog_type elog_type;
-    
+
     typedef base::rng_type rng_type;
-    
+
     struct transport_config : public base::transport_config {
         typedef type::concurrency_type concurrency_type;
         typedef type::alog_type alog_type;
         typedef type::elog_type elog_type;
         typedef type::request_type request_type;
         typedef type::response_type response_type;
-        typedef websocketpp::transport::asio::basic_socket::endpoint 
-            socket_type;
+        typedef websocketpp::transport::asio::basic_socket::endpoint socket_type;
     };
 
-    typedef websocketpp::transport::asio::endpoint<transport_config> 
-        transport_type;
-        
-    /// permessage_compress extension
-    struct permessage_deflate_config {};
+    typedef websocketpp::transport::asio::endpoint<transport_config> transport_type;
 
-    typedef websocketpp::extensions::permessage_deflate::enabled
-        <permessage_deflate_config> permessage_deflate_type;
+    /// permessage_compress extension
+    struct permessage_deflate_config {
+    };
+
+    typedef websocketpp::extensions::permessage_deflate::enabled<permessage_deflate_config> permessage_deflate_type;
 };
 
 typedef websocketpp::client<deflate_config> client;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
 int case_count = 0;
 
-void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg) {
+void
+on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
+{
     client::connection_ptr con = c->get_con_from_hdl(hdl);
 
     if (con->get_resource() == "/getCaseCount") {
-        std::cout << "Detected " << msg->get_payload() << " test cases."
-                  << std::endl;
+        std::cout << "Detected " << msg->get_payload() << " test cases." << std::endl;
         case_count = atoi(msg->get_payload().c_str());
-    } else {
+    }
+    else {
         c->send(hdl, msg->get_payload(), msg->get_opcode());
     }
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[])
+{
     // Create a server endpoint
     client c;
 
@@ -111,10 +113,10 @@ int main(int argc, char* argv[]) {
         c.init_asio();
 
         // Register our handlers
-        c.set_message_handler(bind(&on_message,&c,::_1,::_2));
+        c.set_message_handler(bind(&on_message, &c, ::_1, ::_2));
 
         websocketpp::lib::error_code ec;
-        client::connection_ptr con = c.get_connection(uri+"/getCaseCount", ec);
+        client::connection_ptr con = c.get_connection(uri + "/getCaseCount", ec);
         c.connect(con);
 
         // Start the ASIO io_service run loop
@@ -127,8 +129,7 @@ int main(int argc, char* argv[]) {
 
             std::stringstream url;
 
-            url << uri << "/runCase?case=" << i << "&agent="
-                << websocketpp::user_agent;
+            url << uri << "/runCase?case=" << i << "&agent=" << websocketpp::user_agent;
 
             con = c.get_connection(url.str(), ec);
 
@@ -138,8 +139,8 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "done" << std::endl;
-
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
     }
 }

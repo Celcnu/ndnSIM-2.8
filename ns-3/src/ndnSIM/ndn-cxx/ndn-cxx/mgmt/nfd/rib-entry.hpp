@@ -39,108 +39,93 @@ namespace nfd {
  *
  * \sa https://redmine.named-data.net/projects/nfd/wiki/RibMgmt#Route
  */
-class Route : public RouteFlagsTraits<Route>
-{
-public:
-  class Error : public tlv::Error
-  {
+class Route : public RouteFlagsTraits<Route> {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  Route();
+    Route();
 
-  explicit
-  Route(const Block& block);
+    explicit Route(const Block& block);
 
-  uint64_t
-  getFaceId() const
-  {
-    return m_faceId;
-  }
+    uint64_t
+    getFaceId() const
+    {
+        return m_faceId;
+    }
 
-  Route&
-  setFaceId(uint64_t faceId);
+    Route& setFaceId(uint64_t faceId);
 
-  RouteOrigin
-  getOrigin() const
-  {
-    return m_origin;
-  }
+    RouteOrigin
+    getOrigin() const
+    {
+        return m_origin;
+    }
 
-  Route&
-  setOrigin(RouteOrigin origin);
+    Route& setOrigin(RouteOrigin origin);
 
-  uint64_t
-  getCost() const
-  {
-    return m_cost;
-  }
+    uint64_t
+    getCost() const
+    {
+        return m_cost;
+    }
 
-  Route&
-  setCost(uint64_t cost);
+    Route& setCost(uint64_t cost);
 
-  uint64_t
-  getFlags() const
-  {
-    return m_flags;
-  }
+    uint64_t
+    getFlags() const
+    {
+        return m_flags;
+    }
 
-  Route&
-  setFlags(uint64_t flags);
+    Route& setFlags(uint64_t flags);
 
-  bool
-  hasExpirationPeriod() const
-  {
-    return !!m_expirationPeriod;
-  }
+    bool
+    hasExpirationPeriod() const
+    {
+        return !!m_expirationPeriod;
+    }
 
-  time::milliseconds
-  getExpirationPeriod() const
-  {
-    return m_expirationPeriod ? *m_expirationPeriod : time::milliseconds::max();
-  }
+    time::milliseconds
+    getExpirationPeriod() const
+    {
+        return m_expirationPeriod ? *m_expirationPeriod : time::milliseconds::max();
+    }
 
-  Route&
-  setExpirationPeriod(time::milliseconds expirationPeriod);
+    Route& setExpirationPeriod(time::milliseconds expirationPeriod);
 
-  Route&
-  unsetExpirationPeriod();
+    Route& unsetExpirationPeriod();
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& block) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& block) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& block);
+    void wireDecode(const Block& block);
 
-private:
-  uint64_t m_faceId;
-  RouteOrigin m_origin;
-  uint64_t m_cost;
-  uint64_t m_flags;
-  optional<time::milliseconds> m_expirationPeriod;
+  private:
+    uint64_t m_faceId;
+    RouteOrigin m_origin;
+    uint64_t m_cost;
+    uint64_t m_flags;
+    optional<time::milliseconds> m_expirationPeriod;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(Route);
 
-bool
-operator==(const Route& a, const Route& b);
+bool operator==(const Route& a, const Route& b);
 
 inline bool
 operator!=(const Route& a, const Route& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const Route& route);
-
+std::ostream& operator<<(std::ostream& os, const Route& route);
 
 /**
  * \ingroup management
@@ -150,80 +135,69 @@ operator<<(std::ostream& os, const Route& route);
  *
  * \sa https://redmine.named-data.net/projects/nfd/wiki/RibMgmt#RIB-Dataset
  */
-class RibEntry
-{
-public:
-  class Error : public tlv::Error
-  {
+class RibEntry {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  RibEntry();
+    RibEntry();
 
-  explicit
-  RibEntry(const Block& block);
+    explicit RibEntry(const Block& block);
 
-  const Name&
-  getName() const
-  {
-    return m_prefix;
-  }
+    const Name&
+    getName() const
+    {
+        return m_prefix;
+    }
 
-  RibEntry&
-  setName(const Name& prefix);
+    RibEntry& setName(const Name& prefix);
 
-  const std::vector<Route>&
-  getRoutes() const
-  {
-    return m_routes;
-  }
+    const std::vector<Route>&
+    getRoutes() const
+    {
+        return m_routes;
+    }
 
-  template<typename InputIt>
-  RibEntry&
-  setRoutes(InputIt first, InputIt last)
-  {
-    m_routes.assign(first, last);
-    m_wire.reset();
-    return *this;
-  }
+    template <typename InputIt>
+    RibEntry&
+    setRoutes(InputIt first, InputIt last)
+    {
+        m_routes.assign(first, last);
+        m_wire.reset();
+        return *this;
+    }
 
-  RibEntry&
-  addRoute(const Route& route);
+    RibEntry& addRoute(const Route& route);
 
-  RibEntry&
-  clearRoutes();
+    RibEntry& clearRoutes();
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& block) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& block) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& block);
+    void wireDecode(const Block& block);
 
-private:
-  Name m_prefix;
-  std::vector<Route> m_routes;
+  private:
+    Name m_prefix;
+    std::vector<Route> m_routes;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(RibEntry);
 
-bool
-operator==(const RibEntry& a, const RibEntry& b);
+bool operator==(const RibEntry& a, const RibEntry& b);
 
 inline bool
 operator!=(const RibEntry& a, const RibEntry& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const RibEntry& entry);
+std::ostream& operator<<(std::ostream& os, const RibEntry& entry);
 
 } // namespace nfd
 } // namespace ndn

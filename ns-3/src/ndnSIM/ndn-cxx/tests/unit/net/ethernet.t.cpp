@@ -37,77 +37,61 @@ BOOST_AUTO_TEST_SUITE(TestEthernet)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  ethernet::Address a;
-  BOOST_CHECK(a.isNull());
+    ethernet::Address a;
+    BOOST_CHECK(a.isNull());
 
-  a = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB};
-  ethernet::Address b(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB);
-  const uint8_t bytes[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB};
-  ethernet::Address c(bytes);
-  ethernet::Address d(a);
-  ethernet::Address e;
-  e = a;
+    a = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB};
+    ethernet::Address b(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB);
+    const uint8_t bytes[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB};
+    ethernet::Address c(bytes);
+    ethernet::Address d(a);
+    ethernet::Address e;
+    e = a;
 
-  BOOST_CHECK_EQUAL(a, b);
-  BOOST_CHECK_EQUAL(a, c);
-  BOOST_CHECK_EQUAL(a, d);
-  BOOST_CHECK_EQUAL(a, e);
+    BOOST_CHECK_EQUAL(a, b);
+    BOOST_CHECK_EQUAL(a, c);
+    BOOST_CHECK_EQUAL(a, d);
+    BOOST_CHECK_EQUAL(a, e);
 
-  BOOST_CHECK(ethernet::getBroadcastAddress().isBroadcast());
-  BOOST_CHECK(ethernet::getDefaultMulticastAddress().isMulticast());
+    BOOST_CHECK(ethernet::getBroadcastAddress().isBroadcast());
+    BOOST_CHECK(ethernet::getDefaultMulticastAddress().isMulticast());
 }
 
 BOOST_AUTO_TEST_CASE(ToString)
 {
-  BOOST_CHECK_EQUAL(ethernet::Address().toString('-'),
-                    "00-00-00-00-00-00");
-  BOOST_CHECK_EQUAL(ethernet::getBroadcastAddress().toString(),
-                    "ff:ff:ff:ff:ff:ff");
-  BOOST_CHECK_EQUAL(ethernet::Address(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB).toString('-'),
-                    "01-23-45-67-89-ab");
-  BOOST_CHECK_EQUAL(ethernet::Address(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB).toString(),
-                    "01:23:45:67:89:ab");
+    BOOST_CHECK_EQUAL(ethernet::Address().toString('-'), "00-00-00-00-00-00");
+    BOOST_CHECK_EQUAL(ethernet::getBroadcastAddress().toString(), "ff:ff:ff:ff:ff:ff");
+    BOOST_CHECK_EQUAL(ethernet::Address(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB).toString('-'), "01-23-45-67-89-ab");
+    BOOST_CHECK_EQUAL(ethernet::Address(0x01, 0x23, 0x45, 0x67, 0x89, 0xAB).toString(), "01:23:45:67:89:ab");
 }
 
 BOOST_AUTO_TEST_CASE(FromString)
 {
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("0:0:0:0:0:0"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("ff-ff-ff-ff-ff-ff"),
-                    ethernet::getBroadcastAddress());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("de:ad:be:ef:1:2"),
-                    ethernet::Address(0xde, 0xad, 0xbe, 0xef, 0x01, 0x02));
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("DE:AD:BE:EF:1:2"),
-                    ethernet::Address(0xde, 0xad, 0xbe, 0xef, 0x01, 0x02));
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("0:0:0:0:0:0"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("ff-ff-ff-ff-ff-ff"), ethernet::getBroadcastAddress());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("de:ad:be:ef:1:2"),
+                      ethernet::Address(0xde, 0xad, 0xbe, 0xef, 0x01, 0x02));
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("DE:AD:BE:EF:1:2"),
+                      ethernet::Address(0xde, 0xad, 0xbe, 0xef, 0x01, 0x02));
 
-  // malformed inputs
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01.23.45.67.89.ab"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45 :67:89:ab"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67:89::1"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01-23-45-67-89"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67:89:ab:cd"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67-89-ab"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("qw-er-ty-12-34-56"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("this-is-not-an-ethernet-address"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString("foobar"),
-                    ethernet::Address());
-  BOOST_CHECK_EQUAL(ethernet::Address::fromString(""),
-                    ethernet::Address());
+    // malformed inputs
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01.23.45.67.89.ab"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45 :67:89:ab"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67:89::1"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01-23-45-67-89"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67:89:ab:cd"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("01:23:45:67-89-ab"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("qw-er-ty-12-34-56"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("this-is-not-an-ethernet-address"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString("foobar"), ethernet::Address());
+    BOOST_CHECK_EQUAL(ethernet::Address::fromString(""), ethernet::Address());
 }
 
 BOOST_AUTO_TEST_CASE(StdHash)
 {
-  // make sure we can use ethernet::Address as key type in std::unordered_map
-  std::hash<ethernet::Address> h;
-  BOOST_CHECK_NO_THROW(h(ethernet::getDefaultMulticastAddress()));
+    // make sure we can use ethernet::Address as key type in std::unordered_map
+    std::hash<ethernet::Address> h;
+    BOOST_CHECK_NO_THROW(h(ethernet::getDefaultMulticastAddress()));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestEthernet

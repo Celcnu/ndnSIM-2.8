@@ -41,136 +41,121 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class MockFibUpdater : public FibUpdater
-{
-public:
-  using FibUpdater::FibUpdater;
+class MockFibUpdater : public FibUpdater {
+  public:
+    using FibUpdater::FibUpdater;
 
-  void
-  sortUpdates()
-  {
-    updates.sort([] (const auto& lhs, const auto& rhs) {
-      return std::tie(lhs.name, lhs.faceId, lhs.cost, lhs.action) <
-             std::tie(rhs.name, rhs.faceId, rhs.cost, rhs.action);
-    });
-  }
+    void
+    sortUpdates()
+    {
+        updates.sort([](const auto& lhs, const auto& rhs) {
+            return std::tie(lhs.name, lhs.faceId, lhs.cost, lhs.action)
+                   < std::tie(rhs.name, rhs.faceId, rhs.cost, rhs.action);
+        });
+    }
 
-private:
-  void
-  sendAddNextHopUpdate(const FibUpdate& update,
-                       const FibUpdateSuccessCallback& onSuccess,
-                       const FibUpdateFailureCallback& onFailure,
-                       uint32_t nTimeouts) override
-  {
-    mockUpdate(update, onSuccess, onFailure, nTimeouts);
-  }
+  private:
+    void
+    sendAddNextHopUpdate(const FibUpdate& update, const FibUpdateSuccessCallback& onSuccess,
+                         const FibUpdateFailureCallback& onFailure, uint32_t nTimeouts) override
+    {
+        mockUpdate(update, onSuccess, onFailure, nTimeouts);
+    }
 
-  void
-  sendRemoveNextHopUpdate(const FibUpdate& update,
-                          const FibUpdateSuccessCallback& onSuccess,
-                          const FibUpdateFailureCallback& onFailure,
-                          uint32_t nTimeouts) override
-  {
-    mockUpdate(update, onSuccess, onFailure, nTimeouts);
-  }
+    void
+    sendRemoveNextHopUpdate(const FibUpdate& update, const FibUpdateSuccessCallback& onSuccess,
+                            const FibUpdateFailureCallback& onFailure, uint32_t nTimeouts) override
+    {
+        mockUpdate(update, onSuccess, onFailure, nTimeouts);
+    }
 
-  void
-  mockUpdate(const FibUpdate& update,
-             const FibUpdateSuccessCallback& onSuccess,
-             const FibUpdateFailureCallback& onFailure,
-             uint32_t nTimeouts)
-  {
-    updates.push_back(update);
-    getGlobalIoService().post([=] {
-      if (mockSuccess) {
-        onUpdateSuccess(update, onSuccess, onFailure);
-      }
-      else {
-        ndn::mgmt::ControlResponse resp(504, "mocked failure");
-        onUpdateError(update, onSuccess, onFailure, resp, nTimeouts);
-      }
-    });
-  }
+    void
+    mockUpdate(const FibUpdate& update, const FibUpdateSuccessCallback& onSuccess,
+               const FibUpdateFailureCallback& onFailure, uint32_t nTimeouts)
+    {
+        updates.push_back(update);
+        getGlobalIoService().post([=] {
+            if (mockSuccess) {
+                onUpdateSuccess(update, onSuccess, onFailure);
+            }
+            else {
+                ndn::mgmt::ControlResponse resp(504, "mocked failure");
+                onUpdateError(update, onSuccess, onFailure, resp, nTimeouts);
+            }
+        });
+    }
 
-public:
-  FibUpdateList updates;
-  bool mockSuccess = true;
+  public:
+    FibUpdateList updates;
+    bool mockSuccess = true;
 };
 
-class FibUpdatesFixture : public GlobalIoFixture, public KeyChainFixture
-{
-public:
-  FibUpdatesFixture()
-    : face(g_io, m_keyChain)
-    , controller(face, m_keyChain)
-    , fibUpdater(rib, controller)
-  {
-  }
+class FibUpdatesFixture : public GlobalIoFixture, public KeyChainFixture {
+  public:
+    FibUpdatesFixture()
+      : face(g_io, m_keyChain)
+      , controller(face, m_keyChain)
+      , fibUpdater(rib, controller)
+    {
+    }
 
-  void
-  insertRoute(const Name& name, uint64_t faceId,
-              std::underlying_type_t<ndn::nfd::RouteOrigin> origin,
-              uint64_t cost,
-              std::underlying_type_t<ndn::nfd::RouteFlags> flags)
-  {
-    Route route = createRoute(faceId, origin, cost, flags);
+    void
+    insertRoute(const Name& name, uint64_t faceId, std::underlying_type_t<ndn::nfd::RouteOrigin> origin, uint64_t cost,
+                std::underlying_type_t<ndn::nfd::RouteFlags> flags)
+    {
+        Route route = createRoute(faceId, origin, cost, flags);
 
-    RibUpdate update;
-    update.setAction(RibUpdate::REGISTER)
-          .setName(name)
-          .setRoute(route);
+        RibUpdate update;
+        update.setAction(RibUpdate::REGISTER).setName(name).setRoute(route);
 
-    rib.beginApplyUpdate(update, nullptr, nullptr);
-    pollIo();
-  }
+        rib.beginApplyUpdate(update, nullptr, nullptr);
+        pollIo();
+    }
 
-  void
-  eraseRoute(const Name& name, uint64_t faceId,
-             std::underlying_type_t<ndn::nfd::RouteOrigin> origin)
-  {
-    Route route = createRoute(faceId, origin, 0, 0);
+    void
+    eraseRoute(const Name& name, uint64_t faceId, std::underlying_type_t<ndn::nfd::RouteOrigin> origin)
+    {
+        Route route = createRoute(faceId, origin, 0, 0);
 
-    RibUpdate update;
-    update.setAction(RibUpdate::UNREGISTER)
-          .setName(name)
-          .setRoute(route);
+        RibUpdate update;
+        update.setAction(RibUpdate::UNREGISTER).setName(name).setRoute(route);
 
-    rib.beginApplyUpdate(update, nullptr, nullptr);
-    pollIo();
-  }
+        rib.beginApplyUpdate(update, nullptr, nullptr);
+        pollIo();
+    }
 
-  void
-  destroyFace(uint64_t faceId)
-  {
-    rib.beginRemoveFace(faceId);
-    pollIo();
-  }
+    void
+    destroyFace(uint64_t faceId)
+    {
+        rib.beginRemoveFace(faceId);
+        pollIo();
+    }
 
-  const FibUpdater::FibUpdateList&
-  getFibUpdates() const
-  {
-    return fibUpdater.updates;
-  }
+    const FibUpdater::FibUpdateList&
+    getFibUpdates() const
+    {
+        return fibUpdater.updates;
+    }
 
-  const FibUpdater::FibUpdateList&
-  getSortedFibUpdates()
-  {
-    fibUpdater.sortUpdates();
-    return fibUpdater.updates;
-  }
+    const FibUpdater::FibUpdateList&
+    getSortedFibUpdates()
+    {
+        fibUpdater.sortUpdates();
+        return fibUpdater.updates;
+    }
 
-  void
-  clearFibUpdates()
-  {
-    fibUpdater.updates.clear();
-  }
+    void
+    clearFibUpdates()
+    {
+        fibUpdater.updates.clear();
+    }
 
-public:
-  ndn::util::DummyClientFace face;
-  ndn::nfd::Controller controller;
+  public:
+    ndn::util::DummyClientFace face;
+    ndn::nfd::Controller controller;
 
-  Rib rib;
-  MockFibUpdater fibUpdater;
+    Rib rib;
+    MockFibUpdater fibUpdater;
 };
 
 } // namespace tests

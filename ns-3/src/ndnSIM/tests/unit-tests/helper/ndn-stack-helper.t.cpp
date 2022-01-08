@@ -29,37 +29,37 @@ BOOST_FIXTURE_TEST_SUITE(HelperStackHelper, CleanupFixture)
 
 BOOST_AUTO_TEST_CASE(TestNfdContentStorePolicy)
 {
-  // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
-  Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
+    // setting default parameters for PointToPoint links and channels
+    Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("10Mbps"));
+    Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
+    Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
 
-  // Creating nodes
-  NodeContainer nodes;
-  nodes.Create(2);
+    // Creating nodes
+    NodeContainer nodes;
+    nodes.Create(2);
 
-  // Connecting nodes using two links
-  PointToPointHelper p2p;
-  p2p.Install(nodes.Get(0), nodes.Get(1));
+    // Connecting nodes using two links
+    PointToPointHelper p2p;
+    p2p.Install(nodes.Get(0), nodes.Get(1));
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.SetDefaultRoutes(true);
-  ndnHelper.setPolicy("nfd::cs::lru");
-  ndnHelper.Install(nodes.Get(0));
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.SetDefaultRoutes(true);
+    ndnHelper.setPolicy("nfd::cs::lru");
+    ndnHelper.Install(nodes.Get(0));
 
-  // test which CS policy has be selected for node 0
-  Ptr<L3Protocol> protoNode0 = L3Protocol::getL3Protocol(nodes.Get(0));
-  BOOST_CHECK_EQUAL(protoNode0->getForwarder()->getCs().getPolicy()->getName(), "lru");
+    // test which CS policy has be selected for node 0
+    Ptr<L3Protocol> protoNode0 = L3Protocol::getL3Protocol(nodes.Get(0));
+    BOOST_CHECK_EQUAL(protoNode0->getForwarder()->getCs().getPolicy()->getName(), "lru");
 
-  ndnHelper.setPolicy("nfd::cs::priority_fifo");
-  ndnHelper.Install(nodes.Get(1));
+    ndnHelper.setPolicy("nfd::cs::priority_fifo");
+    ndnHelper.Install(nodes.Get(1));
 
-  Ptr<L3Protocol> protoNode1 = L3Protocol::getL3Protocol(nodes.Get(1));
-  // test that the CS policy for node 0 did not change
-  BOOST_CHECK_EQUAL(protoNode0->getForwarder()->getCs().getPolicy()->getName(), "lru");
-  // test which CS policy has be selected for node 1
-  BOOST_CHECK_EQUAL(protoNode1->getForwarder()->getCs().getPolicy()->getName(), "priority_fifo");
+    Ptr<L3Protocol> protoNode1 = L3Protocol::getL3Protocol(nodes.Get(1));
+    // test that the CS policy for node 0 did not change
+    BOOST_CHECK_EQUAL(protoNode0->getForwarder()->getCs().getPolicy()->getName(), "lru");
+    // test which CS policy has be selected for node 1
+    BOOST_CHECK_EQUAL(protoNode1->getForwarder()->getCs().getPolicy()->getName(), "priority_fifo");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

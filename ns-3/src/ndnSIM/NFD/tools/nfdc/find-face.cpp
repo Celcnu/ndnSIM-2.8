@@ -42,142 +42,139 @@ FindFace::FindFace(ExecuteContext& ctx)
 FindFace::Code
 FindFace::execute(const FaceUri& faceUri, bool allowMulti)
 {
-  FaceQueryFilter filter;
-  filter.setRemoteUri(faceUri.toString());
-  return this->execute(filter, allowMulti);
+    FaceQueryFilter filter;
+    filter.setRemoteUri(faceUri.toString());
+    return this->execute(filter, allowMulti);
 }
 
 FindFace::Code
 FindFace::execute(uint64_t faceId)
 {
-  FaceQueryFilter filter;
-  filter.setFaceId(faceId);
-  return this->execute(filter);
+    FaceQueryFilter filter;
+    filter.setFaceId(faceId);
+    return this->execute(filter);
 }
 
 FindFace::Code
 FindFace::execute(const ndn::any& faceIdOrUri, bool allowMulti)
 {
-  const uint64_t* faceId = ndn::any_cast<uint64_t>(&faceIdOrUri);
-  if (faceId != nullptr) {
-    return this->execute(*faceId);
-  }
-  else {
-    return this->execute(ndn::any_cast<FaceUri>(faceIdOrUri), allowMulti);
-  }
+    const uint64_t* faceId = ndn::any_cast<uint64_t>(&faceIdOrUri);
+    if (faceId != nullptr) {
+        return this->execute(*faceId);
+    }
+    else {
+        return this->execute(ndn::any_cast<FaceUri>(faceIdOrUri), allowMulti);
+    }
 }
 
 FindFace::Code
 FindFace::execute(const FaceQueryFilter& filter, bool allowMulti)
 {
-  BOOST_ASSERT(m_res == Code::NOT_STARTED);
-  m_res = Code::IN_PROGRESS;
-  m_filter = filter;
+    BOOST_ASSERT(m_res == Code::NOT_STARTED);
+    m_res = Code::IN_PROGRESS;
+    m_filter = filter;
 
-  if (m_filter.hasRemoteUri()) {
-    auto remoteUri = this->canonize("remote", FaceUri(m_filter.getRemoteUri()));
-    if (!remoteUri) {
-      m_res = Code::CANONIZE_ERROR;
-      return m_res;
+    if (m_filter.hasRemoteUri()) {
+        auto remoteUri = this->canonize("remote", FaceUri(m_filter.getRemoteUri()));
+        if (!remoteUri) {
+            m_res = Code::CANONIZE_ERROR;
+            return m_res;
+        }
+        m_filter.setRemoteUri(remoteUri->toString());
     }
-    m_filter.setRemoteUri(remoteUri->toString());
-  }
 
-  if (m_filter.hasLocalUri()) {
-    auto localUri = this->canonize("local", FaceUri(m_filter.getLocalUri()));
-    if (!localUri) {
-      m_res = Code::CANONIZE_ERROR;
-      return m_res;
+    if (m_filter.hasLocalUri()) {
+        auto localUri = this->canonize("local", FaceUri(m_filter.getLocalUri()));
+        if (!localUri) {
+            m_res = Code::CANONIZE_ERROR;
+            return m_res;
+        }
+        m_filter.setLocalUri(localUri->toString());
     }
-    m_filter.setLocalUri(localUri->toString());
-  }
 
-  this->query();
-  if (m_res == Code::OK) {
-    if (m_results.size() == 0) {
-      m_res = Code::NOT_FOUND;
-      m_errorReason = "Face not found";
+    this->query();
+    if (m_res == Code::OK) {
+        if (m_results.size() == 0) {
+            m_res = Code::NOT_FOUND;
+            m_errorReason = "Face not found";
+        }
+        else if (m_results.size() > 1 && !allowMulti) {
+            m_res = Code::AMBIGUOUS;
+            m_errorReason = "Multiple faces match the query";
+        }
     }
-    else if (m_results.size() > 1 && !allowMulti) {
-      m_res = Code::AMBIGUOUS;
-      m_errorReason = "Multiple faces match the query";
-    }
-  }
-  return m_res;
+    return m_res;
 }
 
 optional<FaceUri>
 FindFace::canonize(const std::string& fieldName, const FaceUri& input)
 {
-  if (!FaceUri::canCanonize(input.getScheme())) {
-    NDN_LOG_DEBUG("Using " << fieldName << '=' << input << " without canonization");
-    return input;
-  }
+    if (!FaceUri::canCanonize(input.getScheme())) {
+        NDN_LOG_DEBUG("Using " << fieldName << '=' << input << " without canonization");
+        return input;
+    }
 
-  optional<FaceUri> result;
-  input.canonize(
-    [&result] (const FaceUri& canonicalUri) { result = canonicalUri; },
-    [this, fieldName] (const std::string& errorReason) {
-      m_errorReason = "Error during " + fieldName + " FaceUri canonization: " + errorReason;
-    },
-    m_ctx.face.getIoService(), m_ctx.getTimeout());
-  m_ctx.face.processEvents();
+    optional<FaceUri> result;
+    input.canonize([&result](const FaceUri& canonicalUri) { result = canonicalUri; },
+                   [this, fieldName](const std::string& errorReason) {
+                       m_errorReason = "Error during " + fieldName + " FaceUri canonization: " + errorReason;
+                   },
+                   m_ctx.face.getIoService(), m_ctx.getTimeout());
+    m_ctx.face.processEvents();
 
-  return result;
+    return result;
 }
 
 void
 FindFace::query()
 {
-  auto datasetCb = [this] (const std::vector<ndn::nfd::FaceStatus>& result) {
-    m_res = Code::OK;
-    m_results = result;
-  };
-  auto failureCb = [this] (uint32_t code, const std::string& reason) {
-    m_res = Code::ERROR;
-    m_errorReason = "Error " + to_string(code) + " when querying face: " + reason;
-  };
+    auto datasetCb = [this](const std::vector<ndn::nfd::FaceStatus>& result) {
+        m_res = Code::OK;
+        m_results = result;
+    };
+    auto failureCb = [this](uint32_t code, const std::string& reason) {
+        m_res = Code::ERROR;
+        m_errorReason = "Error " + to_string(code) + " when querying face: " + reason;
+    };
 
-  if (m_filter.empty()) {
-    m_ctx.controller.fetch<ndn::nfd::FaceDataset>(
-      datasetCb, failureCb, m_ctx.makeCommandOptions());
-  }
-  else {
-    m_ctx.controller.fetch<ndn::nfd::FaceQueryDataset>(
-      m_filter, datasetCb, failureCb, m_ctx.makeCommandOptions());
-  }
-  m_ctx.face.processEvents();
+    if (m_filter.empty()) {
+        m_ctx.controller.fetch<ndn::nfd::FaceDataset>(datasetCb, failureCb, m_ctx.makeCommandOptions());
+    }
+    else {
+        m_ctx.controller.fetch<ndn::nfd::FaceQueryDataset>(m_filter, datasetCb, failureCb, m_ctx.makeCommandOptions());
+    }
+    m_ctx.face.processEvents();
 }
 
 std::set<uint64_t>
 FindFace::getFaceIds() const
 {
-  std::set<uint64_t> faceIds;
-  for (const FaceStatus& faceStatus : m_results) {
-    faceIds.insert(faceStatus.getFaceId());
-  }
-  return faceIds;
+    std::set<uint64_t> faceIds;
+    for (const FaceStatus& faceStatus : m_results) {
+        faceIds.insert(faceStatus.getFaceId());
+    }
+    return faceIds;
 }
 
 const FaceStatus&
 FindFace::getFaceStatus() const
 {
-  BOOST_ASSERT(m_results.size() == 1);
-  return m_results.front();
+    BOOST_ASSERT(m_results.size() == 1);
+    return m_results.front();
 }
 
 void
 FindFace::printDisambiguation(std::ostream& os, DisambiguationStyle style) const
 {
-  text::Separator sep(" ", ", ");
-  for (const auto& item : m_results) {
-    os << sep;
-    switch (style) {
-      case DisambiguationStyle::LOCAL_URI:
-        os << item.getFaceId() << " (local=" << item.getLocalUri() << ')';
-        break;
+    text::Separator sep(" ", ", ");
+    for (const auto& item : m_results) {
+        os << sep;
+        switch (style) {
+            case DisambiguationStyle::LOCAL_URI:
+                os << item.getFaceId() << " (local=" << item.getLocalUri() << ')';
+                break;
+        }
     }
-  }
 }
 
 } // namespace nfdc

@@ -41,14 +41,14 @@ namespace ndn {
  * \brief Helper class to store RTT measurements
  */
 class RttHistory {
-public:
-  RttHistory(SequenceNumber32 s, uint32_t c, Time t);
-  RttHistory(const RttHistory& h); // Copy constructor
-public:
-  SequenceNumber32 seq; // First sequence number in packet sent
-  uint32_t count;       // Number of bytes sent
-  Time time;            // Time this one was sent
-  bool retx;            // True if this has been retransmitted
+  public:
+    RttHistory(SequenceNumber32 s, uint32_t c, Time t);
+    RttHistory(const RttHistory& h); // Copy constructor
+  public:
+    SequenceNumber32 seq; // First sequence number in packet sent
+    uint32_t count;       // Number of bytes sent
+    Time time;            // Time this one was sent
+    bool retx;            // True if this has been retransmitted
 };
 
 typedef std::deque<RttHistory> RttHistory_t;
@@ -59,129 +59,112 @@ typedef std::deque<RttHistory> RttHistory_t;
  * \brief Base class for all RTT Estimators
  */
 class RttEstimator : public Object {
-public:
-  static TypeId
-  GetTypeId(void);
+  public:
+    static TypeId GetTypeId(void);
 
-  RttEstimator();
-  RttEstimator(const RttEstimator&);
+    RttEstimator();
+    RttEstimator(const RttEstimator&);
 
-  virtual ~RttEstimator();
+    virtual ~RttEstimator();
 
-  virtual TypeId
-  GetInstanceTypeId(void) const;
+    virtual TypeId GetInstanceTypeId(void) const;
 
-  /**
-   * \brief Note that a particular sequence has been sent
-   * \param seq the packet sequence number.
-   * \param size the packet size.
-   */
-  virtual void
-  SentSeq(SequenceNumber32 seq, uint32_t size);
+    /**
+     * \brief Note that a particular sequence has been sent
+     * \param seq the packet sequence number.
+     * \param size the packet size.
+     */
+    virtual void SentSeq(SequenceNumber32 seq, uint32_t size);
 
-  /**
-   * \brief Note that a particular ack sequence has been received
-   * \param ackSeq the ack sequence number.
-   * \return The measured RTT for this ack.
-   */
-  virtual Time
-  AckSeq(SequenceNumber32 ackSeq);
+    /**
+     * \brief Note that a particular ack sequence has been received
+     * \param ackSeq the ack sequence number.
+     * \return The measured RTT for this ack.
+     */
+    virtual Time AckSeq(SequenceNumber32 ackSeq);
 
-  /**
-   * \brief Clear all history entries
-   */
-  virtual void
-  ClearSent();
+    /**
+     * \brief Clear all history entries
+     */
+    virtual void ClearSent();
 
-  /**
-   * \brief Add a new measurement to the estimator. Pure virtual function.
-   * \param t the new RTT measure.
-   */
-  virtual void
-  Measurement(Time t) = 0;
+    /**
+     * \brief Add a new measurement to the estimator. Pure virtual function.
+     * \param t the new RTT measure.
+     */
+    virtual void Measurement(Time t) = 0;
 
-  /**
-   * \brief Returns the estimated RTO. Pure virtual function.
-   * \return the estimated RTO.
-   */
-  virtual Time
-  RetransmitTimeout() = 0;
+    /**
+     * \brief Returns the estimated RTO. Pure virtual function.
+     * \return the estimated RTO.
+     */
+    virtual Time RetransmitTimeout() = 0;
 
-  virtual Ptr<RttEstimator>
-  Copy() const = 0;
+    virtual Ptr<RttEstimator> Copy() const = 0;
 
-  /**
-   * \brief Increase the estimation multiplier up to MaxMultiplier.
-   */
-  virtual void
-  IncreaseMultiplier();
+    /**
+     * \brief Increase the estimation multiplier up to MaxMultiplier.
+     */
+    virtual void IncreaseMultiplier();
 
-  /**
-   * \brief Resets the estimation multiplier to 1.
-   */
-  virtual void
-  ResetMultiplier();
+    /**
+     * \brief Resets the estimation multiplier to 1.
+     */
+    virtual void ResetMultiplier();
 
-  /**
-   * \brief Resets the estimation to its initial state.
-   */
-  virtual void
-  Reset();
+    /**
+     * \brief Resets the estimation to its initial state.
+     */
+    virtual void Reset();
 
-  /**
-   * \brief Sets the Minimum RTO.
-   * \param minRto The minimum RTO returned by the estimator.
-   */
-  void
-  SetMinRto(Time minRto);
+    /**
+     * \brief Sets the Minimum RTO.
+     * \param minRto The minimum RTO returned by the estimator.
+     */
+    void SetMinRto(Time minRto);
 
-  /**
-   * \brief Get the Minimum RTO.
-   * \return The minimum RTO returned by the estimator.
-   */
-  Time
-  GetMinRto(void) const;
+    /**
+     * \brief Get the Minimum RTO.
+     * \return The minimum RTO returned by the estimator.
+     */
+    Time GetMinRto(void) const;
 
-  /**
-   * \brief Sets the Maximum RTO.
-   * \param minRto The maximum RTO returned by the estimator.
-   */
-  void
-  SetMaxRto(Time maxRto);
+    /**
+     * \brief Sets the Maximum RTO.
+     * \param minRto The maximum RTO returned by the estimator.
+     */
+    void SetMaxRto(Time maxRto);
 
-  /**
-   * \brief Get the Maximum RTO.
-   * \return The maximum RTO returned by the estimator.
-   */
-  Time
-  GetMaxRto(void) const;
+    /**
+     * \brief Get the Maximum RTO.
+     * \return The maximum RTO returned by the estimator.
+     */
+    Time GetMaxRto(void) const;
 
-  /**
-   * \brief Sets the current RTT estimate (forcefully).
-   * \param estimate The current RTT estimate.
-   */
-  void
-  SetCurrentEstimate(Time estimate);
+    /**
+     * \brief Sets the current RTT estimate (forcefully).
+     * \param estimate The current RTT estimate.
+     */
+    void SetCurrentEstimate(Time estimate);
 
-  /**
-   * \brief gets the current RTT estimate.
-   * \return The current RTT estimate.
-   */
-  Time
-  GetCurrentEstimate(void) const;
+    /**
+     * \brief gets the current RTT estimate.
+     * \return The current RTT estimate.
+     */
+    Time GetCurrentEstimate(void) const;
 
-private:
-  SequenceNumber32 m_next; // Next expected sequence to be sent
-  uint16_t m_maxMultiplier;
-  Time m_initialEstimatedRtt;
+  private:
+    SequenceNumber32 m_next; // Next expected sequence to be sent
+    uint16_t m_maxMultiplier;
+    Time m_initialEstimatedRtt;
 
-protected:
-  Time m_currentEstimatedRtt; // Current estimate
-  Time m_minRto;              // minimum value of the timeout
-  Time m_maxRto;              // maximum value of the timeout
-  uint32_t m_nSamples;        // Number of samples
-  uint16_t m_multiplier;      // RTO Multiplier
-  RttHistory_t m_history;     // List of sent packet
+  protected:
+    Time m_currentEstimatedRtt; // Current estimate
+    Time m_minRto;              // minimum value of the timeout
+    Time m_maxRto;              // maximum value of the timeout
+    uint32_t m_nSamples;        // Number of samples
+    uint16_t m_multiplier;      // RTO Multiplier
+    RttHistory_t m_history;     // List of sent packet
 };
 
 } // namespace ndn

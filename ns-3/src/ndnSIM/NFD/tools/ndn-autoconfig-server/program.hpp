@@ -35,37 +35,32 @@ namespace ndn {
 namespace tools {
 namespace autoconfig_server {
 
-struct Options
-{
-  FaceUri hubFaceUri;
-  std::vector<Name> routablePrefixes;
+struct Options {
+    FaceUri hubFaceUri;
+    std::vector<Name> routablePrefixes;
 };
 
-class Program : noncopyable
-{
-public:
-  Program(const Options& options, Face& face, KeyChain& keyChain);
+class Program : noncopyable {
+  public:
+    Program(const Options& options, Face& face, KeyChain& keyChain);
 
-  void
-  run()
-  {
-    m_face.processEvents();
-  }
+    void
+    run()
+    {
+        m_face.processEvents();
+    }
 
-private:
-  void
-  enableHubData(const FaceUri& hubFaceUri);
+  private:
+    void enableHubData(const FaceUri& hubFaceUri);
 
-  void
-  enableRoutablePrefixesDataset(const std::vector<Name>& routablePrefixes);
+    void enableRoutablePrefixesDataset(const std::vector<Name>& routablePrefixes);
 
-  void
-  handlePrefixRegistrationFailure(const Name& prefix, const std::string& reason);
+    void handlePrefixRegistrationFailure(const Name& prefix, const std::string& reason);
 
-private:
-  Face& m_face;
-  KeyChain& m_keyChain;
-  mgmt::Dispatcher m_dispatcher;
+  private:
+    Face& m_face;
+    KeyChain& m_keyChain;
+    mgmt::Dispatcher m_dispatcher;
 };
 
 } // namespace autoconfig_server

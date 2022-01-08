@@ -31,72 +31,71 @@ namespace nfd {
 namespace tests {
 
 shared_ptr<Interest>
-makeInterest(const Name& name, bool canBePrefix, optional<time::milliseconds> lifetime,
-             optional<uint32_t> nonce)
+makeInterest(const Name& name, bool canBePrefix, optional<time::milliseconds> lifetime, optional<uint32_t> nonce)
 {
-  auto interest = make_shared<Interest>(name);
-  interest->setCanBePrefix(canBePrefix);
-  if (lifetime) {
-    interest->setInterestLifetime(*lifetime);
-  }
-  if (nonce) {
-    interest->setNonce(*nonce);
-  }
-  return interest;
+    auto interest = make_shared<Interest>(name);
+    interest->setCanBePrefix(canBePrefix);
+    if (lifetime) {
+        interest->setInterestLifetime(*lifetime);
+    }
+    if (nonce) {
+        interest->setNonce(*nonce);
+    }
+    return interest;
 }
 
 shared_ptr<Data>
 makeData(const Name& name)
 {
-  auto data = make_shared<Data>(name);
-  return signData(data);
+    auto data = make_shared<Data>(name);
+    return signData(data);
 }
 
 Data&
 signData(Data& data)
 {
-  ndn::SignatureSha256WithRsa fakeSignature;
-  fakeSignature.setValue(ndn::encoding::makeEmptyBlock(tlv::SignatureValue));
-  data.setSignature(fakeSignature);
-  data.wireEncode();
+    ndn::SignatureSha256WithRsa fakeSignature;
+    fakeSignature.setValue(ndn::encoding::makeEmptyBlock(tlv::SignatureValue));
+    data.setSignature(fakeSignature);
+    data.wireEncode();
 
-  return data;
+    return data;
 }
 
 lp::Nack
 makeNack(Interest interest, lp::NackReason reason)
 {
-  lp::Nack nack(std::move(interest));
-  nack.setReason(reason);
-  return nack;
+    lp::Nack nack(std::move(interest));
+    nack.setReason(reason);
+    return nack;
 }
 
 ndn::PrefixAnnouncement
 makePrefixAnn(const Name& announcedName, time::milliseconds expiration,
               optional<ndn::security::ValidityPeriod> validity)
 {
-  ndn::PrefixAnnouncement pa;
-  pa.setAnnouncedName(announcedName);
-  pa.setExpiration(expiration);
-  pa.setValidityPeriod(validity);
-  return pa;
+    ndn::PrefixAnnouncement pa;
+    pa.setAnnouncedName(announcedName);
+    pa.setExpiration(expiration);
+    pa.setValidityPeriod(validity);
+    return pa;
 }
 
 ndn::PrefixAnnouncement
 makePrefixAnn(const Name& announcedName, time::milliseconds expiration,
               std::pair<time::seconds, time::seconds> validityFromNow)
 {
-  auto now = time::system_clock::now();
-  return makePrefixAnn(announcedName, expiration,
-    ndn::security::ValidityPeriod(now + validityFromNow.first, now + validityFromNow.second));
+    auto now = time::system_clock::now();
+    return makePrefixAnn(announcedName, expiration,
+                         ndn::security::ValidityPeriod(now + validityFromNow.first, now + validityFromNow.second));
 }
 
 ndn::PrefixAnnouncement
-signPrefixAnn(ndn::PrefixAnnouncement&& pa, ndn::KeyChain& keyChain,
-              const ndn::security::SigningInfo& si, optional<uint64_t> version)
+signPrefixAnn(ndn::PrefixAnnouncement&& pa, ndn::KeyChain& keyChain, const ndn::security::SigningInfo& si,
+              optional<uint64_t> version)
 {
-  pa.toData(keyChain, si, version);
-  return std::move(pa);
+    pa.toData(keyChain, si, version);
+    return std::move(pa);
 }
 
 } // namespace tests

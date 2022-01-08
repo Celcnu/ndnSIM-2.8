@@ -32,62 +32,60 @@
 namespace ndn {
 namespace util {
 
-class DummyClientFace::Transport : public ndn::Transport
-{
-public:
-  void
-  receive(Block block) const
-  {
-    block.encode();
-    if (m_receiveCallback) {
-      m_receiveCallback(block);
+class DummyClientFace::Transport : public ndn::Transport {
+  public:
+    void
+    receive(Block block) const
+    {
+        block.encode();
+        if (m_receiveCallback) {
+            m_receiveCallback(block);
+        }
     }
-  }
 
-  void
-  close() override
-  {
-  }
+    void
+    close() override
+    {
+    }
 
-  void
-  pause() override
-  {
-  }
+    void
+    pause() override
+    {
+    }
 
-  void
-  resume() override
-  {
-  }
+    void
+    resume() override
+    {
+    }
 
-  void
-  send(const Block& wire) override
-  {
-    onSendBlock(wire);
-  }
+    void
+    send(const Block& wire) override
+    {
+        onSendBlock(wire);
+    }
 
-  void
-  send(const Block& header, const Block& payload) override
-  {
-    EncodingBuffer encoder(header.size() + payload.size(), header.size() + payload.size());
-    encoder.appendByteArray(header.wire(), header.size());
-    encoder.appendByteArray(payload.wire(), payload.size());
+    void
+    send(const Block& header, const Block& payload) override
+    {
+        EncodingBuffer encoder(header.size() + payload.size(), header.size() + payload.size());
+        encoder.appendByteArray(header.wire(), header.size());
+        encoder.appendByteArray(payload.wire(), payload.size());
 
-    this->send(encoder.block());
-  }
+        this->send(encoder.block());
+    }
 
-  boost::asio::io_service&
-  getIoService()
-  {
-    return *m_ioService;
-  }
+    boost::asio::io_service&
+    getIoService()
+    {
+        return *m_ioService;
+    }
 
-public:
-  Signal<Transport, Block> onSendBlock;
+  public:
+    Signal<Transport, Block> onSendBlock;
 };
 
-struct DummyClientFace::BroadcastLink
-{
-  std::vector<DummyClientFace*> faces;
+struct DummyClientFace::BroadcastLink {
+    std::vector<DummyClientFace*> faces;
 };
 
 DummyClientFace::AlreadyLinkedError::AlreadyLinkedError()
@@ -100,14 +98,14 @@ DummyClientFace::DummyClientFace(const Options& options)
   , m_internalKeyChain(make_unique<KeyChain>())
   , m_keyChain(*m_internalKeyChain)
 {
-  this->construct(options);
+    this->construct(options);
 }
 
 DummyClientFace::DummyClientFace(KeyChain& keyChain, const Options& options)
   : Face(make_shared<DummyClientFace::Transport>(), keyChain)
   , m_keyChain(keyChain)
 {
-  this->construct(options);
+    this->construct(options);
 }
 
 DummyClientFace::DummyClientFace(boost::asio::io_service& ioService, const Options& options)
@@ -115,228 +113,222 @@ DummyClientFace::DummyClientFace(boost::asio::io_service& ioService, const Optio
   , m_internalKeyChain(make_unique<KeyChain>())
   , m_keyChain(*m_internalKeyChain)
 {
-  this->construct(options);
+    this->construct(options);
 }
 
 DummyClientFace::DummyClientFace(boost::asio::io_service& ioService, KeyChain& keyChain, const Options& options)
   : Face(make_shared<DummyClientFace::Transport>(), ioService, keyChain)
   , m_keyChain(keyChain)
 {
-  this->construct(options);
+    this->construct(options);
 }
 
 DummyClientFace::~DummyClientFace()
 {
-  unlink();
+    unlink();
 }
 
 void
 DummyClientFace::construct(const Options& options)
 {
-  static_pointer_cast<Transport>(getTransport())->onSendBlock.connect([this] (const Block& blockFromDaemon) {
-    Block packet(blockFromDaemon);
-    packet.encode();
-    lp::Packet lpPacket(packet);
+    static_pointer_cast<Transport>(getTransport())->onSendBlock.connect([this](const Block& blockFromDaemon) {
+        Block packet(blockFromDaemon);
+        packet.encode();
+        lp::Packet lpPacket(packet);
 
-    Buffer::const_iterator begin, end;
-    std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
-    Block block(&*begin, std::distance(begin, end));
+        Buffer::const_iterator begin, end;
+        std::tie(begin, end) = lpPacket.get<lp::FragmentField>();
+        Block block(&*begin, std::distance(begin, end));
 
-    if (block.type() == tlv::Interest) {
-      shared_ptr<Interest> interest = make_shared<Interest>(block);
-      if (lpPacket.has<lp::NackField>()) {
-        shared_ptr<lp::Nack> nack = make_shared<lp::Nack>(std::move(*interest));
-        nack->setHeader(lpPacket.get<lp::NackField>());
-        addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*nack, lpPacket);
-        onSendNack(*nack);
-      }
-      else {
-        addTagFromField<lp::NextHopFaceIdTag, lp::NextHopFaceIdField>(*interest, lpPacket);
-        addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*interest, lpPacket);
-        onSendInterest(*interest);
-      }
-    }
-    else if (block.type() == tlv::Data) {
-      shared_ptr<Data> data = make_shared<Data>(block);
-      addTagFromField<lp::CachePolicyTag, lp::CachePolicyField>(*data, lpPacket);
-      addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*data, lpPacket);
-      onSendData(*data);
-    }
-  });
+        if (block.type() == tlv::Interest) {
+            shared_ptr<Interest> interest = make_shared<Interest>(block);
+            if (lpPacket.has<lp::NackField>()) {
+                shared_ptr<lp::Nack> nack = make_shared<lp::Nack>(std::move(*interest));
+                nack->setHeader(lpPacket.get<lp::NackField>());
+                addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*nack, lpPacket);
+                onSendNack(*nack);
+            }
+            else {
+                addTagFromField<lp::NextHopFaceIdTag, lp::NextHopFaceIdField>(*interest, lpPacket);
+                addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*interest, lpPacket);
+                onSendInterest(*interest);
+            }
+        }
+        else if (block.type() == tlv::Data) {
+            shared_ptr<Data> data = make_shared<Data>(block);
+            addTagFromField<lp::CachePolicyTag, lp::CachePolicyField>(*data, lpPacket);
+            addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(*data, lpPacket);
+            onSendData(*data);
+        }
+    });
 
-  if (options.enablePacketLogging)
-    this->enablePacketLogging();
+    if (options.enablePacketLogging)
+        this->enablePacketLogging();
 
-  if (options.enableRegistrationReply)
-    this->enableRegistrationReply();
+    if (options.enableRegistrationReply)
+        this->enableRegistrationReply();
 
-  m_processEventsOverride = options.processEventsOverride;
+    m_processEventsOverride = options.processEventsOverride;
 
-  enableBroadcastLink();
+    enableBroadcastLink();
 }
 
 void
 DummyClientFace::enableBroadcastLink()
 {
-  this->onSendInterest.connect([this] (const Interest& interest) {
-      if (m_bcastLink != nullptr) {
-        for (auto otherFace : m_bcastLink->faces) {
-          if (otherFace != this) {
-            otherFace->receive(interest);
-          }
+    this->onSendInterest.connect([this](const Interest& interest) {
+        if (m_bcastLink != nullptr) {
+            for (auto otherFace : m_bcastLink->faces) {
+                if (otherFace != this) {
+                    otherFace->receive(interest);
+                }
+            }
         }
-      }
     });
-  this->onSendData.connect([this] (const Data& data) {
-      if (m_bcastLink != nullptr) {
-        for (auto otherFace : m_bcastLink->faces) {
-          if (otherFace != this) {
-            otherFace->receive(data);
-          }
+    this->onSendData.connect([this](const Data& data) {
+        if (m_bcastLink != nullptr) {
+            for (auto otherFace : m_bcastLink->faces) {
+                if (otherFace != this) {
+                    otherFace->receive(data);
+                }
+            }
         }
-      }
     });
-  this->onSendNack.connect([this] (const lp::Nack& nack) {
-      if (m_bcastLink != nullptr) {
-        for (auto otherFace : m_bcastLink->faces) {
-          if (otherFace != this) {
-            otherFace->receive(nack);
-          }
+    this->onSendNack.connect([this](const lp::Nack& nack) {
+        if (m_bcastLink != nullptr) {
+            for (auto otherFace : m_bcastLink->faces) {
+                if (otherFace != this) {
+                    otherFace->receive(nack);
+                }
+            }
         }
-      }
     });
 }
 
 void
 DummyClientFace::enablePacketLogging()
 {
-  onSendInterest.connect([this] (const Interest& interest) {
-    this->sentInterests.push_back(interest);
-  });
-  onSendData.connect([this] (const Data& data) {
-    this->sentData.push_back(data);
-  });
-  onSendNack.connect([this] (const lp::Nack& nack) {
-    this->sentNacks.push_back(nack);
-  });
+    onSendInterest.connect([this](const Interest& interest) { this->sentInterests.push_back(interest); });
+    onSendData.connect([this](const Data& data) { this->sentData.push_back(data); });
+    onSendNack.connect([this](const lp::Nack& nack) { this->sentNacks.push_back(nack); });
 }
 
 void
 DummyClientFace::enableRegistrationReply()
 {
-  onSendInterest.connect([this] (const Interest& interest) {
-    static const Name localhostRegistration("/localhost/nfd/rib");
-    if (!localhostRegistration.isPrefixOf(interest.getName()))
-      return;
+    onSendInterest.connect([this](const Interest& interest) {
+        static const Name localhostRegistration("/localhost/nfd/rib");
+        if (!localhostRegistration.isPrefixOf(interest.getName()))
+            return;
 
-    nfd::ControlParameters params(interest.getName().get(-5).blockFromValue());
-    params.setFaceId(1);
-    params.setOrigin(nfd::ROUTE_ORIGIN_APP);
-    if (interest.getName().get(3) == name::Component("register")) {
-      params.setCost(0);
-    }
+        nfd::ControlParameters params(interest.getName().get(-5).blockFromValue());
+        params.setFaceId(1);
+        params.setOrigin(nfd::ROUTE_ORIGIN_APP);
+        if (interest.getName().get(3) == name::Component("register")) {
+            params.setCost(0);
+        }
 
-    nfd::ControlResponse resp;
-    resp.setCode(200);
-    resp.setBody(params.wireEncode());
+        nfd::ControlResponse resp;
+        resp.setCode(200);
+        resp.setBody(params.wireEncode());
 
-    shared_ptr<Data> data = make_shared<Data>(interest.getName());
-    data->setContent(resp.wireEncode());
+        shared_ptr<Data> data = make_shared<Data>(interest.getName());
+        data->setContent(resp.wireEncode());
 
-    m_keyChain.sign(*data, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
+        m_keyChain.sign(*data, security::SigningInfo(security::SigningInfo::SIGNER_TYPE_SHA256));
 
-    this->getIoService().post([this, data] { this->receive(*data); });
-  });
+        this->getIoService().post([this, data] { this->receive(*data); });
+    });
 }
 
 void
 DummyClientFace::receive(const Interest& interest)
 {
-  lp::Packet lpPacket(interest.wireEncode());
+    lp::Packet lpPacket(interest.wireEncode());
 
-  addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, interest);
-  addFieldFromTag<lp::NextHopFaceIdField, lp::NextHopFaceIdTag>(lpPacket, interest);
-  addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, interest);
+    addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, interest);
+    addFieldFromTag<lp::NextHopFaceIdField, lp::NextHopFaceIdTag>(lpPacket, interest);
+    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, interest);
 
-  static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
+    static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
 }
 
 void
 DummyClientFace::receive(const Data& data)
 {
-  lp::Packet lpPacket(data.wireEncode());
+    lp::Packet lpPacket(data.wireEncode());
 
-  addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, data);
-  addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, data);
+    addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, data);
+    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, data);
 
-  static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
+    static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
 }
 
 void
 DummyClientFace::receive(const lp::Nack& nack)
 {
-  lp::Packet lpPacket;
-  lpPacket.add<lp::NackField>(nack.getHeader());
-  Block interest = nack.getInterest().wireEncode();
-  lpPacket.add<lp::FragmentField>(make_pair(interest.begin(), interest.end()));
+    lp::Packet lpPacket;
+    lpPacket.add<lp::NackField>(nack.getHeader());
+    Block interest = nack.getInterest().wireEncode();
+    lpPacket.add<lp::FragmentField>(make_pair(interest.begin(), interest.end()));
 
-  addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, nack);
-  addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, nack);
+    addFieldFromTag<lp::IncomingFaceIdField, lp::IncomingFaceIdTag>(lpPacket, nack);
+    addFieldFromTag<lp::CongestionMarkField, lp::CongestionMarkTag>(lpPacket, nack);
 
-  static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
+    static_pointer_cast<Transport>(getTransport())->receive(lpPacket.wireEncode());
 }
 
 void
 DummyClientFace::linkTo(DummyClientFace& other)
 {
-  if (m_bcastLink != nullptr && other.m_bcastLink != nullptr) {
-    if (m_bcastLink != other.m_bcastLink) {
-      // already on different links
-      NDN_THROW(AlreadyLinkedError());
+    if (m_bcastLink != nullptr && other.m_bcastLink != nullptr) {
+        if (m_bcastLink != other.m_bcastLink) {
+            // already on different links
+            NDN_THROW(AlreadyLinkedError());
+        }
     }
-  }
-  else if (m_bcastLink == nullptr && other.m_bcastLink != nullptr) {
-    m_bcastLink = other.m_bcastLink;
-    m_bcastLink->faces.push_back(this);
-  }
-  else if (m_bcastLink != nullptr && other.m_bcastLink == nullptr) {
-    other.m_bcastLink = m_bcastLink;
-    m_bcastLink->faces.push_back(&other);
-  }
-  else {
-    m_bcastLink = other.m_bcastLink = make_shared<BroadcastLink>();
-    m_bcastLink->faces.push_back(this);
-    m_bcastLink->faces.push_back(&other);
-  }
+    else if (m_bcastLink == nullptr && other.m_bcastLink != nullptr) {
+        m_bcastLink = other.m_bcastLink;
+        m_bcastLink->faces.push_back(this);
+    }
+    else if (m_bcastLink != nullptr && other.m_bcastLink == nullptr) {
+        other.m_bcastLink = m_bcastLink;
+        m_bcastLink->faces.push_back(&other);
+    }
+    else {
+        m_bcastLink = other.m_bcastLink = make_shared<BroadcastLink>();
+        m_bcastLink->faces.push_back(this);
+        m_bcastLink->faces.push_back(&other);
+    }
 }
 
 void
 DummyClientFace::unlink()
 {
-  if (m_bcastLink == nullptr) {
-    return;
-  }
+    if (m_bcastLink == nullptr) {
+        return;
+    }
 
-  auto it = std::find(m_bcastLink->faces.begin(), m_bcastLink->faces.end(), this);
-  BOOST_ASSERT(it != m_bcastLink->faces.end());
-  m_bcastLink->faces.erase(it);
+    auto it = std::find(m_bcastLink->faces.begin(), m_bcastLink->faces.end(), this);
+    BOOST_ASSERT(it != m_bcastLink->faces.end());
+    m_bcastLink->faces.erase(it);
 
-  if (m_bcastLink->faces.size() == 1) {
-    m_bcastLink->faces[0]->m_bcastLink = nullptr;
-    m_bcastLink->faces.clear();
-  }
-  m_bcastLink = nullptr;
+    if (m_bcastLink->faces.size() == 1) {
+        m_bcastLink->faces[0]->m_bcastLink = nullptr;
+        m_bcastLink->faces.clear();
+    }
+    m_bcastLink = nullptr;
 }
 
 void
 DummyClientFace::doProcessEvents(time::milliseconds timeout, bool keepThread)
 {
-  if (m_processEventsOverride != nullptr) {
-    m_processEventsOverride(timeout);
-  }
-  else {
-    this->Face::doProcessEvents(timeout, keepThread);
-  }
+    if (m_processEventsOverride != nullptr) {
+        m_processEventsOverride(timeout);
+    }
+    else {
+        this->Face::doProcessEvents(timeout, keepThread);
+    }
 }
 
 } // namespace util

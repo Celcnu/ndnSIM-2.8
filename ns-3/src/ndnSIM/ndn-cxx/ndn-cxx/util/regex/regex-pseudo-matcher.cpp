@@ -33,13 +33,13 @@ RegexPseudoMatcher::RegexPseudoMatcher()
 void
 RegexPseudoMatcher::setMatchResult(const std::string& str)
 {
-  m_matchResult.push_back(name::Component(reinterpret_cast<const uint8_t*>(str.data()), str.size()));
+    m_matchResult.push_back(name::Component(reinterpret_cast<const uint8_t*>(str.data()), str.size()));
 }
 
 void
 RegexPseudoMatcher::resetMatchResult()
 {
-  m_matchResult.clear();
+    m_matchResult.clear();
 }
 
 void

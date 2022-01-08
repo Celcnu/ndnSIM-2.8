@@ -34,24 +34,21 @@ namespace random {
  *
  * @throw std::runtime_error if generation fails.
  */
-uint32_t
-generateSecureWord32();
+uint32_t generateSecureWord32();
 
 /**
  * @brief Generate a cryptographically secure random integer from the range [0, 2^64)
  *
  * @throw std::runtime_error if generation fails.
  */
-uint64_t
-generateSecureWord64();
+uint64_t generateSecureWord64();
 
 /**
  * @brief Fill @p bytes of @p size with cryptographically secure random bytes
  *
  * @throw std::runtime_error if generation fails.
  */
-void
-generateSecureBytes(uint8_t* bytes, size_t size);
+void generateSecureBytes(uint8_t* bytes, size_t size);
 
 using RandomNumberEngine = std::mt19937;
 
@@ -61,8 +58,7 @@ using RandomNumberEngine = std::mt19937;
  * @warning The returned RandomNumberEngine MUST NOT be used when cryptographically secure
  *          random numbers are needed.
  */
-RandomNumberEngine&
-getRandomNumberEngine();
+RandomNumberEngine& getRandomNumberEngine();
 
 /**
  * @brief Generate a non-cryptographically-secure random integer in the range [0, 2^32)
@@ -71,8 +67,7 @@ getRandomNumberEngine();
  * cryptographically secure random integers are needed (e.g., when creating signing or
  * encryption keys)
  */
-uint32_t
-generateWord32();
+uint32_t generateWord32();
 
 /**
  * @brief Generate a non-cryptographically-secure random integer in the range [0, 2^64)
@@ -81,8 +76,7 @@ generateWord32();
  * cryptographically secure random integers are needed (e.g., when creating signing or
  * encryption keys)
  */
-uint64_t
-generateWord64();
+uint64_t generateWord64();
 
 } // namespace random
 } // namespace ndn

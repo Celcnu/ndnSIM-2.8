@@ -38,214 +38,204 @@ namespace tests {
 
 using namespace nfd::tests;
 
-class NfdRibReadvertiseDestinationFixture : public GlobalIoTimeFixture, public KeyChainFixture
-{
-public:
-  NfdRibReadvertiseDestinationFixture()
-    : nSuccessCallbacks(0)
-    , nFailureCallbacks(0)
-    , face(g_io, m_keyChain, {true, false})
-    , controller(face, m_keyChain)
-    , dest(controller, rib, ndn::nfd::CommandOptions().setPrefix("/localhost/nlsr"))
-    , successCallback([this] { nSuccessCallbacks++; })
-    , failureCallback([this] (const std::string&) { nFailureCallbacks++; })
-  {
-  }
+class NfdRibReadvertiseDestinationFixture : public GlobalIoTimeFixture, public KeyChainFixture {
+  public:
+    NfdRibReadvertiseDestinationFixture()
+      : nSuccessCallbacks(0)
+      , nFailureCallbacks(0)
+      , face(g_io, m_keyChain, {true, false})
+      , controller(face, m_keyChain)
+      , dest(controller, rib, ndn::nfd::CommandOptions().setPrefix("/localhost/nlsr"))
+      , successCallback([this] { nSuccessCallbacks++; })
+      , failureCallback([this](const std::string&) { nFailureCallbacks++; })
+    {
+    }
 
-public:
-  uint32_t nSuccessCallbacks;
-  uint32_t nFailureCallbacks;
+  public:
+    uint32_t nSuccessCallbacks;
+    uint32_t nFailureCallbacks;
 
-protected:
-  ndn::util::DummyClientFace face;
-  ndn::nfd::Controller controller;
-  Rib rib;
-  NfdRibReadvertiseDestination dest;
-  std::function<void()> successCallback;
-  std::function<void(const std::string&)> failureCallback;
+  protected:
+    ndn::util::DummyClientFace face;
+    ndn::nfd::Controller controller;
+    Rib rib;
+    NfdRibReadvertiseDestination dest;
+    std::function<void()> successCallback;
+    std::function<void(const std::string&)> failureCallback;
 };
 
 BOOST_AUTO_TEST_SUITE(Readvertise)
 BOOST_FIXTURE_TEST_SUITE(TestNfdRibReadvertiseDestination, NfdRibReadvertiseDestinationFixture)
 
-class AdvertiseSuccessScenario
-{
-public:
-  ndn::nfd::ControlResponse
-  makeResponse(const ControlParameters& sentCp)
-  {
-    ControlParameters response;
+class AdvertiseSuccessScenario {
+  public:
+    ndn::nfd::ControlResponse
+    makeResponse(const ControlParameters& sentCp)
+    {
+        ControlParameters response;
 
-    response.setFaceId(1)
-      .setName(sentCp.getName())
-      .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT)
-      .setCost(0)
-      .setFlags(ndn::nfd::ROUTE_FLAG_CHILD_INHERIT);
+        response.setFaceId(1)
+          .setName(sentCp.getName())
+          .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT)
+          .setCost(0)
+          .setFlags(ndn::nfd::ROUTE_FLAG_CHILD_INHERIT);
 
-    ndn::nfd::ControlResponse responsePayload;
-    responsePayload.setCode(200)
-      .setText("Successfully registered.")
-      .setBody(response.wireEncode());
-    return responsePayload;
-  }
+        ndn::nfd::ControlResponse responsePayload;
+        responsePayload.setCode(200).setText("Successfully registered.").setBody(response.wireEncode());
+        return responsePayload;
+    }
 
-  void
-  checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
-  {
-    BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 1);
-    BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 0);
-  }
+    void
+    checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
+    {
+        BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 1);
+        BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 0);
+    }
 };
 
-class AdvertiseFailureScenario
-{
-public:
-  ndn::nfd::ControlResponse
-  makeResponse(ControlParameters sentCp)
-  {
-    ndn::nfd::ControlResponse responsePayload(403, "Not Authenticated");
-    return responsePayload;
-  }
+class AdvertiseFailureScenario {
+  public:
+    ndn::nfd::ControlResponse
+    makeResponse(ControlParameters sentCp)
+    {
+        ndn::nfd::ControlResponse responsePayload(403, "Not Authenticated");
+        return responsePayload;
+    }
 
-  void
-  checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
-  {
-    BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 1);
-    BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 0);
-  }
+    void
+    checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
+    {
+        BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 1);
+        BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 0);
+    }
 };
 
 using AdvertiseScenarios = boost::mpl::vector<AdvertiseSuccessScenario, AdvertiseFailureScenario>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Advertise, Scenario, AdvertiseScenarios)
 {
-  Scenario scenario;
-  Name prefix("/ndn/memphis/test");
-  ReadvertisedRoute rr(prefix);
-  const Name RIB_REGISTER_COMMAND_PREFIX("/localhost/nlsr/rib/register");
+    Scenario scenario;
+    Name prefix("/ndn/memphis/test");
+    ReadvertisedRoute rr(prefix);
+    const Name RIB_REGISTER_COMMAND_PREFIX("/localhost/nlsr/rib/register");
 
-  dest.advertise(rr, successCallback, failureCallback);
-  advanceClocks(100_ms);
+    dest.advertise(rr, successCallback, failureCallback);
+    advanceClocks(100_ms);
 
-  // Retrieve the sent Interest to build the response
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  const Interest& sentInterest = face.sentInterests[0];
-  BOOST_CHECK(RIB_REGISTER_COMMAND_PREFIX.isPrefixOf(sentInterest.getName()));
+    // Retrieve the sent Interest to build the response
+    BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+    const Interest& sentInterest = face.sentInterests[0];
+    BOOST_CHECK(RIB_REGISTER_COMMAND_PREFIX.isPrefixOf(sentInterest.getName()));
 
-  // Parse the sent command Interest to check correctness.
-  ControlParameters sentCp;
-  BOOST_CHECK_NO_THROW(sentCp.wireDecode(sentInterest.getName().get(RIB_REGISTER_COMMAND_PREFIX.size()).blockFromValue()));
-  BOOST_CHECK_EQUAL(sentCp.getOrigin(), ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(sentCp.getName(), prefix);
+    // Parse the sent command Interest to check correctness.
+    ControlParameters sentCp;
+    BOOST_CHECK_NO_THROW(
+      sentCp.wireDecode(sentInterest.getName().get(RIB_REGISTER_COMMAND_PREFIX.size()).blockFromValue()));
+    BOOST_CHECK_EQUAL(sentCp.getOrigin(), ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(sentCp.getName(), prefix);
 
-  ndn::nfd::ControlResponse responsePayload = scenario.makeResponse(sentCp);
-  auto responseData = makeData(sentInterest.getName());
-  responseData->setContent(responsePayload.wireEncode());
-  face.receive(*responseData);
-  this->advanceClocks(10_ms);
+    ndn::nfd::ControlResponse responsePayload = scenario.makeResponse(sentCp);
+    auto responseData = makeData(sentInterest.getName());
+    responseData->setContent(responsePayload.wireEncode());
+    face.receive(*responseData);
+    this->advanceClocks(10_ms);
 
-  scenario.checkCommandOutcome(this);
+    scenario.checkCommandOutcome(this);
 }
 
-class WithdrawSuccessScenario
-{
-public:
-  ndn::nfd::ControlResponse
-  makeResponse(const ControlParameters& sentCp)
-  {
-    ControlParameters response;
+class WithdrawSuccessScenario {
+  public:
+    ndn::nfd::ControlResponse
+    makeResponse(const ControlParameters& sentCp)
+    {
+        ControlParameters response;
 
-    response.setFaceId(1)
-      .setName(sentCp.getName())
-      .setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT);
+        response.setFaceId(1).setName(sentCp.getName()).setOrigin(ndn::nfd::ROUTE_ORIGIN_CLIENT);
 
-    ndn::nfd::ControlResponse responsePayload;
-    responsePayload.setCode(200)
-      .setText("Successfully removed")
-      .setBody(response.wireEncode());
+        ndn::nfd::ControlResponse responsePayload;
+        responsePayload.setCode(200).setText("Successfully removed").setBody(response.wireEncode());
 
-    return responsePayload;
-  }
+        return responsePayload;
+    }
 
-  void
-  checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
-  {
-    BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 1);
-    BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 0);
-  }
+    void
+    checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
+    {
+        BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 1);
+        BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 0);
+    }
 };
 
-class WithdrawFailureScenario
-{
-public:
-  ndn::nfd::ControlResponse
-  makeResponse(ControlParameters sentCp)
-  {
-    ndn::nfd::ControlResponse responsePayload(403, "Not authenticated");
-    return responsePayload;
-  }
+class WithdrawFailureScenario {
+  public:
+    ndn::nfd::ControlResponse
+    makeResponse(ControlParameters sentCp)
+    {
+        ndn::nfd::ControlResponse responsePayload(403, "Not authenticated");
+        return responsePayload;
+    }
 
-  void
-  checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
-  {
-    BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 1);
-    BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 0);
-  }
+    void
+    checkCommandOutcome(NfdRibReadvertiseDestinationFixture* fixture)
+    {
+        BOOST_CHECK_EQUAL(fixture->nFailureCallbacks, 1);
+        BOOST_CHECK_EQUAL(fixture->nSuccessCallbacks, 0);
+    }
 };
 
 using WithdrawScenarios = boost::mpl::vector<WithdrawSuccessScenario, WithdrawFailureScenario>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Withdraw, Scenario, WithdrawScenarios)
 {
-  Scenario scenario;
-  Name prefix("/ndn/memphis/test");
-  ReadvertisedRoute rr(prefix);
-  const Name RIB_UNREGISTER_COMMAND_PREFIX("/localhost/nlsr/rib/unregister");
+    Scenario scenario;
+    Name prefix("/ndn/memphis/test");
+    ReadvertisedRoute rr(prefix);
+    const Name RIB_UNREGISTER_COMMAND_PREFIX("/localhost/nlsr/rib/unregister");
 
-  dest.withdraw(rr, successCallback, failureCallback);
-  this->advanceClocks(10_ms);
+    dest.withdraw(rr, successCallback, failureCallback);
+    this->advanceClocks(10_ms);
 
-  // Retrieve the sent Interest to build the response
-  BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
-  const Interest& sentInterest = face.sentInterests[0];
-  BOOST_CHECK(RIB_UNREGISTER_COMMAND_PREFIX.isPrefixOf(sentInterest.getName()));
+    // Retrieve the sent Interest to build the response
+    BOOST_REQUIRE_EQUAL(face.sentInterests.size(), 1);
+    const Interest& sentInterest = face.sentInterests[0];
+    BOOST_CHECK(RIB_UNREGISTER_COMMAND_PREFIX.isPrefixOf(sentInterest.getName()));
 
-  ControlParameters sentCp;
-  BOOST_CHECK_NO_THROW(sentCp.wireDecode(sentInterest.getName().get(RIB_UNREGISTER_COMMAND_PREFIX.size()).blockFromValue()));
-  BOOST_CHECK_EQUAL(sentCp.getOrigin(), ndn::nfd::ROUTE_ORIGIN_CLIENT);
-  BOOST_CHECK_EQUAL(sentCp.getName(), prefix);
+    ControlParameters sentCp;
+    BOOST_CHECK_NO_THROW(
+      sentCp.wireDecode(sentInterest.getName().get(RIB_UNREGISTER_COMMAND_PREFIX.size()).blockFromValue()));
+    BOOST_CHECK_EQUAL(sentCp.getOrigin(), ndn::nfd::ROUTE_ORIGIN_CLIENT);
+    BOOST_CHECK_EQUAL(sentCp.getName(), prefix);
 
-  ndn::nfd::ControlResponse responsePayload = scenario.makeResponse(sentCp);
-  auto responseData = makeData(sentInterest.getName());
-  responseData->setContent(responsePayload.wireEncode());
+    ndn::nfd::ControlResponse responsePayload = scenario.makeResponse(sentCp);
+    auto responseData = makeData(sentInterest.getName());
+    responseData->setContent(responsePayload.wireEncode());
 
-  face.receive(*responseData);
-  this->advanceClocks(1_ms);
+    face.receive(*responseData);
+    this->advanceClocks(1_ms);
 
-  scenario.checkCommandOutcome(this);
+    scenario.checkCommandOutcome(this);
 }
 
 BOOST_AUTO_TEST_CASE(DestinationAvailability)
 {
-  std::vector<bool> availabilityChangeHistory;
-  Name commandPrefix("/localhost/nlsr");
-  Route route;
+    std::vector<bool> availabilityChangeHistory;
+    Name commandPrefix("/localhost/nlsr");
+    Route route;
 
-  dest.afterAvailabilityChange.connect(
-    std::bind(&std::vector<bool>::push_back, &availabilityChangeHistory, _1));
-  BOOST_CHECK_EQUAL(dest.isAvailable(), false);
+    dest.afterAvailabilityChange.connect(std::bind(&std::vector<bool>::push_back, &availabilityChangeHistory, _1));
+    BOOST_CHECK_EQUAL(dest.isAvailable(), false);
 
-  rib.insert(commandPrefix, route);
-  this->advanceClocks(100_ms);
-  BOOST_CHECK_EQUAL(dest.isAvailable(), true);
-  BOOST_REQUIRE_EQUAL(availabilityChangeHistory.size(), 1);
-  BOOST_CHECK_EQUAL(availabilityChangeHistory.back(), true);
+    rib.insert(commandPrefix, route);
+    this->advanceClocks(100_ms);
+    BOOST_CHECK_EQUAL(dest.isAvailable(), true);
+    BOOST_REQUIRE_EQUAL(availabilityChangeHistory.size(), 1);
+    BOOST_CHECK_EQUAL(availabilityChangeHistory.back(), true);
 
-  rib.erase(commandPrefix, route);
-  this->advanceClocks(100_ms);
-  BOOST_CHECK_EQUAL(dest.isAvailable(), false);
-  BOOST_REQUIRE_EQUAL(availabilityChangeHistory.size(), 2);
-  BOOST_CHECK_EQUAL(availabilityChangeHistory.back(), false);
+    rib.erase(commandPrefix, route);
+    this->advanceClocks(100_ms);
+    BOOST_CHECK_EQUAL(dest.isAvailable(), false);
+    BOOST_REQUIRE_EQUAL(availabilityChangeHistory.size(), 2);
+    BOOST_CHECK_EQUAL(availabilityChangeHistory.back(), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNfdRibReadvertiseDestination

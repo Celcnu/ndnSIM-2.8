@@ -39,44 +39,42 @@ namespace util {
 /** \brief provides a publisher of Notification Stream
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/Notification
  */
-template<typename Notification>
-class NotificationStream : noncopyable
-{
-public:
-  BOOST_CONCEPT_ASSERT((WireEncodable<Notification>));
+template <typename Notification>
+class NotificationStream : noncopyable {
+  public:
+    BOOST_CONCEPT_ASSERT((WireEncodable<Notification>));
 
-  NotificationStream(Face& face, const Name& prefix, KeyChain& keyChain)
-    : m_face(face)
-    , m_prefix(prefix)
-    , m_keyChain(keyChain)
-    , m_sequenceNo(0)
-  {
-  }
+    NotificationStream(Face& face, const Name& prefix, KeyChain& keyChain)
+      : m_face(face)
+      , m_prefix(prefix)
+      , m_keyChain(keyChain)
+      , m_sequenceNo(0)
+    {
+    }
 
-  virtual
-  ~NotificationStream() = default;
+    virtual ~NotificationStream() = default;
 
-  void
-  postNotification(const Notification& notification)
-  {
-    Name dataName = m_prefix;
-    dataName.appendSequenceNumber(m_sequenceNo);
+    void
+    postNotification(const Notification& notification)
+    {
+        Name dataName = m_prefix;
+        dataName.appendSequenceNumber(m_sequenceNo);
 
-    shared_ptr<Data> data = make_shared<Data>(dataName);
-    data->setContent(notification.wireEncode());
-    data->setFreshnessPeriod(1_s);
+        shared_ptr<Data> data = make_shared<Data>(dataName);
+        data->setContent(notification.wireEncode());
+        data->setFreshnessPeriod(1_s);
 
-    m_keyChain.sign(*data);
-    m_face.put(*data);
+        m_keyChain.sign(*data);
+        m_face.put(*data);
 
-    ++m_sequenceNo;
-  }
+        ++m_sequenceNo;
+    }
 
-private:
-  Face& m_face;
-  const Name m_prefix;
-  KeyChain& m_keyChain;
-  uint64_t m_sequenceNo;
+  private:
+    Face& m_face;
+    const Name m_prefix;
+    KeyChain& m_keyChain;
+    uint64_t m_sequenceNo;
 };
 
 } // namespace util

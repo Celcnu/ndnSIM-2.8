@@ -37,31 +37,24 @@ namespace fw {
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class MulticastStrategy : public Strategy
-                        , public ProcessNackTraits<MulticastStrategy>
-{
-public:
-  explicit
-  MulticastStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+class MulticastStrategy : public Strategy, public ProcessNackTraits<MulticastStrategy> {
+  public:
+    explicit MulticastStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-  void
-  afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
-                   const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
+                          const shared_ptr<pit::Entry>& pitEntry) override;
 
-private:
-  friend ProcessNackTraits<MulticastStrategy>;
-  RetxSuppressionExponential m_retxSuppression;
+  private:
+    friend ProcessNackTraits<MulticastStrategy>;
+    RetxSuppressionExponential m_retxSuppression;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  static const time::milliseconds RETX_SUPPRESSION_INITIAL;
-  static const time::milliseconds RETX_SUPPRESSION_MAX;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : static const time::milliseconds RETX_SUPPRESSION_INITIAL;
+    static const time::milliseconds RETX_SUPPRESSION_MAX;
 };
 
 } // namespace fw

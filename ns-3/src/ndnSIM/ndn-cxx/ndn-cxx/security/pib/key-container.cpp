@@ -35,8 +35,7 @@ KeyContainer::const_iterator::const_iterator()
 {
 }
 
-KeyContainer::const_iterator::const_iterator(std::set<Name>::const_iterator it,
-                                             const KeyContainer& container)
+KeyContainer::const_iterator::const_iterator(std::set<Name>::const_iterator it, const KeyContainer& container)
   : m_it(it)
   , m_container(&container)
 {
@@ -45,126 +44,131 @@ KeyContainer::const_iterator::const_iterator(std::set<Name>::const_iterator it,
 Key
 KeyContainer::const_iterator::operator*()
 {
-  BOOST_ASSERT(m_container != nullptr);
-  return m_container->get(*m_it);
+    BOOST_ASSERT(m_container != nullptr);
+    return m_container->get(*m_it);
 }
 
 KeyContainer::const_iterator&
 KeyContainer::const_iterator::operator++()
 {
-  ++m_it;
-  return *this;
+    ++m_it;
+    return *this;
 }
 
 KeyContainer::const_iterator
 KeyContainer::const_iterator::operator++(int)
 {
-  const_iterator it(*this);
-  ++m_it;
-  return it;
+    const_iterator it(*this);
+    ++m_it;
+    return it;
 }
 
 bool
 KeyContainer::const_iterator::operator==(const const_iterator& other)
 {
-  bool isThisEnd = m_container == nullptr || m_it == m_container->m_keyNames.end();
-  bool isOtherEnd = other.m_container == nullptr || other.m_it == other.m_container->m_keyNames.end();
-  return ((isThisEnd || isOtherEnd) ?
-          (isThisEnd == isOtherEnd) :
-          m_container->m_pib == other.m_container->m_pib && m_it == other.m_it);
+    bool isThisEnd = m_container == nullptr || m_it == m_container->m_keyNames.end();
+    bool isOtherEnd = other.m_container == nullptr || other.m_it == other.m_container->m_keyNames.end();
+    return ((isThisEnd || isOtherEnd) ? (isThisEnd == isOtherEnd)
+                                      : m_container->m_pib == other.m_container->m_pib && m_it == other.m_it);
 }
 
 bool
 KeyContainer::const_iterator::operator!=(const const_iterator& other)
 {
-  return !(*this == other);
+    return !(*this == other);
 }
 
 KeyContainer::KeyContainer(const Name& identity, shared_ptr<PibImpl> pibImpl)
   : m_identity(identity)
   , m_pib(std::move(pibImpl))
 {
-  BOOST_ASSERT(m_pib != nullptr);
-  m_keyNames = m_pib->getKeysOfIdentity(identity);
+    BOOST_ASSERT(m_pib != nullptr);
+    m_keyNames = m_pib->getKeysOfIdentity(identity);
 }
 
 KeyContainer::const_iterator
 KeyContainer::begin() const
 {
-  return const_iterator(m_keyNames.begin(), *this);
+    return const_iterator(m_keyNames.begin(), *this);
 }
 
 KeyContainer::const_iterator
 KeyContainer::end() const
 {
-  return const_iterator();
+    return const_iterator();
 }
 
 KeyContainer::const_iterator
 KeyContainer::find(const Name& keyName) const
 {
-  return const_iterator(m_keyNames.find(keyName), *this);
+    return const_iterator(m_keyNames.find(keyName), *this);
 }
 
 size_t
 KeyContainer::size() const
 {
-  return m_keyNames.size();
+    return m_keyNames.size();
 }
 
 Key
 KeyContainer::add(const uint8_t* key, size_t keyLen, const Name& keyName)
 {
-  if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
-    NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri() + "` does not match identity "
-                                    "`" + m_identity.toUri() + "`"));
-  }
+    if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
+        NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri()
+                                        + "` does not match identity "
+                                          "`"
+                                        + m_identity.toUri() + "`"));
+    }
 
-  m_keyNames.insert(keyName);
-  m_keys[keyName] = make_shared<detail::KeyImpl>(keyName, key, keyLen, m_pib);
+    m_keyNames.insert(keyName);
+    m_keys[keyName] = make_shared<detail::KeyImpl>(keyName, key, keyLen, m_pib);
 
-  return get(keyName);
+    return get(keyName);
 }
 
 void
 KeyContainer::remove(const Name& keyName)
 {
-  if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
-    NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri() + "` does not match identity "
-                                    "`" + m_identity.toUri() + "`"));
-  }
+    if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
+        NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri()
+                                        + "` does not match identity "
+                                          "`"
+                                        + m_identity.toUri() + "`"));
+    }
 
-  m_keyNames.erase(keyName);
-  m_keys.erase(keyName);
-  m_pib->removeKey(keyName);
+    m_keyNames.erase(keyName);
+    m_keys.erase(keyName);
+    m_pib->removeKey(keyName);
 }
 
 Key
 KeyContainer::get(const Name& keyName) const
 {
-  if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
-    NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri() + "` does not match identity "
-                                    "`" + m_identity.toUri() + "`"));
-  }
+    if (m_identity != v2::extractIdentityFromKeyName(keyName)) {
+        NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri()
+                                        + "` does not match identity "
+                                          "`"
+                                        + m_identity.toUri() + "`"));
+    }
 
-  shared_ptr<detail::KeyImpl> key;
-  auto it = m_keys.find(keyName);
+    shared_ptr<detail::KeyImpl> key;
+    auto it = m_keys.find(keyName);
 
-  if (it != m_keys.end()) {
-    key = it->second;
-  }
-  else {
-    key = make_shared<detail::KeyImpl>(keyName, m_pib);
-    m_keys[keyName] = key;
-  }
+    if (it != m_keys.end()) {
+        key = it->second;
+    }
+    else {
+        key = make_shared<detail::KeyImpl>(keyName, m_pib);
+        m_keys[keyName] = key;
+    }
 
-  return Key(key);
+    return Key(key);
 }
 
 bool
 KeyContainer::isConsistent() const
 {
-  return m_keyNames == m_pib->getKeysOfIdentity(m_identity);
+    return m_keyNames == m_pib->getKeysOfIdentity(m_identity);
 }
 
 } // namespace pib

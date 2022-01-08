@@ -34,21 +34,21 @@ StrategyChoice::StrategyChoice() = default;
 
 StrategyChoice::StrategyChoice(const Block& payload)
 {
-  this->wireDecode(payload);
+    this->wireDecode(payload);
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 StrategyChoice::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  size_t totalLength = 0;
+    size_t totalLength = 0;
 
-  totalLength += prependNestedBlock(encoder, tlv::nfd::Strategy, m_strategy);
-  totalLength += m_name.wireEncode(encoder);
+    totalLength += prependNestedBlock(encoder, tlv::nfd::Strategy, m_strategy);
+    totalLength += m_name.wireEncode(encoder);
 
-  totalLength += encoder.prependVarNumber(totalLength);
-  totalLength += encoder.prependVarNumber(tlv::nfd::StrategyChoice);
-  return totalLength;
+    totalLength += encoder.prependVarNumber(totalLength);
+    totalLength += encoder.prependVarNumber(tlv::nfd::StrategyChoice);
+    return totalLength;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(StrategyChoice);
@@ -56,82 +56,81 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(StrategyChoice);
 const Block&
 StrategyChoice::wireEncode() const
 {
-  if (m_wire.hasWire())
+    if (m_wire.hasWire())
+        return m_wire;
+
+    EncodingEstimator estimator;
+    size_t estimatedSize = wireEncode(estimator);
+
+    EncodingBuffer buffer(estimatedSize, 0);
+    wireEncode(buffer);
+
+    m_wire = buffer.block();
     return m_wire;
-
-  EncodingEstimator estimator;
-  size_t estimatedSize = wireEncode(estimator);
-
-  EncodingBuffer buffer(estimatedSize, 0);
-  wireEncode(buffer);
-
-  m_wire = buffer.block();
-  return m_wire;
 }
 
 void
 StrategyChoice::wireDecode(const Block& block)
 {
-  if (block.type() != tlv::nfd::StrategyChoice) {
-    NDN_THROW(Error("StrategyChoice", block.type()));
-  }
+    if (block.type() != tlv::nfd::StrategyChoice) {
+        NDN_THROW(Error("StrategyChoice", block.type()));
+    }
 
-  m_wire = block;
-  m_wire.parse();
-  auto val = m_wire.elements_begin();
+    m_wire = block;
+    m_wire.parse();
+    auto val = m_wire.elements_begin();
 
-  if (val != m_wire.elements_end() && val->type() == tlv::Name) {
-    m_name.wireDecode(*val);
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required Name field"));
-  }
-
-  if (val != m_wire.elements_end() && val->type() == tlv::nfd::Strategy) {
-    val->parse();
-    if (val->elements().empty()) {
-      NDN_THROW(Error("expecting Strategy/Name"));
+    if (val != m_wire.elements_end() && val->type() == tlv::Name) {
+        m_name.wireDecode(*val);
+        ++val;
     }
     else {
-      m_strategy.wireDecode(*val->elements_begin());
+        NDN_THROW(Error("missing required Name field"));
     }
-    ++val;
-  }
-  else {
-    NDN_THROW(Error("missing required Strategy field"));
-  }
+
+    if (val != m_wire.elements_end() && val->type() == tlv::nfd::Strategy) {
+        val->parse();
+        if (val->elements().empty()) {
+            NDN_THROW(Error("expecting Strategy/Name"));
+        }
+        else {
+            m_strategy.wireDecode(*val->elements_begin());
+        }
+        ++val;
+    }
+    else {
+        NDN_THROW(Error("missing required Strategy field"));
+    }
 }
 
 StrategyChoice&
 StrategyChoice::setName(const Name& name)
 {
-  m_wire.reset();
-  m_name = name;
-  return *this;
+    m_wire.reset();
+    m_name = name;
+    return *this;
 }
 
 StrategyChoice&
 StrategyChoice::setStrategy(const Name& strategy)
 {
-  m_wire.reset();
-  m_strategy = strategy;
-  return *this;
+    m_wire.reset();
+    m_strategy = strategy;
+    return *this;
 }
 
 bool
 operator==(const StrategyChoice& a, const StrategyChoice& b)
 {
-  return a.getName() == b.getName() && a.getStrategy() == b.getStrategy();
+    return a.getName() == b.getName() && a.getStrategy() == b.getStrategy();
 }
 
 std::ostream&
 operator<<(std::ostream& os, const StrategyChoice& sc)
 {
-  return os << "StrategyChoice("
-            << "Name: " << sc.getName() << ", "
-            << "Strategy: " << sc.getStrategy()
-            << ")";
+    return os << "StrategyChoice("
+              << "Name: " << sc.getName() << ", "
+              << "Strategy: " << sc.getStrategy() << ")";
 }
 
 } // namespace nfd

@@ -31,25 +31,21 @@ namespace ndn {
  *  This signature type provides integrity and provenance protection using a RSA signature over a
  *  SHA-256 digest.
  */
-class SignatureSha256WithRsa : public Signature
-{
-public:
-  /** @brief Create Sha256WithRsa signature with specified KeyLocator
-   */
-  explicit
-  SignatureSha256WithRsa(const KeyLocator& keyLocator = KeyLocator());
+class SignatureSha256WithRsa : public Signature {
+  public:
+    /** @brief Create Sha256WithRsa signature with specified KeyLocator
+     */
+    explicit SignatureSha256WithRsa(const KeyLocator& keyLocator = KeyLocator());
 
-  /** @brief Convert base Signature to Sha256WithRsa signature
-   *  @throw Signature::Error SignatureType is not Sha256WithRsa
-   */
-  explicit
-  SignatureSha256WithRsa(const Signature& signature);
+    /** @brief Convert base Signature to Sha256WithRsa signature
+     *  @throw Signature::Error SignatureType is not Sha256WithRsa
+     */
+    explicit SignatureSha256WithRsa(const Signature& signature);
 
-private:
-  /** @brief Prevent unsetting KeyLocator
-   */
-  void
-  unsetKeyLocator();
+  private:
+    /** @brief Prevent unsetting KeyLocator
+     */
+    void unsetKeyLocator();
 };
 
 } // namespace ndn

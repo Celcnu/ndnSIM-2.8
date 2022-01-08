@@ -36,15 +36,15 @@
 // A callback scheduled through io.post and io.dispatch may be invoked after the face is destructed.
 // To prevent this situation, use these macros to capture Face::m_impl as weak_ptr and skip callback
 // execution if the face has been destructed.
-#define IO_CAPTURE_WEAK_IMPL(OP)                                                                   \
-    {                                                                                              \
-        weak_ptr<Impl> implWeak(m_impl);                                                           \
+#define IO_CAPTURE_WEAK_IMPL(OP)                                                                                       \
+    {                                                                                                                  \
+        weak_ptr<Impl> implWeak(m_impl);                                                                               \
     m_impl->m_scheduler.schedule(time::seconds(0), [=] { \
       auto impl = implWeak.lock(); \
       if (impl != nullptr) {
-#define IO_CAPTURE_WEAK_IMPL_END                                                                   \
-    }                                                                                              \
-    });                                                                                            \
+#define IO_CAPTURE_WEAK_IMPL_END                                                                                       \
+    }                                                                                                                  \
+    });                                                                                                                \
     }
 
 namespace ndn {
@@ -82,19 +82,16 @@ shared_ptr<Transport>
 Face::makeDefaultTransport()
 {
     ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
-    NS_ASSERT_MSG(node->GetObject<ns3::ndn::L3Protocol>() != 0,
-                  "NDN stack should be installed on the node " << node);
+    NS_ASSERT_MSG(node->GetObject<ns3::ndn::L3Protocol>() != 0, "NDN stack should be installed on the node " << node);
 
     auto uri = ::nfd::FaceUri("ndnFace://" + boost::lexical_cast<std::string>(node->GetId()));
 
     ::nfd::face::GenericLinkService::Options serviceOpts;
     serviceOpts.allowLocalFields = true;
 
-    auto nfdFace =
-      make_shared<::nfd::Face>(make_unique<::nfd::face::GenericLinkService>(serviceOpts),
-                               make_unique<::nfd::face::InternalForwarderTransport>(uri, uri));
-    auto forwarderTransport =
-      static_cast<::nfd::face::InternalForwarderTransport*>(nfdFace->getTransport());
+    auto nfdFace = make_shared<::nfd::Face>(make_unique<::nfd::face::GenericLinkService>(serviceOpts),
+                                            make_unique<::nfd::face::InternalForwarderTransport>(uri, uri));
+    auto forwarderTransport = static_cast<::nfd::face::InternalForwarderTransport*>(nfdFace->getTransport());
 
     auto clientTransport = make_shared<::nfd::face::InternalClientTransport>();
     clientTransport->connectToForwarder(forwarderTransport);
@@ -127,8 +124,8 @@ Face::construct(shared_ptr<Transport> transport, KeyChain& keyChain)
 Face::~Face() = default;
 
 PendingInterestHandle
-Face::expressInterest(const Interest& interest, const DataCallback& afterSatisfied,
-                      const NackCallback& afterNacked, const TimeoutCallback& afterTimeout)
+Face::expressInterest(const Interest& interest, const DataCallback& afterSatisfied, const NackCallback& afterNacked,
+                      const TimeoutCallback& afterTimeout)
 {
     auto id = m_impl->m_pendingInterestTable.allocateId();
 
@@ -154,8 +151,7 @@ Face::cancelPendingInterest(const PendingInterestId* pendingInterestId)
     IO_CAPTURE_WEAK_IMPL_END
 }
 
-void
-Face::removeAllPendingInterests(){IO_CAPTURE_WEAK_IMPL(post){impl->asyncRemoveAllPendingInterests();
+void Face::removeAllPendingInterests(){IO_CAPTURE_WEAK_IMPL(post){impl->asyncRemoveAllPendingInterests();
 }
 IO_CAPTURE_WEAK_IMPL_END
 }
@@ -183,23 +179,21 @@ IO_CAPTURE_WEAK_IMPL_END
 
 RegisteredPrefixHandle
 Face::setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
-                        const RegisterPrefixFailureCallback& onFailure,
-                        const security::SigningInfo& signingInfo, uint64_t flags)
+                        const RegisterPrefixFailureCallback& onFailure, const security::SigningInfo& signingInfo,
+                        uint64_t flags)
 {
     return setInterestFilter(filter, onInterest, nullptr, onFailure, signingInfo, flags);
 }
 
 RegisteredPrefixHandle
 Face::setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
-                        const RegisterPrefixSuccessCallback& onSuccess,
-                        const RegisterPrefixFailureCallback& onFailure,
+                        const RegisterPrefixSuccessCallback& onSuccess, const RegisterPrefixFailureCallback& onFailure,
                         const security::SigningInfo& signingInfo, uint64_t flags)
 {
     nfd::CommandOptions options;
     options.setSigningInfo(signingInfo);
 
-    auto id = m_impl->registerPrefix(filter.getPrefix(), onSuccess, onFailure, flags, options,
-                                     filter, onInterest);
+    auto id = m_impl->registerPrefix(filter.getPrefix(), onSuccess, onFailure, flags, options, filter, onInterest);
     return RegisteredPrefixHandle(*this, reinterpret_cast<const RegisteredPrefixId*>(id));
 }
 
@@ -217,22 +211,21 @@ Face::setInterestFilter(const InterestFilter& filter, const InterestCallback& on
     return InterestFilterHandle(*this, reinterpret_cast<const InterestFilterId*>(id));
 }
 
-void Face::clearInterestFilter(const InterestFilterId* interestFilterId){IO_CAPTURE_WEAK_IMPL(post){
-  impl->asyncUnsetInterestFilter(reinterpret_cast<RecordId>(interestFilterId));
+void Face::clearInterestFilter(const InterestFilterId* interestFilterId){
+  IO_CAPTURE_WEAK_IMPL(post){impl->asyncUnsetInterestFilter(reinterpret_cast<RecordId>(interestFilterId));
 }
 IO_CAPTURE_WEAK_IMPL_END
 }
 
 RegisteredPrefixHandle
 Face::registerPrefix(const Name& prefix, const RegisterPrefixSuccessCallback& onSuccess,
-                     const RegisterPrefixFailureCallback& onFailure,
-                     const security::SigningInfo& signingInfo, uint64_t flags)
+                     const RegisterPrefixFailureCallback& onFailure, const security::SigningInfo& signingInfo,
+                     uint64_t flags)
 {
     nfd::CommandOptions options;
     options.setSigningInfo(signingInfo);
 
-    auto id =
-      m_impl->registerPrefix(prefix, onSuccess, onFailure, flags, options, nullopt, nullptr);
+    auto id = m_impl->registerPrefix(prefix, onSuccess, onFailure, flags, options, nullopt, nullptr);
     return RegisteredPrefixHandle(*this, reinterpret_cast<const RegisteredPrefixId*>(id));
 }
 
@@ -243,8 +236,7 @@ Face::unregisterPrefixImpl(const RegisteredPrefixId* registeredPrefixId,
 {
     IO_CAPTURE_WEAK_IMPL(post)
     {
-        impl->asyncUnregisterPrefix(reinterpret_cast<RecordId>(registeredPrefixId), onSuccess,
-                                    onFailure);
+        impl->asyncUnregisterPrefix(reinterpret_cast<RecordId>(registeredPrefixId), onSuccess, onFailure);
     }
     IO_CAPTURE_WEAK_IMPL_END
 }

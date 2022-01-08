@@ -45,62 +45,53 @@ BOOST_FIXTURE_TEST_SUITE(TestStrategy, GlobalIoFixture)
 
 // Strategy registry is tested in table/strategy-choice.t.cpp and strategy-instantiation.t.cpp
 
-class FaceTableAccessTestStrategy : public DummyStrategy
-{
-public:
-  explicit
-  FaceTableAccessTestStrategy(Forwarder& forwarder)
-    : DummyStrategy(forwarder)
-  {
-    this->afterAddFace.connect([this] (const Face& face) {
-      this->addedFaces.push_back(face.getId());
-    });
-    this->beforeRemoveFace.connect([this] (const Face& face) {
-      this->removedFaces.push_back(face.getId());
-    });
-  }
+class FaceTableAccessTestStrategy : public DummyStrategy {
+  public:
+    explicit FaceTableAccessTestStrategy(Forwarder& forwarder)
+      : DummyStrategy(forwarder)
+    {
+        this->afterAddFace.connect([this](const Face& face) { this->addedFaces.push_back(face.getId()); });
+        this->beforeRemoveFace.connect([this](const Face& face) { this->removedFaces.push_back(face.getId()); });
+    }
 
-  std::vector<FaceId>
-  getLocalFaces()
-  {
-    auto enumerable = this->getFaceTable() |
-                      boost::adaptors::filtered([] (Face& face) {
-                        return face.getScope() == ndn::nfd::FACE_SCOPE_LOCAL;
-                      }) |
-                      boost::adaptors::transformed([] (Face& face) {
-                        return face.getId();
-                      });
+    std::vector<FaceId>
+    getLocalFaces()
+    {
+        auto enumerable =
+          this->getFaceTable()
+          | boost::adaptors::filtered([](Face& face) { return face.getScope() == ndn::nfd::FACE_SCOPE_LOCAL; })
+          | boost::adaptors::transformed([](Face& face) { return face.getId(); });
 
-    std::vector<FaceId> results;
-    boost::copy(enumerable, std::back_inserter(results));
-    return results;
-  }
+        std::vector<FaceId> results;
+        boost::copy(enumerable, std::back_inserter(results));
+        return results;
+    }
 
-public:
-  std::vector<FaceId> addedFaces;
-  std::vector<FaceId> removedFaces;
+  public:
+    std::vector<FaceId> addedFaces;
+    std::vector<FaceId> removedFaces;
 };
 
 BOOST_AUTO_TEST_CASE(FaceTableAccess)
 {
-  FaceTable faceTable;
-  Forwarder forwarder(faceTable);
-  FaceTableAccessTestStrategy strategy(forwarder);
+    FaceTable faceTable;
+    Forwarder forwarder(faceTable);
+    FaceTableAccessTestStrategy strategy(forwarder);
 
-  auto face1 = make_shared<DummyFace>();
-  auto face2 = make_shared<DummyFace>("dummy://", "dummy://", ndn::nfd::FACE_SCOPE_LOCAL);
-  faceTable.add(face1);
-  faceTable.add(face2);
-  FaceId id1 = face1->getId();
-  FaceId id2 = face2->getId();
+    auto face1 = make_shared<DummyFace>();
+    auto face2 = make_shared<DummyFace>("dummy://", "dummy://", ndn::nfd::FACE_SCOPE_LOCAL);
+    faceTable.add(face1);
+    faceTable.add(face2);
+    FaceId id1 = face1->getId();
+    FaceId id2 = face2->getId();
 
-  BOOST_CHECK(strategy.getLocalFaces() == std::vector<FaceId>{id2});
+    BOOST_CHECK(strategy.getLocalFaces() == std::vector<FaceId>{id2});
 
-  face2->close();
-  face1->close();
+    face2->close();
+    face1->close();
 
-  BOOST_CHECK((strategy.addedFaces   == std::vector<FaceId>{id1, id2}));
-  BOOST_CHECK((strategy.removedFaces == std::vector<FaceId>{id2, id1}));
+    BOOST_CHECK((strategy.addedFaces == std::vector<FaceId>{id1, id2}));
+    BOOST_CHECK((strategy.removedFaces == std::vector<FaceId>{id2, id1}));
 }
 
 // LookupFib is tested in Fw/TestLinkForwarding test suite.

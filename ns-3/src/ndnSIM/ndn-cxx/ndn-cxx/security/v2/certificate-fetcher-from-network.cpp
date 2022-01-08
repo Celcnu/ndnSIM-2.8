@@ -43,56 +43,53 @@ CertificateFetcherFromNetwork::doFetch(const shared_ptr<CertificateRequest>& cer
                                        const shared_ptr<ValidationState>& state,
                                        const ValidationContinuation& continueValidation)
 {
-  m_face.expressInterest(certRequest->interest,
-                         [=] (const Interest& interest, const Data& data) {
-                           dataCallback(data, certRequest, state, continueValidation);
-                         },
-                         [=] (const Interest& interest, const lp::Nack& nack) {
-                           nackCallback(nack, certRequest, state, continueValidation);
-                         },
-                         [=] (const Interest& interest) {
-                           timeoutCallback(certRequest, state, continueValidation);
-                         });
+    m_face.expressInterest(
+      certRequest->interest,
+      [=](const Interest& interest, const Data& data) { dataCallback(data, certRequest, state, continueValidation); },
+      [=](const Interest& interest, const lp::Nack& nack) {
+          nackCallback(nack, certRequest, state, continueValidation);
+      },
+      [=](const Interest& interest) { timeoutCallback(certRequest, state, continueValidation); });
 }
 
 void
-CertificateFetcherFromNetwork::dataCallback(const Data& data,
-                                            const shared_ptr<CertificateRequest>& certRequest,
+CertificateFetcherFromNetwork::dataCallback(const Data& data, const shared_ptr<CertificateRequest>& certRequest,
                                             const shared_ptr<ValidationState>& state,
                                             const ValidationContinuation& continueValidation)
 {
-  NDN_LOG_DEBUG_DEPTH("Fetched certificate from network " << data.getName());
+    NDN_LOG_DEBUG_DEPTH("Fetched certificate from network " << data.getName());
 
-  Certificate cert;
-  try {
-    cert = Certificate(data);
-  }
-  catch (const tlv::Error& e) {
-    return state->fail({ValidationError::Code::MALFORMED_CERT, "Fetched a malformed certificate "
-                        "`" + data.getName().toUri() + "` (" + e.what() + ")"});
-  }
-  continueValidation(cert, state);
+    Certificate cert;
+    try {
+        cert = Certificate(data);
+    }
+    catch (const tlv::Error& e) {
+        return state->fail({ValidationError::Code::MALFORMED_CERT, "Fetched a malformed certificate "
+                                                                   "`"
+                                                                     + data.getName().toUri() + "` (" + e.what()
+                                                                     + ")"});
+    }
+    continueValidation(cert, state);
 }
 
 void
-CertificateFetcherFromNetwork::nackCallback(const lp::Nack& nack,
-                                            const shared_ptr<CertificateRequest>& certRequest,
+CertificateFetcherFromNetwork::nackCallback(const lp::Nack& nack, const shared_ptr<CertificateRequest>& certRequest,
                                             const shared_ptr<ValidationState>& state,
                                             const ValidationContinuation& continueValidation)
 {
-  NDN_LOG_DEBUG_DEPTH("NACK (" << nack.getReason() <<  ") while fetching certificate "
-                      << certRequest->interest.getName());
+    NDN_LOG_DEBUG_DEPTH("NACK (" << nack.getReason() << ") while fetching certificate "
+                                 << certRequest->interest.getName());
 
-  --certRequest->nRetriesLeft;
-  if (certRequest->nRetriesLeft >= 0) {
-    m_scheduler.schedule(certRequest->waitAfterNack,
-                         [=] { fetch(certRequest, state, continueValidation); });
-    certRequest->waitAfterNack *= 2;
-  }
-  else {
-    state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT, "Cannot fetch certificate after all "
-                 "retries `" + certRequest->interest.getName().toUri() + "`"});
-  }
+    --certRequest->nRetriesLeft;
+    if (certRequest->nRetriesLeft >= 0) {
+        m_scheduler.schedule(certRequest->waitAfterNack, [=] { fetch(certRequest, state, continueValidation); });
+        certRequest->waitAfterNack *= 2;
+    }
+    else {
+        state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT, "Cannot fetch certificate after all "
+                                                                  "retries `"
+                                                                    + certRequest->interest.getName().toUri() + "`"});
+    }
 }
 
 void
@@ -100,17 +97,17 @@ CertificateFetcherFromNetwork::timeoutCallback(const shared_ptr<CertificateReque
                                                const shared_ptr<ValidationState>& state,
                                                const ValidationContinuation& continueValidation)
 {
-  NDN_LOG_DEBUG_DEPTH("Timeout while fetching certificate " << certRequest->interest.getName()
-                      << ", retrying");
+    NDN_LOG_DEBUG_DEPTH("Timeout while fetching certificate " << certRequest->interest.getName() << ", retrying");
 
-  --certRequest->nRetriesLeft;
-  if (certRequest->nRetriesLeft >= 0) {
-    fetch(certRequest, state, continueValidation);
-  }
-  else {
-    state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT, "Cannot fetch certificate after all "
-                 "retries `" + certRequest->interest.getName().toUri() + "`"});
-  }
+    --certRequest->nRetriesLeft;
+    if (certRequest->nRetriesLeft >= 0) {
+        fetch(certRequest, state, continueValidation);
+    }
+    else {
+        state->fail({ValidationError::Code::CANNOT_RETRIEVE_CERT, "Cannot fetch certificate after all "
+                                                                  "retries `"
+                                                                    + certRequest->interest.getName().toUri() + "`"});
+    }
 }
 
 } // namespace v2

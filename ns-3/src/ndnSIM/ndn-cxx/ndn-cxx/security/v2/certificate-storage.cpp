@@ -34,76 +34,75 @@ CertificateStorage::CertificateStorage()
 const Certificate*
 CertificateStorage::findTrustedCert(const Interest& interestForCert) const
 {
-  auto cert = m_trustAnchors.find(interestForCert);
-  if (cert != nullptr) {
-    return cert;
-  }
+    auto cert = m_trustAnchors.find(interestForCert);
+    if (cert != nullptr) {
+        return cert;
+    }
 
-  cert = m_verifiedCertCache.find(interestForCert);
-  return cert;
+    cert = m_verifiedCertCache.find(interestForCert);
+    return cert;
 }
 
 bool
 CertificateStorage::isCertKnown(const Name& certName) const
 {
-  return (m_trustAnchors.find(certName) != nullptr ||
-          m_verifiedCertCache.find(certName) != nullptr ||
-          m_unverifiedCertCache.find(certName) != nullptr);
+    return (m_trustAnchors.find(certName) != nullptr || m_verifiedCertCache.find(certName) != nullptr
+            || m_unverifiedCertCache.find(certName) != nullptr);
 }
 
 void
 CertificateStorage::loadAnchor(const std::string& groupId, Certificate&& cert)
 {
-  m_trustAnchors.insert(groupId, std::move(cert));
+    m_trustAnchors.insert(groupId, std::move(cert));
 }
 
 void
 CertificateStorage::loadAnchor(const std::string& groupId, const std::string& certfilePath,
                                time::nanoseconds refreshPeriod, bool isDir)
 {
-  m_trustAnchors.insert(groupId, certfilePath, refreshPeriod, isDir);
+    m_trustAnchors.insert(groupId, certfilePath, refreshPeriod, isDir);
 }
 
 void
 CertificateStorage::resetAnchors()
 {
-  m_trustAnchors.clear();
+    m_trustAnchors.clear();
 }
 
 void
 CertificateStorage::cacheVerifiedCert(Certificate&& cert)
 {
-  m_verifiedCertCache.insert(std::move(cert));
+    m_verifiedCertCache.insert(std::move(cert));
 }
 
 void
 CertificateStorage::resetVerifiedCerts()
 {
-  m_verifiedCertCache.clear();
+    m_verifiedCertCache.clear();
 }
 
 void
 CertificateStorage::cacheUnverifiedCert(Certificate&& cert)
 {
-  m_unverifiedCertCache.insert(std::move(cert));
+    m_unverifiedCertCache.insert(std::move(cert));
 }
 
 const TrustAnchorContainer&
 CertificateStorage::getTrustAnchors() const
 {
-  return m_trustAnchors;
+    return m_trustAnchors;
 }
 
 const CertificateCache&
 CertificateStorage::getVerifiedCertCache() const
 {
-  return m_verifiedCertCache;
+    return m_verifiedCertCache;
 }
 
 const CertificateCache&
 CertificateStorage::getUnverifiedCertCache() const
 {
-  return m_unverifiedCertCache;
+    return m_unverifiedCertCache;
 }
 
 } // namespace v2

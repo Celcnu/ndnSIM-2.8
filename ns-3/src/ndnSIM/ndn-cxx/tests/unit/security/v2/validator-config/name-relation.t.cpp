@@ -38,33 +38,31 @@ BOOST_AUTO_TEST_SUITE(TestNameRelation)
 
 BOOST_AUTO_TEST_CASE(ToString)
 {
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::EQUAL), "equal");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::IS_PREFIX_OF),
-                    "is-prefix-of");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::IS_STRICT_PREFIX_OF),
-                    "is-strict-prefix-of");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::EQUAL), "equal");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::IS_PREFIX_OF), "is-prefix-of");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(NameRelation::IS_STRICT_PREFIX_OF), "is-strict-prefix-of");
 }
 
 BOOST_AUTO_TEST_CASE(FromString)
 {
-  BOOST_CHECK_EQUAL(getNameRelationFromString("equal"), NameRelation::EQUAL);
-  BOOST_CHECK_EQUAL(getNameRelationFromString("is-prefix-of"), NameRelation::IS_PREFIX_OF);
-  BOOST_CHECK_EQUAL(getNameRelationFromString("is-strict-prefix-of"), NameRelation::IS_STRICT_PREFIX_OF);
-  BOOST_CHECK_THROW(getNameRelationFromString("unknown"), validator_config::Error);
+    BOOST_CHECK_EQUAL(getNameRelationFromString("equal"), NameRelation::EQUAL);
+    BOOST_CHECK_EQUAL(getNameRelationFromString("is-prefix-of"), NameRelation::IS_PREFIX_OF);
+    BOOST_CHECK_EQUAL(getNameRelationFromString("is-strict-prefix-of"), NameRelation::IS_STRICT_PREFIX_OF);
+    BOOST_CHECK_THROW(getNameRelationFromString("unknown"), validator_config::Error);
 }
 
 BOOST_AUTO_TEST_CASE(CheckRelation)
 {
-  BOOST_CHECK(checkNameRelation(NameRelation::EQUAL, "/prefix", "/prefix"));
-  BOOST_CHECK(!checkNameRelation(NameRelation::EQUAL, "/prefix", "/prefix/other"));
+    BOOST_CHECK(checkNameRelation(NameRelation::EQUAL, "/prefix", "/prefix"));
+    BOOST_CHECK(!checkNameRelation(NameRelation::EQUAL, "/prefix", "/prefix/other"));
 
-  BOOST_CHECK(checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix", "/prefix"));
-  BOOST_CHECK(checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix", "/prefix/other"));
-  BOOST_CHECK(!checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix/other", "/prefix"));
+    BOOST_CHECK(checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix", "/prefix"));
+    BOOST_CHECK(checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix", "/prefix/other"));
+    BOOST_CHECK(!checkNameRelation(NameRelation::IS_PREFIX_OF, "/prefix/other", "/prefix"));
 
-  BOOST_CHECK(!checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix", "/prefix"));
-  BOOST_CHECK(checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix", "/prefix/other"));
-  BOOST_CHECK(!checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix/other", "/prefix"));
+    BOOST_CHECK(!checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix", "/prefix"));
+    BOOST_CHECK(checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix", "/prefix/other"));
+    BOOST_CHECK(!checkNameRelation(NameRelation::IS_STRICT_PREFIX_OF, "/prefix/other", "/prefix"));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNameRelation

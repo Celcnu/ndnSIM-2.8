@@ -42,48 +42,43 @@ namespace nfdc {
 
 using ndn::Face;
 using ndn::KeyChain;
+using ndn::nfd::Controller;
 using ndn::nfd::ControlParameters;
 using ndn::nfd::ControlResponse;
-using ndn::nfd::Controller;
 
 /** \brief context for command execution
  */
-class ExecuteContext
-{
-public:
-  /** \return timeout for each step
-   */
-  time::nanoseconds
-  getTimeout() const;
+class ExecuteContext {
+  public:
+    /** \return timeout for each step
+     */
+    time::nanoseconds getTimeout() const;
 
-  ndn::nfd::CommandOptions
-  makeCommandOptions() const;
+    ndn::nfd::CommandOptions makeCommandOptions() const;
 
-  /** \return handler for command execution failure
-   *  \param commandName command name used in error message (present continuous tense)
-   */
-  Controller::CommandFailCallback
-  makeCommandFailureHandler(const std::string& commandName);
+    /** \return handler for command execution failure
+     *  \param commandName command name used in error message (present continuous tense)
+     */
+    Controller::CommandFailCallback makeCommandFailureHandler(const std::string& commandName);
 
-  /** \return handler for dataset retrieval failure
-   *  \param datasetName dataset name used in error message (noun phrase)
-   */
-  Controller::DatasetFailCallback
-  makeDatasetFailureHandler(const std::string& datasetName);
+    /** \return handler for dataset retrieval failure
+     *  \param datasetName dataset name used in error message (noun phrase)
+     */
+    Controller::DatasetFailCallback makeDatasetFailureHandler(const std::string& datasetName);
 
-public:
-  const std::string& noun;
-  const std::string& verb;
-  const CommandArguments& args;
+  public:
+    const std::string& noun;
+    const std::string& verb;
+    const CommandArguments& args;
 
-  int exitCode; ///< program exit code
-  std::ostream& out; ///< output stream
-  std::ostream& err; ///< error stream
+    int exitCode;      ///< program exit code
+    std::ostream& out; ///< output stream
+    std::ostream& err; ///< error stream
 
-  Face& face;
-  KeyChain& keyChain;
-  ///\todo validator
-  Controller& controller;
+    Face& face;
+    KeyChain& keyChain;
+    ///\todo validator
+    Controller& controller;
 };
 
 /** \brief a function to execute a command

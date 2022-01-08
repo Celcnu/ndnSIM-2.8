@@ -33,77 +33,71 @@ namespace tests {
 std::ostream&
 operator<<(std::ostream& os, AddressFamily family)
 {
-  switch (family) {
-    case AddressFamily::V4:
-      return os << "IPv4";
-    case AddressFamily::V6:
-      return os << "IPv6";
-    case AddressFamily::Any:
-      return os << "Any";
-  }
-  return os << '?';
+    switch (family) {
+        case AddressFamily::V4:
+            return os << "IPv4";
+        case AddressFamily::V6:
+            return os << "IPv6";
+        case AddressFamily::Any:
+            return os << "Any";
+    }
+    return os << '?';
 }
 
 std::ostream&
 operator<<(std::ostream& os, AddressScope scope)
 {
-  switch (scope) {
-    case AddressScope::Loopback:
-      return os << "Loopback";
-    case AddressScope::LinkLocal:
-      return os << "LinkLocal";
-    case AddressScope::Global:
-      return os << "Global";
-    case AddressScope::Any:
-      return os << "Any";
-  }
-  return os << '?';
+    switch (scope) {
+        case AddressScope::Loopback:
+            return os << "Loopback";
+        case AddressScope::LinkLocal:
+            return os << "LinkLocal";
+        case AddressScope::Global:
+            return os << "Global";
+        case AddressScope::Any:
+            return os << "Any";
+    }
+    return os << '?';
 }
 
 std::ostream&
 operator<<(std::ostream& os, MulticastInterface mcast)
 {
-  switch (mcast) {
-    case MulticastInterface::No:
-      return os << "No";
-    case MulticastInterface::Yes:
-      return os << "Yes";
-    case MulticastInterface::Any:
-      return os << "Any";
-  }
-  return os << '?';
+    switch (mcast) {
+        case MulticastInterface::No:
+            return os << "No";
+        case MulticastInterface::Yes:
+            return os << "Yes";
+        case MulticastInterface::Any:
+            return os << "Any";
+    }
+    return os << '?';
 }
 
-template<typename E>
+template <typename E>
 static bool
 matchTristate(E e, bool b)
 {
-  return (e == E::Any) ||
-         (e == E::Yes && b) ||
-         (e == E::No && !b);
+    return (e == E::Any) || (e == E::Yes && b) || (e == E::No && !b);
 }
 
 boost::asio::ip::address
 getTestIp(AddressFamily family, AddressScope scope, MulticastInterface mcast)
 {
-  for (const auto& interface : collectNetworkInterfaces()) {
-    if (!interface->isUp() ||
-        !matchTristate(mcast, interface->canMulticast())) {
-      continue;
+    for (const auto& interface : collectNetworkInterfaces()) {
+        if (!interface->isUp() || !matchTristate(mcast, interface->canMulticast())) {
+            continue;
+        }
+        for (const auto& address : interface->getNetworkAddresses()) {
+            if (!address.getIp().is_unspecified()
+                && (family == AddressFamily::Any || static_cast<int>(family) == static_cast<int>(address.getFamily()))
+                && (scope == AddressScope::Any || static_cast<int>(scope) == static_cast<int>(address.getScope()))
+                && (scope != AddressScope::Loopback || address.getIp().is_loopback())) {
+                return address.getIp();
+            }
+        }
     }
-    for (const auto& address : interface->getNetworkAddresses()) {
-      if (!address.getIp().is_unspecified() &&
-          (family == AddressFamily::Any ||
-           static_cast<int>(family) == static_cast<int>(address.getFamily())) &&
-          (scope == AddressScope::Any ||
-           static_cast<int>(scope) == static_cast<int>(address.getScope())) &&
-          (scope != AddressScope::Loopback ||
-           address.getIp().is_loopback())) {
-        return address.getIp();
-      }
-    }
-  }
-  return {};
+    return {};
 }
 
 } // namespace tests

@@ -39,62 +39,61 @@ NFD_REGISTER_STRATEGY(RandomStrategyTester);
 
 BOOST_AUTO_TEST_SUITE(Fw)
 
-class RandomStrategyFixture : public GlobalIoTimeFixture
-{
-protected:
-  RandomStrategyFixture()
-    : face1(make_shared<DummyFace>())
-    , face2(make_shared<DummyFace>())
-    , face3(make_shared<DummyFace>())
-    , face4(make_shared<DummyFace>())
-  {
-    faceTable.add(face1);
-    faceTable.add(face2);
-    faceTable.add(face3);
-    faceTable.add(face4);
-  }
+class RandomStrategyFixture : public GlobalIoTimeFixture {
+  protected:
+    RandomStrategyFixture()
+      : face1(make_shared<DummyFace>())
+      , face2(make_shared<DummyFace>())
+      , face3(make_shared<DummyFace>())
+      , face4(make_shared<DummyFace>())
+    {
+        faceTable.add(face1);
+        faceTable.add(face2);
+        faceTable.add(face3);
+        faceTable.add(face4);
+    }
 
-protected:
-  FaceTable faceTable;
-  Forwarder forwarder{faceTable};
-  RandomStrategyTester strategy{forwarder};
-  Fib& fib{forwarder.getFib()};
-  Pit& pit{forwarder.getPit()};
+  protected:
+    FaceTable faceTable;
+    Forwarder forwarder{faceTable};
+    RandomStrategyTester strategy{forwarder};
+    Fib& fib{forwarder.getFib()};
+    Pit& pit{forwarder.getPit()};
 
-  shared_ptr<DummyFace> face1;
-  shared_ptr<DummyFace> face2;
-  shared_ptr<DummyFace> face3;
-  shared_ptr<DummyFace> face4;
+    shared_ptr<DummyFace> face1;
+    shared_ptr<DummyFace> face2;
+    shared_ptr<DummyFace> face3;
+    shared_ptr<DummyFace> face4;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestRandomStrategy, RandomStrategyFixture)
 
 BOOST_AUTO_TEST_CASE(Forward)
 {
-  fib::Entry& fibEntry = *fib.insert(Name()).first;
-  fib.addOrUpdateNextHop(fibEntry, *face2, 10);
-  fib.addOrUpdateNextHop(fibEntry, *face3, 20);
-  fib.addOrUpdateNextHop(fibEntry, *face4, 30);
+    fib::Entry& fibEntry = *fib.insert(Name()).first;
+    fib.addOrUpdateNextHop(fibEntry, *face2, 10);
+    fib.addOrUpdateNextHop(fibEntry, *face3, 20);
+    fib.addOrUpdateNextHop(fibEntry, *face4, 30);
 
-  // Send 1000 Interests
-  for (int i = 0; i < 1000; ++i) {
-    shared_ptr<Interest> interest = makeInterest("ndn:/BzgFBchqA" + std::to_string(i));
-    shared_ptr<pit::Entry> pitEntry = pit.insert(*interest).first;
+    // Send 1000 Interests
+    for (int i = 0; i < 1000; ++i) {
+        shared_ptr<Interest> interest = makeInterest("ndn:/BzgFBchqA" + std::to_string(i));
+        shared_ptr<pit::Entry> pitEntry = pit.insert(*interest).first;
 
-    pitEntry->insertOrUpdateInRecord(*face1, *interest);
-    strategy.afterReceiveInterest(FaceEndpoint(*face1, 0), *interest, pitEntry);
-  }
+        pitEntry->insertOrUpdateInRecord(*face1, *interest);
+        strategy.afterReceiveInterest(FaceEndpoint(*face1, 0), *interest, pitEntry);
+    }
 
-  // Map outFaceId -> SentInterests.
-  std::unordered_map<int, int> faceInterestMap;
-  for (const auto& i : strategy.sendInterestHistory) {
-    faceInterestMap[i.outFaceId]++;
-  }
+    // Map outFaceId -> SentInterests.
+    std::unordered_map<int, int> faceInterestMap;
+    for (const auto& i : strategy.sendInterestHistory) {
+        faceInterestMap[i.outFaceId]++;
+    }
 
-  // Check that all faces received at least 10 Interest
-  for (const auto& x : faceInterestMap) {
-    BOOST_CHECK_GE(x.second, 10);
-  }
+    // Check that all faces received at least 10 Interest
+    for (const auto& x : faceInterestMap) {
+        BOOST_CHECK_GE(x.second, 10);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestRandomStrategy

@@ -37,82 +37,82 @@ namespace xml {
 void
 printHeader(std::ostream& os)
 {
-  os << "<?xml version=\"1.0\"?>"
-     << "<nfdStatus xmlns=\"ndn:/localhost/nfd/status/1\">";
+    os << "<?xml version=\"1.0\"?>"
+       << "<nfdStatus xmlns=\"ndn:/localhost/nfd/status/1\">";
 }
 
 void
 printFooter(std::ostream& os)
 {
-  os << "</nfdStatus>";
+    os << "</nfdStatus>";
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Text& text)
 {
-  for (char ch : text.s) {
-    switch (ch) {
-      case '"':
-        os << "&quot;";
-        break;
-      case '&':
-        os << "&amp;";
-        break;
-      case '\'':
-        os << "&apos;";
-        break;
-      case '<':
-        os << "&lt;";
-        break;
-      case '>':
-        os << "&gt;";
-        break;
-      default:
-        os << ch;
-        break;
+    for (char ch : text.s) {
+        switch (ch) {
+            case '"':
+                os << "&quot;";
+                break;
+            case '&':
+                os << "&amp;";
+                break;
+            case '\'':
+                os << "&apos;";
+                break;
+            case '<':
+                os << "&lt;";
+                break;
+            case '>':
+                os << "&gt;";
+                break;
+            default:
+                os << ch;
+                break;
+        }
     }
-  }
-  return os;
+    return os;
 }
 
 std::ostream&
 operator<<(std::ostream& os, Flag v)
 {
-  if (!v.flag) {
-    return os;
-  }
-  return os << '<' << v.elementName << "/>";
+    if (!v.flag) {
+        return os;
+    }
+    return os << '<' << v.elementName << "/>";
 }
 
 std::string
 formatDuration(time::nanoseconds d)
 {
-  std::ostringstream str;
+    std::ostringstream str;
 
-  if (d < 0_ns) {
-    str << "-";
-  }
+    if (d < 0_ns) {
+        str << "-";
+    }
 
-  str << "PT";
+    str << "PT";
 
-  time::seconds seconds(time::duration_cast<time::seconds>(time::abs(d)));
-  time::milliseconds ms(time::duration_cast<time::milliseconds>(time::abs(d) - seconds));
+    time::seconds seconds(time::duration_cast<time::seconds>(time::abs(d)));
+    time::milliseconds ms(time::duration_cast<time::milliseconds>(time::abs(d) - seconds));
 
-  str << seconds.count();
+    str << seconds.count();
 
-  if (ms >= 1_ms) {
-    str << "." << std::setfill('0') << std::setw(3) << ms.count();
-  }
+    if (ms >= 1_ms) {
+        str << "." << std::setfill('0') << std::setw(3) << ms.count();
+    }
 
-  str << "S";
+    str << "S";
 
-  return str.str();
+    return str.str();
 }
 
 std::string
 formatTimestamp(time::system_clock::TimePoint t)
 {
-  return time::toString(t, "%Y-%m-%dT%H:%M:%S%F");
+    return time::toString(t, "%Y-%m-%dT%H:%M:%S%F");
 }
 
 } // namespace xml
@@ -122,10 +122,10 @@ namespace text {
 std::ostream&
 operator<<(std::ostream& os, const Spaces& spaces)
 {
-  for (int i = 0; i < spaces.nSpaces; ++i) {
-    os << ' ';
-  }
-  return os;
+    for (int i = 0; i < spaces.nSpaces; ++i) {
+        os << ' ';
+    }
+    return os;
 }
 
 Separator::Separator(const std::string& first, const std::string& subsequent)
@@ -143,10 +143,10 @@ Separator::Separator(const std::string& subsequent)
 std::ostream&
 operator<<(std::ostream& os, Separator& sep)
 {
-  if (++sep.m_count == 1) {
-    return os << sep.m_first;
-  }
-  return os << sep.m_subsequent;
+    if (++sep.m_count == 1) {
+        return os << sep.m_first;
+    }
+    return os << sep.m_subsequent;
 }
 
 ItemAttributes::ItemAttributes(bool wantMultiLine, int maxAttributeWidth)
@@ -159,49 +159,49 @@ ItemAttributes::ItemAttributes(bool wantMultiLine, int maxAttributeWidth)
 ItemAttributes::Attribute
 ItemAttributes::operator()(const std::string& attribute)
 {
-  return {*this, attribute};
+    return {*this, attribute};
 }
 
 std::string
 ItemAttributes::end() const
 {
-  return m_wantMultiLine ? "\n" : "";
+    return m_wantMultiLine ? "\n" : "";
 }
 
 std::ostream&
 operator<<(std::ostream& os, const ItemAttributes::Attribute& attr)
 {
-  ++attr.ia.m_count;
-  if (attr.ia.m_wantMultiLine) {
-    if (attr.ia.m_count > 1) {
-      os << '\n';
+    ++attr.ia.m_count;
+    if (attr.ia.m_wantMultiLine) {
+        if (attr.ia.m_count > 1) {
+            os << '\n';
+        }
+        os << Spaces{attr.ia.m_maxAttributeWidth - static_cast<int>(attr.attribute.size())};
     }
-    os << Spaces{attr.ia.m_maxAttributeWidth - static_cast<int>(attr.attribute.size())};
-  }
-  else {
-    if (attr.ia.m_count > 1) {
-      os << ' ';
+    else {
+        if (attr.ia.m_count > 1) {
+            os << ' ';
+        }
     }
-  }
-  return os << attr.attribute << '=';
+    return os << attr.attribute << '=';
 }
 
 std::ostream&
 operator<<(std::ostream& os, OnOff v)
 {
-  return os << (v.flag ? "on" : "off");
+    return os << (v.flag ? "on" : "off");
 }
 
 std::ostream&
 operator<<(std::ostream& os, YesNo v)
 {
-  return os << (v.flag ? "yes" : "no");
+    return os << (v.flag ? "yes" : "no");
 }
 
 std::string
 formatTimestamp(time::system_clock::TimePoint t)
 {
-  return time::toIsoString(t);
+    return time::toIsoString(t);
 }
 
 } // namespace text

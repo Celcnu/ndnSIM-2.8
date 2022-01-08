@@ -28,26 +28,24 @@
 namespace ndn {
 namespace tests {
 
-class TestHomeEnvSaver
-{
-public:
-  TestHomeEnvSaver()
-  {
-    if (std::getenv("TEST_HOME") != nullptr)
-      m_HOME = std::getenv("TEST_HOME");
-  }
+class TestHomeEnvSaver {
+  public:
+    TestHomeEnvSaver()
+    {
+        if (std::getenv("TEST_HOME") != nullptr)
+            m_HOME = std::getenv("TEST_HOME");
+    }
 
-  virtual
-  ~TestHomeEnvSaver()
-  {
-    if (!m_HOME.empty())
-      setenv("TEST_HOME", m_HOME.data(), 1);
-    else
-      unsetenv("TEST_HOME");
-  }
+    virtual ~TestHomeEnvSaver()
+    {
+        if (!m_HOME.empty())
+            setenv("TEST_HOME", m_HOME.data(), 1);
+        else
+            unsetenv("TEST_HOME");
+    }
 
-private:
-  std::string m_HOME;
+  private:
+    std::string m_HOME;
 };
 
 } // namespace tests

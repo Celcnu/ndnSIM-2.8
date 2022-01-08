@@ -41,95 +41,93 @@ using namespace nfd::tests;
 namespace ip = boost::asio::ip;
 using ip::udp;
 
-class MulticastUdpTransportFixture : public GlobalIoFixture
-{
-protected:
-  MulticastUdpTransportFixture()
-    : transport(nullptr)
-    , txPort(7001)
-    , receivedPackets(nullptr)
-    , remoteSockRx(g_io)
-    , remoteSockTx(g_io)
-  {
-  }
-
-  void
-  initialize(ip::address address)
-  {
-    ip::address mcastAddr;
-    if (address.is_v4()) {
-      // the administratively scoped group 224.0.0.254 is reserved for experimentation (RFC 4727)
-      mcastAddr = ip::address_v4(0xE00000FE);
+class MulticastUdpTransportFixture : public GlobalIoFixture {
+  protected:
+    MulticastUdpTransportFixture()
+      : transport(nullptr)
+      , txPort(7001)
+      , receivedPackets(nullptr)
+      , remoteSockRx(g_io)
+      , remoteSockTx(g_io)
+    {
     }
-    else {
-      // the group FF0X::114 is reserved for experimentation at all scope levels (RFC 4727)
-      auto v6Addr = ip::address_v6::from_string("FF01::114");
-      v6Addr.scope_id(address.to_v6().scope_id());
-      mcastAddr = v6Addr;
+
+    void
+    initialize(ip::address address)
+    {
+        ip::address mcastAddr;
+        if (address.is_v4()) {
+            // the administratively scoped group 224.0.0.254 is reserved for experimentation (RFC 4727)
+            mcastAddr = ip::address_v4(0xE00000FE);
+        }
+        else {
+            // the group FF0X::114 is reserved for experimentation at all scope levels (RFC 4727)
+            auto v6Addr = ip::address_v6::from_string("FF01::114");
+            v6Addr.scope_id(address.to_v6().scope_id());
+            mcastAddr = v6Addr;
+        }
+        mcastEp = udp::endpoint(mcastAddr, 7373);
+        remoteMcastEp = udp::endpoint(mcastAddr, 8383);
+
+        MulticastUdpTransport::openRxSocket(remoteSockRx, mcastEp, address);
+        MulticastUdpTransport::openTxSocket(remoteSockTx, udp::endpoint(address, 0), nullptr, true);
+
+        udp::socket sockRx(g_io);
+        udp::socket sockTx(g_io);
+        MulticastUdpTransport::openRxSocket(sockRx, remoteMcastEp, address);
+        MulticastUdpTransport::openTxSocket(sockTx, udp::endpoint(address, txPort), nullptr, true);
+
+        face = make_unique<Face>(make_unique<DummyLinkService>(),
+                                 make_unique<MulticastUdpTransport>(mcastEp, std::move(sockRx), std::move(sockTx),
+                                                                    ndn::nfd::LINK_TYPE_MULTI_ACCESS));
+        transport = static_cast<MulticastUdpTransport*>(face->getTransport());
+        receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+
+        BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
     }
-    mcastEp = udp::endpoint(mcastAddr, 7373);
-    remoteMcastEp = udp::endpoint(mcastAddr, 8383);
 
-    MulticastUdpTransport::openRxSocket(remoteSockRx, mcastEp, address);
-    MulticastUdpTransport::openTxSocket(remoteSockTx, udp::endpoint(address, 0), nullptr, true);
+    void
+    remoteRead(std::vector<uint8_t>& buf, bool needToCheck = true)
+    {
+        remoteSockRx.async_receive(boost::asio::buffer(buf),
+                                   [this, needToCheck](const boost::system::error_code& error, size_t) {
+                                       if (needToCheck) {
+                                           BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+                                       }
+                                       limitedIo.afterOp();
+                                   });
+        BOOST_REQUIRE_EQUAL(limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
+    }
 
-    udp::socket sockRx(g_io);
-    udp::socket sockTx(g_io);
-    MulticastUdpTransport::openRxSocket(sockRx, remoteMcastEp, address);
-    MulticastUdpTransport::openTxSocket(sockTx, udp::endpoint(address, txPort), nullptr, true);
+    void
+    remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
+    {
+        sendToGroup(remoteSockTx, buf, needToCheck);
+        limitedIo.defer(1_s);
+    }
 
-    face = make_unique<Face>(make_unique<DummyLinkService>(),
-                             make_unique<MulticastUdpTransport>(mcastEp, std::move(sockRx), std::move(sockTx),
-                                                                ndn::nfd::LINK_TYPE_MULTI_ACCESS));
-    transport = static_cast<MulticastUdpTransport*>(face->getTransport());
-    receivedPackets = &static_cast<DummyLinkService*>(face->getLinkService())->receivedPackets;
+    void
+    sendToGroup(udp::socket& sock, const std::vector<uint8_t>& buf, bool needToCheck = true) const
+    {
+        sock.async_send_to(boost::asio::buffer(buf), remoteMcastEp, [needToCheck](const auto& error, size_t) {
+            if (needToCheck) {
+                BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
+            }
+        });
+    }
 
-    BOOST_REQUIRE_EQUAL(transport->getState(), TransportState::UP);
-  }
+  protected:
+    LimitedIo limitedIo;
+    MulticastUdpTransport* transport;
+    udp::endpoint mcastEp;
+    uint16_t txPort;
+    std::vector<RxPacket>* receivedPackets;
 
-  void
-  remoteRead(std::vector<uint8_t>& buf, bool needToCheck = true)
-  {
-    remoteSockRx.async_receive(boost::asio::buffer(buf),
-      [this, needToCheck] (const boost::system::error_code& error, size_t) {
-        if (needToCheck) {
-          BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-        }
-        limitedIo.afterOp();
-      });
-    BOOST_REQUIRE_EQUAL(limitedIo.run(1, 1_s), LimitedIo::EXCEED_OPS);
-  }
-
-  void
-  remoteWrite(const std::vector<uint8_t>& buf, bool needToCheck = true)
-  {
-    sendToGroup(remoteSockTx, buf, needToCheck);
-    limitedIo.defer(1_s);
-  }
-
-  void
-  sendToGroup(udp::socket& sock, const std::vector<uint8_t>& buf, bool needToCheck = true) const
-  {
-    sock.async_send_to(boost::asio::buffer(buf), remoteMcastEp,
-      [needToCheck] (const auto& error, size_t) {
-        if (needToCheck) {
-          BOOST_REQUIRE_EQUAL(error, boost::system::errc::success);
-        }
-      });
-  }
-
-protected:
-  LimitedIo limitedIo;
-  MulticastUdpTransport* transport;
-  udp::endpoint mcastEp;
-  uint16_t txPort;
-  std::vector<RxPacket>* receivedPackets;
-
-private:
-  unique_ptr<Face> face;
-  udp::endpoint remoteMcastEp;
-  udp::socket remoteSockRx;
-  udp::socket remoteSockTx;
+  private:
+    unique_ptr<Face> face;
+    udp::endpoint remoteMcastEp;
+    udp::socket remoteSockRx;
+    udp::socket remoteSockTx;
 };
 
 } // namespace tests

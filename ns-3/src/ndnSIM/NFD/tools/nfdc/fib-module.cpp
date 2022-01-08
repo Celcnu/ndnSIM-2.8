@@ -31,71 +31,67 @@ namespace tools {
 namespace nfdc {
 
 void
-FibModule::fetchStatus(Controller& controller,
-                       const std::function<void()>& onSuccess,
-                       const Controller::DatasetFailCallback& onFailure,
-                       const CommandOptions& options)
+FibModule::fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                       const Controller::DatasetFailCallback& onFailure, const CommandOptions& options)
 {
-  controller.fetch<ndn::nfd::FibDataset>(
-    [this, onSuccess] (const std::vector<FibEntry>& result) {
-      m_status = result;
-      onSuccess();
-    },
-    onFailure, options);
+    controller.fetch<ndn::nfd::FibDataset>(
+      [this, onSuccess](const std::vector<FibEntry>& result) {
+          m_status = result;
+          onSuccess();
+      },
+      onFailure, options);
 }
 
 void
 FibModule::formatStatusXml(std::ostream& os) const
 {
-  os << "<fib>";
-  for (const FibEntry& item : m_status) {
-    this->formatItemXml(os, item);
-  }
-  os << "</fib>";
+    os << "<fib>";
+    for (const FibEntry& item : m_status) {
+        this->formatItemXml(os, item);
+    }
+    os << "</fib>";
 }
 
 void
 FibModule::formatItemXml(std::ostream& os, const FibEntry& item) const
 {
-  os << "<fibEntry>";
+    os << "<fibEntry>";
 
-  os << "<prefix>" << xml::Text{item.getPrefix().toUri()} << "</prefix>";
+    os << "<prefix>" << xml::Text{item.getPrefix().toUri()} << "</prefix>";
 
-  os << "<nextHops>";
-  for (const NextHopRecord& nh : item.getNextHopRecords()) {
-    os << "<nextHop>"
-       << "<faceId>" << nh.getFaceId() << "</faceId>"
-       << "<cost>" << nh.getCost() << "</cost>"
-       << "</nextHop>";
-  }
-  os << "</nextHops>";
+    os << "<nextHops>";
+    for (const NextHopRecord& nh : item.getNextHopRecords()) {
+        os << "<nextHop>"
+           << "<faceId>" << nh.getFaceId() << "</faceId>"
+           << "<cost>" << nh.getCost() << "</cost>"
+           << "</nextHop>";
+    }
+    os << "</nextHops>";
 
-  os << "</fibEntry>";
+    os << "</fibEntry>";
 }
 
 void
 FibModule::formatStatusText(std::ostream& os) const
 {
-  os << "FIB:\n";
-  for (const FibEntry& item : m_status) {
-    this->formatItemText(os, item);
-  }
+    os << "FIB:\n";
+    for (const FibEntry& item : m_status) {
+        this->formatItemText(os, item);
+    }
 }
 
 void
 FibModule::formatItemText(std::ostream& os, const FibEntry& item) const
 {
-  os << "  " << item.getPrefix() << " nexthops={";
+    os << "  " << item.getPrefix() << " nexthops={";
 
-  text::Separator sep(", ");
-  for (const NextHopRecord& nh : item.getNextHopRecords()) {
-    os << sep
-       << "faceid=" << nh.getFaceId()
-       << " (cost=" << nh.getCost() << ")";
-  }
+    text::Separator sep(", ");
+    for (const NextHopRecord& nh : item.getNextHopRecords()) {
+        os << sep << "faceid=" << nh.getFaceId() << " (cost=" << nh.getCost() << ")";
+    }
 
-  os << "}";
-  os << "\n";
+    os << "}";
+    os << "\n";
 }
 
 } // namespace nfdc

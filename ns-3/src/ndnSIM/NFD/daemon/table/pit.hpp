@@ -44,98 +44,91 @@ using DataMatchResult = std::vector<shared_ptr<Entry>>;
 
 /** \brief Represents the Interest Table
  */
-class Pit : noncopyable
-{
-public:
-  explicit
-  Pit(NameTree& nameTree);
+class Pit : noncopyable {
+  public:
+    explicit Pit(NameTree& nameTree);
 
-  /** \return number of entries
-   */
-  size_t
-  size() const
-  {
-    return m_nItems;
-  }
+    /** \return number of entries
+     */
+    size_t
+    size() const
+    {
+        return m_nItems;
+    }
 
-  /** \brief Finds a PIT entry for \p interest
-   *  \param interest the Interest
-   *  \return an existing entry with same Name and Selectors; otherwise nullptr
-   */
-  shared_ptr<Entry>
-  find(const Interest& interest) const
-  {
-    return const_cast<Pit*>(this)->findOrInsert(interest, false).first;
-  }
+    /** \brief Finds a PIT entry for \p interest
+     *  \param interest the Interest
+     *  \return an existing entry with same Name and Selectors; otherwise nullptr
+     */
+    shared_ptr<Entry>
+    find(const Interest& interest) const
+    {
+        return const_cast<Pit*>(this)->findOrInsert(interest, false).first;
+    }
 
-  /** \brief Inserts a PIT entry for \p interest
-   *  \param interest the Interest; must be created with make_shared
-   *  \return a new or existing entry with same Name and Selectors,
-   *          and true for new entry, false for existing entry
-   */
-  std::pair<shared_ptr<Entry>, bool>
-  insert(const Interest& interest)
-  {
-    return this->findOrInsert(interest, true);
-  }
+    /** \brief Inserts a PIT entry for \p interest
+     *  \param interest the Interest; must be created with make_shared
+     *  \return a new or existing entry with same Name and Selectors,
+     *          and true for new entry, false for existing entry
+     */
+    std::pair<shared_ptr<Entry>, bool>
+    insert(const Interest& interest)
+    {
+        return this->findOrInsert(interest, true);
+    }
 
-  /** \brief Performs a Data match
-   *  \return an iterable of all PIT entries matching \p data
-   */
-  DataMatchResult
-  findAllDataMatches(const Data& data) const;
+    /** \brief Performs a Data match
+     *  \return an iterable of all PIT entries matching \p data
+     */
+    DataMatchResult findAllDataMatches(const Data& data) const;
 
-  /** \brief Deletes an entry
-   */
-  void
-  erase(Entry* entry)
-  {
-    this->erase(entry, true);
-  }
+    /** \brief Deletes an entry
+     */
+    void
+    erase(Entry* entry)
+    {
+        this->erase(entry, true);
+    }
 
-  /** \brief Deletes in-records and out-records for \p face
-   */
-  void
-  deleteInOutRecords(Entry* entry, const Face& face);
+    /** \brief Deletes in-records and out-records for \p face
+     */
+    void deleteInOutRecords(Entry* entry, const Face& face);
 
-public: // enumeration
-  typedef Iterator const_iterator;
+  public: // enumeration
+    typedef Iterator const_iterator;
 
-  /** \return an iterator to the beginning
-   *  \note Iteration order is implementation-defined.
-   *  \warning Undefined behavior may occur if a FIB/PIT/Measurements/StrategyChoice entry
-   *           is inserted or erased during iteration.
-   */
-  const_iterator
-  begin() const;
+    /** \return an iterator to the beginning
+     *  \note Iteration order is implementation-defined.
+     *  \warning Undefined behavior may occur if a FIB/PIT/Measurements/StrategyChoice entry
+     *           is inserted or erased during iteration.
+     */
+    const_iterator begin() const;
 
-  /** \return an iterator to the end
-   *  \sa begin()
-   */
-  const_iterator
-  end() const
-  {
-    return Iterator();
-  }
+    /** \return an iterator to the end
+     *  \sa begin()
+     */
+    const_iterator
+    end() const
+    {
+        return Iterator();
+    }
 
-private:
-  void
-  erase(Entry* pitEntry, bool canDeleteNte);
+  private:
+    void erase(Entry* pitEntry, bool canDeleteNte);
 
-  /** \brief Finds or inserts a PIT entry for \p interest
-   *  \param interest the Interest; must be created with make_shared if allowInsert
-   *  \param allowInsert whether inserting a new entry is allowed
-   *  \return if allowInsert, a new or existing entry with same Name+Selectors,
-   *          and true for new entry, false for existing entry;
-   *          if not allowInsert, an existing entry with same Name+Selectors and false,
-   *          or `{nullptr, true}` if there's no existing entry
-   */
-  std::pair<shared_ptr<Entry>, bool>
-  findOrInsert(const Interest& interest, bool allowInsert);
+    /** \brief Finds or inserts a PIT entry for \p interest
+     *  \param interest the Interest; must be created with make_shared if allowInsert
+     *  \param allowInsert whether inserting a new entry is allowed
+     *  \return if allowInsert, a new or existing entry with same Name+Selectors,
+     *          and true for new entry, false for existing entry;
+     *          if not allowInsert, an existing entry with same Name+Selectors and false,
+     *          or `{nullptr, true}` if there's no existing entry
+     */
+    std::pair<shared_ptr<Entry>, bool> findOrInsert(const Interest& interest, bool allowInsert);
 
-private:
-  NameTree& m_nameTree;
-  size_t m_nItems = 0;
+  private:
+    NameTree& m_nameTree;
+    size_t m_nItems = 0;
 };
 
 } // namespace pit

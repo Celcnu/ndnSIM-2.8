@@ -39,13 +39,13 @@ Entry::~Entry() = default;
 const Name&
 Entry::getStrategyInstanceName() const
 {
-  return this->getStrategy().getInstanceName();
+    return this->getStrategy().getInstanceName();
 }
 
 void
 Entry::setStrategy(unique_ptr<fw::Strategy> strategy)
 {
-  m_strategy = std::move(strategy);
+    m_strategy = std::move(strategy);
 }
 
 } // namespace strategy_choice

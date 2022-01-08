@@ -36,18 +36,12 @@ namespace priority_fifo {
 
 using Queue = std::list<Policy::EntryRef>;
 
-enum QueueType {
-  QUEUE_UNSOLICITED,
-  QUEUE_STALE,
-  QUEUE_FIFO,
-  QUEUE_MAX
-};
+enum QueueType { QUEUE_UNSOLICITED, QUEUE_STALE, QUEUE_FIFO, QUEUE_MAX };
 
-struct EntryInfo
-{
-  QueueType queueType;
-  Queue::iterator queueIt;
-  scheduler::EventId moveStaleEventId;
+struct EntryInfo {
+    QueueType queueType;
+    Queue::iterator queueIt;
+    scheduler::EventId moveStaleEventId;
 };
 
 /** \brief Priority FIFO replacement policy
@@ -62,59 +56,49 @@ struct EntryInfo
  *  Eviction procedure exhausts the first queue before moving onto the next queue,
  *  in the order of unsolicited, stale, and fresh queue.
  */
-class PriorityFifoPolicy : public Policy
-{
-public:
-  PriorityFifoPolicy();
+class PriorityFifoPolicy : public Policy {
+  public:
+    PriorityFifoPolicy();
 
-  ~PriorityFifoPolicy() override;
+    ~PriorityFifoPolicy() override;
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 
-private:
-  void
-  doAfterInsert(EntryRef i) override;
+  private:
+    void doAfterInsert(EntryRef i) override;
 
-  void
-  doAfterRefresh(EntryRef i) override;
+    void doAfterRefresh(EntryRef i) override;
 
-  void
-  doBeforeErase(EntryRef i) override;
+    void doBeforeErase(EntryRef i) override;
 
-  void
-  doBeforeUse(EntryRef i) override;
+    void doBeforeUse(EntryRef i) override;
 
-  void
-  evictEntries() override;
+    void evictEntries() override;
 
-private:
-  /** \brief evicts one entry
-   *  \pre CS is not empty
-   */
-  void
-  evictOne();
+  private:
+    /** \brief evicts one entry
+     *  \pre CS is not empty
+     */
+    void evictOne();
 
-  /** \brief attaches the entry to an appropriate queue
-   *  \pre the entry is not in any queue
-   */
-  void
-  attachQueue(EntryRef i);
+    /** \brief attaches the entry to an appropriate queue
+     *  \pre the entry is not in any queue
+     */
+    void attachQueue(EntryRef i);
 
-  /** \brief detaches the entry from its current queue
-   *  \post the entry is not in any queue
-   */
-  void
-  detachQueue(EntryRef i);
+    /** \brief detaches the entry from its current queue
+     *  \post the entry is not in any queue
+     */
+    void detachQueue(EntryRef i);
 
-  /** \brief moves an entry from FIFO queue to STALE queue
-   */
-  void
-  moveToStaleQueue(EntryRef i);
+    /** \brief moves an entry from FIFO queue to STALE queue
+     */
+    void moveToStaleQueue(EntryRef i);
 
-private:
-  Queue m_queues[QUEUE_MAX];
-  std::map<EntryRef, EntryInfo*> m_entryInfoMap;
+  private:
+    Queue m_queues[QUEUE_MAX];
+    std::map<EntryRef, EntryInfo*> m_entryInfoMap;
 };
 
 } // namespace priority_fifo

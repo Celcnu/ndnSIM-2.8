@@ -36,52 +36,47 @@ namespace v2 {
 /**
  * @brief Interface used by the validator to fetch missing certificates
  */
-class CertificateFetcher : noncopyable
-{
-public:
-  using ValidationContinuation = std::function<void(const Certificate& cert,
-                                                    const shared_ptr<ValidationState>& state)>;
+class CertificateFetcher : noncopyable {
+  public:
+    using ValidationContinuation =
+      std::function<void(const Certificate& cert, const shared_ptr<ValidationState>& state)>;
 
-  CertificateFetcher();
+    CertificateFetcher();
 
-  virtual
-  ~CertificateFetcher();
+    virtual ~CertificateFetcher();
 
-  /**
-   * @brief Assign certificate storage to check known certificate and to cache unverified ones
-   * @note The supplied @p certStorage should be valid for the lifetime of CertificateFetcher
-   */
-  virtual void
-  setCertificateStorage(CertificateStorage& certStorage);
+    /**
+     * @brief Assign certificate storage to check known certificate and to cache unverified ones
+     * @note The supplied @p certStorage should be valid for the lifetime of CertificateFetcher
+     */
+    virtual void setCertificateStorage(CertificateStorage& certStorage);
 
-  /**
-   * @brief Asynchronously fetch certificate
-   * @pre m_certStorage != nullptr
-   *
-   * If the requested certificate exists in the storage, then this method will immediately call
-   * continueValidation with the certification.  If certificate is not available, the
-   * implementation-specific doFetch will be called to asynchronously fetch certificate.  The
-   * successfully retrieved certificate will be automatically added to the unverified cache of
-   * the certificate storage.
-   *
-   * When the requested certificate is retrieved, continueValidation is called.  Otherwise, the
-   * fetcher implementation call state->failed() with the appropriate error code and diagnostic
-   * message.
-   */
-  void
-  fetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-        const ValidationContinuation& continueValidation);
+    /**
+     * @brief Asynchronously fetch certificate
+     * @pre m_certStorage != nullptr
+     *
+     * If the requested certificate exists in the storage, then this method will immediately call
+     * continueValidation with the certification.  If certificate is not available, the
+     * implementation-specific doFetch will be called to asynchronously fetch certificate.  The
+     * successfully retrieved certificate will be automatically added to the unverified cache of
+     * the certificate storage.
+     *
+     * When the requested certificate is retrieved, continueValidation is called.  Otherwise, the
+     * fetcher implementation call state->failed() with the appropriate error code and diagnostic
+     * message.
+     */
+    void fetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
+               const ValidationContinuation& continueValidation);
 
-private:
-  /**
-   * @brief Asynchronous certificate fetching implementation
-   */
-  virtual void
-  doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
-          const ValidationContinuation& continueValidation) = 0;
+  private:
+    /**
+     * @brief Asynchronous certificate fetching implementation
+     */
+    virtual void doFetch(const shared_ptr<CertificateRequest>& certRequest, const shared_ptr<ValidationState>& state,
+                         const ValidationContinuation& continueValidation) = 0;
 
-protected:
-  CertificateStorage* m_certStorage;
+  protected:
+    CertificateStorage* m_certStorage;
 };
 
 } // namespace v2

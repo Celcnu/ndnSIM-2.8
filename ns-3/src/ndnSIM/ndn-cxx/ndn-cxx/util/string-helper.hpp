@@ -28,10 +28,9 @@ namespace ndn {
 
 class Buffer;
 
-class StringHelperError : public std::invalid_argument
-{
-public:
-  using std::invalid_argument::invalid_argument;
+class StringHelperError : public std::invalid_argument {
+  public:
+    using std::invalid_argument::invalid_argument;
 };
 
 /**
@@ -45,23 +44,20 @@ public:
  * std::cout << std::uppercase << AsHex{42}; // outputs "0x2A"
  * @endcode
  */
-class AsHex
-{
-public:
-  constexpr explicit
-  AsHex(uint64_t val) noexcept
-    : m_value(val)
-  {
-  }
+class AsHex {
+  public:
+    constexpr explicit AsHex(uint64_t val) noexcept
+      : m_value(val)
+    {
+    }
 
-private:
-  uint64_t m_value;
+  private:
+    uint64_t m_value;
 
-  friend std::ostream& operator<<(std::ostream&, const AsHex&);
+    friend std::ostream& operator<<(std::ostream&, const AsHex&);
 };
 
-std::ostream&
-operator<<(std::ostream& os, const AsHex& hex);
+std::ostream& operator<<(std::ostream& os, const AsHex& hex);
 
 /**
  * @brief Output the hex representation of @p num to the output stream @p os
@@ -72,8 +68,7 @@ operator<<(std::ostream& os, const AsHex& hex);
  *
  * The output string is a continuous sequence of hex characters without any whitespace separators.
  */
-void
-printHex(std::ostream& os, uint64_t num, bool wantUpperCase = false);
+void printHex(std::ostream& os, uint64_t num, bool wantUpperCase = false);
 
 /**
  * @brief Output the hex representation of the bytes in @p buffer to the output stream @p os
@@ -94,8 +89,7 @@ printHex(std::ostream& os, uint64_t num, bool wantUpperCase = false);
  *
  * The output string is a continuous sequence of hex characters without any whitespace separators.
  */
-void
-printHex(std::ostream& os, const uint8_t* buffer, size_t length, bool wantUpperCase = true);
+void printHex(std::ostream& os, const uint8_t* buffer, size_t length, bool wantUpperCase = true);
 
 /**
  * @brief Output the hex representation of the bytes in @p buffer to the output stream @p os
@@ -104,8 +98,7 @@ printHex(std::ostream& os, const uint8_t* buffer, size_t length, bool wantUpperC
  * @param buffer Buffer of bytes to print in hexadecimal format
  * @param wantUpperCase if true (the default) print uppercase hex chars
  */
-void
-printHex(std::ostream& os, const Buffer& buffer, bool wantUpperCase = true);
+void printHex(std::ostream& os, const Buffer& buffer, bool wantUpperCase = true);
 
 /**
  * @brief Return a string containing the hex representation of the bytes in @p buffer
@@ -125,8 +118,7 @@ printHex(std::ostream& os, const Buffer& buffer, bool wantUpperCase = true);
  *
  * The output string is a continuous sequence of hex characters without any whitespace separators.
  */
-NDN_CXX_NODISCARD std::string
-toHex(const uint8_t* buffer, size_t length, bool wantUpperCase = true);
+NDN_CXX_NODISCARD std::string toHex(const uint8_t* buffer, size_t length, bool wantUpperCase = true);
 
 /**
  * @brief Return a string containing the hex representation of the bytes in @p buffer
@@ -134,8 +126,7 @@ toHex(const uint8_t* buffer, size_t length, bool wantUpperCase = true);
  * @param buffer Buffer of bytes to convert to hexadecimal format
  * @param wantUpperCase if true (the default) use uppercase hex chars
  */
-NDN_CXX_NODISCARD std::string
-toHex(const Buffer& buffer, bool wantUpperCase = true);
+NDN_CXX_NODISCARD std::string toHex(const Buffer& buffer, bool wantUpperCase = true);
 
 /**
  * @brief Convert the hex string to buffer
@@ -143,8 +134,7 @@ toHex(const Buffer& buffer, bool wantUpperCase = true);
  *        without any whitespace separators (e.g., "48656C6C6F2C20776F726C6421")
  * @throw StringHelperError if input is invalid
  */
-shared_ptr<Buffer>
-fromHex(const std::string& hexString);
+shared_ptr<Buffer> fromHex(const std::string& hexString);
 
 /**
  * @brief Convert (the least significant nibble of) @p n to the corresponding hex character
@@ -152,9 +142,7 @@ fromHex(const std::string& hexString);
 NDN_CXX_NODISCARD constexpr char
 toHexChar(unsigned int n, bool wantUpperCase = true) noexcept
 {
-  return wantUpperCase ?
-         "0123456789ABCDEF"[n & 0xf] :
-         "0123456789abcdef"[n & 0xf];
+    return wantUpperCase ? "0123456789ABCDEF"[n & 0xf] : "0123456789abcdef"[n & 0xf];
 }
 
 /**
@@ -163,10 +151,10 @@ toHexChar(unsigned int n, bool wantUpperCase = true) noexcept
 NDN_CXX_NODISCARD constexpr int
 fromHexChar(char c) noexcept
 {
-  return (c >= '0' && c <= '9') ? int(c - '0') :
-         (c >= 'A' && c <= 'F') ? int(c - 'A' + 10) :
-         (c >= 'a' && c <= 'f') ? int(c - 'a' + 10) :
-         -1;
+    return (c >= '0' && c <= '9')   ? int(c - '0')
+           : (c >= 'A' && c <= 'F') ? int(c - 'A' + 10)
+           : (c >= 'a' && c <= 'f') ? int(c - 'a' + 10)
+                                    : -1;
 }
 
 /**
@@ -185,11 +173,9 @@ fromHexChar(char c) noexcept
  * escape("100%") == "100%25"
  * @endcode
  */
-NDN_CXX_NODISCARD std::string
-escape(const std::string& str);
+NDN_CXX_NODISCARD std::string escape(const std::string& str);
 
-void
-escape(std::ostream& os, const char* str, size_t len);
+void escape(std::ostream& os, const char* str, size_t len);
 
 /**
  * @brief Decode a percent-encoded string
@@ -204,11 +190,9 @@ escape(std::ostream& os, const char* str, size_t len);
  * unescape("hello%20world%FooBar") == "hello world%FooBar"
  * @endcode
  */
-NDN_CXX_NODISCARD std::string
-unescape(const std::string& str);
+NDN_CXX_NODISCARD std::string unescape(const std::string& str);
 
-void
-unescape(std::ostream& os, const char* str, size_t len);
+void unescape(std::ostream& os, const char* str, size_t len);
 
 } // namespace ndn
 

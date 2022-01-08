@@ -29,30 +29,30 @@ PrefixAnnouncementHeader::PrefixAnnouncementHeader() = default;
 
 PrefixAnnouncementHeader::PrefixAnnouncementHeader(const Block& block)
 {
-  wireDecode(block);
+    wireDecode(block);
 }
 
 PrefixAnnouncementHeader::PrefixAnnouncementHeader(PrefixAnnouncement prefixAnn)
   : m_prefixAnn(std::move(prefixAnn))
 {
-  if (m_prefixAnn->getData() == nullopt) {
-    NDN_THROW(Error("PrefixAnnouncement does not contain Data"));
-  }
+    if (m_prefixAnn->getData() == nullopt) {
+        NDN_THROW(Error("PrefixAnnouncement does not contain Data"));
+    }
 }
 
-template<encoding::Tag TAG>
+template <encoding::Tag TAG>
 size_t
 PrefixAnnouncementHeader::wireEncode(EncodingImpl<TAG>& encoder) const
 {
-  if (m_prefixAnn == nullopt) {
-    NDN_THROW(Error("PrefixAnnouncementHeader does not contain a PrefixAnnouncement"));
-  }
+    if (m_prefixAnn == nullopt) {
+        NDN_THROW(Error("PrefixAnnouncementHeader does not contain a PrefixAnnouncement"));
+    }
 
-  size_t length = 0;
-  length += m_prefixAnn->getData()->wireEncode(encoder);
-  length += encoder.prependVarNumber(length);
-  length += encoder.prependVarNumber(tlv::PrefixAnnouncement);
-  return length;
+    size_t length = 0;
+    length += m_prefixAnn->getData()->wireEncode(encoder);
+    length += encoder.prependVarNumber(length);
+    length += encoder.prependVarNumber(tlv::PrefixAnnouncement);
+    return length;
 }
 
 NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(PrefixAnnouncementHeader);
@@ -60,12 +60,12 @@ NDN_CXX_DEFINE_WIRE_ENCODE_INSTANTIATIONS(PrefixAnnouncementHeader);
 void
 PrefixAnnouncementHeader::wireDecode(const Block& wire)
 {
-  if (wire.type() != tlv::PrefixAnnouncement) {
-    NDN_THROW(Error("PrefixAnnouncement", wire.type()));
-  }
+    if (wire.type() != tlv::PrefixAnnouncement) {
+        NDN_THROW(Error("PrefixAnnouncement", wire.type()));
+    }
 
-  wire.parse();
-  m_prefixAnn.emplace(Data(wire.get(ndn::tlv::Data)));
+    wire.parse();
+    m_prefixAnn.emplace(Data(wire.get(ndn::tlv::Data)));
 }
 } // namespace lp
 } // namespace ndn

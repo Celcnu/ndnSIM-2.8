@@ -34,53 +34,46 @@ using ndn::Transport;
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketNameOk)
 {
-  const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://127.0.0.1:6000");
+    const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://127.0.0.1:6000");
 
-  BOOST_CHECK_EQUAL(got.first, "127.0.0.1");
-  BOOST_CHECK_EQUAL(got.second, "6000");
+    BOOST_CHECK_EQUAL(got.first, "127.0.0.1");
+    BOOST_CHECK_EQUAL(got.second, "6000");
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketHostAndPortBadMissingHost)
 {
-  BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("tcp://:6000"),
-                        Transport::Error,
-                        [] (const Transport::Error& error) {
-                          return error.what() == "Malformed URI: tcp://:6000"s;
-                        });
+    BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("tcp://:6000"), Transport::Error,
+                          [](const Transport::Error& error) { return error.what() == "Malformed URI: tcp://:6000"s; });
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketHostAndPortOkOmittedPort)
 {
-  const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://127.0.0.1");
+    const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://127.0.0.1");
 
-  BOOST_CHECK_EQUAL(got.first, "127.0.0.1");
-  BOOST_CHECK_EQUAL(got.second, "6363");
+    BOOST_CHECK_EQUAL(got.first, "127.0.0.1");
+    BOOST_CHECK_EQUAL(got.second, "6363");
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketHostAndPortNameOkOmittedHostOmittedPort)
 {
-  const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://");
+    const auto got = TcpTransport::getSocketHostAndPortFromUri("tcp://");
 
-  BOOST_CHECK_EQUAL(got.first, "localhost");
-  BOOST_CHECK_EQUAL(got.second, "6363");
+    BOOST_CHECK_EQUAL(got.first, "localhost");
+    BOOST_CHECK_EQUAL(got.second, "6363");
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketHostAndPortBadWrongTransport)
 {
-  BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("unix://"),
-                        Transport::Error,
-                        [] (const Transport::Error& error) {
-                          return error.what() == "Cannot create TcpTransport from \"unix\" URI"s;
-                        });
+    BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("unix://"), Transport::Error,
+                          [](const Transport::Error& error) {
+                              return error.what() == "Cannot create TcpTransport from \"unix\" URI"s;
+                          });
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketHostAndPortBadMalformedUri)
 {
-  BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("tcp"),
-                        Transport::Error,
-                        [] (const Transport::Error& error) {
-                          return error.what() == "Malformed URI: tcp"s;
-                        });
+    BOOST_CHECK_EXCEPTION(TcpTransport::getSocketHostAndPortFromUri("tcp"), Transport::Error,
+                          [](const Transport::Error& error) { return error.what() == "Malformed URI: tcp"s; });
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTcpTransport

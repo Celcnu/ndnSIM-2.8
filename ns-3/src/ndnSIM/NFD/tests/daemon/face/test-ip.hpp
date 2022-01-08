@@ -36,48 +36,39 @@ namespace face {
 namespace tests {
 
 enum class AddressFamily {
-  V4 = static_cast<int>(ndn::net::AddressFamily::V4),
-  V6 = static_cast<int>(ndn::net::AddressFamily::V6),
-  Any
+    V4 = static_cast<int>(ndn::net::AddressFamily::V4),
+    V6 = static_cast<int>(ndn::net::AddressFamily::V6),
+    Any
 };
 
-std::ostream&
-operator<<(std::ostream& os, AddressFamily family);
+std::ostream& operator<<(std::ostream& os, AddressFamily family);
 
 enum class AddressScope {
-  Loopback  = static_cast<int>(ndn::net::AddressScope::HOST),
-  LinkLocal = static_cast<int>(ndn::net::AddressScope::LINK),
-  Global    = static_cast<int>(ndn::net::AddressScope::GLOBAL),
-  Any
+    Loopback = static_cast<int>(ndn::net::AddressScope::HOST),
+    LinkLocal = static_cast<int>(ndn::net::AddressScope::LINK),
+    Global = static_cast<int>(ndn::net::AddressScope::GLOBAL),
+    Any
 };
 
-std::ostream&
-operator<<(std::ostream& os, AddressScope scope);
+std::ostream& operator<<(std::ostream& os, AddressScope scope);
 
-enum class MulticastInterface {
-  No,
-  Yes,
-  Any
-};
+enum class MulticastInterface { No, Yes, Any };
 
-std::ostream&
-operator<<(std::ostream& os, MulticastInterface mcast);
+std::ostream& operator<<(std::ostream& os, MulticastInterface mcast);
 
 /** \brief Derives IP address type from AddressFamily
  */
-template<AddressFamily AF>
+template <AddressFamily AF>
 struct IpAddressFromFamily;
 
-template<>
-struct IpAddressFromFamily<AddressFamily::V4>
-{
-  using type = boost::asio::ip::address_v4;
+template <>
+struct IpAddressFromFamily<AddressFamily::V4> {
+    using type = boost::asio::ip::address_v4;
 };
 
-template<>
-struct IpAddressFromFamily<AddressFamily::V6>
-{
-  using type = boost::asio::ip::address_v6;
+template <>
+struct IpAddressFromFamily<AddressFamily::V6> {
+    using type = boost::asio::ip::address_v6;
 };
 
 /** \brief Get an IP address from any available network interface
@@ -87,10 +78,8 @@ struct IpAddressFromFamily<AddressFamily::V6>
  *  \return an IP address, either boost::asio::ip::address_v4 or boost::asio::ip::address_v6
  *  \retval unspecified address, if no appropriate address is available
  */
-boost::asio::ip::address
-getTestIp(AddressFamily family = AddressFamily::Any,
-          AddressScope scope = AddressScope::Any,
-          MulticastInterface mcast = MulticastInterface::Any);
+boost::asio::ip::address getTestIp(AddressFamily family = AddressFamily::Any, AddressScope scope = AddressScope::Any,
+                                   MulticastInterface mcast = MulticastInterface::Any);
 
 /** \brief Skip the rest of the test case if \p address is unavailable
  *
@@ -104,13 +93,13 @@ getTestIp(AddressFamily family = AddressFamily::Any,
  *  }
  *  \endcode
  */
-#define SKIP_IF_IP_UNAVAILABLE(address) \
-  do { \
-    if ((address).is_unspecified()) { \
-      BOOST_WARN_MESSAGE(false, "skipping assertions that require a valid IP address"); \
-      return; \
-    } \
-  } while (false)
+#define SKIP_IF_IP_UNAVAILABLE(address)                                                                                \
+    do {                                                                                                               \
+        if ((address).is_unspecified()) {                                                                              \
+            BOOST_WARN_MESSAGE(false, "skipping assertions that require a valid IP address");                          \
+            return;                                                                                                    \
+        }                                                                                                              \
+    } while (false)
 
 } // namespace tests
 } // namespace face

@@ -27,26 +27,26 @@ namespace ndn {
 uint64_t
 PacketBase::getCongestionMark() const
 {
-  auto mark = this->getTag<lp::CongestionMarkTag>();
+    auto mark = this->getTag<lp::CongestionMarkTag>();
 
-  if (mark == nullptr) {
-    return 0;
-  }
-  else {
-    return *mark;
-  }
+    if (mark == nullptr) {
+        return 0;
+    }
+    else {
+        return *mark;
+    }
 }
 
 void
 PacketBase::setCongestionMark(uint64_t mark)
 {
-  if (mark != 0) {
-    auto tag = make_shared<lp::CongestionMarkTag>(mark);
-    this->setTag(std::move(tag));
-  }
-  else {
-    this->removeTag<lp::CongestionMarkTag>();
-  }
+    if (mark != 0) {
+        auto tag = make_shared<lp::CongestionMarkTag>(mark);
+        this->setTag(std::move(tag));
+    }
+    else {
+        this->removeTag<lp::CongestionMarkTag>();
+    }
 }
 
 } // namespace ndn

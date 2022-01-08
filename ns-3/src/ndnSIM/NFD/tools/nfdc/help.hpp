@@ -38,9 +38,8 @@ namespace nfdc {
  *  \param mode only the commands available in this mode are listed
  *  \param noun if not empty, only the commands starting with this noun are listed
  */
-void
-helpList(std::ostream& os, const CommandParser& parser,
-         ParseMode mode = ParseMode::ONE_SHOT, const std::string& noun = "");
+void helpList(std::ostream& os, const CommandParser& parser, ParseMode mode = ParseMode::ONE_SHOT,
+              const std::string& noun = "");
 
 /** \brief tries to help the user, if requested on the command line
  *
@@ -52,9 +51,7 @@ helpList(std::ostream& os, const CommandParser& parser,
  *  \retval 1 help was requested, but an error was encountered while exec'ing the `man` binary
  *  \retval 2 help was not provided because \p args did not contain any help-related options
  */
-int
-help(std::ostream& os, const CommandParser& parser,
-     std::vector<std::string> args);
+int help(std::ostream& os, const CommandParser& parser, std::vector<std::string> args);
 
 } // namespace nfdc
 } // namespace tools

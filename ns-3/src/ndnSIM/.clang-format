@@ -34,4 +34,5 @@ ContinuationIndentWidth: 2
 
 # chaochao added
 IndentCaseLabels:	true
-NamespaceIndentation:	All
+NamespaceIndentation:	None
+SortIncludes:	false

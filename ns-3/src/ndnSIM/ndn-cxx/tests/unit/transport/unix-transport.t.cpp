@@ -34,30 +34,26 @@ using ndn::Transport;
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketNameOk)
 {
-  BOOST_CHECK_EQUAL(UnixTransport::getSocketNameFromUri("unix:///tmp/test/nfd.sock"), "/tmp/test/nfd.sock");
+    BOOST_CHECK_EQUAL(UnixTransport::getSocketNameFromUri("unix:///tmp/test/nfd.sock"), "/tmp/test/nfd.sock");
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketNameOkOmittedSocketOmittedProtocol)
 {
-  BOOST_CHECK_EQUAL(UnixTransport::getSocketNameFromUri(""), "/var/run/nfd.sock");
+    BOOST_CHECK_EQUAL(UnixTransport::getSocketNameFromUri(""), "/var/run/nfd.sock");
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketNameBadWrongTransport)
 {
-  BOOST_CHECK_EXCEPTION(UnixTransport::getSocketNameFromUri("tcp://"),
-                        Transport::Error,
-                        [] (const Transport::Error& error) {
-                          return error.what() == "Cannot create UnixTransport from \"tcp\" URI"s;
-                        });
+    BOOST_CHECK_EXCEPTION(UnixTransport::getSocketNameFromUri("tcp://"), Transport::Error,
+                          [](const Transport::Error& error) {
+                              return error.what() == "Cannot create UnixTransport from \"tcp\" URI"s;
+                          });
 }
 
 BOOST_AUTO_TEST_CASE(GetDefaultSocketNameBadMalformedUri)
 {
-  BOOST_CHECK_EXCEPTION(UnixTransport::getSocketNameFromUri("unix"),
-                        Transport::Error,
-                        [] (const Transport::Error& error) {
-                          return error.what() == "Malformed URI: unix"s;
-                        });
+    BOOST_CHECK_EXCEPTION(UnixTransport::getSocketNameFromUri("unix"), Transport::Error,
+                          [](const Transport::Error& error) { return error.what() == "Malformed URI: unix"s; });
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestUnixTransport

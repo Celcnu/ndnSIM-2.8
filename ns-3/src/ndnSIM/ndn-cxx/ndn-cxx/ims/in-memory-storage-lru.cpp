@@ -28,8 +28,7 @@ InMemoryStorageLru::InMemoryStorageLru(size_t limit)
 {
 }
 
-InMemoryStorageLru::InMemoryStorageLru(DummyIoService& ioService,
-                                       size_t limit)
+InMemoryStorageLru::InMemoryStorageLru(DummyIoService& ioService, size_t limit)
   : InMemoryStorage(ioService, limit)
 {
 }
@@ -37,37 +36,37 @@ InMemoryStorageLru::InMemoryStorageLru(DummyIoService& ioService,
 void
 InMemoryStorageLru::afterInsert(InMemoryStorageEntry* entry)
 {
-  BOOST_ASSERT(m_cleanupIndex.size() <= size());
-  InMemoryStorageEntry* ptr = entry;
-  m_cleanupIndex.insert(ptr);
+    BOOST_ASSERT(m_cleanupIndex.size() <= size());
+    InMemoryStorageEntry* ptr = entry;
+    m_cleanupIndex.insert(ptr);
 }
 
 bool
 InMemoryStorageLru::evictItem()
 {
-  if (!m_cleanupIndex.get<byUsedTime>().empty()) {
-    CleanupIndex::index<byUsedTime>::type::iterator it = m_cleanupIndex.get<byUsedTime>().begin();
-    eraseImpl((*it)->getFullName());
-    m_cleanupIndex.get<byUsedTime>().erase(it);
-    return true;
-  }
+    if (!m_cleanupIndex.get<byUsedTime>().empty()) {
+        CleanupIndex::index<byUsedTime>::type::iterator it = m_cleanupIndex.get<byUsedTime>().begin();
+        eraseImpl((*it)->getFullName());
+        m_cleanupIndex.get<byUsedTime>().erase(it);
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 void
 InMemoryStorageLru::beforeErase(InMemoryStorageEntry* entry)
 {
-  CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
-  if (it != m_cleanupIndex.get<byEntity>().end())
-    m_cleanupIndex.get<byEntity>().erase(it);
+    CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
+    if (it != m_cleanupIndex.get<byEntity>().end())
+        m_cleanupIndex.get<byEntity>().erase(it);
 }
 
 void
 InMemoryStorageLru::afterAccess(InMemoryStorageEntry* entry)
 {
-  beforeErase(entry);
-  afterInsert(entry);
+    beforeErase(entry);
+    afterInsert(entry);
 }
 
 } // namespace ndn

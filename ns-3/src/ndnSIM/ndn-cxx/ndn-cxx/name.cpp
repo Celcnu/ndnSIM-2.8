@@ -44,8 +44,7 @@ BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<Name::const_iterator>));
 BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<Name::reverse_iterator>));
 BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<Name::const_reverse_iterator>));
 BOOST_CONCEPT_ASSERT((boost::RandomAccessRangeConcept<Name>));
-static_assert(std::is_base_of<tlv::Error, Name::Error>::value,
-              "Name::Error must inherit from tlv::Error");
+static_assert(std::is_base_of<tlv::Error, Name::Error>::value, "Name::Error must inherit from tlv::Error");
 
 const size_t Name::npos = std::numeric_limits<size_t>::max();
 
@@ -230,8 +229,7 @@ Name::set(ssize_t i, Component&& component)
 Name&
 Name::appendVersion(optional<uint64_t> version)
 {
-    return append(Component::fromVersion(
-      version.value_or(time::toUnixTimestamp(time::system_clock::now()).count())));
+    return append(Component::fromVersion(version.value_or(time::toUnixTimestamp(time::system_clock::now()).count())));
 }
 
 Name&
@@ -288,8 +286,7 @@ Name
 Name::getSuccessor() const
 {
     if (empty()) {
-        static const Name n(
-          "/sha256digest=0000000000000000000000000000000000000000000000000000000000000000");
+        static const Name n("/sha256digest=0000000000000000000000000000000000000000000000000000000000000000");
         return n;
     }
 
@@ -384,8 +381,7 @@ namespace std {
 size_t
 hash<ndn::Name>::operator()(const ndn::Name& name) const
 {
-    return boost::hash_range(name.wireEncode().wire(),
-                             name.wireEncode().wire() + name.wireEncode().size());
+    return boost::hash_range(name.wireEncode().wire(), name.wireEncode().wire() + name.wireEncode().size());
 }
 
 } // namespace std

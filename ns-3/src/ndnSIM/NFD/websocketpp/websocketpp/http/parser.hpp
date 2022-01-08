@@ -41,23 +41,14 @@ namespace http {
 namespace parser {
 
 namespace state {
-    enum value {
-        method,
-        resource,
-        version,
-        headers
-    };
+enum value { method, resource, version, headers };
 }
 
 namespace body_encoding {
-    enum value {
-        unknown,
-        plain,
-        chunked
-    };
+enum value { unknown, plain, chunked };
 }
 
-typedef std::map<std::string, std::string, utility::ci_less > header_list;
+typedef std::map<std::string, std::string, utility::ci_less> header_list;
 
 /// Read and return the next token in the stream
 /**
@@ -70,11 +61,11 @@ typedef std::map<std::string, std::string, utility::ci_less > header_list;
  * the stream
  */
 template <typename InputIterator>
-std::pair<std::string,InputIterator> extract_token(InputIterator begin,
-    InputIterator end)
+std::pair<std::string, InputIterator>
+extract_token(InputIterator begin, InputIterator end)
 {
-    InputIterator it = std::find_if(begin,end,&is_not_token_char);
-    return std::make_pair(std::string(begin,it),it);
+    InputIterator it = std::find_if(begin, end, &is_not_token_char);
+    return std::make_pair(std::string(begin, it), it);
 }
 
 /// Read and return the next quoted string in the stream
@@ -89,41 +80,42 @@ std::pair<std::string,InputIterator> extract_token(InputIterator begin,
  * character in the stream
  */
 template <typename InputIterator>
-std::pair<std::string,InputIterator> extract_quoted_string(InputIterator begin,
-    InputIterator end)
+std::pair<std::string, InputIterator>
+extract_quoted_string(InputIterator begin, InputIterator end)
 {
     std::string s;
 
     if (end == begin) {
-        return std::make_pair(s,begin);
+        return std::make_pair(s, begin);
     }
 
     if (*begin != '"') {
-        return std::make_pair(s,begin);
+        return std::make_pair(s, begin);
     }
 
-    InputIterator cursor = begin+1;
+    InputIterator cursor = begin + 1;
     InputIterator marker = cursor;
 
-    cursor = std::find(cursor,end,'"');
+    cursor = std::find(cursor, end, '"');
 
     while (cursor != end) {
         // either this is the end or a quoted string
-        if (*(cursor-1) == '\\') {
-            s.append(marker,cursor-1);
-            s.append(1,'"');
+        if (*(cursor - 1) == '\\') {
+            s.append(marker, cursor - 1);
+            s.append(1, '"');
             ++cursor;
             marker = cursor;
-        } else {
-            s.append(marker,cursor);
+        }
+        else {
+            s.append(marker, cursor);
             ++cursor;
-            return std::make_pair(s,cursor);
+            return std::make_pair(s, cursor);
         }
 
-        cursor = std::find(cursor,end,'"');
+        cursor = std::find(cursor, end, '"');
     }
 
-    return std::make_pair("",begin);
+    return std::make_pair("", begin);
 }
 
 /// Read and discard one unit of linear whitespace
@@ -136,17 +128,18 @@ std::pair<std::string,InputIterator> extract_quoted_string(InputIterator begin,
  * @return An iterator to the character after the linear whitespace read
  */
 template <typename InputIterator>
-InputIterator extract_lws(InputIterator begin, InputIterator end) {
+InputIterator
+extract_lws(InputIterator begin, InputIterator end)
+{
     InputIterator it = begin;
 
     // strip leading CRLF
-    if (end-begin > 2 && *begin == '\r' && *(begin+1) == '\n' &&
-        is_whitespace_char(static_cast<unsigned char>(*(begin+2))))
-    {
-        it+=3;
+    if (end - begin > 2 && *begin == '\r' && *(begin + 1) == '\n'
+        && is_whitespace_char(static_cast<unsigned char>(*(begin + 2)))) {
+        it += 3;
     }
 
-    it = std::find_if(it,end,&is_not_whitespace_char);
+    it = std::find_if(it, end, &is_not_whitespace_char);
     return it;
 }
 
@@ -161,7 +154,9 @@ InputIterator extract_lws(InputIterator begin, InputIterator end) {
  * @return An iterator to the character after the linear whitespace read
  */
 template <typename InputIterator>
-InputIterator extract_all_lws(InputIterator begin, InputIterator end) {
+InputIterator
+extract_all_lws(InputIterator begin, InputIterator end)
+{
     InputIterator old_it;
     InputIterator new_it = begin;
 
@@ -170,7 +165,7 @@ InputIterator extract_all_lws(InputIterator begin, InputIterator end) {
         old_it = new_it;
 
         // look ahead another pass
-        new_it = extract_lws(old_it,end);
+        new_it = extract_lws(old_it, end);
     } while (new_it != end && old_it != new_it);
 
     return new_it;
@@ -192,8 +187,8 @@ InputIterator extract_all_lws(InputIterator begin, InputIterator end) {
  * @return An iterator to the character after the last atribute read
  */
 template <typename InputIterator>
-InputIterator extract_attributes(InputIterator begin, InputIterator end,
-    attribute_list & attributes)
+InputIterator
+extract_attributes(InputIterator begin, InputIterator end, attribute_list& attributes)
 {
     InputIterator cursor;
     bool first = true;
@@ -203,12 +198,12 @@ InputIterator extract_attributes(InputIterator begin, InputIterator end,
     }
 
     cursor = begin;
-    std::pair<std::string,InputIterator> ret;
+    std::pair<std::string, InputIterator> ret;
 
     while (cursor != end) {
         std::string name;
 
-        cursor = http::parser::extract_all_lws(cursor,end);
+        cursor = http::parser::extract_all_lws(cursor, end);
         if (cursor == end) {
             break;
         }
@@ -216,29 +211,32 @@ InputIterator extract_attributes(InputIterator begin, InputIterator end,
         if (first) {
             // ignore this check for the very first pass
             first = false;
-        } else {
+        }
+        else {
             if (*cursor == ';') {
                 // advance past the ';'
                 ++cursor;
-            } else {
+            }
+            else {
                 // non-semicolon in this position indicates end end of the
                 // attribute list, break and return.
                 break;
             }
         }
 
-        cursor = http::parser::extract_all_lws(cursor,end);
-        ret = http::parser::extract_token(cursor,end);
+        cursor = http::parser::extract_all_lws(cursor, end);
+        ret = http::parser::extract_token(cursor, end);
 
         if (ret.first.empty()) {
             // error: expected a token
             return begin;
-        } else {
+        }
+        else {
             name = ret.first;
             cursor = ret.second;
         }
 
-        cursor = http::parser::extract_all_lws(cursor,end);
+        cursor = http::parser::extract_all_lws(cursor, end);
         if (cursor == end || *cursor != '=') {
             // if there is an equals sign, read the attribute value. Otherwise
             // record a blank value and continue
@@ -249,24 +247,25 @@ InputIterator extract_attributes(InputIterator begin, InputIterator end,
         // advance past the '='
         ++cursor;
 
-        cursor = http::parser::extract_all_lws(cursor,end);
+        cursor = http::parser::extract_all_lws(cursor, end);
         if (cursor == end) {
             // error: expected a token or quoted string
             return begin;
         }
 
-        ret = http::parser::extract_quoted_string(cursor,end);
+        ret = http::parser::extract_quoted_string(cursor, end);
         if (ret.second != cursor) {
             attributes[name] = ret.first;
             cursor = ret.second;
             continue;
         }
 
-        ret = http::parser::extract_token(cursor,end);
+        ret = http::parser::extract_token(cursor, end);
         if (ret.first.empty()) {
             // error : expected token or quoted string
             return begin;
-        } else {
+        }
+        else {
             attributes[name] = ret.first;
             cursor = ret.second;
         }
@@ -290,8 +289,8 @@ InputIterator extract_attributes(InputIterator begin, InputIterator end,
  * @return An iterator to the character after the last parameter read
  */
 template <typename InputIterator>
-InputIterator extract_parameters(InputIterator begin, InputIterator end,
-    parameter_list &parameters)
+InputIterator
+extract_parameters(InputIterator begin, InputIterator end, parameter_list& parameters)
 {
     InputIterator cursor;
 
@@ -301,7 +300,7 @@ InputIterator extract_parameters(InputIterator begin, InputIterator end,
     }
 
     cursor = begin;
-    std::pair<std::string,InputIterator> ret;
+    std::pair<std::string, InputIterator> ret;
 
     /**
      * LWS
@@ -316,24 +315,27 @@ InputIterator extract_parameters(InputIterator begin, InputIterator end,
         attribute_list attributes;
 
         // extract any stray whitespace
-        cursor = http::parser::extract_all_lws(cursor,end);
-        if (cursor == end) {break;}
+        cursor = http::parser::extract_all_lws(cursor, end);
+        if (cursor == end) {
+            break;
+        }
 
-        ret = http::parser::extract_token(cursor,end);
+        ret = http::parser::extract_token(cursor, end);
 
         if (ret.first.empty()) {
             // error: expected a token
             return begin;
-        } else {
+        }
+        else {
             parameter_name = ret.first;
             cursor = ret.second;
         }
 
         // Safe break point, insert parameter with blank attributes and exit
-        cursor = http::parser::extract_all_lws(cursor,end);
+        cursor = http::parser::extract_all_lws(cursor, end);
         if (cursor == end) {
-            //parameters[parameter_name] = attributes;
-            parameters.push_back(std::make_pair(parameter_name,attributes));
+            // parameters[parameter_name] = attributes;
+            parameters.push_back(std::make_pair(parameter_name, attributes));
             break;
         }
 
@@ -342,7 +344,7 @@ InputIterator extract_parameters(InputIterator begin, InputIterator end,
             InputIterator acursor;
 
             ++cursor;
-            acursor = http::parser::extract_attributes(cursor,end,attributes);
+            acursor = http::parser::extract_attributes(cursor, end, attributes);
 
             if (acursor == cursor) {
                 // attribute extraction ended in syntax error
@@ -353,11 +355,13 @@ InputIterator extract_parameters(InputIterator begin, InputIterator end,
         }
 
         // insert parameter into output list
-        //parameters[parameter_name] = attributes;
-        parameters.push_back(std::make_pair(parameter_name,attributes));
+        // parameters[parameter_name] = attributes;
+        parameters.push_back(std::make_pair(parameter_name, attributes));
 
-        cursor = http::parser::extract_all_lws(cursor,end);
-        if (cursor == end) {break;}
+        cursor = http::parser::extract_all_lws(cursor, end);
+        if (cursor == end) {
+            break;
+        }
 
         // if next char is ',' then read another parameter, else stop
         if (*cursor != ',') {
@@ -376,18 +380,20 @@ InputIterator extract_parameters(InputIterator begin, InputIterator end,
     return cursor;
 }
 
-inline std::string strip_lws(std::string const & input) {
-    std::string::const_iterator begin = extract_all_lws(input.begin(),input.end());
+inline std::string
+strip_lws(std::string const& input)
+{
+    std::string::const_iterator begin = extract_all_lws(input.begin(), input.end());
     if (begin == input.end()) {
         return std::string();
     }
 
-    std::string::const_reverse_iterator rbegin = extract_all_lws(input.rbegin(),input.rend());
+    std::string::const_reverse_iterator rbegin = extract_all_lws(input.rbegin(), input.rend());
     if (rbegin == input.rend()) {
         return std::string();
     }
 
-    return std::string(begin,rbegin.base());
+    return std::string(begin, rbegin.base());
 }
 
 /// Base HTTP parser
@@ -396,18 +402,22 @@ inline std::string strip_lws(std::string const & input) {
  * as headers, versions, bodies, etc.
  */
 class parser {
-public:
+  public:
     parser()
       : m_header_bytes(0)
       , m_body_bytes_needed(0)
       , m_body_bytes_max(max_body_size)
-      , m_body_encoding(body_encoding::unknown) {}
-    
+      , m_body_encoding(body_encoding::unknown)
+    {
+    }
+
     /// Get the HTTP version string
     /**
      * @return The version string for this parser
      */
-    std::string const & get_version() const {
+    std::string const&
+    get_version() const
+    {
         return m_version;
     }
 
@@ -418,7 +428,7 @@ public:
      *
      * @param [in] version The value to set the HTTP version to.
      */
-    void set_version(std::string const & version);
+    void set_version(std::string const& version);
 
     /// Get the value of an HTTP header
     /**
@@ -427,7 +437,7 @@ public:
      * @param [in] key The name/key of the header to get.
      * @return The value associated with the given HTTP header key.
      */
-    std::string const & get_header(std::string const & key) const;
+    std::string const& get_header(std::string const& key) const;
 
     /// Extract an HTTP parameter list from a parser header.
     /**
@@ -438,8 +448,7 @@ public:
      * @param [out] out The parameter list to store extracted parameters in.
      * @return Whether or not the input was a valid parameter list.
      */
-    bool get_header_as_plist(std::string const & key, parameter_list & out)
-        const;
+    bool get_header_as_plist(std::string const& key, parameter_list& out) const;
 
     /// Return a list of all HTTP headers
     /**
@@ -449,7 +458,7 @@ public:
      *
      * @return A list of all HTTP headers
      */
-    header_list const & get_headers() const;
+    header_list const& get_headers() const;
 
     /// Append a value to an existing HTTP header
     /**
@@ -466,7 +475,7 @@ public:
      * @param [in] key The name/key of the header to append to.
      * @param [in] val The value to append.
      */
-    void append_header(std::string const & key, std::string const & val);
+    void append_header(std::string const& key, std::string const& val);
 
     /// Set a value for an HTTP header, replacing an existing value
     /**
@@ -483,7 +492,7 @@ public:
      * @param [in] key The name/key of the header to append to.
      * @param [in] val The value to append.
      */
-    void replace_header(std::string const & key, std::string const & val);
+    void replace_header(std::string const& key, std::string const& val);
 
     /// Remove a header from the parser
     /**
@@ -494,7 +503,7 @@ public:
      *
      * @param [in] key The name/key of the header to remove.
      */
-    void remove_header(std::string const & key);
+    void remove_header(std::string const& key);
 
     /// Get HTTP body
     /**
@@ -502,7 +511,9 @@ public:
      *
      * @return The body of the HTTP message.
      */
-    std::string const & get_body() const {
+    std::string const&
+    get_body() const
+    {
         return m_body;
     }
 
@@ -515,7 +526,7 @@ public:
      *
      * @param value String data to include as the body content.
      */
-    void set_body(std::string const & value);
+    void set_body(std::string const& value);
 
     /// Get body size limit
     /**
@@ -526,7 +537,9 @@ public:
      *
      * @return The maximum length of a message body.
      */
-    size_t get_max_body_size() const {
+    size_t
+    get_max_body_size() const
+    {
         return m_body_bytes_max;
     }
 
@@ -539,7 +552,9 @@ public:
      *
      * @param value The size to set the max body length to.
      */
-    void set_max_body_size(size_t value) {
+    void
+    set_max_body_size(size_t value)
+    {
         m_body_bytes_max = value;
     }
 
@@ -549,9 +564,9 @@ public:
      * @param [out] out The parameter list to store extracted parameters in.
      * @return Whether or not the input was a valid parameter list.
      */
-    bool parse_parameter_list(std::string const & in, parameter_list & out)
-        const;
-protected:
+    bool parse_parameter_list(std::string const& in, parameter_list& out) const;
+
+  protected:
     /// Process a header line
     /**
      * @todo Update this method to be exception free.
@@ -586,7 +601,7 @@ protected:
      * @param [in] end An iterator to the end of the sequence.
      * @return The number of bytes processed
      */
-    size_t process_body(char const * buf, size_t len);
+    size_t process_body(char const* buf, size_t len);
 
     /// Check if the parser is done parsing the body
     /**
@@ -596,7 +611,9 @@ protected:
      *
      * @return True if the message body has been completed loaded.
      */
-    bool body_ready() const {
+    bool
+    body_ready() const
+    {
         return (m_body_bytes_needed == 0);
     }
 
@@ -611,13 +628,13 @@ protected:
 
     std::string m_version;
     header_list m_headers;
-    
-    size_t                  m_header_bytes;
-    
-    std::string             m_body;
-    size_t                  m_body_bytes_needed;
-    size_t                  m_body_bytes_max;
-    body_encoding::value    m_body_encoding;
+
+    size_t m_header_bytes;
+
+    std::string m_body;
+    size_t m_body_bytes_needed;
+    size_t m_body_bytes_max;
+    body_encoding::value m_body_encoding;
 };
 
 } // namespace parser

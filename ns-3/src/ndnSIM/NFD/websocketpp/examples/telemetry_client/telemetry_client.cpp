@@ -9,7 +9,9 @@
 /**
  * Define a semi-cross platform helper method that waits/sleeps for a bit.
  */
-void wait_a_bit() {
+void
+wait_a_bit()
+{
 #ifdef WIN32
     Sleep(1000);
 #else
@@ -24,11 +26,14 @@ void wait_a_bit() {
  * testing, etc.
  */
 class telemetry_client {
-public:
+  public:
     typedef websocketpp::client<websocketpp::config::asio_client> client;
     typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
-    telemetry_client() : m_open(false),m_done(false) {
+    telemetry_client()
+      : m_open(false)
+      , m_done(false)
+    {
         // set up access channels to only log interesting things
         m_client.clear_access_channels(websocketpp::log::alevel::all);
         m_client.set_access_channels(websocketpp::log::alevel::connect);
@@ -39,21 +44,22 @@ public:
         m_client.init_asio();
 
         // Bind the handlers we are using
-        using websocketpp::lib::placeholders::_1;
         using websocketpp::lib::bind;
-        m_client.set_open_handler(bind(&telemetry_client::on_open,this,_1));
-        m_client.set_close_handler(bind(&telemetry_client::on_close,this,_1));
-        m_client.set_fail_handler(bind(&telemetry_client::on_fail,this,_1));
+        using websocketpp::lib::placeholders::_1;
+        m_client.set_open_handler(bind(&telemetry_client::on_open, this, _1));
+        m_client.set_close_handler(bind(&telemetry_client::on_close, this, _1));
+        m_client.set_fail_handler(bind(&telemetry_client::on_fail, this, _1));
     }
 
     // This method will block until the connection is complete
-    void run(const std::string & uri) {
+    void
+    run(const std::string& uri)
+    {
         // Create a new connection to the given URI
         websocketpp::lib::error_code ec;
         client::connection_ptr con = m_client.get_connection(uri, ec);
         if (ec) {
-            m_client.get_alog().write(websocketpp::log::alevel::app,
-                    "Get Connection Error: "+ec.message());
+            m_client.get_alog().write(websocketpp::log::alevel::app, "Get Connection Error: " + ec.message());
             return;
         }
 
@@ -69,51 +75,55 @@ public:
         websocketpp::lib::thread asio_thread(&client::run, &m_client);
 
         // Create a thread to run the telemetry loop
-        websocketpp::lib::thread telemetry_thread(&telemetry_client::telemetry_loop,this);
+        websocketpp::lib::thread telemetry_thread(&telemetry_client::telemetry_loop, this);
 
         asio_thread.join();
         telemetry_thread.join();
     }
 
     // The open handler will signal that we are ready to start sending telemetry
-    void on_open(websocketpp::connection_hdl) {
-        m_client.get_alog().write(websocketpp::log::alevel::app,
-            "Connection opened, starting telemetry!");
+    void on_open(websocketpp::connection_hdl)
+    {
+        m_client.get_alog().write(websocketpp::log::alevel::app, "Connection opened, starting telemetry!");
 
         scoped_lock guard(m_lock);
         m_open = true;
     }
 
     // The close handler will signal that we should stop sending telemetry
-    void on_close(websocketpp::connection_hdl) {
-        m_client.get_alog().write(websocketpp::log::alevel::app,
-            "Connection closed, stopping telemetry!");
+    void on_close(websocketpp::connection_hdl)
+    {
+        m_client.get_alog().write(websocketpp::log::alevel::app, "Connection closed, stopping telemetry!");
 
         scoped_lock guard(m_lock);
         m_done = true;
     }
 
     // The fail handler will signal that we should stop sending telemetry
-    void on_fail(websocketpp::connection_hdl) {
-        m_client.get_alog().write(websocketpp::log::alevel::app,
-            "Connection failed, stopping telemetry!");
+    void on_fail(websocketpp::connection_hdl)
+    {
+        m_client.get_alog().write(websocketpp::log::alevel::app, "Connection failed, stopping telemetry!");
 
         scoped_lock guard(m_lock);
         m_done = true;
     }
 
-    void telemetry_loop() {
+    void
+    telemetry_loop()
+    {
         uint64_t count = 0;
         std::stringstream val;
         websocketpp::lib::error_code ec;
 
-        while(1) {
+        while (1) {
             bool wait = false;
 
             {
                 scoped_lock guard(m_lock);
                 // If the connection has been closed, stop generating telemetry
-                if (m_done) {break;}
+                if (m_done) {
+                    break;
+                }
 
                 // If the connection hasn't been opened yet wait a bit and retry
                 if (!m_open) {
@@ -130,7 +140,7 @@ public:
             val << "count is " << count++;
 
             m_client.get_alog().write(websocketpp::log::alevel::app, val.str());
-            m_client.send(m_hdl,val.str(),websocketpp::frame::opcode::text,ec);
+            m_client.send(m_hdl, val.str(), websocketpp::frame::opcode::text, ec);
 
             // The most likely error that we will get is that the connection is
             // not in the right state. Usually this means we tried to send a
@@ -138,15 +148,15 @@ public:
             // closing. While many errors here can be easily recovered from,
             // in this simple example, we'll stop the telemetry loop.
             if (ec) {
-                m_client.get_alog().write(websocketpp::log::alevel::app,
-                    "Send Error: "+ec.message());
+                m_client.get_alog().write(websocketpp::log::alevel::app, "Send Error: " + ec.message());
                 break;
             }
 
             wait_a_bit();
         }
     }
-private:
+
+  private:
     client m_client;
     websocketpp::connection_hdl m_hdl;
     websocketpp::lib::mutex m_lock;
@@ -154,7 +164,9 @@ private:
     bool m_done;
 };
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[])
+{
     telemetry_client c;
 
     std::string uri = "ws://localhost:9002";

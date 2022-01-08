@@ -34,38 +34,33 @@ namespace transform {
  * For example, if the input is a byte stream 0x01, 0x23, 0x45,
  * the output will be a string "012345".
  */
-class HexEncode : public Transform
-{
-public:
-  /**
-   * @brief Create a hex encoding module
-   *
-   * @param useUpperCase if true, use upper case letters, otherwise lower case
-   */
-  explicit
-  HexEncode(bool useUpperCase = false);
+class HexEncode : public Transform {
+  public:
+    /**
+     * @brief Create a hex encoding module
+     *
+     * @param useUpperCase if true, use upper case letters, otherwise lower case
+     */
+    explicit HexEncode(bool useUpperCase = false);
 
-private:
-  /**
-   * @brief Encode @p data, and write the result into next module directly.
-   *
-   * @return The number of input bytes that have been accepted by the converter.
-   */
-  size_t
-  convert(const uint8_t* data, size_t dataLen) final;
+  private:
+    /**
+     * @brief Encode @p data, and write the result into next module directly.
+     *
+     * @return The number of input bytes that have been accepted by the converter.
+     */
+    size_t convert(const uint8_t* data, size_t dataLen) final;
 
-  /**
-   * @return results of encoding @p data
-   */
-  unique_ptr<Transform::OBuffer>
-  toHex(const uint8_t* data, size_t dataLen);
+    /**
+     * @return results of encoding @p data
+     */
+    unique_ptr<Transform::OBuffer> toHex(const uint8_t* data, size_t dataLen);
 
-private:
-  bool m_useUpperCase;
+  private:
+    bool m_useUpperCase;
 };
 
-unique_ptr<Transform>
-hexEncode(bool useUpperCase = false);
+unique_ptr<Transform> hexEncode(bool useUpperCase = false);
 
 } // namespace transform
 } // namespace security

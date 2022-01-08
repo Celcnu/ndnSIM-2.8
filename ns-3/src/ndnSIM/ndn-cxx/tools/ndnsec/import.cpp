@@ -32,68 +32,65 @@ namespace ndnsec {
 int
 ndnsec_import(int argc, char** argv)
 {
-  namespace po = boost::program_options;
+    namespace po = boost::program_options;
 
-  std::string input;
-  std::string password;
+    std::string input;
+    std::string password;
 
-  BOOST_SCOPE_EXIT(&password) {
-    OPENSSL_cleanse(&password.front(), password.size());
-  } BOOST_SCOPE_EXIT_END
-
-  po::options_description description(
-    "Usage: ndnsec import [-h] [-P PASSPHRASE] [-i] FILE\n"
-    "\n"
-    "Options");
-  description.add_options()
-    ("help,h", "produce help message")
-    ("input,i",    po::value<std::string>(&input)->default_value("-"),
-                   "input file, '-' for stdin (the default)")
-    ("password,P", po::value<std::string>(&password),
-                   "passphrase, will prompt if empty or not specified")
-    ;
-
-  po::positional_options_description p;
-  p.add("input", 1);
-
-  po::variables_map vm;
-  try {
-    po::store(po::command_line_parser(argc, argv).options(description).positional(p).run(), vm);
-    po::notify(vm);
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << "\n\n"
-              << description << std::endl;
-    return 2;
-  }
-
-  if (vm.count("help") > 0) {
-    std::cout << description << std::endl;
-    return 0;
-  }
-
-  security::v2::KeyChain keyChain;
-
-  shared_ptr<security::SafeBag> safeBag;
-  if (input == "-")
-    safeBag = io::load<security::SafeBag>(std::cin);
-  else
-    safeBag = io::load<security::SafeBag>(input);
-
-  if (password.empty()) {
-    int count = 3;
-    while (!getPassword(password, "Passphrase for the private key: ", false)) {
-      count--;
-      if (count <= 0) {
-        std::cerr << "ERROR: invalid password" << std::endl;
-        return 1;
-      }
+    BOOST_SCOPE_EXIT(&password)
+    {
+        OPENSSL_cleanse(&password.front(), password.size());
     }
-  }
+    BOOST_SCOPE_EXIT_END
 
-  keyChain.importSafeBag(*safeBag, password.data(), password.size());
+    po::options_description description("Usage: ndnsec import [-h] [-P PASSPHRASE] [-i] FILE\n"
+                                        "\n"
+                                        "Options");
+    description.add_options()("help,h", "produce help message")(
+      "input,i", po::value<std::string>(&input)->default_value("-"),
+      "input file, '-' for stdin (the default)")("password,P", po::value<std::string>(&password),
+                                                 "passphrase, will prompt if empty or not specified");
 
-  return 0;
+    po::positional_options_description p;
+    p.add("input", 1);
+
+    po::variables_map vm;
+    try {
+        po::store(po::command_line_parser(argc, argv).options(description).positional(p).run(), vm);
+        po::notify(vm);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << "\n\n" << description << std::endl;
+        return 2;
+    }
+
+    if (vm.count("help") > 0) {
+        std::cout << description << std::endl;
+        return 0;
+    }
+
+    security::v2::KeyChain keyChain;
+
+    shared_ptr<security::SafeBag> safeBag;
+    if (input == "-")
+        safeBag = io::load<security::SafeBag>(std::cin);
+    else
+        safeBag = io::load<security::SafeBag>(input);
+
+    if (password.empty()) {
+        int count = 3;
+        while (!getPassword(password, "Passphrase for the private key: ", false)) {
+            count--;
+            if (count <= 0) {
+                std::cerr << "ERROR: invalid password" << std::endl;
+                return 1;
+            }
+        }
+    }
+
+    keyChain.importSafeBag(*safeBag, password.data(), password.size());
+
+    return 0;
 }
 
 } // namespace ndnsec

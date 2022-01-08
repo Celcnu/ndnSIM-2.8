@@ -28,21 +28,21 @@ namespace time {
 system_clock::time_point
 CustomSystemClock::getNow() const
 {
-  boost::chrono::nanoseconds ns(Simulator::Now().GetNanoSeconds());
-  return system_clock::time_point(ns);
+    boost::chrono::nanoseconds ns(Simulator::Now().GetNanoSeconds());
+    return system_clock::time_point(ns);
 }
 
 std::string
 CustomSystemClock::getSince() const
 {
-  return " since start of simulation";
+    return " since start of simulation";
 }
 
 system_clock::duration
 CustomSystemClock::toWaitDuration(system_clock::duration d) const
 {
-  BOOST_ASSERT_MSG(false, "Must not be called");
-  return time::microseconds(1);
+    BOOST_ASSERT_MSG(false, "Must not be called");
+    return time::microseconds(1);
 }
 
 ////////////////////////////////////
@@ -50,21 +50,21 @@ CustomSystemClock::toWaitDuration(system_clock::duration d) const
 steady_clock::time_point
 CustomSteadyClock::getNow() const
 {
-  boost::chrono::nanoseconds ns(Simulator::Now().GetNanoSeconds());
-  return steady_clock::time_point(ns);
+    boost::chrono::nanoseconds ns(Simulator::Now().GetNanoSeconds());
+    return steady_clock::time_point(ns);
 }
 
 std::string
 CustomSteadyClock::getSince() const
 {
-  return " since start of simulation";
+    return " since start of simulation";
 }
 
 steady_clock::duration
 CustomSteadyClock::toWaitDuration(steady_clock::duration d) const
 {
-  BOOST_ASSERT_MSG(false, "Must not be called");
-  return time::microseconds(1);
+    BOOST_ASSERT_MSG(false, "Must not be called");
+    return time::microseconds(1);
 }
 
 } // namespace time

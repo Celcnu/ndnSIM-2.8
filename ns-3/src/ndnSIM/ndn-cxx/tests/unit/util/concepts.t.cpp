@@ -30,30 +30,23 @@
 namespace ndn {
 namespace tests {
 
-class WireEncodableType
-{
-public:
-  const Block&
-  wireEncode();
+class WireEncodableType {
+  public:
+    const Block& wireEncode();
 };
 BOOST_CONCEPT_ASSERT((WireEncodable<WireEncodableType>));
 
-class WireEncodableType2
-{
-public:
-  Block
-  wireEncode();
+class WireEncodableType2 {
+  public:
+    Block wireEncode();
 };
 BOOST_CONCEPT_ASSERT((WireEncodable<WireEncodableType2>));
 
-class WireDecodableType
-{
-public:
-  explicit
-  WireDecodableType(const Block& wire);
+class WireDecodableType {
+  public:
+    explicit WireDecodableType(const Block& wire);
 
-  void
-  wireDecode(const Block& wire);
+    void wireDecode(const Block& wire);
 };
 BOOST_CONCEPT_ASSERT((WireDecodable<WireDecodableType>));
 

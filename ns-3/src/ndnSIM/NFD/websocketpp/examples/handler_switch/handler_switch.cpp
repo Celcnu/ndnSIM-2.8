@@ -6,16 +6,20 @@
 typedef websocketpp::server<websocketpp::config::asio> server;
 
 using websocketpp::connection_hdl;
-using websocketpp::lib::placeholders::_1;
-using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 using websocketpp::lib::ref;
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
 
-void custom_on_msg(server & s, connection_hdl hdl, server::message_ptr msg) {
-        std::cout << "Message sent to custom handler" << std::endl;
+void
+custom_on_msg(server& s, connection_hdl hdl, server::message_ptr msg)
+{
+    std::cout << "Message sent to custom handler" << std::endl;
 }
 
-void default_on_msg(server & s, connection_hdl hdl, server::message_ptr msg) {
+void
+default_on_msg(server& s, connection_hdl hdl, server::message_ptr msg)
+{
     std::cout << "Message sent to default handler" << std::endl;
 
     if (msg->get_payload() == "upgrade") {
@@ -24,15 +28,17 @@ void default_on_msg(server & s, connection_hdl hdl, server::message_ptr msg) {
 
         // Change the on message handler for this connection only to
         // custom_on_mesage
-        con->set_message_handler(bind(&custom_on_msg,ref(s),::_1,::_2));
+        con->set_message_handler(bind(&custom_on_msg, ref(s), ::_1, ::_2));
         std::cout << "Upgrading connection to custom handler" << std::endl;
     }
 }
 
-int main() {
+int
+main()
+{
     server s;
 
-    s.set_message_handler(bind(&default_on_msg,ref(s),::_1,::_2));
+    s.set_message_handler(bind(&default_on_msg, ref(s), ::_1, ::_2));
 
     s.init_asio();
     s.listen(9002);

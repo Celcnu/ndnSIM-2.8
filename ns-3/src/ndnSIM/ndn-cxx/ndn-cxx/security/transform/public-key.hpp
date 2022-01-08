@@ -32,96 +32,83 @@ namespace transform {
 /**
  * @brief Abstraction of public key in crypto transformation
  */
-class PublicKey : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class PublicKey : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-public:
-  /**
-   * @brief Create an empty public key instance
-   *
-   * One must call loadXXXX(...) to load a public key.
-   */
-  PublicKey();
+  public:
+    /**
+     * @brief Create an empty public key instance
+     *
+     * One must call loadXXXX(...) to load a public key.
+     */
+    PublicKey();
 
-  ~PublicKey();
+    ~PublicKey();
 
-  /**
-   * @brief Get the type of the public key
-   */
-  KeyType
-  getKeyType() const;
+    /**
+     * @brief Get the type of the public key
+     */
+    KeyType getKeyType() const;
 
-  /**
-   * @brief Load the public key in PKCS#8 format from a buffer @p buf
-   */
-  void
-  loadPkcs8(const uint8_t* buf, size_t size);
+    /**
+     * @brief Load the public key in PKCS#8 format from a buffer @p buf
+     */
+    void loadPkcs8(const uint8_t* buf, size_t size);
 
-  /**
-   * @brief Load the public key in PKCS#8 format from a stream @p is
-   */
-  void
-  loadPkcs8(std::istream& is);
+    /**
+     * @brief Load the public key in PKCS#8 format from a stream @p is
+     */
+    void loadPkcs8(std::istream& is);
 
-  /**
-   * @brief Load the public key in base64-encoded PKCS#8 format from a buffer @p buf
-   */
-  void
-  loadPkcs8Base64(const uint8_t* buf, size_t size);
+    /**
+     * @brief Load the public key in base64-encoded PKCS#8 format from a buffer @p buf
+     */
+    void loadPkcs8Base64(const uint8_t* buf, size_t size);
 
-  /**
-   * @brief Load the public key in base64-encoded PKCS#8 format from a stream @p is
-   */
-  void
-  loadPkcs8Base64(std::istream& is);
+    /**
+     * @brief Load the public key in base64-encoded PKCS#8 format from a stream @p is
+     */
+    void loadPkcs8Base64(std::istream& is);
 
-  /**
-   * @brief Save the public key in PKCS#8 format into a stream @p os
-   */
-  void
-  savePkcs8(std::ostream& os) const;
+    /**
+     * @brief Save the public key in PKCS#8 format into a stream @p os
+     */
+    void savePkcs8(std::ostream& os) const;
 
-  /**
-   * @brief Save the public key in base64-encoded PKCS#8 format into a stream @p os
-   */
-  void
-  savePkcs8Base64(std::ostream& os) const;
+    /**
+     * @brief Save the public key in base64-encoded PKCS#8 format into a stream @p os
+     */
+    void savePkcs8Base64(std::ostream& os) const;
 
-  /**
-   * @return Cipher text of @p plainText encrypted using this public key.
-   *
-   * Only RSA encryption is supported for now.
-   */
-  ConstBufferPtr
-  encrypt(const uint8_t* plainText, size_t plainLen) const;
+    /**
+     * @return Cipher text of @p plainText encrypted using this public key.
+     *
+     * Only RSA encryption is supported for now.
+     */
+    ConstBufferPtr encrypt(const uint8_t* plainText, size_t plainLen) const;
 
-private:
-  friend class VerifierFilter;
+  private:
+    friend class VerifierFilter;
 
-  /**
-   * @return A pointer to an OpenSSL EVP_PKEY instance.
-   *
-   * The caller needs to explicitly cast the return value to `EVP_PKEY*`.
-   */
-  void*
-  getEvpPkey() const;
+    /**
+     * @return A pointer to an OpenSSL EVP_PKEY instance.
+     *
+     * The caller needs to explicitly cast the return value to `EVP_PKEY*`.
+     */
+    void* getEvpPkey() const;
 
-private:
-  ConstBufferPtr
-  toPkcs8() const;
+  private:
+    ConstBufferPtr toPkcs8() const;
 
-  ConstBufferPtr
-  rsaEncrypt(const uint8_t* plainText, size_t plainLen) const;
+    ConstBufferPtr rsaEncrypt(const uint8_t* plainText, size_t plainLen) const;
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
 } // namespace transform

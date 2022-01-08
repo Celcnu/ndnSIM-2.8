@@ -37,37 +37,29 @@ using ndn::nfd::ChannelStatus;
 /** \brief provides access to NFD channel dataset
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Channel-Dataset
  */
-class ChannelModule : public Module, noncopyable
-{
-public:
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+class ChannelModule : public Module, noncopyable {
+  public:
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemXml(std::ostream& os, const ChannelStatus& item) const;
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemXml(std::ostream& os, const ChannelStatus& item) const;
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  /** \brief format a single status item as text
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemText(std::ostream& os, const ChannelStatus& item) const;
+    /** \brief format a single status item as text
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemText(std::ostream& os, const ChannelStatus& item) const;
 
-private:
-  std::vector<ChannelStatus> m_status;
+  private:
+    std::vector<ChannelStatus> m_status;
 };
 
 } // namespace nfdc

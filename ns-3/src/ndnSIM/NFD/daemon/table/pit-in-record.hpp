@@ -33,23 +33,21 @@ namespace pit {
 
 /** \brief Contains information about an Interest from an incoming face
  */
-class InRecord : public FaceRecord
-{
-public:
-  using FaceRecord::FaceRecord;
+class InRecord : public FaceRecord {
+  public:
+    using FaceRecord::FaceRecord;
 
-  const Interest&
-  getInterest() const
-  {
-    BOOST_ASSERT(m_interest != nullptr);
-    return *m_interest;
-  }
+    const Interest&
+    getInterest() const
+    {
+        BOOST_ASSERT(m_interest != nullptr);
+        return *m_interest;
+    }
 
-  void
-  update(const Interest& interest);
+    void update(const Interest& interest);
 
-private:
-  shared_ptr<const Interest> m_interest;
+  private:
+    shared_ptr<const Interest> m_interest;
 };
 
 } // namespace pit

@@ -35,174 +35,158 @@ class Cs;
 
 /** \brief represents a CS replacement policy
  */
-class Policy : noncopyable
-{
-public: // registry
-  template<typename P>
-  static void
-  registerPolicy(const std::string& policyName = P::POLICY_NAME)
-  {
-    Registry& registry = getRegistry();
-    BOOST_ASSERT(registry.count(policyName) == 0);
-    registry[policyName] = [] { return make_unique<P>(); };
-  }
+class Policy : noncopyable {
+  public: // registry
+    template <typename P>
+    static void
+    registerPolicy(const std::string& policyName = P::POLICY_NAME)
+    {
+        Registry& registry = getRegistry();
+        BOOST_ASSERT(registry.count(policyName) == 0);
+        registry[policyName] = [] { return make_unique<P>(); };
+    }
 
-  /** \return a cs::Policy identified by \p policyName,
-   *          or nullptr if \p policyName is unknown
-   */
-  static unique_ptr<Policy>
-  create(const std::string& policyName);
+    /** \return a cs::Policy identified by \p policyName,
+     *          or nullptr if \p policyName is unknown
+     */
+    static unique_ptr<Policy> create(const std::string& policyName);
 
-  /** \return a list of available policy names
-   */
-  static std::set<std::string>
-  getPolicyNames();
+    /** \return a list of available policy names
+     */
+    static std::set<std::string> getPolicyNames();
 
-public:
-  explicit
-  Policy(const std::string& policyName);
+  public:
+    explicit Policy(const std::string& policyName);
 
-  virtual
-  ~Policy() = default;
+    virtual ~Policy() = default;
 
-  const std::string&
-  getName() const
-  {
-    return m_policyName;
-  }
+    const std::string&
+    getName() const
+    {
+        return m_policyName;
+    }
 
-  /** \brief gets cs
-   */
-  Cs*
-  getCs() const
-  {
-    return m_cs;
-  }
+    /** \brief gets cs
+     */
+    Cs*
+    getCs() const
+    {
+        return m_cs;
+    }
 
-  /** \brief sets cs
-   */
-  void
-  setCs(Cs* cs)
-  {
-    m_cs = cs;
-  }
+    /** \brief sets cs
+     */
+    void
+    setCs(Cs* cs)
+    {
+        m_cs = cs;
+    }
 
-  /** \brief gets hard limit (in number of entries)
-   */
-  size_t
-  getLimit() const
-  {
-    return m_limit;
-  }
+    /** \brief gets hard limit (in number of entries)
+     */
+    size_t
+    getLimit() const
+    {
+        return m_limit;
+    }
 
-  /** \brief sets hard limit (in number of entries)
-   *  \post getLimit() == nMaxEntries
-   *  \post cs.size() <= getLimit()
-   *
-   *  The policy may evict entries if necessary.
-   */
-  void
-  setLimit(size_t nMaxEntries);
+    /** \brief sets hard limit (in number of entries)
+     *  \post getLimit() == nMaxEntries
+     *  \post cs.size() <= getLimit()
+     *
+     *  The policy may evict entries if necessary.
+     */
+    void setLimit(size_t nMaxEntries);
 
-public:
-  /** \brief a reference to an CS entry
-   *  \note operator< of EntryRef compares the Data name enclosed in the Entry.
-   */
-  using EntryRef = Table::const_iterator;
+  public:
+    /** \brief a reference to an CS entry
+     *  \note operator< of EntryRef compares the Data name enclosed in the Entry.
+     */
+    using EntryRef = Table::const_iterator;
 
-  /** \brief emits when an entry is being evicted
-   *
-   *  A policy implementation should emit this signal to cause CS to erase an entry from its index.
-   *  CS should connect to this signal and erase the entry upon signal emission.
-   */
-  signal::Signal<Policy, EntryRef> beforeEvict;
+    /** \brief emits when an entry is being evicted
+     *
+     *  A policy implementation should emit this signal to cause CS to erase an entry from its index.
+     *  CS should connect to this signal and erase the entry upon signal emission.
+     */
+    signal::Signal<Policy, EntryRef> beforeEvict;
 
-  /** \brief invoked by CS after a new entry is inserted
-   *  \post cs.size() <= getLimit()
-   *
-   *  The policy may evict entries if necessary.
-   *  During this process, \p i might be evicted.
-   */
-  void
-  afterInsert(EntryRef i);
+    /** \brief invoked by CS after a new entry is inserted
+     *  \post cs.size() <= getLimit()
+     *
+     *  The policy may evict entries if necessary.
+     *  During this process, \p i might be evicted.
+     */
+    void afterInsert(EntryRef i);
 
-  /** \brief invoked by CS after an existing entry is refreshed by same Data
-   *
-   *  The policy may witness this refresh to make better eviction decisions in the future.
-   */
-  void
-  afterRefresh(EntryRef i);
+    /** \brief invoked by CS after an existing entry is refreshed by same Data
+     *
+     *  The policy may witness this refresh to make better eviction decisions in the future.
+     */
+    void afterRefresh(EntryRef i);
 
-  /** \brief invoked by CS before an entry is erased due to management command
-   *  \warning CS must not invoke this method if an entry is erased due to eviction.
-   */
-  void
-  beforeErase(EntryRef i);
+    /** \brief invoked by CS before an entry is erased due to management command
+     *  \warning CS must not invoke this method if an entry is erased due to eviction.
+     */
+    void beforeErase(EntryRef i);
 
-  /** \brief invoked by CS before an entry is used to match a lookup
-   *
-   *  The policy may witness this usage to make better eviction decisions in the future.
-   */
-  void
-  beforeUse(EntryRef i);
+    /** \brief invoked by CS before an entry is used to match a lookup
+     *
+     *  The policy may witness this usage to make better eviction decisions in the future.
+     */
+    void beforeUse(EntryRef i);
 
-protected:
-  /** \brief invoked after a new entry is created in CS
-   *
-   *  When overridden in a subclass, a policy implementation should decide whether to accept \p i.
-   *  If \p i is accepted, it should be inserted into a cleanup index.
-   *  Otherwise, \p beforeEvict signal should be emitted with \p i to inform CS to erase the entry.
-   *  A policy implementation may decide to evict other entries by emitting \p beforeEvict signal,
-   *  in order to keep CS size under limit.
-   */
-  virtual void
-  doAfterInsert(EntryRef i) = 0;
+  protected:
+    /** \brief invoked after a new entry is created in CS
+     *
+     *  When overridden in a subclass, a policy implementation should decide whether to accept \p i.
+     *  If \p i is accepted, it should be inserted into a cleanup index.
+     *  Otherwise, \p beforeEvict signal should be emitted with \p i to inform CS to erase the entry.
+     *  A policy implementation may decide to evict other entries by emitting \p beforeEvict signal,
+     *  in order to keep CS size under limit.
+     */
+    virtual void doAfterInsert(EntryRef i) = 0;
 
-  /** \brief invoked after an existing entry is refreshed by same Data
-   *
-   *  When overridden in a subclass, a policy implementation may witness this operation
-   *  and adjust its cleanup index.
-   */
-  virtual void
-  doAfterRefresh(EntryRef i) = 0;
+    /** \brief invoked after an existing entry is refreshed by same Data
+     *
+     *  When overridden in a subclass, a policy implementation may witness this operation
+     *  and adjust its cleanup index.
+     */
+    virtual void doAfterRefresh(EntryRef i) = 0;
 
-  /** \brief invoked before an entry is erased due to management command
-   *  \note This will not be invoked for an entry being evicted by policy.
-   *
-   *  When overridden in a subclass, a policy implementation should erase \p i
-   *  from its cleanup index without emitted \p afterErase signal.
-   */
-  virtual void
-  doBeforeErase(EntryRef i) = 0;
+    /** \brief invoked before an entry is erased due to management command
+     *  \note This will not be invoked for an entry being evicted by policy.
+     *
+     *  When overridden in a subclass, a policy implementation should erase \p i
+     *  from its cleanup index without emitted \p afterErase signal.
+     */
+    virtual void doBeforeErase(EntryRef i) = 0;
 
-  /** \brief invoked before an entry is used to match a lookup
-   *
-   *  When overridden in a subclass, a policy implementation may witness this operation
-   *  and adjust its cleanup index.
-   */
-  virtual void
-  doBeforeUse(EntryRef i) = 0;
+    /** \brief invoked before an entry is used to match a lookup
+     *
+     *  When overridden in a subclass, a policy implementation may witness this operation
+     *  and adjust its cleanup index.
+     */
+    virtual void doBeforeUse(EntryRef i) = 0;
 
-  /** \brief evicts zero or more entries
-   *  \post CS size does not exceed hard limit
-   */
-  virtual void
-  evictEntries() = 0;
+    /** \brief evicts zero or more entries
+     *  \post CS size does not exceed hard limit
+     */
+    virtual void evictEntries() = 0;
 
-protected:
-  DECLARE_SIGNAL_EMIT(beforeEvict)
+  protected:
+    DECLARE_SIGNAL_EMIT(beforeEvict)
 
-private: // registry
-  using CreateFunc = std::function<unique_ptr<Policy>()>;
-  using Registry = std::map<std::string, CreateFunc>; // indexed by policy name
+  private: // registry
+    using CreateFunc = std::function<unique_ptr<Policy>()>;
+    using Registry = std::map<std::string, CreateFunc>; // indexed by policy name
 
-  static Registry&
-  getRegistry();
+    static Registry& getRegistry();
 
-private:
-  std::string m_policyName; // 缓存(替换)策略名
-  size_t m_limit; // 缓存容量
-  Cs* m_cs; // 指向被维护的CS的指针
+  private:
+    std::string m_policyName; // 缓存(替换)策略名
+    size_t m_limit;           // 缓存容量
+    Cs* m_cs;                 // 指向被维护的CS的指针
 };
 
 } // namespace cs
@@ -211,14 +195,13 @@ private:
 /** \brief registers a CS policy
  *  \param P a subclass of nfd::cs::Policy
  */
-#define NFD_REGISTER_CS_POLICY(P)                      \
-static class NfdAuto ## P ## CsPolicyRegistrationClass \
-{                                                      \
-public:                                                \
-  NfdAuto ## P ## CsPolicyRegistrationClass()          \
-  {                                                    \
-    ::nfd::cs::Policy::registerPolicy<P>();            \
-  }                                                    \
-} g_nfdAuto ## P ## CsPolicyRegistrationVariable
+#define NFD_REGISTER_CS_POLICY(P)                                                                                      \
+    static class NfdAuto##P##CsPolicyRegistrationClass {                                                               \
+      public:                                                                                                          \
+        NfdAuto##P##CsPolicyRegistrationClass()                                                                        \
+        {                                                                                                              \
+            ::nfd::cs::Policy::registerPolicy<P>();                                                                    \
+        }                                                                                                              \
+    } g_nfdAuto##P##CsPolicyRegistrationVariable
 
 #endif // NFD_DAEMON_TABLE_CS_POLICY_HPP

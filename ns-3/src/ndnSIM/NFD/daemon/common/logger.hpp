@@ -28,16 +28,16 @@
 
 #include <ndn-cxx/util/logger.hpp>
 
-#define NFD_LOG_INIT(name)                         NDN_LOG_INIT(nfd.name)
-#define NFD_LOG_MEMBER_DECL()                      NDN_LOG_MEMBER_DECL()
-#define NFD_LOG_MEMBER_DECL_SPECIALIZED(cls)       NDN_LOG_MEMBER_DECL_SPECIALIZED(cls)
-#define NFD_LOG_MEMBER_INIT(cls, name)             NDN_LOG_MEMBER_INIT(cls, nfd.name)
+#define NFD_LOG_INIT(name) NDN_LOG_INIT(nfd.name)
+#define NFD_LOG_MEMBER_DECL() NDN_LOG_MEMBER_DECL()
+#define NFD_LOG_MEMBER_DECL_SPECIALIZED(cls) NDN_LOG_MEMBER_DECL_SPECIALIZED(cls)
+#define NFD_LOG_MEMBER_INIT(cls, name) NDN_LOG_MEMBER_INIT(cls, nfd.name)
 #define NFD_LOG_MEMBER_INIT_SPECIALIZED(cls, name) NDN_LOG_MEMBER_INIT_SPECIALIZED(cls, nfd.name)
 
 #define NFD_LOG_TRACE NDN_LOG_TRACE
 #define NFD_LOG_DEBUG NDN_LOG_DEBUG
-#define NFD_LOG_INFO  NDN_LOG_INFO
-#define NFD_LOG_WARN  NDN_LOG_WARN
+#define NFD_LOG_INFO NDN_LOG_INFO
+#define NFD_LOG_WARN NDN_LOG_WARN
 #define NFD_LOG_ERROR NDN_LOG_ERROR
 #define NFD_LOG_FATAL NDN_LOG_FATAL
 

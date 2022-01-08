@@ -44,8 +44,8 @@ namespace websocketpp {
  *
  */
 template <typename config>
-class client : public endpoint<connection<config>,config> {
-public:
+class client : public endpoint<connection<config>, config> {
+  public:
     /// Type of this endpoint
     typedef client<config> type;
 
@@ -65,11 +65,12 @@ public:
     typedef typename transport_con_type::ptr transport_con_ptr;
 
     /// Type of the endpoint component of this server
-    typedef endpoint<connection_type,config> endpoint_type;
+    typedef endpoint<connection_type, config> endpoint_type;
 
     friend class connection<config>;
 
-    explicit client() : endpoint_type(false)
+    explicit client()
+      : endpoint_type(false)
     {
         endpoint_type::m_alog->write(log::alevel::devel, "client constructor");
     }
@@ -86,7 +87,9 @@ public:
      *
      * @return A connection_ptr to the new connection
      */
-    connection_ptr get_connection(uri_ptr location, lib::error_code & ec) {
+    connection_ptr
+    get_connection(uri_ptr location, lib::error_code& ec)
+    {
         if (location->get_secure() && !transport_type::is_secure()) {
             ec = error::make_error_code(error::endpoint_not_secure);
             return connection_ptr();
@@ -116,7 +119,9 @@ public:
      *
      * @return A connection_ptr to the new connection
      */
-    connection_ptr get_connection(std::string const & u, lib::error_code & ec) {
+    connection_ptr
+    get_connection(std::string const& u, lib::error_code& ec)
+    {
         uri_ptr location = lib::make_shared<uri>(u);
 
         if (!location->get_valid()) {
@@ -136,32 +141,28 @@ public:
      *
      * @return The pointer to the connection originally passed in.
      */
-    connection_ptr connect(connection_ptr con) {
+    connection_ptr
+    connect(connection_ptr con)
+    {
         // Ask transport to perform a connection
-        transport_type::async_connect(
-            lib::static_pointer_cast<transport_con_type>(con),
-            con->get_uri(),
-            lib::bind(
-                &type::handle_connect,
-                this,
-                con,
-                lib::placeholders::_1
-            )
-        );
+        transport_type::async_connect(lib::static_pointer_cast<transport_con_type>(con), con->get_uri(),
+                                      lib::bind(&type::handle_connect, this, con, lib::placeholders::_1));
 
         return con;
     }
-private:
+
+  private:
     // handle_connect
-    void handle_connect(connection_ptr con, lib::error_code const & ec) {
+    void
+    handle_connect(connection_ptr con, lib::error_code const& ec)
+    {
         if (ec) {
             con->terminate(ec);
 
-            endpoint_type::m_elog->write(log::elevel::rerror,
-                    "handle_connect error: "+ec.message());
-        } else {
-            endpoint_type::m_alog->write(log::alevel::connect,
-                "Successful connection");
+            endpoint_type::m_elog->write(log::elevel::rerror, "handle_connect error: " + ec.message());
+        }
+        else {
+            endpoint_type::m_alog->write(log::alevel::connect, "Successful connection");
 
             con->start();
         }
@@ -170,4 +171,4 @@ private:
 
 } // namespace websocketpp
 
-#endif //WEBSOCKETPP_CLIENT_ENDPOINT_HPP
+#endif // WEBSOCKETPP_CLIENT_ENDPOINT_HPP

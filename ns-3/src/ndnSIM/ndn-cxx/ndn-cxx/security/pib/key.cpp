@@ -37,102 +37,102 @@ Key::Key(weak_ptr<detail::KeyImpl> impl)
 const Name&
 Key::getName() const
 {
-  return lock()->getName();
+    return lock()->getName();
 }
 
 const Name&
 Key::getIdentity() const
 {
-  return lock()->getIdentity();
+    return lock()->getIdentity();
 }
 
 KeyType
 Key::getKeyType() const
 {
-  return lock()->getKeyType();
+    return lock()->getKeyType();
 }
 
 const Buffer&
 Key::getPublicKey() const
 {
-  return lock()->getPublicKey();
+    return lock()->getPublicKey();
 }
 
 void
 Key::addCertificate(const v2::Certificate& certificate) const
 {
-  return lock()->addCertificate(certificate);
+    return lock()->addCertificate(certificate);
 }
 
 void
 Key::removeCertificate(const Name& certName) const
 {
-  return lock()->removeCertificate(certName);
+    return lock()->removeCertificate(certName);
 }
 
 v2::Certificate
 Key::getCertificate(const Name& certName) const
 {
-  return lock()->getCertificate(certName);
+    return lock()->getCertificate(certName);
 }
 
 const CertificateContainer&
 Key::getCertificates() const
 {
-  return lock()->getCertificates();
+    return lock()->getCertificates();
 }
 
 const v2::Certificate&
 Key::setDefaultCertificate(const Name& certName) const
 {
-  return lock()->setDefaultCertificate(certName);
+    return lock()->setDefaultCertificate(certName);
 }
 
 const v2::Certificate&
 Key::setDefaultCertificate(const v2::Certificate& certificate) const
 {
-  return lock()->setDefaultCertificate(certificate);
+    return lock()->setDefaultCertificate(certificate);
 }
 
 const v2::Certificate&
 Key::getDefaultCertificate() const
 {
-  return lock()->getDefaultCertificate();
+    return lock()->getDefaultCertificate();
 }
 
 Key::operator bool() const
 {
-  return !m_impl.expired();
+    return !m_impl.expired();
 }
 
 shared_ptr<detail::KeyImpl>
 Key::lock() const
 {
-  auto impl = m_impl.lock();
+    auto impl = m_impl.lock();
 
-  if (impl == nullptr) {
-    NDN_THROW(std::domain_error("Invalid key instance"));
-  }
+    if (impl == nullptr) {
+        NDN_THROW(std::domain_error("Invalid key instance"));
+    }
 
-  return impl;
+    return impl;
 }
 
 bool
 operator!=(const Key& lhs, const Key& rhs)
 {
-  return lhs.m_impl.owner_before(rhs.m_impl) || rhs.m_impl.owner_before(lhs.m_impl);
+    return lhs.m_impl.owner_before(rhs.m_impl) || rhs.m_impl.owner_before(lhs.m_impl);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const Key& key)
 {
-  if (key) {
-    os << key.getName();
-  }
-  else {
-    os << "(empty)";
-  }
-  return os;
+    if (key) {
+        os << key.getName();
+    }
+    else {
+        os << "(empty)";
+    }
+    return os;
 }
 
 } // namespace pib
@@ -142,29 +142,28 @@ namespace v2 {
 Name
 constructKeyName(const Name& identity, const name::Component& keyId)
 {
-  Name keyName = identity;
-  keyName
-    .append(Certificate::KEY_COMPONENT)
-    .append(keyId);
-  return keyName;
+    Name keyName = identity;
+    keyName.append(Certificate::KEY_COMPONENT).append(keyId);
+    return keyName;
 }
 
 bool
 isValidKeyName(const Name& keyName)
 {
-  return (keyName.size() >= Certificate::MIN_KEY_NAME_LENGTH &&
-          keyName.get(-Certificate::MIN_KEY_NAME_LENGTH) == Certificate::KEY_COMPONENT);
+    return (keyName.size() >= Certificate::MIN_KEY_NAME_LENGTH
+            && keyName.get(-Certificate::MIN_KEY_NAME_LENGTH) == Certificate::KEY_COMPONENT);
 }
 
 Name
 extractIdentityFromKeyName(const Name& keyName)
 {
-  if (!isValidKeyName(keyName)) {
-    NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri() + "` "
-                                    "does not respect the naming conventions"));
-  }
+    if (!isValidKeyName(keyName)) {
+        NDN_THROW(std::invalid_argument("Key name `" + keyName.toUri()
+                                        + "` "
+                                          "does not respect the naming conventions"));
+    }
 
-  return keyName.getPrefix(-Certificate::MIN_KEY_NAME_LENGTH); // trim everything after and including "KEY"
+    return keyName.getPrefix(-Certificate::MIN_KEY_NAME_LENGTH); // trim everything after and including "KEY"
 }
 
 } // namespace v2

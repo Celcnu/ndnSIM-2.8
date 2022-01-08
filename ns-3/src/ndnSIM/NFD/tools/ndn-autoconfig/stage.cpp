@@ -32,41 +32,41 @@ namespace autoconfig {
 void
 Stage::start()
 {
-  if (m_isInProgress) {
-    NDN_THROW(Error("Cannot start a stage when it's in progress"));
-  }
-  m_isInProgress = true;
+    if (m_isInProgress) {
+        NDN_THROW(Error("Cannot start a stage when it's in progress"));
+    }
+    m_isInProgress = true;
 
-  std::cerr << "Starting " << this->getName() << " stage" << std::endl;
-  this->doStart();
+    std::cerr << "Starting " << this->getName() << " stage" << std::endl;
+    this->doStart();
 }
 
 void
 Stage::provideHubFaceUri(const std::string& s)
 {
-  FaceUri u;
-  if (u.parse(s)) {
-    this->succeed(u);
-  }
-  else {
-    this->fail("Cannot parse FaceUri: " + s);
-  }
+    FaceUri u;
+    if (u.parse(s)) {
+        this->succeed(u);
+    }
+    else {
+        this->fail("Cannot parse FaceUri: " + s);
+    }
 }
 
 void
 Stage::succeed(const FaceUri& hubFaceUri)
 {
-  std::cerr << "Stage " << this->getName() << " succeeded with " << hubFaceUri << std::endl;
-  this->onSuccess(hubFaceUri);
-  m_isInProgress = false;
+    std::cerr << "Stage " << this->getName() << " succeeded with " << hubFaceUri << std::endl;
+    this->onSuccess(hubFaceUri);
+    m_isInProgress = false;
 }
 
 void
 Stage::fail(const std::string& msg)
 {
-  std::cerr << "Stage " << this->getName() << " failed: " << msg << std::endl;
-  this->onFailure(msg);
-  m_isInProgress = false;
+    std::cerr << "Stage " << this->getName() << " failed: " << msg << std::endl;
+    this->onFailure(msg);
+    m_isInProgress = false;
 }
 
 } // namespace autoconfig

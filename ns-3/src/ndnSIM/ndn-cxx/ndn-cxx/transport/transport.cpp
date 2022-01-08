@@ -31,9 +31,9 @@ Transport::Error::Error(const boost::system::error_code& code, const std::string
 void
 Transport::connect(ReceiveCallback receiveCallback)
 {
-  BOOST_ASSERT(receiveCallback != nullptr);
+    BOOST_ASSERT(receiveCallback != nullptr);
 
-  m_receiveCallback = std::move(receiveCallback);
+    m_receiveCallback = std::move(receiveCallback);
 }
 
 } // namespace ndn

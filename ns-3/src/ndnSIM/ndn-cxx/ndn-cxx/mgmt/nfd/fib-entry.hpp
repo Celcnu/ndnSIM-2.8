@@ -31,147 +31,125 @@ namespace nfd {
 /** \ingroup management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt#FIB-Dataset
  */
-class NextHopRecord
-{
-public:
-  class Error : public tlv::Error
-  {
+class NextHopRecord {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  NextHopRecord();
+    NextHopRecord();
 
-  explicit
-  NextHopRecord(const Block& block);
+    explicit NextHopRecord(const Block& block);
 
-  uint64_t
-  getFaceId() const
-  {
-    return m_faceId;
-  }
+    uint64_t
+    getFaceId() const
+    {
+        return m_faceId;
+    }
 
-  NextHopRecord&
-  setFaceId(uint64_t faceId);
+    NextHopRecord& setFaceId(uint64_t faceId);
 
-  uint64_t
-  getCost() const
-  {
-    return m_cost;
-  }
+    uint64_t
+    getCost() const
+    {
+        return m_cost;
+    }
 
-  NextHopRecord&
-  setCost(uint64_t cost);
+    NextHopRecord& setCost(uint64_t cost);
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& block) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& block) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& block);
+    void wireDecode(const Block& block);
 
-private:
-  uint64_t m_faceId;
-  uint64_t m_cost;
+  private:
+    uint64_t m_faceId;
+    uint64_t m_cost;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(NextHopRecord);
 
-bool
-operator==(const NextHopRecord& a, const NextHopRecord& b);
+bool operator==(const NextHopRecord& a, const NextHopRecord& b);
 
 inline bool
 operator!=(const NextHopRecord& a, const NextHopRecord& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const NextHopRecord& nh);
-
+std::ostream& operator<<(std::ostream& os, const NextHopRecord& nh);
 
 /** \ingroup management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt#FIB-Dataset
  */
-class FibEntry
-{
-public:
-  class Error : public tlv::Error
-  {
+class FibEntry {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  FibEntry();
+    FibEntry();
 
-  explicit
-  FibEntry(const Block& block);
+    explicit FibEntry(const Block& block);
 
-  const Name&
-  getPrefix() const
-  {
-    return m_prefix;
-  }
+    const Name&
+    getPrefix() const
+    {
+        return m_prefix;
+    }
 
-  FibEntry&
-  setPrefix(const Name& prefix);
+    FibEntry& setPrefix(const Name& prefix);
 
-  const std::vector<NextHopRecord>&
-  getNextHopRecords() const
-  {
-    return m_nextHopRecords;
-  }
+    const std::vector<NextHopRecord>&
+    getNextHopRecords() const
+    {
+        return m_nextHopRecords;
+    }
 
-  template<typename InputIt>
-  FibEntry&
-  setNextHopRecords(InputIt first, InputIt last)
-  {
-    m_nextHopRecords.assign(first, last);
-    m_wire.reset();
-    return *this;
-  }
+    template <typename InputIt>
+    FibEntry&
+    setNextHopRecords(InputIt first, InputIt last)
+    {
+        m_nextHopRecords.assign(first, last);
+        m_wire.reset();
+        return *this;
+    }
 
-  FibEntry&
-  addNextHopRecord(const NextHopRecord& nh);
+    FibEntry& addNextHopRecord(const NextHopRecord& nh);
 
-  FibEntry&
-  clearNextHopRecords();
+    FibEntry& clearNextHopRecords();
 
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& block) const;
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& block) const;
 
-  const Block&
-  wireEncode() const;
+    const Block& wireEncode() const;
 
-  void
-  wireDecode(const Block& block);
+    void wireDecode(const Block& block);
 
-private:
-  Name m_prefix;
-  std::vector<NextHopRecord> m_nextHopRecords;
+  private:
+    Name m_prefix;
+    std::vector<NextHopRecord> m_nextHopRecords;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(FibEntry);
 
-bool
-operator==(const FibEntry& a, const FibEntry& b);
+bool operator==(const FibEntry& a, const FibEntry& b);
 
 inline bool
 operator!=(const FibEntry& a, const FibEntry& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const FibEntry& entry);
+std::ostream& operator<<(std::ostream& os, const FibEntry& entry);
 
 } // namespace nfd
 } // namespace ndn

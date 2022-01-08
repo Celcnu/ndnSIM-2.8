@@ -114,19 +114,19 @@ namespace websocketpp {
 namespace transport {
 
 /// The type and signature of the callback passed to the init hook
-typedef lib::function<void(lib::error_code const &)> init_handler;
+typedef lib::function<void(lib::error_code const&)> init_handler;
 
 /// The type and signature of the callback passed to the read method
-typedef lib::function<void(lib::error_code const &,size_t)> read_handler;
+typedef lib::function<void(lib::error_code const&, size_t)> read_handler;
 
 /// The type and signature of the callback passed to the write method
-typedef lib::function<void(lib::error_code const &)> write_handler;
+typedef lib::function<void(lib::error_code const&)> write_handler;
 
 /// The type and signature of the callback passed to the read method
-typedef lib::function<void(lib::error_code const &)> timer_handler;
+typedef lib::function<void(lib::error_code const&)> timer_handler;
 
 /// The type and signature of the callback passed to the shutdown method
-typedef lib::function<void(lib::error_code const &)> shutdown_handler;
+typedef lib::function<void(lib::error_code const&)> shutdown_handler;
 
 /// The type and signature of the callback passed to the interrupt method
 typedef lib::function<void()> interrupt_handler;
@@ -136,9 +136,13 @@ typedef lib::function<void()> dispatch_handler;
 
 /// A simple utility buffer class
 struct buffer {
-    buffer(char const * b, size_t l) : buf(b),len(l) {}
+    buffer(char const* b, size_t l)
+      : buf(b)
+      , len(l)
+    {
+    }
 
-    char const * buf;
+    char const* buf;
     size_t len;
 };
 
@@ -181,15 +185,21 @@ enum value {
 };
 
 class category : public lib::error_category {
-    public:
-    category() {}
+  public:
+    category()
+    {
+    }
 
-    char const * name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_ {
+    char const*
+    name() const _WEBSOCKETPP_NOEXCEPT_TOKEN_
+    {
         return "websocketpp.transport";
     }
 
-    std::string message(int value) const {
-        switch(value) {
+    std::string
+    message(int value) const
+    {
+        switch (value) {
             case general:
                 return "Generic transport policy error";
             case pass_through:
@@ -216,12 +226,16 @@ class category : public lib::error_category {
     }
 };
 
-inline lib::error_category const & get_category() {
+inline lib::error_category const&
+get_category()
+{
     static category instance;
     return instance;
 }
 
-inline lib::error_code make_error_code(error::value e) {
+inline lib::error_code
+make_error_code(error::value e)
+{
     return lib::error_code(static_cast<int>(e), get_category());
 }
 
@@ -229,8 +243,8 @@ inline lib::error_code make_error_code(error::value e) {
 } // namespace transport
 } // namespace websocketpp
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_START_
-template<> struct is_error_code_enum<websocketpp::transport::error::value>
-{
+template <>
+struct is_error_code_enum<websocketpp::transport::error::value> {
     static bool const value = true;
 };
 _WEBSOCKETPP_ERROR_CODE_ENUM_NS_END_

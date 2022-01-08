@@ -28,18 +28,15 @@ namespace ndn {
 
 /** \brief base class to allow simple management of packet tags
  */
-class PacketBase : public TagHost
-{
-public:
-  /** \brief get the value of the CongestionMark tag
-   */
-  uint64_t
-  getCongestionMark() const;
+class PacketBase : public TagHost {
+  public:
+    /** \brief get the value of the CongestionMark tag
+     */
+    uint64_t getCongestionMark() const;
 
-  /** \brief set the CongestionMark tag to the specified value
-   */
-  void
-  setCongestionMark(uint64_t mark);
+    /** \brief set the CongestionMark tag to the specified value
+     */
+    void setCongestionMark(uint64_t mark);
 };
 
 } // namespace ndn

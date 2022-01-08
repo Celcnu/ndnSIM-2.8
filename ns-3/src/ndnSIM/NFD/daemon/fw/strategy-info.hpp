@@ -33,25 +33,23 @@ namespace fw {
 
 /** \brief contains arbitrary information forwarding strategy places on table entries
  */
-class StrategyInfo
-{
-public:
+class StrategyInfo {
+  public:
 #ifdef DOXYGEN
-  /** \return an integer that uniquely identifies this StrategyInfo type
-   *  \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyInfoType
-   */
-  static constexpr int
-  getTypeId()
-  {
-    return <type-identifier>;
-  }
+    /** \return an integer that uniquely identifies this StrategyInfo type
+     *  \sa https://redmine.named-data.net/projects/nfd/wiki/StrategyInfoType
+     */
+    static constexpr int
+    getTypeId()
+    {
+        return <type - identifier>;
+    }
 #endif
 
-  virtual
-  ~StrategyInfo() = default;
+    virtual ~StrategyInfo() = default;
 
-protected:
-  StrategyInfo() = default;
+  protected:
+    StrategyInfo() = default;
 };
 
 } // namespace fw

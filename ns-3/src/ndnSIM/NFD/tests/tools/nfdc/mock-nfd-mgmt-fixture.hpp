@@ -37,67 +37,66 @@ using namespace nfd::tests;
 
 /** \brief fixture to emulate NFD management
  */
-class MockNfdMgmtFixture : public nfd::tools::tests::MockNfdMgmtFixture
-{
-protected:
-  /** \brief respond to specific FaceQuery requests
-   *  \retval true the Interest matches one of the defined patterns and is responded
-   *  \retval false the Interest is not responded
-   */
-  bool
-  respondFaceQuery(const Interest& interest)
-  {
-    using ndn::nfd::FacePersistency;
-    using ndn::nfd::FaceQueryFilter;
-    using ndn::nfd::FaceStatus;
+class MockNfdMgmtFixture : public nfd::tools::tests::MockNfdMgmtFixture {
+  protected:
+    /** \brief respond to specific FaceQuery requests
+     *  \retval true the Interest matches one of the defined patterns and is responded
+     *  \retval false the Interest is not responded
+     */
+    bool
+    respondFaceQuery(const Interest& interest)
+    {
+        using ndn::nfd::FacePersistency;
+        using ndn::nfd::FaceQueryFilter;
+        using ndn::nfd::FaceStatus;
 
-    if (!Name("/localhost/nfd/faces/query").isPrefixOf(interest.getName())) {
-      return false;
+        if (!Name("/localhost/nfd/faces/query").isPrefixOf(interest.getName())) {
+            return false;
+        }
+        BOOST_CHECK_EQUAL(interest.getName().size(), 5);
+        FaceQueryFilter filter(interest.getName().at(4).blockFromValue());
+
+        if (filter == FaceQueryFilter().setFaceId(10156)) {
+            FaceStatus faceStatus;
+            faceStatus.setFaceId(10156)
+              .setLocalUri("tcp4://151.26.163.27:22967")
+              .setRemoteUri("tcp4://198.57.27.40:6363")
+              .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERSISTENT);
+            this->sendDataset(interest.getName(), faceStatus);
+            return true;
+        }
+
+        if (filter == FaceQueryFilter().setRemoteUri("tcp4://32.121.182.82:6363")) {
+            FaceStatus faceStatus;
+            faceStatus.setFaceId(2249)
+              .setLocalUri("tcp4://30.99.87.98:31414")
+              .setRemoteUri("tcp4://32.121.182.82:6363")
+              .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERSISTENT);
+            this->sendDataset(interest.getName(), faceStatus);
+            return true;
+        }
+
+        if (filter == FaceQueryFilter().setFaceId(23728)) {
+            this->sendEmptyDataset(interest.getName());
+            return true;
+        }
+
+        if (filter == FaceQueryFilter().setRemoteUri("udp4://225.131.75.231:56363")) {
+            FaceStatus faceStatus1, faceStatus2;
+            faceStatus1.setFaceId(6720)
+              .setLocalUri("udp4://202.83.168.28:56363")
+              .setRemoteUri("udp4://225.131.75.231:56363")
+              .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERMANENT);
+            faceStatus2.setFaceId(31066)
+              .setLocalUri("udp4://25.90.26.32:56363")
+              .setRemoteUri("udp4://225.131.75.231:56363")
+              .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERMANENT);
+            this->sendDataset(interest.getName(), faceStatus1, faceStatus2);
+            return true;
+        }
+
+        return false;
     }
-    BOOST_CHECK_EQUAL(interest.getName().size(), 5);
-    FaceQueryFilter filter(interest.getName().at(4).blockFromValue());
-
-    if (filter == FaceQueryFilter().setFaceId(10156)) {
-      FaceStatus faceStatus;
-      faceStatus.setFaceId(10156)
-                .setLocalUri("tcp4://151.26.163.27:22967")
-                .setRemoteUri("tcp4://198.57.27.40:6363")
-                .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERSISTENT);
-      this->sendDataset(interest.getName(), faceStatus);
-      return true;
-    }
-
-    if (filter == FaceQueryFilter().setRemoteUri("tcp4://32.121.182.82:6363")) {
-      FaceStatus faceStatus;
-      faceStatus.setFaceId(2249)
-                .setLocalUri("tcp4://30.99.87.98:31414")
-                .setRemoteUri("tcp4://32.121.182.82:6363")
-                .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERSISTENT);
-      this->sendDataset(interest.getName(), faceStatus);
-      return true;
-    }
-
-    if (filter == FaceQueryFilter().setFaceId(23728)) {
-      this->sendEmptyDataset(interest.getName());
-      return true;
-    }
-
-    if (filter == FaceQueryFilter().setRemoteUri("udp4://225.131.75.231:56363")) {
-      FaceStatus faceStatus1, faceStatus2;
-      faceStatus1.setFaceId(6720)
-                 .setLocalUri("udp4://202.83.168.28:56363")
-                 .setRemoteUri("udp4://225.131.75.231:56363")
-                 .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERMANENT);
-      faceStatus2.setFaceId(31066)
-                 .setLocalUri("udp4://25.90.26.32:56363")
-                 .setRemoteUri("udp4://225.131.75.231:56363")
-                 .setFacePersistency(FacePersistency::FACE_PERSISTENCY_PERMANENT);
-      this->sendDataset(interest.getName(), faceStatus1, faceStatus2);
-      return true;
-    }
-
-    return false;
-  }
 };
 
 } // namespace tests

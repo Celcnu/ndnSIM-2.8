@@ -28,9 +28,7 @@
 namespace ndn {
 namespace tests {
 
-class IdentityManagementTimeFixture : public UnitTestTimeFixture
-                                    , public IdentityManagementFixture
-{
+class IdentityManagementTimeFixture : public UnitTestTimeFixture, public IdentityManagementFixture {
 };
 
 } // namespace tests

@@ -32,57 +32,49 @@ namespace nfd {
  * \brief represents a Face status change notification
  * \sa https://redmine.named-data.net/projects/nfd/wiki/FaceMgmt#Face-Status-Change-Notification
  */
-class FaceEventNotification : public FaceTraits<FaceEventNotification>
-{
-public:
-  FaceEventNotification();
+class FaceEventNotification : public FaceTraits<FaceEventNotification> {
+  public:
+    FaceEventNotification();
 
-  explicit
-  FaceEventNotification(const Block& block);
+    explicit FaceEventNotification(const Block& block);
 
-  /** \brief prepend FaceEventNotification to the encoder
-   */
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    /** \brief prepend FaceEventNotification to the encoder
+     */
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  /** \brief encode FaceEventNotification
-   */
-  const Block&
-  wireEncode() const;
+    /** \brief encode FaceEventNotification
+     */
+    const Block& wireEncode() const;
 
-  /** \brief decode FaceEventNotification
-   */
-  void
-  wireDecode(const Block& wire);
+    /** \brief decode FaceEventNotification
+     */
+    void wireDecode(const Block& wire);
 
-public: // getters & setters
-  FaceEventKind
-  getKind() const
-  {
-    return m_kind;
-  }
+  public: // getters & setters
+    FaceEventKind
+    getKind() const
+    {
+        return m_kind;
+    }
 
-  FaceEventNotification&
-  setKind(FaceEventKind kind);
+    FaceEventNotification& setKind(FaceEventKind kind);
 
-private:
-  FaceEventKind m_kind;
+  private:
+    FaceEventKind m_kind;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(FaceEventNotification);
 
-bool
-operator==(const FaceEventNotification& a, const FaceEventNotification& b);
+bool operator==(const FaceEventNotification& a, const FaceEventNotification& b);
 
 inline bool
 operator!=(const FaceEventNotification& a, const FaceEventNotification& b)
 {
-  return !(a == b);
+    return !(a == b);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const FaceEventNotification& notification);
+std::ostream& operator<<(std::ostream& os, const FaceEventNotification& notification);
 
 } // namespace nfd
 } // namespace ndn

@@ -35,38 +35,27 @@ namespace ndn {
  * in order to add/remove a prefix to/from the table or empty it in one node or
  * a node container
  */
-class NetworkRegionTableHelper
-{
-public:
-  static void
-  AddRegionName(Ptr<Node> node, const Name& regionName);
+class NetworkRegionTableHelper {
+  public:
+    static void AddRegionName(Ptr<Node> node, const Name& regionName);
 
-  static void
-  AddRegionName(NodeContainer& c, const Name& regionName);
+    static void AddRegionName(NodeContainer& c, const Name& regionName);
 
-  static void
-  AddRegionName(Ptr<Node> node, std::initializer_list<Name> regionNames);
+    static void AddRegionName(Ptr<Node> node, std::initializer_list<Name> regionNames);
 
-  static void
-  AddRegionName(const NodeContainer& c, std::initializer_list<Name> regionNames);
+    static void AddRegionName(const NodeContainer& c, std::initializer_list<Name> regionNames);
 
-  static void
-  RemoveRegionName(Ptr<Node> node, const Name& regionName);
+    static void RemoveRegionName(Ptr<Node> node, const Name& regionName);
 
-  static void
-  RemoveRegionName(const NodeContainer& c, const Name& regionName);
+    static void RemoveRegionName(const NodeContainer& c, const Name& regionName);
 
-  static void
-  RemoveRegionName(Ptr<Node> node, std::initializer_list<Name> regionNames);
+    static void RemoveRegionName(Ptr<Node> node, std::initializer_list<Name> regionNames);
 
-  static void
-  RemoveRegionName(const NodeContainer& c, std::initializer_list<Name> regionNames);
+    static void RemoveRegionName(const NodeContainer& c, std::initializer_list<Name> regionNames);
 
-  static void
-  EmptyNetworkRegionTable(Ptr<Node> node);
+    static void EmptyNetworkRegionTable(Ptr<Node> node);
 
-  static void
-  EmptyNetworkRegionTable(const NodeContainer& c);
+    static void EmptyNetworkRegionTable(const NodeContainer& c);
 };
 
 } // namespace ndn

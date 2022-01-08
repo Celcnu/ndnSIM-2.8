@@ -39,59 +39,47 @@ NFD_LOG_MEMBER_DECL_SPECIALIZED((DatagramTransport<boost::asio::ip::udp, Multica
 // Note that this "shall be declared before the first use of the specialization
 // that would cause an implicit instantiation to take place, in every translation
 // unit in which such a use occurs".
-template<>
-EndpointId
-DatagramTransport<boost::asio::ip::udp, Multicast>::makeEndpointId(const protocol::endpoint& ep);
+template <>
+EndpointId DatagramTransport<boost::asio::ip::udp, Multicast>::makeEndpointId(const protocol::endpoint& ep);
 
 /**
  * \brief A Transport that communicates on a UDP multicast group
  */
-class MulticastUdpTransport final : public DatagramTransport<boost::asio::ip::udp, Multicast>
-{
-public:
-  class Error : public std::runtime_error
-  {
+class MulticastUdpTransport final : public DatagramTransport<boost::asio::ip::udp, Multicast> {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * \brief Creates a UDP-based transport for multicast communication
-   * \param multicastGroup multicast group
-   * \param recvSocket socket used to receive multicast packets
-   * \param sendSocket socket used to send to the multicast group
-   * \param linkType either `ndn::nfd::LINK_TYPE_MULTI_ACCESS` or `ndn::nfd::LINK_TYPE_AD_HOC`
-   */
-  MulticastUdpTransport(const protocol::endpoint& multicastGroup,
-                        protocol::socket&& recvSocket,
-                        protocol::socket&& sendSocket,
-                        ndn::nfd::LinkType linkType);
+    /**
+     * \brief Creates a UDP-based transport for multicast communication
+     * \param multicastGroup multicast group
+     * \param recvSocket socket used to receive multicast packets
+     * \param sendSocket socket used to send to the multicast group
+     * \param linkType either `ndn::nfd::LINK_TYPE_MULTI_ACCESS` or `ndn::nfd::LINK_TYPE_AD_HOC`
+     */
+    MulticastUdpTransport(const protocol::endpoint& multicastGroup, protocol::socket&& recvSocket,
+                          protocol::socket&& sendSocket, ndn::nfd::LinkType linkType);
 
-  ssize_t
-  getSendQueueLength() final;
+    ssize_t getSendQueueLength() final;
 
-  static void
-  openRxSocket(protocol::socket& sock,
-               const protocol::endpoint& multicastGroup,
-               const boost::asio::ip::address& localAddress,
-               const shared_ptr<const ndn::net::NetworkInterface>& netif = nullptr);
+    static void openRxSocket(protocol::socket& sock, const protocol::endpoint& multicastGroup,
+                             const boost::asio::ip::address& localAddress,
+                             const shared_ptr<const ndn::net::NetworkInterface>& netif = nullptr);
 
-  static void
-  openTxSocket(protocol::socket& sock,
-               const protocol::endpoint& localEndpoint,
-               const shared_ptr<const ndn::net::NetworkInterface>& netif = nullptr,
-               bool enableLoopback = false);
+    static void
+    openTxSocket(protocol::socket& sock, const protocol::endpoint& localEndpoint,
+                 const shared_ptr<const ndn::net::NetworkInterface>& netif = nullptr, bool enableLoopback = false);
 
-private:
-  void
-  doSend(const Block& packet, const EndpointId& endpoint) final;
+  private:
+    void doSend(const Block& packet, const EndpointId& endpoint) final;
 
-  void
-  doClose() final;
+    void doClose() final;
 
-private:
-  protocol::endpoint m_multicastGroup;
-  protocol::socket m_sendSocket;
+  private:
+    protocol::endpoint m_multicastGroup;
+    protocol::socket m_sendSocket;
 };
 
 } // namespace face

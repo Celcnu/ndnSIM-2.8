@@ -37,47 +37,37 @@ namespace cs {
 namespace lru {
 
 using Queue = boost::multi_index_container<
-                Policy::EntryRef,
-                boost::multi_index::indexed_by<
-                  boost::multi_index::sequenced<>,
-                  boost::multi_index::ordered_unique<boost::multi_index::identity<Policy::EntryRef>>
-                >
-              >;
+  Policy::EntryRef,
+  boost::multi_index::indexed_by<boost::multi_index::sequenced<>,
+                                 boost::multi_index::ordered_unique<boost::multi_index::identity<Policy::EntryRef>>>>;
 
 /** \brief Least-Recently-Used (LRU) replacement policy
  */
-class LruPolicy : public Policy
-{
-public:
-  LruPolicy();
+class LruPolicy : public Policy {
+  public:
+    LruPolicy();
 
-public:
-  static const std::string POLICY_NAME;
+  public:
+    static const std::string POLICY_NAME;
 
-private:
-  void
-  doAfterInsert(EntryRef i) override;
+  private:
+    void doAfterInsert(EntryRef i) override;
 
-  void
-  doAfterRefresh(EntryRef i) override;
+    void doAfterRefresh(EntryRef i) override;
 
-  void
-  doBeforeErase(EntryRef i) override;
+    void doBeforeErase(EntryRef i) override;
 
-  void
-  doBeforeUse(EntryRef i) override;
+    void doBeforeUse(EntryRef i) override;
 
-  void
-  evictEntries() override;
+    void evictEntries() override;
 
-private:
-  /** \brief moves an entry to the end of queue
-   */
-  void
-  insertToQueue(EntryRef i, bool isNewEntry);
+  private:
+    /** \brief moves an entry to the end of queue
+     */
+    void insertToQueue(EntryRef i, bool isNewEntry);
 
-private:
-  Queue m_queue;
+  private:
+    Queue m_queue;
 };
 
 } // namespace lru

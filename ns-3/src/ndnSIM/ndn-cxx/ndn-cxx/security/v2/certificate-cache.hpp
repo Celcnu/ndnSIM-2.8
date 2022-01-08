@@ -40,105 +40,92 @@ namespace v2 {
  * A certificate is removed no later than its NotAfter time, or maxLifetime after it has been
  * added to the cache.
  */
-class CertificateCache : noncopyable
-{
-public:
-  /**
-   * @brief Create an object for certificate cache.
-   *
-   * @param maxLifetime the maximum time that certificates could live inside cache (default: 1 hour)
-   */
-  explicit
-  CertificateCache(const time::nanoseconds& maxLifetime = getDefaultLifetime());
-
-  /**
-   * @brief Insert certificate into cache.
-   *
-   * The inserted certificate will be removed no later than its NotAfter time, or maxLifetime
-   * defined during cache construction.
-   *
-   * @param cert  the certificate packet.
-   */
-  void
-  insert(const Certificate& cert);
-
-  /**
-   * @brief Remove all certificates from cache
-   */
-  void
-  clear();
-
-  /**
-   * @brief Get certificate given key name
-   * @param certPrefix  Certificate prefix for searching the certificate.
-   * @return The found certificate, nullptr if not found.
-   *
-   * @note The returned value may be invalidated after next call to one of find methods.
-   */
-  const Certificate*
-  find(const Name& certPrefix) const;
-
-  /**
-   * @brief Find certificate given interest
-   * @param interest  The input interest packet.
-   * @return The found certificate that matches the interest, nullptr if not found.
-   *
-   * @note The returned value may be invalidated after next call to one of find methods.
-   */
-  const Certificate*
-  find(const Interest& interest) const;
-
-private:
-  class Entry
-  {
+class CertificateCache : noncopyable {
   public:
-    Entry(const Certificate& cert, const time::system_clock::TimePoint& removalTime)
-      : cert(cert)
-      , removalTime(removalTime)
-    {
-    }
+    /**
+     * @brief Create an object for certificate cache.
+     *
+     * @param maxLifetime the maximum time that certificates could live inside cache (default: 1 hour)
+     */
+    explicit CertificateCache(const time::nanoseconds& maxLifetime = getDefaultLifetime());
 
-    const Name&
-    getCertName() const
-    {
-      return cert.getName();
-    }
+    /**
+     * @brief Insert certificate into cache.
+     *
+     * The inserted certificate will be removed no later than its NotAfter time, or maxLifetime
+     * defined during cache construction.
+     *
+     * @param cert  the certificate packet.
+     */
+    void insert(const Certificate& cert);
+
+    /**
+     * @brief Remove all certificates from cache
+     */
+    void clear();
+
+    /**
+     * @brief Get certificate given key name
+     * @param certPrefix  Certificate prefix for searching the certificate.
+     * @return The found certificate, nullptr if not found.
+     *
+     * @note The returned value may be invalidated after next call to one of find methods.
+     */
+    const Certificate* find(const Name& certPrefix) const;
+
+    /**
+     * @brief Find certificate given interest
+     * @param interest  The input interest packet.
+     * @return The found certificate that matches the interest, nullptr if not found.
+     *
+     * @note The returned value may be invalidated after next call to one of find methods.
+     */
+    const Certificate* find(const Interest& interest) const;
+
+  private:
+    class Entry {
+      public:
+        Entry(const Certificate& cert, const time::system_clock::TimePoint& removalTime)
+          : cert(cert)
+          , removalTime(removalTime)
+        {
+        }
+
+        const Name&
+        getCertName() const
+        {
+            return cert.getName();
+        }
+
+      public:
+        Certificate cert;
+        time::system_clock::TimePoint removalTime;
+    };
+
+    /**
+     * @brief Remove all outdated certificate entries.
+     */
+    void refresh();
 
   public:
-    Certificate cert;
-    time::system_clock::TimePoint removalTime;
-  };
+    static time::nanoseconds getDefaultLifetime();
 
-  /**
-   * @brief Remove all outdated certificate entries.
-   */
-  void
-  refresh();
+  private:
+    /// @todo Switch to InMemoryStorateTimeout after it is available (task #3917)
+    typedef boost::multi_index::multi_index_container<
+      Entry,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_non_unique<
+          boost::multi_index::member<Entry, const time::system_clock::TimePoint, &Entry::removalTime>>,
+        boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<Entry, const Name&, &Entry::getCertName>>>>
+      CertIndex;
 
-public:
-  static time::nanoseconds
-  getDefaultLifetime();
-
-private:
-  /// @todo Switch to InMemoryStorateTimeout after it is available (task #3917)
-  typedef boost::multi_index::multi_index_container<
-    Entry,
-    boost::multi_index::indexed_by<
-      boost::multi_index::ordered_non_unique<
-        boost::multi_index::member<Entry, const time::system_clock::TimePoint, &Entry::removalTime>
-      >,
-      boost::multi_index::ordered_unique<
-        boost::multi_index::const_mem_fun<Entry, const Name&, &Entry::getCertName>
-      >
-    >
-  > CertIndex;
-
-  typedef CertIndex::nth_index<0>::type CertIndexByTime;
-  typedef CertIndex::nth_index<1>::type CertIndexByName;
-  CertIndex m_certs;
-  CertIndexByTime& m_certsByTime;
-  CertIndexByName& m_certsByName;
-  time::nanoseconds m_maxLifetime;
+    typedef CertIndex::nth_index<0>::type CertIndexByTime;
+    typedef CertIndex::nth_index<1>::type CertIndexByName;
+    CertIndex m_certs;
+    CertIndexByTime& m_certsByTime;
+    CertIndexByName& m_certsByName;
+    time::nanoseconds m_maxLifetime;
 };
 
 } // namespace v2

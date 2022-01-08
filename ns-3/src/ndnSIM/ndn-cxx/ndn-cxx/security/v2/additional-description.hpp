@@ -36,106 +36,92 @@ namespace v2 {
  * @brief Abstraction of AdditionalDescription
  * @sa docs/specs/certificate-format.rst
  */
-class AdditionalDescription
-{
-public:
-  class Error : public tlv::Error
-  {
+class AdditionalDescription {
   public:
-    using tlv::Error::Error;
-  };
+    class Error : public tlv::Error {
+      public:
+        using tlv::Error::Error;
+    };
 
-  typedef std::map<std::string, std::string>::iterator iterator;
-  typedef std::map<std::string, std::string>::const_iterator const_iterator;
+    typedef std::map<std::string, std::string>::iterator iterator;
+    typedef std::map<std::string, std::string>::const_iterator const_iterator;
 
-public:
-  /**
-   * @brief Create an empty AdditionalDescription
-   */
-  AdditionalDescription() = default;
+  public:
+    /**
+     * @brief Create an empty AdditionalDescription
+     */
+    AdditionalDescription() = default;
 
-  /**
-   * @brief Create AdditionalDescription from @p block
-   */
-  explicit
-  AdditionalDescription(const Block& block);
+    /**
+     * @brief Create AdditionalDescription from @p block
+     */
+    explicit AdditionalDescription(const Block& block);
 
-  const std::string&
-  get(const std::string& key) const;
+    const std::string& get(const std::string& key) const;
 
-  void
-  set(const std::string& key, const std::string& value);
+    void set(const std::string& key, const std::string& value);
 
-  bool
-  has(const std::string& key) const;
+    bool has(const std::string& key) const;
 
-  size_t
-  size() const
-  {
-    return m_info.size();
-  }
+    size_t
+    size() const
+    {
+        return m_info.size();
+    }
 
-  bool
-  empty() const
-  {
-    return m_info.empty();
-  }
+    bool
+    empty() const
+    {
+        return m_info.empty();
+    }
 
-  iterator
-  begin();
+    iterator begin();
 
-  iterator
-  end();
+    iterator end();
 
-  const_iterator
-  begin() const;
+    const_iterator begin() const;
 
-  const_iterator
-  end() const;
+    const_iterator end() const;
 
-  /** @brief Fast encoding or block size estimation
-   */
-  template<encoding::Tag TAG>
-  size_t
-  wireEncode(EncodingImpl<TAG>& encoder) const;
+    /** @brief Fast encoding or block size estimation
+     */
+    template <encoding::Tag TAG>
+    size_t wireEncode(EncodingImpl<TAG>& encoder) const;
 
-  /** @brief Encode ValidityPeriod into TLV block
-   */
-  const Block&
-  wireEncode() const;
+    /** @brief Encode ValidityPeriod into TLV block
+     */
+    const Block& wireEncode() const;
 
-  /** @brief Decode ValidityPeriod from TLV block
-   *  @throw Error when an invalid TLV block supplied
-   */
-  void
-  wireDecode(const Block& wire);
+    /** @brief Decode ValidityPeriod from TLV block
+     *  @throw Error when an invalid TLV block supplied
+     */
+    void wireDecode(const Block& wire);
 
-private: // EqualityComparable concept
-  // NOTE: the following "hidden friend" operators are available via
-  //       argument-dependent lookup only and must be defined inline.
+  private: // EqualityComparable concept
+    // NOTE: the following "hidden friend" operators are available via
+    //       argument-dependent lookup only and must be defined inline.
 
-  friend bool
-  operator==(const AdditionalDescription& lhs, const AdditionalDescription& rhs)
-  {
-    return lhs.m_info == rhs.m_info;
-  }
+    friend bool
+    operator==(const AdditionalDescription& lhs, const AdditionalDescription& rhs)
+    {
+        return lhs.m_info == rhs.m_info;
+    }
 
-  friend bool
-  operator!=(const AdditionalDescription& lhs, const AdditionalDescription& rhs)
-  {
-    return lhs.m_info != rhs.m_info;
-  }
+    friend bool
+    operator!=(const AdditionalDescription& lhs, const AdditionalDescription& rhs)
+    {
+        return lhs.m_info != rhs.m_info;
+    }
 
-private:
-  std::map<std::string, std::string> m_info;
+  private:
+    std::map<std::string, std::string> m_info;
 
-  mutable Block m_wire;
+    mutable Block m_wire;
 };
 
 NDN_CXX_DECLARE_WIRE_ENCODE_INSTANTIATIONS(AdditionalDescription);
 
-std::ostream&
-operator<<(std::ostream& os, const AdditionalDescription& desc);
+std::ostream& operator<<(std::ostream& os, const AdditionalDescription& desc);
 
 } // namespace v2
 

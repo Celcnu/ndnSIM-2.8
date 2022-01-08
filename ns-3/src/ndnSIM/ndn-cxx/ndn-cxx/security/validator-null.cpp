@@ -35,8 +35,8 @@ ValidatorNull::ValidatorNull()
 security::v2::Validator&
 getAcceptAllValidator()
 {
-  static security::ValidatorNull validator;
-  return validator;
+    static security::ValidatorNull validator;
+    return validator;
 }
 
 } // namespace v2

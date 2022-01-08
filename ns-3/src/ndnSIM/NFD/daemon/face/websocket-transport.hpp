@@ -36,75 +36,61 @@ namespace face {
  *  \note The type name 'WebSocketTransportCounters' is implementation detail.
  *        Use 'WebSocketTransport::Counters' in public API.
  */
-class WebSocketTransportCounters : public virtual Transport::Counters
-{
-public:
-  /** \brief count of outgoing Pings
-   */
-  PacketCounter nOutPings;
+class WebSocketTransportCounters : public virtual Transport::Counters {
+  public:
+    /** \brief count of outgoing Pings
+     */
+    PacketCounter nOutPings;
 
-  /** \brief count of incoming Pongs
-   */
-  PacketCounter nInPongs;
+    /** \brief count of incoming Pongs
+     */
+    PacketCounter nInPongs;
 };
 
 /** \brief A Transport that communicates on a WebSocket connection
  */
-class WebSocketTransport final : public Transport
-                               , protected virtual WebSocketTransportCounters
-{
-public:
-  /** \brief counters provided by WebSocketTransport
-   */
-  typedef WebSocketTransportCounters Counters;
+class WebSocketTransport final : public Transport, protected virtual WebSocketTransportCounters {
+  public:
+    /** \brief counters provided by WebSocketTransport
+     */
+    typedef WebSocketTransportCounters Counters;
 
-  WebSocketTransport(websocketpp::connection_hdl hdl,
-                     websocket::Server& server,
-                     time::milliseconds pingInterval);
+    WebSocketTransport(websocketpp::connection_hdl hdl, websocket::Server& server, time::milliseconds pingInterval);
 
-  const Counters&
-  getCounters() const final;
+    const Counters& getCounters() const final;
 
-  /** \brief Translates a message into a Block
-   *         and delivers it to the link service
-   */
-  void
-  receiveMessage(const std::string& msg);
+    /** \brief Translates a message into a Block
+     *         and delivers it to the link service
+     */
+    void receiveMessage(const std::string& msg);
 
-  void
-  handlePong();
+    void handlePong();
 
-  void
-  handlePongTimeout();
+    void handlePongTimeout();
 
-protected:
-  void
-  doClose() final;
+  protected:
+    void doClose() final;
 
-private:
-  void
-  doSend(const Block& packet, const EndpointId& endpoint) final;
+  private:
+    void doSend(const Block& packet, const EndpointId& endpoint) final;
 
-  void
-  schedulePing();
+    void schedulePing();
 
-  void
-  sendPing();
+    void sendPing();
 
-  void
-  processErrorCode(const websocketpp::lib::error_code& error);
+    void processErrorCode(const websocketpp::lib::error_code& error);
 
-private:
-  websocketpp::connection_hdl m_handle;
-  websocket::Server& m_server;
-  time::milliseconds m_pingInterval;
-  scheduler::ScopedEventId m_pingEventId;
+  private:
+    websocketpp::connection_hdl m_handle;
+    websocket::Server& m_server;
+    time::milliseconds m_pingInterval;
+    scheduler::ScopedEventId m_pingEventId;
 };
 
 inline const WebSocketTransport::Counters&
 WebSocketTransport::getCounters() const
 {
-  return *this;
+    return *this;
 }
 
 } // namespace face

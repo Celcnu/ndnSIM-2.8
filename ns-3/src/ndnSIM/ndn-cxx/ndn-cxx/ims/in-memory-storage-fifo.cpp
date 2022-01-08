@@ -36,29 +36,29 @@ InMemoryStorageFifo::InMemoryStorageFifo(DummyIoService& ioService, size_t limit
 void
 InMemoryStorageFifo::afterInsert(InMemoryStorageEntry* entry)
 {
-  BOOST_ASSERT(m_cleanupIndex.size() <= size());
-  m_cleanupIndex.insert(entry);
+    BOOST_ASSERT(m_cleanupIndex.size() <= size());
+    m_cleanupIndex.insert(entry);
 }
 
 bool
 InMemoryStorageFifo::evictItem()
 {
-  if (!m_cleanupIndex.get<byArrival>().empty()) {
-    CleanupIndex::index<byArrival>::type::iterator it = m_cleanupIndex.get<byArrival>().begin();
-    eraseImpl((*it)->getFullName());
-    m_cleanupIndex.get<byArrival>().erase(it);
-    return true;
-  }
+    if (!m_cleanupIndex.get<byArrival>().empty()) {
+        CleanupIndex::index<byArrival>::type::iterator it = m_cleanupIndex.get<byArrival>().begin();
+        eraseImpl((*it)->getFullName());
+        m_cleanupIndex.get<byArrival>().erase(it);
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 void
 InMemoryStorageFifo::beforeErase(InMemoryStorageEntry* entry)
 {
-  CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
-  if (it != m_cleanupIndex.get<byEntity>().end())
-    m_cleanupIndex.get<byEntity>().erase(it);
+    CleanupIndex::index<byEntity>::type::iterator it = m_cleanupIndex.get<byEntity>().find(entry);
+    if (it != m_cleanupIndex.get<byEntity>().end())
+        m_cleanupIndex.get<byEntity>().erase(it);
 }
 
 } // namespace ndn

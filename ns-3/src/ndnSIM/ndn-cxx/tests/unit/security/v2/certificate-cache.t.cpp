@@ -32,55 +32,54 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Security)
 BOOST_AUTO_TEST_SUITE(V2)
 
-class CertificateCacheFixture : public ndn::tests::IdentityManagementTimeFixture
-{
-public:
-  CertificateCacheFixture()
-    : certCache(10_s)
-  {
-    identity = addIdentity("/TestCertificateCache/");
-    cert = identity.getDefaultKey().getDefaultCertificate();
-  }
+class CertificateCacheFixture : public ndn::tests::IdentityManagementTimeFixture {
+  public:
+    CertificateCacheFixture()
+      : certCache(10_s)
+    {
+        identity = addIdentity("/TestCertificateCache/");
+        cert = identity.getDefaultKey().getDefaultCertificate();
+    }
 
-public:
-  CertificateCache certCache;
-  Identity identity;
-  Certificate cert;
+  public:
+    CertificateCache certCache;
+    Identity identity;
+    Certificate cert;
 };
 
 BOOST_FIXTURE_TEST_SUITE(TestCertificateCache, CertificateCacheFixture)
 
 BOOST_AUTO_TEST_CASE(RemovalTime)
 {
-  // Cache lifetime is capped to 10 seconds during cache construction
+    // Cache lifetime is capped to 10 seconds during cache construction
 
-  BOOST_CHECK_NO_THROW(certCache.insert(cert));
-  BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
+    BOOST_CHECK_NO_THROW(certCache.insert(cert));
+    BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
 
-  advanceClocks(11_s, 1);
-  BOOST_CHECK(certCache.find(cert.getName()) == nullptr);
+    advanceClocks(11_s, 1);
+    BOOST_CHECK(certCache.find(cert.getName()) == nullptr);
 
-  BOOST_CHECK_NO_THROW(certCache.insert(cert));
-  BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
+    BOOST_CHECK_NO_THROW(certCache.insert(cert));
+    BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
 
-  advanceClocks(5_s);
-  BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
+    advanceClocks(5_s);
+    BOOST_CHECK(certCache.find(cert.getName()) != nullptr);
 
-  advanceClocks(15_s);
-  BOOST_CHECK(certCache.find(cert.getName()) == nullptr);
+    advanceClocks(15_s);
+    BOOST_CHECK(certCache.find(cert.getName()) == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(FindByInterest)
 {
-  BOOST_CHECK_NO_THROW(certCache.insert(cert));
+    BOOST_CHECK_NO_THROW(certCache.insert(cert));
 
-  // Find by interest
-  BOOST_CHECK(certCache.find(Interest(cert.getIdentity())) != nullptr);
-  BOOST_CHECK(certCache.find(Interest(cert.getKeyName())) != nullptr);
-  BOOST_CHECK(certCache.find(Interest(Name(cert.getName()).appendVersion())) == nullptr);
+    // Find by interest
+    BOOST_CHECK(certCache.find(Interest(cert.getIdentity())) != nullptr);
+    BOOST_CHECK(certCache.find(Interest(cert.getKeyName())) != nullptr);
+    BOOST_CHECK(certCache.find(Interest(Name(cert.getName()).appendVersion())) == nullptr);
 
-  advanceClocks(12_s);
-  BOOST_CHECK(certCache.find(Interest(cert.getIdentity())) == nullptr);
+    advanceClocks(12_s);
+    BOOST_CHECK(certCache.find(Interest(cert.getIdentity())) == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCertificateCache

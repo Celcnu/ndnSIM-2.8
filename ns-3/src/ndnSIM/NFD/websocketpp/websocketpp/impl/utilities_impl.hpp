@@ -34,13 +34,17 @@
 namespace websocketpp {
 namespace utility {
 
-inline std::string to_lower(std::string const & in) {
+inline std::string
+to_lower(std::string const& in)
+{
     std::string out = in;
-    std::transform(out.begin(),out.end(),out.begin(),::tolower);
+    std::transform(out.begin(), out.end(), out.begin(), ::tolower);
     return out;
 }
 
-inline std::string to_hex(std::string const & input) {
+inline std::string
+to_hex(std::string const& input)
+{
     std::string output;
     std::string hex = "0123456789ABCDEF";
 
@@ -53,7 +57,9 @@ inline std::string to_hex(std::string const & input) {
     return output;
 }
 
-inline std::string to_hex(uint8_t const * input, size_t length) {
+inline std::string
+to_hex(uint8_t const* input, size_t length)
+{
     std::string output;
     std::string hex = "0123456789ABCDEF";
 
@@ -66,17 +72,19 @@ inline std::string to_hex(uint8_t const * input, size_t length) {
     return output;
 }
 
-inline std::string to_hex(const char* input,size_t length) {
-    return to_hex(reinterpret_cast<const uint8_t*>(input),length);
+inline std::string
+to_hex(const char* input, size_t length)
+{
+    return to_hex(reinterpret_cast<const uint8_t*>(input), length);
 }
 
-inline std::string string_replace_all(std::string subject, std::string const &
-    search, std::string const & replace)
+inline std::string
+string_replace_all(std::string subject, std::string const& search, std::string const& replace)
 {
     size_t pos = 0;
-    while((pos = subject.find(search, pos)) != std::string::npos) {
-         subject.replace(pos, search.length(), replace);
-         pos += replace.length();
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+        subject.replace(pos, search.length(), replace);
+        pos += replace.length();
     }
     return subject;
 }

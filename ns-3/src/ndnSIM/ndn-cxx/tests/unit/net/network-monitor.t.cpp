@@ -32,38 +32,36 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Net)
 BOOST_AUTO_TEST_SUITE(TestNetworkMonitor)
 
-#define NM_REQUIRE_CAP(capability) \
-  do { \
-    if ((nm->getCapabilities() & NetworkMonitor::CAP_ ## capability) == 0) { \
-      BOOST_WARN_MESSAGE(false, "skipping assertions that require " #capability " capability"); \
-      return; \
-    } \
-  } while (false)
+#define NM_REQUIRE_CAP(capability)                                                                                     \
+    do {                                                                                                               \
+        if ((nm->getCapabilities() & NetworkMonitor::CAP_##capability) == 0) {                                         \
+            BOOST_WARN_MESSAGE(false, "skipping assertions that require " #capability " capability");                  \
+            return;                                                                                                    \
+        }                                                                                                              \
+    } while (false)
 
 BOOST_AUTO_TEST_CASE(DestructWithoutRun)
 {
-  boost::asio::io_service io;
-  auto nm = make_unique<NetworkMonitor>(io);
-  nm.reset();
-  BOOST_CHECK(true); // if we got this far, the test passed
+    boost::asio::io_service io;
+    auto nm = make_unique<NetworkMonitor>(io);
+    nm.reset();
+    BOOST_CHECK(true); // if we got this far, the test passed
 }
 
 BOOST_AUTO_TEST_CASE(DestructWhileEnumerating)
 {
-  boost::asio::io_service io;
-  auto nm = make_unique<NetworkMonitor>(io);
-  NM_REQUIRE_CAP(ENUM);
+    boost::asio::io_service io;
+    auto nm = make_unique<NetworkMonitor>(io);
+    NM_REQUIRE_CAP(ENUM);
 
-  nm->onInterfaceAdded.connect([&] (const shared_ptr<const NetworkInterface>&) {
-    io.post([&] { nm.reset(); });
-  });
-  nm->onEnumerationCompleted.connect([&] {
-    // make sure the test case terminates even if we have zero interfaces
-    io.post([&] { nm.reset(); });
-  });
+    nm->onInterfaceAdded.connect([&](const shared_ptr<const NetworkInterface>&) { io.post([&] { nm.reset(); }); });
+    nm->onEnumerationCompleted.connect([&] {
+        // make sure the test case terminates even if we have zero interfaces
+        io.post([&] { nm.reset(); });
+    });
 
-  io.run();
-  BOOST_CHECK(true); // if we got this far, the test passed
+    io.run();
+    BOOST_CHECK(true); // if we got this far, the test passed
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNetworkMonitor

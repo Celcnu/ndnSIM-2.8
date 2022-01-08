@@ -33,18 +33,17 @@ CommandInterestPreparer::CommandInterestPreparer()
 Name
 CommandInterestPreparer::prepareCommandInterestName(Name name)
 {
-  time::milliseconds timestamp = time::toUnixTimestamp(time::system_clock::now());
-  if (timestamp <= m_lastUsedTimestamp) {
-    timestamp = m_lastUsedTimestamp + 1_ms;
-  }
-  m_lastUsedTimestamp = timestamp;
+    time::milliseconds timestamp = time::toUnixTimestamp(time::system_clock::now());
+    if (timestamp <= m_lastUsedTimestamp) {
+        timestamp = m_lastUsedTimestamp + 1_ms;
+    }
+    m_lastUsedTimestamp = timestamp;
 
-  name
-    .append(name::Component::fromNumber(timestamp.count()))
-    .append(name::Component::fromNumber(random::generateWord64())) // nonce
-    ;
+    name.append(name::Component::fromNumber(timestamp.count()))
+      .append(name::Component::fromNumber(random::generateWord64())) // nonce
+      ;
 
-  return name;
+    return name;
 }
 
 CommandInterestSigner::CommandInterestSigner(KeyChain& keyChain)
@@ -55,10 +54,10 @@ CommandInterestSigner::CommandInterestSigner(KeyChain& keyChain)
 Interest
 CommandInterestSigner::makeCommandInterest(const Name& name, const SigningInfo& params)
 {
-  Interest commandInterest(prepareCommandInterestName(name));
-  commandInterest.setCanBePrefix(false);
-  m_keyChain.sign(commandInterest, params);
-  return commandInterest;
+    Interest commandInterest(prepareCommandInterestName(name));
+    commandInterest.setCanBePrefix(false);
+    m_keyChain.sign(commandInterest, params);
+    return commandInterest;
 }
 
 } // namespace security

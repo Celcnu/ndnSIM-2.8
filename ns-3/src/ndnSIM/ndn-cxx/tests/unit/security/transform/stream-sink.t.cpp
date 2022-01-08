@@ -34,20 +34,17 @@ BOOST_AUTO_TEST_SUITE(TestStreamSink)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  uint8_t in[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x20, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-  };
-  std::ostringstream os;
-  StreamSink sink(os);
-  BOOST_CHECK_EQUAL(sink.write(in, 4), 4);
-  BOOST_CHECK_EQUAL(sink.write(in + 4, 4), 4);
-  BOOST_CHECK_EQUAL(sink.write(in + 8, 4), 4);
-  BOOST_CHECK_EQUAL(sink.write(in + 12, 4), 4);
-  sink.end();
-  std::string out = os.str();
-  BOOST_CHECK_EQUAL_COLLECTIONS(in, in + sizeof(in), out.begin(), out.end());
-  BOOST_CHECK_THROW(sink.write(in + 8, 8), transform::Error);
+    uint8_t in[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x20, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+    std::ostringstream os;
+    StreamSink sink(os);
+    BOOST_CHECK_EQUAL(sink.write(in, 4), 4);
+    BOOST_CHECK_EQUAL(sink.write(in + 4, 4), 4);
+    BOOST_CHECK_EQUAL(sink.write(in + 8, 4), 4);
+    BOOST_CHECK_EQUAL(sink.write(in + 12, 4), 4);
+    sink.end();
+    std::string out = os.str();
+    BOOST_CHECK_EQUAL_COLLECTIONS(in, in + sizeof(in), out.begin(), out.end());
+    BOOST_CHECK_THROW(sink.write(in + 8, 8), transform::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStreamSink

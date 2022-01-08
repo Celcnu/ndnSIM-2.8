@@ -33,36 +33,40 @@
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
-void on_message(websocketpp::connection_hdl, client::message_ptr msg) {
+void
+on_message(websocketpp::connection_hdl, client::message_ptr msg)
+{
     std::cout << msg->get_payload() << std::endl;
 }
 
 /// Verify that one of the subject alternative names matches the given hostname
-bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
-    STACK_OF(GENERAL_NAME) * san_names = NULL;
-    
-    san_names = (STACK_OF(GENERAL_NAME) *) X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+bool
+verify_subject_alternative_name(const char* hostname, X509* cert)
+{
+    STACK_OF(GENERAL_NAME)* san_names = NULL;
+
+    san_names = (STACK_OF(GENERAL_NAME)*)X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
     if (san_names == NULL) {
         return false;
     }
-    
+
     int san_names_count = sk_GENERAL_NAME_num(san_names);
-    
+
     bool result = false;
-    
+
     for (int i = 0; i < san_names_count; i++) {
-        const GENERAL_NAME * current_name = sk_GENERAL_NAME_value(san_names, i);
-        
+        const GENERAL_NAME* current_name = sk_GENERAL_NAME_value(san_names, i);
+
         if (current_name->type != GEN_DNS) {
             continue;
         }
-        
-        char * dns_name = (char *) ASN1_STRING_data(current_name->d.dNSName);
-        
+
+        char* dns_name = (char*)ASN1_STRING_data(current_name->d.dNSName);
+
         // Make sure there isn't an embedded NUL character in the DNS name
         if (ASN1_STRING_length(current_name->d.dNSName) != strlen(dns_name)) {
             break;
@@ -71,37 +75,39 @@ bool verify_subject_alternative_name(const char * hostname, X509 * cert) {
         result = (strcasecmp(hostname, dns_name) == 0);
     }
     sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAME_free);
-    
+
     return result;
 }
 
 /// Verify that the certificate common name matches the given hostname
-bool verify_common_name(const char * hostname, X509 * cert) {
+bool
+verify_common_name(const char* hostname, X509* cert)
+{
     // Find the position of the CN field in the Subject field of the certificate
     int common_name_loc = X509_NAME_get_index_by_NID(X509_get_subject_name(cert), NID_commonName, -1);
     if (common_name_loc < 0) {
         return false;
     }
-    
+
     // Extract the CN field
-    X509_NAME_ENTRY * common_name_entry = X509_NAME_get_entry(X509_get_subject_name(cert), common_name_loc);
+    X509_NAME_ENTRY* common_name_entry = X509_NAME_get_entry(X509_get_subject_name(cert), common_name_loc);
     if (common_name_entry == NULL) {
         return false;
     }
-    
+
     // Convert the CN field to a C string
-    ASN1_STRING * common_name_asn1 = X509_NAME_ENTRY_get_data(common_name_entry);
+    ASN1_STRING* common_name_asn1 = X509_NAME_ENTRY_get_data(common_name_entry);
     if (common_name_asn1 == NULL) {
         return false;
     }
-    
-    char * common_name_str = (char *) ASN1_STRING_data(common_name_asn1);
-    
+
+    char* common_name_str = (char*)ASN1_STRING_data(common_name_asn1);
+
     // Make sure there isn't an embedded NUL character in the CN
     if (ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
         return false;
     }
-    
+
     // Compare expected hostname with the CN
     return (strcasecmp(hostname, common_name_str) == 0);
 }
@@ -112,7 +118,9 @@ bool verify_common_name(const char * hostname, X509 * cert) {
  * and
  * https://github.com/iSECPartners/ssl-conservatory
  */
-bool verify_certificate(const char * hostname, bool preverified, boost::asio::ssl::verify_context& ctx) {
+bool
+verify_certificate(const char* hostname, bool preverified, boost::asio::ssl::verify_context& ctx)
+{
     // The verify callback can be used to check whether the certificate that is
     // being presented is valid for the peer. For example, RFC 2818 describes
     // the steps involved in doing this for HTTPS. Consult the OpenSSL
@@ -132,12 +140,14 @@ bool verify_certificate(const char * hostname, bool preverified, boost::asio::ss
     // the hostname is present on the list of SANs or the common name (CN).
     if (depth == 0 && preverified) {
         X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
-        
+
         if (verify_subject_alternative_name(hostname, cert)) {
             return true;
-        } else if (verify_common_name(hostname, cert)) {
+        }
+        else if (verify_common_name(hostname, cert)) {
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -172,45 +182,47 @@ bool verify_certificate(const char * hostname, bool preverified, boost::asio::ss
  * Note the bundled CA cert ca-chain.cert.pem is the CA cert that signed the
  * cert bundled with echo_server_tls. You can use print_client_tls with this
  * CA cert to connect to echo_server_tls as long as you use /etc/hosts or
- * something equivilent to spoof one of the names on that cert 
+ * something equivilent to spoof one of the names on that cert
  * (websocketpp.org, for example).
  */
-context_ptr on_tls_init(const char * hostname, websocketpp::connection_hdl) {
+context_ptr
+on_tls_init(const char* hostname, websocketpp::connection_hdl)
+{
     context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 
     try {
-        ctx->set_options(boost::asio::ssl::context::default_workarounds |
-                         boost::asio::ssl::context::no_sslv2 |
-                         boost::asio::ssl::context::no_sslv3 |
-                         boost::asio::ssl::context::single_dh_use);
-
+        ctx->set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2
+                         | boost::asio::ssl::context::no_sslv3 | boost::asio::ssl::context::single_dh_use);
 
         ctx->set_verify_mode(boost::asio::ssl::verify_peer);
         ctx->set_verify_callback(bind(&verify_certificate, hostname, ::_1, ::_2));
 
         // Here we load the CA certificates of all CA's that this client trusts.
         ctx->load_verify_file("ca-chain.cert.pem");
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e) {
         std::cout << e.what() << std::endl;
     }
     return ctx;
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[])
+{
     client c;
 
     std::string hostname = "localhost";
     std::string port = "9002";
 
-
     if (argc == 3) {
         hostname = argv[1];
         port = argv[2];
-    } else {
+    }
+    else {
         std::cout << "Usage: print_server_tls <hostname> <port>" << std::endl;
         return 1;
     }
-    
+
     std::string uri = "wss://" + hostname + ":" + port;
 
     try {
@@ -243,7 +255,8 @@ int main(int argc, char* argv[]) {
         // this will cause a single connection to be made to the server. c.run()
         // will exit when this connection is closed.
         c.run();
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << e.what() << std::endl;
     }
 }

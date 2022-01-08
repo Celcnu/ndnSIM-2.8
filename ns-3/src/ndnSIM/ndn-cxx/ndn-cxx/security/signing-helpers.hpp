@@ -31,50 +31,43 @@ namespace security {
 /**
  * \return a SigningInfo for signing with an identity
  */
-SigningInfo
-signingByIdentity(const Name& identityName);
+SigningInfo signingByIdentity(const Name& identityName);
 
 /**
  * \return a SigningInfo for signing with an identity
  */
-SigningInfo
-signingByIdentity(const Identity& identity);
+SigningInfo signingByIdentity(const Identity& identity);
 
 /**
  * \return a SigningInfo for signing with a key
  */
-SigningInfo
-signingByKey(const Name& keyName);
+SigningInfo signingByKey(const Name& keyName);
 
 /**
  * \return a SigningInfo for signing with a key
  */
-SigningInfo
-signingByKey(const Key& key);
+SigningInfo signingByKey(const Key& key);
 
 /**
  * \return a SigningInfo for signing with a certificate
  */
-SigningInfo
-signingByCertificate(const Name& certName);
+SigningInfo signingByCertificate(const Name& certName);
 
 /**
  * \return a SigningInfo for signing with a certificate
  */
-SigningInfo
-signingByCertificate(const v2::Certificate& cert);
+SigningInfo signingByCertificate(const v2::Certificate& cert);
 
 /**
  * \return a SigningInfo for signing with Sha256
  */
-SigningInfo
-signingWithSha256();
+SigningInfo signingWithSha256();
 
 } // namespace security
 
+using security::signingByCertificate;
 using security::signingByIdentity;
 using security::signingByKey;
-using security::signingByCertificate;
 using security::signingWithSha256;
 
 } // namespace ndn

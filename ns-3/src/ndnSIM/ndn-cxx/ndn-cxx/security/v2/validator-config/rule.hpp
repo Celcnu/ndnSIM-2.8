@@ -33,76 +33,70 @@ class ValidationState;
 
 namespace validator_config {
 
-class Rule : noncopyable
-{
-public:
-  Rule(const std::string& id, uint32_t pktType);
+class Rule : noncopyable {
+  public:
+    Rule(const std::string& id, uint32_t pktType);
 
-  const std::string&
-  getId() const
-  {
-    return m_id;
-  }
+    const std::string&
+    getId() const
+    {
+        return m_id;
+    }
 
-  uint32_t
-  getPktType() const
-  {
-    return m_pktType;
-  }
+    uint32_t
+    getPktType() const
+    {
+        return m_pktType;
+    }
 
-  void
-  addFilter(unique_ptr<Filter> filter);
+    void addFilter(unique_ptr<Filter> filter);
 
-  void
-  addChecker(unique_ptr<Checker> checker);
+    void addChecker(unique_ptr<Checker> checker);
 
-  /**
-   * @brief check if the packet name matches rule's filter
-   *
-   * If no filters were added, the rule matches everything.
-   *
-   * @param pktType tlv::Interest or tlv::Data
-   * @param pktName packet name, for signed Interests the last two components are not removed
-   * @retval true  If at least one filter matches @p pktName
-   * @retval false If none of the filters match @p pktName
-   *
-   * @throw Error the supplied pktType doesn't match one for which the rule is designed
-   */
-  bool
-  match(uint32_t pktType, const Name& pktName) const;
+    /**
+     * @brief check if the packet name matches rule's filter
+     *
+     * If no filters were added, the rule matches everything.
+     *
+     * @param pktType tlv::Interest or tlv::Data
+     * @param pktName packet name, for signed Interests the last two components are not removed
+     * @retval true  If at least one filter matches @p pktName
+     * @retval false If none of the filters match @p pktName
+     *
+     * @throw Error the supplied pktType doesn't match one for which the rule is designed
+     */
+    bool match(uint32_t pktType, const Name& pktName) const;
 
-  /**
-   * @brief check if packet satisfies rule's condition
-   *
-   * @param pktType tlv::Interest or tlv::Data
-   * @param pktName packet name, for signed Interests the last two components are not removed
-   * @param klName KeyLocator name
-   * @param state Validation state
-   *
-   * @retval false packet violates at least one checker. Will call state::fail() with proper code and message.
-   * @retval true  packet satisfies all checkers, further validation is needed
-   *
-   * @throw Error the supplied pktType doesn't match one for which the rule is designed
-   */
-  bool
-  check(uint32_t pktType, const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) const;
+    /**
+     * @brief check if packet satisfies rule's condition
+     *
+     * @param pktType tlv::Interest or tlv::Data
+     * @param pktName packet name, for signed Interests the last two components are not removed
+     * @param klName KeyLocator name
+     * @param state Validation state
+     *
+     * @retval false packet violates at least one checker. Will call state::fail() with proper code and message.
+     * @retval true  packet satisfies all checkers, further validation is needed
+     *
+     * @throw Error the supplied pktType doesn't match one for which the rule is designed
+     */
+    bool
+    check(uint32_t pktType, const Name& pktName, const Name& klName, const shared_ptr<ValidationState>& state) const;
 
-public:
-  /**
-   * @brief create a rule from configuration section
-   *
-   * @param configSection The section containing the definition of checker.
-   * @param configFilename The configuration file name.
-   * @return a rule created from configuration
-   */
-  static unique_ptr<Rule>
-  create(const ConfigSection& configSection, const std::string& configFilename);
+  public:
+    /**
+     * @brief create a rule from configuration section
+     *
+     * @param configSection The section containing the definition of checker.
+     * @param configFilename The configuration file name.
+     * @return a rule created from configuration
+     */
+    static unique_ptr<Rule> create(const ConfigSection& configSection, const std::string& configFilename);
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  std::string m_id;
-  uint32_t m_pktType;
-  std::vector<unique_ptr<Filter>> m_filters;
-  std::vector<unique_ptr<Checker>> m_checkers;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE : std::string m_id;
+    uint32_t m_pktType;
+    std::vector<unique_ptr<Filter>> m_filters;
+    std::vector<unique_ptr<Checker>> m_checkers;
 };
 
 } // namespace validator_config

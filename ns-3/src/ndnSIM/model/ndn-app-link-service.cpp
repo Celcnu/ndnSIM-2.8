@@ -36,45 +36,45 @@ AppLinkService::AppLinkService(Ptr<App> app)
   : m_node(app->GetNode())
   , m_app(app)
 {
-  NS_LOG_FUNCTION(this << app);
+    NS_LOG_FUNCTION(this << app);
 
-  NS_ASSERT(m_app != 0);
+    NS_ASSERT(m_app != 0);
 }
 
 AppLinkService::~AppLinkService()
 {
-  NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION_NOARGS();
 }
 
 void
 AppLinkService::doSendInterest(const Interest& interest, const nfd::EndpointId& endpoint)
 {
-  NS_LOG_FUNCTION(this << &interest);
+    NS_LOG_FUNCTION(this << &interest);
 
-  // to decouple callbacks
-  // 添加了事件App::OnInterest,而该函数为虚函数
-  // 实际添加的是Producer::OnInterest事件
-  Simulator::ScheduleNow(&App::OnInterest, m_app, interest.shared_from_this());
+    // to decouple callbacks
+    // 添加了事件App::OnInterest,而该函数为虚函数
+    // 实际添加的是Producer::OnInterest事件
+    Simulator::ScheduleNow(&App::OnInterest, m_app, interest.shared_from_this());
 }
 
 // 将数据包发送出去
 void
 AppLinkService::doSendData(const Data& data, const nfd::EndpointId& endpoint)
 {
-  NS_LOG_FUNCTION(this << &data);
+    NS_LOG_FUNCTION(this << &data);
 
-  // to decouple callbacks
-  // 添加 Consumer::onData 事件
-  Simulator::ScheduleNow(&App::OnData, m_app, data.shared_from_this());
+    // to decouple callbacks
+    // 添加 Consumer::onData 事件
+    Simulator::ScheduleNow(&App::OnData, m_app, data.shared_from_this());
 }
 
 void
 AppLinkService::doSendNack(const lp::Nack& nack, const nfd::EndpointId& endpoint)
 {
-  NS_LOG_FUNCTION(this << &nack);
+    NS_LOG_FUNCTION(this << &nack);
 
-  // to decouple callbacks
-  Simulator::ScheduleNow(&App::OnNack, m_app, make_shared<lp::Nack>(nack));
+    // to decouple callbacks
+    Simulator::ScheduleNow(&App::OnNack, m_app, make_shared<lp::Nack>(nack));
 }
 
 //
@@ -82,19 +82,19 @@ AppLinkService::doSendNack(const lp::Nack& nack, const nfd::EndpointId& endpoint
 void
 AppLinkService::onReceiveInterest(const Interest& interest)
 {
-  this->receiveInterest(interest, 0);
+    this->receiveInterest(interest, 0);
 }
 
 void
 AppLinkService::onReceiveData(const Data& data)
 {
-  this->receiveData(data, 0);
+    this->receiveData(data, 0);
 }
 
 void
 AppLinkService::onReceiveNack(const lp::Nack& nack)
 {
-  this->receiveNack(nack, 0);
+    this->receiveNack(nack, 0);
 }
 
 } // namespace ndn

@@ -30,33 +30,32 @@ namespace ndn {
  * \ingroup ndn-face
  * \brief Null transport (does nothing, just fulfills requirements of the interface)
  */
-class NullTransport : public nfd::face::Transport
-{
-public:
-  NullTransport(const std::string& localUri, const std::string& remoteUri,
-                ::ndn::nfd::FaceScope scope = ::ndn::nfd::FACE_SCOPE_NON_LOCAL,
-                ::ndn::nfd::FacePersistency persistency = ::ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
-                ::ndn::nfd::LinkType linkType = ::ndn::nfd::LINK_TYPE_POINT_TO_POINT)
-  {
-    this->setLocalUri(FaceUri(localUri));
-    this->setRemoteUri(FaceUri(remoteUri));
-    this->setScope(scope);
-    this->setPersistency(persistency);
-    this->setLinkType(linkType);
-    // this->setMtu(udp::computeMtu(m_socket.local_endpoint())); // not sure what should be here
-  }
+class NullTransport : public nfd::face::Transport {
+  public:
+    NullTransport(const std::string& localUri, const std::string& remoteUri,
+                  ::ndn::nfd::FaceScope scope = ::ndn::nfd::FACE_SCOPE_NON_LOCAL,
+                  ::ndn::nfd::FacePersistency persistency = ::ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
+                  ::ndn::nfd::LinkType linkType = ::ndn::nfd::LINK_TYPE_POINT_TO_POINT)
+    {
+        this->setLocalUri(FaceUri(localUri));
+        this->setRemoteUri(FaceUri(remoteUri));
+        this->setScope(scope);
+        this->setPersistency(persistency);
+        this->setLinkType(linkType);
+        // this->setMtu(udp::computeMtu(m_socket.local_endpoint())); // not sure what should be here
+    }
 
-private:
-  void
-  doClose() final
-  {
-    this->setState(nfd::face::TransportState::CLOSED);
-  }
+  private:
+    void
+    doClose() final
+    {
+        this->setState(nfd::face::TransportState::CLOSED);
+    }
 
-  void
-  doSend(const Block& packet, const nfd::EndpointId& endpoint) final
-  {
-  }
+    void
+    doSend(const Block& packet, const nfd::EndpointId& endpoint) final
+    {
+    }
 };
 
 } // namespace ndn

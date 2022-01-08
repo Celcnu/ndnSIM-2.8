@@ -30,29 +30,28 @@ namespace transform {
  * @brief The implementation class which contains the internal state of the filter
  *        which includes openssl specific structures.
  */
-class Base64Decode::Impl
-{
-public:
-  Impl()
-    : m_base64(BIO_new(BIO_f_base64()))
-    , m_source(BIO_new(BIO_s_mem()))
-  {
-    // Input may not be written in a single time.
-    // Do not return EOF when source is empty unless explicitly requested
-    BIO_set_mem_eof_return(m_source, -1);
+class Base64Decode::Impl {
+  public:
+    Impl()
+      : m_base64(BIO_new(BIO_f_base64()))
+      , m_source(BIO_new(BIO_s_mem()))
+    {
+        // Input may not be written in a single time.
+        // Do not return EOF when source is empty unless explicitly requested
+        BIO_set_mem_eof_return(m_source, -1);
 
-    // connect base64 transform to the data source.
-    BIO_push(m_base64, m_source);
-  }
+        // connect base64 transform to the data source.
+        BIO_push(m_base64, m_source);
+    }
 
-  ~Impl()
-  {
-    BIO_free_all(m_base64);
-  }
+    ~Impl()
+    {
+        BIO_free_all(m_base64);
+    }
 
-public:
-  BIO* m_base64;
-  BIO* m_source; // BIO_f_base64 alone does not work without a source
+  public:
+    BIO* m_base64;
+    BIO* m_source; // BIO_f_base64 alone does not work without a source
 };
 
 static const size_t BUFFER_LENGTH = 1024;
@@ -60,8 +59,8 @@ static const size_t BUFFER_LENGTH = 1024;
 Base64Decode::Base64Decode(bool expectNewlineEvery64Bytes)
   : m_impl(make_unique<Impl>())
 {
-  if (!expectNewlineEvery64Bytes)
-    BIO_set_flags(m_impl->m_base64, BIO_FLAGS_BASE64_NO_NL);
+    if (!expectNewlineEvery64Bytes)
+        BIO_set_flags(m_impl->m_base64, BIO_FLAGS_BASE64_NO_NL);
 }
 
 Base64Decode::~Base64Decode() = default;
@@ -69,66 +68,66 @@ Base64Decode::~Base64Decode() = default;
 void
 Base64Decode::preTransform()
 {
-  while (isOutputBufferEmpty()) {
-    fillOutputBuffer();
-    if (isOutputBufferEmpty()) // nothing to read from BIO, return
-      return;
+    while (isOutputBufferEmpty()) {
+        fillOutputBuffer();
+        if (isOutputBufferEmpty()) // nothing to read from BIO, return
+            return;
 
-    flushOutputBuffer();
-  }
+        flushOutputBuffer();
+    }
 }
 
 size_t
 Base64Decode::convert(const uint8_t* buf, size_t size)
 {
-  int wLen = BIO_write(m_impl->m_source, buf, size);
+    int wLen = BIO_write(m_impl->m_source, buf, size);
 
-  if (wLen <= 0) { // fail to write data
-    if (!BIO_should_retry(m_impl->m_source)) {
-      // we haven't written everything but some error happens, and we cannot retry
-      NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+    if (wLen <= 0) { // fail to write data
+        if (!BIO_should_retry(m_impl->m_source)) {
+            // we haven't written everything but some error happens, and we cannot retry
+            NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+        }
+        return 0;
     }
-    return 0;
-  }
-  else { // update number of bytes written
-    return wLen;
-  }
+    else { // update number of bytes written
+        return wLen;
+    }
 }
 
 void
 Base64Decode::finalize()
 {
-  BIO_set_mem_eof_return(m_impl->m_source, 0);
+    BIO_set_mem_eof_return(m_impl->m_source, 0);
 
-  fillOutputBuffer();
+    fillOutputBuffer();
 
-  while (!isOutputBufferEmpty()) {
-    flushOutputBuffer();
-    if (isOutputBufferEmpty())
-      fillOutputBuffer();
-  }
+    while (!isOutputBufferEmpty()) {
+        flushOutputBuffer();
+        if (isOutputBufferEmpty())
+            fillOutputBuffer();
+    }
 }
 
 void
 Base64Decode::fillOutputBuffer()
 {
-  // OpenSSL base64 BIO cannot give us the number bytes of partial decoded result,
-  // so we just try to read a chunk.
-  auto buffer = make_unique<OBuffer>(BUFFER_LENGTH);
-  int rLen = BIO_read(m_impl->m_base64, buffer->data(), buffer->size());
-  if (rLen <= 0)
-    return;
+    // OpenSSL base64 BIO cannot give us the number bytes of partial decoded result,
+    // so we just try to read a chunk.
+    auto buffer = make_unique<OBuffer>(BUFFER_LENGTH);
+    int rLen = BIO_read(m_impl->m_base64, buffer->data(), buffer->size());
+    if (rLen <= 0)
+        return;
 
-  if (static_cast<size_t>(rLen) < buffer->size())
-    buffer->erase(buffer->begin() + rLen, buffer->end());
+    if (static_cast<size_t>(rLen) < buffer->size())
+        buffer->erase(buffer->begin() + rLen, buffer->end());
 
-  setOutputBuffer(std::move(buffer));
+    setOutputBuffer(std::move(buffer));
 }
 
 unique_ptr<Transform>
 base64Decode(bool expectNewlineEvery64Bytes)
 {
-  return make_unique<Base64Decode>(expectNewlineEvery64Bytes);
+    return make_unique<Base64Decode>(expectNewlineEvery64Bytes);
 }
 
 } // namespace transform

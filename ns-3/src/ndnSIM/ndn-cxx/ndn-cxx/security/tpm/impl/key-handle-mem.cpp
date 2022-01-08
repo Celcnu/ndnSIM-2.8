@@ -35,41 +35,40 @@ namespace tpm {
 KeyHandleMem::KeyHandleMem(shared_ptr<transform::PrivateKey> key)
   : m_key(std::move(key))
 {
-  BOOST_ASSERT(m_key != nullptr);
+    BOOST_ASSERT(m_key != nullptr);
 }
 
 ConstBufferPtr
 KeyHandleMem::doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const
 {
-  using namespace transform;
+    using namespace transform;
 
-  OBufferStream sigOs;
-  bufferSource(buf, size) >> signerFilter(digestAlgorithm, *m_key) >> streamSink(sigOs);
-  return sigOs.buf();
+    OBufferStream sigOs;
+    bufferSource(buf, size) >> signerFilter(digestAlgorithm, *m_key) >> streamSink(sigOs);
+    return sigOs.buf();
 }
 
 bool
-KeyHandleMem::doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size,
-                       const uint8_t* sig, size_t sigLen) const
+KeyHandleMem::doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size, const uint8_t* sig,
+                       size_t sigLen) const
 {
-  using namespace transform;
+    using namespace transform;
 
-  bool result = false;
-  bufferSource(buf, size) >> verifierFilter(digestAlgorithm, *m_key, sig, sigLen)
-                          >> boolSink(result);
-  return result;
+    bool result = false;
+    bufferSource(buf, size) >> verifierFilter(digestAlgorithm, *m_key, sig, sigLen) >> boolSink(result);
+    return result;
 }
 
 ConstBufferPtr
 KeyHandleMem::doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const
 {
-  return m_key->decrypt(cipherText, cipherTextLen);
+    return m_key->decrypt(cipherText, cipherTextLen);
 }
 
 ConstBufferPtr
 KeyHandleMem::doDerivePublicKey() const
 {
-  return m_key->derivePublicKey();
+    return m_key->derivePublicKey();
 }
 
 } // namespace tpm

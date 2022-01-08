@@ -30,8 +30,7 @@ namespace measurements {
 
 using fw::Strategy;
 
-MeasurementsAccessor::MeasurementsAccessor(Measurements& measurements,
-                                           const StrategyChoice& strategyChoice,
+MeasurementsAccessor::MeasurementsAccessor(Measurements& measurements, const StrategyChoice& strategyChoice,
                                            const Strategy& strategy)
   : m_measurements(measurements)
   , m_strategyChoice(strategyChoice)
@@ -46,15 +45,15 @@ MeasurementsAccessor::~MeasurementsAccessor()
 Entry*
 MeasurementsAccessor::filter(Entry* entry) const
 {
-  if (entry == nullptr) {
-    return entry;
-  }
+    if (entry == nullptr) {
+        return entry;
+    }
 
-  Strategy& effectiveStrategy = m_strategyChoice.findEffectiveStrategy(*entry);
-  if (&effectiveStrategy == m_strategy) {
-    return entry;
-  }
-  return nullptr;
+    Strategy& effectiveStrategy = m_strategyChoice.findEffectiveStrategy(*entry);
+    if (&effectiveStrategy == m_strategy) {
+        return entry;
+    }
+    return nullptr;
 }
 
 } // namespace measurements

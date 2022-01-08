@@ -40,51 +40,50 @@ HostToGatewayReadvertisePolicy::HostToGatewayReadvertisePolicy(const ndn::KeyCha
                                                                const ConfigSection& section)
   : m_keyChain(keyChain)
 {
-  auto interval = section.get_optional<uint64_t>("refresh_interval");
-  m_refreshInterval = interval ? time::seconds(*interval) : DEFAULT_REFRESH_INTERVAL;
+    auto interval = section.get_optional<uint64_t>("refresh_interval");
+    m_refreshInterval = interval ? time::seconds(*interval) : DEFAULT_REFRESH_INTERVAL;
 }
 
 optional<ReadvertiseAction>
 HostToGatewayReadvertisePolicy::handleNewRoute(const RibRouteRef& ribRoute) const
 {
-  auto ribEntryName = ribRoute.entry->getName();
-  if (scope_prefix::LOCALHOST.isPrefixOf(ribEntryName) ||
-      ribEntryName == RibManager::LOCALHOP_TOP_PREFIX) {
-    return nullopt;
-  }
-
-  // find out the shortest identity whose name is a prefix of the RIB entry name
-  auto prefixToAdvertise = ribEntryName;
-  ndn::security::pib::Identity signingIdentity;
-  bool isFound = false;
-
-  for (const auto& identity : m_keyChain.getPib().getIdentities()) {
-    auto prefix = identity.getName();
-
-    // ignore the identity name's last component if it is "nrd"
-    if (!prefix.empty() && IGNORE_COMPONENT == prefix.at(-1)) {
-      prefix = prefix.getPrefix(-1);
+    auto ribEntryName = ribRoute.entry->getName();
+    if (scope_prefix::LOCALHOST.isPrefixOf(ribEntryName) || ribEntryName == RibManager::LOCALHOP_TOP_PREFIX) {
+        return nullopt;
     }
 
-    if (prefix.isPrefixOf(prefixToAdvertise)) {
-      isFound = true;
-      prefixToAdvertise = prefix;
-      signingIdentity = identity;
-    }
-  }
+    // find out the shortest identity whose name is a prefix of the RIB entry name
+    auto prefixToAdvertise = ribEntryName;
+    ndn::security::pib::Identity signingIdentity;
+    bool isFound = false;
 
-  if (isFound) {
-    return ReadvertiseAction{prefixToAdvertise, ndn::security::signingByIdentity(signingIdentity)};
-  }
-  else {
-    return nullopt;
-  }
+    for (const auto& identity : m_keyChain.getPib().getIdentities()) {
+        auto prefix = identity.getName();
+
+        // ignore the identity name's last component if it is "nrd"
+        if (!prefix.empty() && IGNORE_COMPONENT == prefix.at(-1)) {
+            prefix = prefix.getPrefix(-1);
+        }
+
+        if (prefix.isPrefixOf(prefixToAdvertise)) {
+            isFound = true;
+            prefixToAdvertise = prefix;
+            signingIdentity = identity;
+        }
+    }
+
+    if (isFound) {
+        return ReadvertiseAction{prefixToAdvertise, ndn::security::signingByIdentity(signingIdentity)};
+    }
+    else {
+        return nullopt;
+    }
 }
 
 time::milliseconds
 HostToGatewayReadvertisePolicy::getRefreshInterval() const
 {
-  return m_refreshInterval;
+    return m_refreshInterval;
 }
 
 } // namespace rib

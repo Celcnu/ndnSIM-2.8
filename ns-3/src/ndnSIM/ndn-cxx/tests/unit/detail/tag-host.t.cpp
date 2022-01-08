@@ -33,52 +33,50 @@ namespace tests {
 BOOST_AUTO_TEST_SUITE(Detail)
 BOOST_AUTO_TEST_SUITE(TestTagHost)
 
-class TestTag : public Tag
-{
-public:
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return 1;
-  }
+class TestTag : public Tag {
+  public:
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return 1;
+    }
 };
 
-class TestTag2 : public Tag
-{
-public:
-  static constexpr int
-  getTypeId() noexcept
-  {
-    return 2;
-  }
+class TestTag2 : public Tag {
+  public:
+    static constexpr int
+    getTypeId() noexcept
+    {
+        return 2;
+    }
 };
 
 typedef boost::mpl::vector<TagHost, Interest, Data> Fixtures;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(Basic, T, Fixtures, T)
 {
-  BOOST_CHECK(this->template getTag<TestTag>() == nullptr);
-  BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
 
-  this->setTag(make_shared<TestTag>());
+    this->setTag(make_shared<TestTag>());
 
-  BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
-  BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
+    BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
 
-  this->setTag(make_shared<TestTag2>());
+    this->setTag(make_shared<TestTag2>());
 
-  BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
-  BOOST_CHECK(this->template getTag<TestTag2>() != nullptr);
+    BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
+    BOOST_CHECK(this->template getTag<TestTag2>() != nullptr);
 
-  this->template removeTag<TestTag2>();
+    this->template removeTag<TestTag2>();
 
-  BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
-  BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag>() != nullptr);
+    BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
 
-  this->template removeTag<TestTag>();
+    this->template removeTag<TestTag>();
 
-  BOOST_CHECK(this->template getTag<TestTag>() == nullptr);
-  BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag>() == nullptr);
+    BOOST_CHECK(this->template getTag<TestTag2>() == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestTagHost

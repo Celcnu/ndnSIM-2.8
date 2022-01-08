@@ -32,83 +32,82 @@ Entry::Entry(shared_ptr<const Data> data, bool isUnsolicited)
   : m_data(std::move(data))
   , m_isUnsolicited(isUnsolicited)
 {
-  updateFreshUntil();
+    updateFreshUntil();
 }
 
 bool
 Entry::isFresh() const
 {
-  return m_freshUntil >= time::steady_clock::now();
+    return m_freshUntil >= time::steady_clock::now();
 }
 
 void
 Entry::updateFreshUntil()
 {
-  m_freshUntil = time::steady_clock::now() + m_data->getFreshnessPeriod();
+    m_freshUntil = time::steady_clock::now() + m_data->getFreshnessPeriod();
 }
 
 bool
 Entry::canSatisfy(const Interest& interest) const
 {
-  if (!interest.matchesData(*m_data)) {
-    return false;
-  }
+    if (!interest.matchesData(*m_data)) {
+        return false;
+    }
 
-  if (interest.getMustBeFresh() && !this->isFresh()) {
-    return false;
-  }
+    if (interest.getMustBeFresh() && !this->isFresh()) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 static int
 compareQueryWithData(const Name& queryName, const Data& data)
 {
-  bool queryIsFullName = !queryName.empty() && queryName[-1].isImplicitSha256Digest();
+    bool queryIsFullName = !queryName.empty() && queryName[-1].isImplicitSha256Digest();
 
-  int cmp = queryIsFullName ?
-            queryName.compare(0, queryName.size() - 1, data.getName()) :
-            queryName.compare(data.getName());
+    int cmp =
+      queryIsFullName ? queryName.compare(0, queryName.size() - 1, data.getName()) : queryName.compare(data.getName());
 
-  if (cmp != 0) { // Name without digest differs
-    return cmp;
-  }
+    if (cmp != 0) { // Name without digest differs
+        return cmp;
+    }
 
-  if (queryIsFullName) { // Name without digest equals, compare digest
-    return queryName[-1].compare(data.getFullName()[-1]);
-  }
-  else { // queryName is a proper prefix of Data fullName
-    return -1;
-  }
+    if (queryIsFullName) { // Name without digest equals, compare digest
+        return queryName[-1].compare(data.getFullName()[-1]);
+    }
+    else { // queryName is a proper prefix of Data fullName
+        return -1;
+    }
 }
 
 static int
 compareDataWithData(const Data& lhs, const Data& rhs)
 {
-  int cmp = lhs.getName().compare(rhs.getName());
-  if (cmp != 0) {
-    return cmp;
-  }
+    int cmp = lhs.getName().compare(rhs.getName());
+    if (cmp != 0) {
+        return cmp;
+    }
 
-  return lhs.getFullName()[-1].compare(rhs.getFullName()[-1]);
+    return lhs.getFullName()[-1].compare(rhs.getFullName()[-1]);
 }
 
 bool
 operator<(const Entry& entry, const Name& queryName)
 {
-  return compareQueryWithData(queryName, entry.getData()) > 0;
+    return compareQueryWithData(queryName, entry.getData()) > 0;
 }
 
 bool
 operator<(const Name& queryName, const Entry& entry)
 {
-  return compareQueryWithData(queryName, entry.getData()) < 0;
+    return compareQueryWithData(queryName, entry.getData()) < 0;
 }
 
 bool
 operator<(const Entry& lhs, const Entry& rhs)
 {
-  return compareDataWithData(lhs.getData(), rhs.getData()) < 0;
+    return compareDataWithData(lhs.getData(), rhs.getData()) < 0;
 }
 
 } // namespace cs

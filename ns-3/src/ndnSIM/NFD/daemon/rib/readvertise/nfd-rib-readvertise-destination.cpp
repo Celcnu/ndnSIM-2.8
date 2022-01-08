@@ -36,74 +36,65 @@ NFD_LOG_INIT(NfdRibReadvertiseDestination);
 
 using ndn::nfd::ControlResponse;
 
-NfdRibReadvertiseDestination::NfdRibReadvertiseDestination(ndn::nfd::Controller& controller,
-                                                           Rib& rib,
+NfdRibReadvertiseDestination::NfdRibReadvertiseDestination(ndn::nfd::Controller& controller, Rib& rib,
                                                            const ndn::nfd::CommandOptions& options,
                                                            const ndn::nfd::ControlParameters& parameters)
   : m_controller(controller)
   , m_commandOptions(options)
   , m_controlParameters(parameters)
 {
-  m_ribInsertConn = rib.afterInsertEntry.connect(
-    std::bind(&NfdRibReadvertiseDestination::handleRibInsert, this, _1));
-  m_ribEraseConn = rib.afterEraseEntry.connect(
-    std::bind(&NfdRibReadvertiseDestination::handleRibErase, this, _1));
+    m_ribInsertConn = rib.afterInsertEntry.connect(std::bind(&NfdRibReadvertiseDestination::handleRibInsert, this, _1));
+    m_ribEraseConn = rib.afterEraseEntry.connect(std::bind(&NfdRibReadvertiseDestination::handleRibErase, this, _1));
 }
 
 void
-NfdRibReadvertiseDestination::advertise(const nfd::rib::ReadvertisedRoute& rr,
-                                        std::function<void()> successCb,
+NfdRibReadvertiseDestination::advertise(const nfd::rib::ReadvertisedRoute& rr, std::function<void()> successCb,
                                         std::function<void(const std::string&)> failureCb)
 {
-  NFD_LOG_DEBUG("advertise " << rr.prefix << " on " << m_commandOptions.getPrefix());
+    NFD_LOG_DEBUG("advertise " << rr.prefix << " on " << m_commandOptions.getPrefix());
 
-  m_controller.start<ndn::nfd::RibRegisterCommand>(
-    getControlParameters().setName(rr.prefix),
-    [=] (const ControlParameters& cp) { successCb(); },
-    [=] (const ControlResponse& cr) { failureCb(cr.getText()); },
-    getCommandOptions().setSigningInfo(rr.signer));
+    m_controller.start<ndn::nfd::RibRegisterCommand>(
+      getControlParameters().setName(rr.prefix), [=](const ControlParameters& cp) { successCb(); },
+      [=](const ControlResponse& cr) { failureCb(cr.getText()); }, getCommandOptions().setSigningInfo(rr.signer));
 }
 
 void
-NfdRibReadvertiseDestination::withdraw(const nfd::rib::ReadvertisedRoute& rr,
-                                       std::function<void()> successCb,
+NfdRibReadvertiseDestination::withdraw(const nfd::rib::ReadvertisedRoute& rr, std::function<void()> successCb,
                                        std::function<void(const std::string&)> failureCb)
 {
-  NFD_LOG_DEBUG("withdraw " << rr.prefix << " on " << m_commandOptions.getPrefix());
+    NFD_LOG_DEBUG("withdraw " << rr.prefix << " on " << m_commandOptions.getPrefix());
 
-  m_controller.start<ndn::nfd::RibUnregisterCommand>(
-    getControlParameters().setName(rr.prefix),
-    [=] (const ControlParameters& cp) { successCb(); },
-    [=] (const ControlResponse& cr) { failureCb(cr.getText()); },
-    getCommandOptions().setSigningInfo(rr.signer));
+    m_controller.start<ndn::nfd::RibUnregisterCommand>(
+      getControlParameters().setName(rr.prefix), [=](const ControlParameters& cp) { successCb(); },
+      [=](const ControlResponse& cr) { failureCb(cr.getText()); }, getCommandOptions().setSigningInfo(rr.signer));
 }
 
 ndn::nfd::ControlParameters
 NfdRibReadvertiseDestination::getControlParameters()
 {
-  return m_controlParameters;
+    return m_controlParameters;
 }
 
 ndn::nfd::CommandOptions
 NfdRibReadvertiseDestination::getCommandOptions()
 {
-  return m_commandOptions;
+    return m_commandOptions;
 }
 
 void
 NfdRibReadvertiseDestination::handleRibInsert(const ndn::Name& name)
 {
-  if (name.isPrefixOf(m_commandOptions.getPrefix())) {
-    setAvailability(true);
-  }
+    if (name.isPrefixOf(m_commandOptions.getPrefix())) {
+        setAvailability(true);
+    }
 }
 
 void
 NfdRibReadvertiseDestination::handleRibErase(const ndn::Name& name)
 {
-  if (name.isPrefixOf(m_commandOptions.getPrefix())) {
-    setAvailability(false);
-  }
+    if (name.isPrefixOf(m_commandOptions.getPrefix())) {
+        setAvailability(false);
+    }
 }
 
 } // namespace rib

@@ -32,55 +32,53 @@ namespace ndn {
 // Additional nested namespaces should be used to prevent/limit name conflicts
 namespace examples {
 
-class Producer
-{
-public:
-  void
-  run()
-  {
-    m_face.setInterestFilter("/example/testApp",
-                             bind(&Producer::onInterest, this, _1, _2),
-                             nullptr, // RegisterPrefixSuccessCallback is optional
-                             bind(&Producer::onRegisterFailed, this, _1, _2));
-    m_face.processEvents();
-  }
+class Producer {
+  public:
+    void
+    run()
+    {
+        m_face.setInterestFilter("/example/testApp", bind(&Producer::onInterest, this, _1, _2),
+                                 nullptr, // RegisterPrefixSuccessCallback is optional
+                                 bind(&Producer::onRegisterFailed, this, _1, _2));
+        m_face.processEvents();
+    }
 
-private:
-  void
-  onInterest(const InterestFilter&, const Interest& interest)
-  {
-    std::cout << ">> I: " << interest << std::endl;
+  private:
+    void
+    onInterest(const InterestFilter&, const Interest& interest)
+    {
+        std::cout << ">> I: " << interest << std::endl;
 
-    static const std::string content("Hello, world!");
+        static const std::string content("Hello, world!");
 
-    // Create Data packet
-    auto data = make_shared<Data>(interest.getName());
-    data->setFreshnessPeriod(10_s);
-    data->setContent(reinterpret_cast<const uint8_t*>(content.data()), content.size());
+        // Create Data packet
+        auto data = make_shared<Data>(interest.getName());
+        data->setFreshnessPeriod(10_s);
+        data->setContent(reinterpret_cast<const uint8_t*>(content.data()), content.size());
 
-    // Sign Data packet with default identity
-    m_keyChain.sign(*data);
-    // m_keyChain.sign(*data, signingByIdentity(<identityName>));
-    // m_keyChain.sign(*data, signingByKey(<keyName>));
-    // m_keyChain.sign(*data, signingByCertificate(<certName>));
-    // m_keyChain.sign(*data, signingWithSha256());
+        // Sign Data packet with default identity
+        m_keyChain.sign(*data);
+        // m_keyChain.sign(*data, signingByIdentity(<identityName>));
+        // m_keyChain.sign(*data, signingByKey(<keyName>));
+        // m_keyChain.sign(*data, signingByCertificate(<certName>));
+        // m_keyChain.sign(*data, signingWithSha256());
 
-    // Return Data packet to the requester
-    std::cout << "<< D: " << *data << std::endl;
-    m_face.put(*data);
-  }
+        // Return Data packet to the requester
+        std::cout << "<< D: " << *data << std::endl;
+        m_face.put(*data);
+    }
 
-  void
-  onRegisterFailed(const Name& prefix, const std::string& reason)
-  {
-    std::cerr << "ERROR: Failed to register prefix '" << prefix
-              << "' with the local forwarder (" << reason << ")" << std::endl;
-    m_face.shutdown();
-  }
+    void
+    onRegisterFailed(const Name& prefix, const std::string& reason)
+    {
+        std::cerr << "ERROR: Failed to register prefix '" << prefix << "' with the local forwarder (" << reason << ")"
+                  << std::endl;
+        m_face.shutdown();
+    }
 
-private:
-  Face m_face;
-  KeyChain m_keyChain;
+  private:
+    Face m_face;
+    KeyChain m_keyChain;
 };
 
 } // namespace examples
@@ -89,13 +87,13 @@ private:
 int
 main(int argc, char** argv)
 {
-  try {
-    ndn::examples::Producer producer;
-    producer.run();
-    return 0;
-  }
-  catch (const std::exception& e) {
-    std::cerr << "ERROR: " << e.what() << std::endl;
-    return 1;
-  }
+    try {
+        ndn::examples::Producer producer;
+        producer.run();
+        return 0;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return 1;
+    }
 }

@@ -38,13 +38,17 @@ namespace websocketpp {
 namespace http {
 namespace parser {
 
-inline size_t request::consume(char const * buf, size_t len) {
+inline size_t
+request::consume(char const* buf, size_t len)
+{
     size_t bytes_processed;
-    
-    if (m_ready) {return 0;}
-    
+
+    if (m_ready) {
+        return 0;
+    }
+
     if (m_body_bytes_needed > 0) {
-        bytes_processed = process_body(buf,len);
+        bytes_processed = process_body(buf, len);
         if (body_ready()) {
             m_ready = true;
         }
@@ -52,7 +56,7 @@ inline size_t request::consume(char const * buf, size_t len) {
     }
 
     // copy new header bytes into buffer
-    m_buf->append(buf,len);
+    m_buf->append(buf, len);
 
     // Search for delimiter in buf. If found read until then. If not read all
     std::string::iterator begin = m_buf->begin();
@@ -60,75 +64,72 @@ inline size_t request::consume(char const * buf, size_t len) {
 
     for (;;) {
         // search for line delimiter
-        end = std::search(
-            begin,
-            m_buf->end(),
-            header_delimiter,
-            header_delimiter+sizeof(header_delimiter)-1
-        );
-        
-        m_header_bytes += (end-begin+sizeof(header_delimiter));
-        
+        end = std::search(begin, m_buf->end(), header_delimiter, header_delimiter + sizeof(header_delimiter) - 1);
+
+        m_header_bytes += (end - begin + sizeof(header_delimiter));
+
         if (m_header_bytes > max_header_size) {
             // exceeded max header size
-            throw exception("Maximum header size exceeded.",
-                status_code::request_header_fields_too_large);
+            throw exception("Maximum header size exceeded.", status_code::request_header_fields_too_large);
         }
 
         if (end == m_buf->end()) {
             // we are out of bytes. Discard the processed bytes and copy the
             // remaining unprecessed bytes to the beginning of the buffer
-            std::copy(begin,end,m_buf->begin());
-            m_buf->resize(static_cast<std::string::size_type>(end-begin));
+            std::copy(begin, end, m_buf->begin());
+            m_buf->resize(static_cast<std::string::size_type>(end - begin));
             m_header_bytes -= m_buf->size();
 
             return len;
         }
 
-        //the range [begin,end) now represents a line to be processed.
-        if (end-begin == 0) {
+        // the range [begin,end) now represents a line to be processed.
+        if (end - begin == 0) {
             // we got a blank line
             if (m_method.empty() || get_header("Host").empty()) {
-                throw exception("Incomplete Request",status_code::bad_request);
+                throw exception("Incomplete Request", status_code::bad_request);
             }
 
-            bytes_processed = (
-                len - static_cast<std::string::size_type>(m_buf->end()-end)
-                    + sizeof(header_delimiter) - 1
-            );
+            bytes_processed =
+              (len - static_cast<std::string::size_type>(m_buf->end() - end) + sizeof(header_delimiter) - 1);
 
             // frees memory used temporarily during request parsing
             m_buf.reset();
 
             // if this was not an upgrade request and has a content length
-            // continue capturing content-length bytes and expose them as a 
+            // continue capturing content-length bytes and expose them as a
             // request body.
-            
+
             if (prepare_body()) {
-                bytes_processed += process_body(buf+bytes_processed,len-bytes_processed);
+                bytes_processed += process_body(buf + bytes_processed, len - bytes_processed);
                 if (body_ready()) {
                     m_ready = true;
                 }
                 return bytes_processed;
-            } else {
+            }
+            else {
                 m_ready = true;
 
                 // return number of bytes processed (starting bytes - bytes left)
                 return bytes_processed;
             }
-        } else {
+        }
+        else {
             if (m_method.empty()) {
-                this->process(begin,end);
-            } else {
-                this->process_header(begin,end);
+                this->process(begin, end);
+            }
+            else {
+                this->process_header(begin, end);
             }
         }
 
-        begin = end+(sizeof(header_delimiter)-1);
+        begin = end + (sizeof(header_delimiter) - 1);
     }
 }
 
-inline std::string request::raw() const {
+inline std::string
+request::raw() const
+{
     // TODO: validation. Make sure all required fields have been set?
     std::stringstream ret;
 
@@ -138,7 +139,9 @@ inline std::string request::raw() const {
     return ret.str();
 }
 
-inline std::string request::raw_head() const {
+inline std::string
+request::raw_head() const
+{
     // TODO: validation. Make sure all required fields have been set?
     std::stringstream ret;
 
@@ -148,40 +151,44 @@ inline std::string request::raw_head() const {
     return ret.str();
 }
 
-inline void request::set_method(std::string const & method) {
-    if (std::find_if(method.begin(),method.end(),is_not_token_char) != method.end()) {
-        throw exception("Invalid method token.",status_code::bad_request);
+inline void
+request::set_method(std::string const& method)
+{
+    if (std::find_if(method.begin(), method.end(), is_not_token_char) != method.end()) {
+        throw exception("Invalid method token.", status_code::bad_request);
     }
 
     m_method = method;
 }
 
-inline void request::set_uri(std::string const & uri) {
+inline void
+request::set_uri(std::string const& uri)
+{
     // TODO: validation?
     m_uri = uri;
 }
 
-inline void request::process(std::string::iterator begin, std::string::iterator
-    end)
+inline void
+request::process(std::string::iterator begin, std::string::iterator end)
 {
     std::string::iterator cursor_start = begin;
-    std::string::iterator cursor_end = std::find(begin,end,' ');
+    std::string::iterator cursor_end = std::find(begin, end, ' ');
 
     if (cursor_end == end) {
-        throw exception("Invalid request line1",status_code::bad_request);
+        throw exception("Invalid request line1", status_code::bad_request);
     }
 
-    set_method(std::string(cursor_start,cursor_end));
+    set_method(std::string(cursor_start, cursor_end));
 
-    cursor_start = cursor_end+1;
-    cursor_end = std::find(cursor_start,end,' ');
+    cursor_start = cursor_end + 1;
+    cursor_end = std::find(cursor_start, end, ' ');
 
     if (cursor_end == end) {
-        throw exception("Invalid request line2",status_code::bad_request);
+        throw exception("Invalid request line2", status_code::bad_request);
     }
 
-    set_uri(std::string(cursor_start,cursor_end));
-    set_version(std::string(cursor_end+1,end));
+    set_uri(std::string(cursor_start, cursor_end));
+    set_version(std::string(cursor_end + 1, end));
 }
 
 } // namespace parser

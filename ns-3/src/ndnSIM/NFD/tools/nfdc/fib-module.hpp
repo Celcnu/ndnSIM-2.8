@@ -38,37 +38,29 @@ using ndn::nfd::NextHopRecord;
 /** \brief provides access to NFD FIB management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/FibMgmt
  */
-class FibModule : public Module, noncopyable
-{
-public:
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+class FibModule : public Module, noncopyable {
+  public:
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemXml(std::ostream& os, const FibEntry& item) const;
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemXml(std::ostream& os, const FibEntry& item) const;
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-  /** \brief format a single status item as text
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemText(std::ostream& os, const FibEntry& item) const;
+    /** \brief format a single status item as text
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemText(std::ostream& os, const FibEntry& item) const;
 
-private:
-  std::vector<FibEntry> m_status;
+  private:
+    std::vector<FibEntry> m_status;
 };
 
 } // namespace nfdc

@@ -49,54 +49,44 @@ namespace ndn {
  *http://en.wikipedia.org/wiki/Zipf%E2%80%93Mandelbrot_law
  */
 class ConsumerZipfMandelbrot : public ConsumerCbr {
-public:
-  static TypeId
-  GetTypeId();
+  public:
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Default constructor
-   * Sets up randomized Number Generator (RNG)
-   * Note: m_seq of its parent class ConsumerCbr here is used to record the interest number
-   */
-  ConsumerZipfMandelbrot();
-  virtual ~ConsumerZipfMandelbrot();
+    /**
+     * \brief Default constructor
+     * Sets up randomized Number Generator (RNG)
+     * Note: m_seq of its parent class ConsumerCbr here is used to record the interest number
+     */
+    ConsumerZipfMandelbrot();
+    virtual ~ConsumerZipfMandelbrot();
 
-  virtual void
-  SendPacket();
+    virtual void SendPacket();
 
-  uint32_t
-  GetNextSeq();
+    uint32_t GetNextSeq();
 
-protected:
-  virtual void
-  ScheduleNextPacket();
+  protected:
+    virtual void ScheduleNextPacket();
 
-private:
-  void
-  SetNumberOfContents(uint32_t numOfContents);
+  private:
+    void SetNumberOfContents(uint32_t numOfContents);
 
-  uint32_t
-  GetNumberOfContents() const;
+    uint32_t GetNumberOfContents() const;
 
-  void
-  SetQ(double q);
+    void SetQ(double q);
 
-  double
-  GetQ() const;
+    double GetQ() const;
 
-  void
-  SetS(double s);
+    void SetS(double s);
 
-  double
-  GetS() const;
+    double GetS() const;
 
-private:
-  uint32_t m_N;               // number of the contents
-  double m_q;                 // q in (k+q)^s
-  double m_s;                 // s in (k+q)^s
-  std::vector<double> m_Pcum; // cumulative probability
+  private:
+    uint32_t m_N;               // number of the contents
+    double m_q;                 // q in (k+q)^s
+    double m_s;                 // s in (k+q)^s
+    std::vector<double> m_Pcum; // cumulative probability
 
-  Ptr<UniformRandomVariable> m_seqRng; // RNG
+    Ptr<UniformRandomVariable> m_seqRng; // RNG
 };
 
 } /* namespace ndn */

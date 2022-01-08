@@ -27,23 +27,19 @@
 namespace ns3 {
 
 class Hijacker : public ndn::App {
-public:
-  static TypeId
-  GetTypeId();
+  public:
+    static TypeId GetTypeId();
 
-  Hijacker();
+    Hijacker();
 
-  // Receive all Interests but do nothing in response
-  void
-  OnInterest(std::shared_ptr<const ndn::Interest> interest);
+    // Receive all Interests but do nothing in response
+    void OnInterest(std::shared_ptr<const ndn::Interest> interest);
 
-protected:
-  // inherited from Application base class.
-  virtual void
-  StartApplication();
+  protected:
+    // inherited from Application base class.
+    virtual void StartApplication();
 
-  virtual void
-  StopApplication();
+    virtual void StopApplication();
 };
 
 } // namespace ns3

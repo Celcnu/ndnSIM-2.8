@@ -33,13 +33,13 @@ NFD_REGISTER_STRATEGY(DummyStrategy);
 void
 DummyStrategy::registerAs(const Name& strategyName)
 {
-  registerAsImpl<DummyStrategy>(strategyName);
+    registerAsImpl<DummyStrategy>(strategyName);
 }
 
 Name
 DummyStrategy::getStrategyName(uint64_t version)
 {
-  return Name("/dummy-strategy").appendVersion(version);
+    return Name("/dummy-strategy").appendVersion(version);
 }
 
 DummyStrategy::DummyStrategy(Forwarder& forwarder, const Name& name)
@@ -50,65 +50,64 @@ DummyStrategy::DummyStrategy(Forwarder& forwarder, const Name& name)
   , afterReceiveData_count(0)
   , afterReceiveNack_count(0)
 {
-  this->setInstanceName(name);
+    this->setInstanceName(name);
 }
 
 void
 DummyStrategy::afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
                                     const shared_ptr<pit::Entry>& pitEntry)
 {
-  ++afterReceiveInterest_count;
+    ++afterReceiveInterest_count;
 
-  if (interestOutFace != nullptr) {
-    this->sendInterest(pitEntry, FaceEndpoint(*interestOutFace, 0), interest);
-  }
-  else {
-    this->rejectPendingInterest(pitEntry);
-  }
+    if (interestOutFace != nullptr) {
+        this->sendInterest(pitEntry, FaceEndpoint(*interestOutFace, 0), interest);
+    }
+    else {
+        this->rejectPendingInterest(pitEntry);
+    }
 }
 
 void
-DummyStrategy::beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry,
-                                     const FaceEndpoint& ingress, const Data& data)
+DummyStrategy::beforeSatisfyInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
+                                     const Data& data)
 {
-  ++beforeSatisfyInterest_count;
+    ++beforeSatisfyInterest_count;
 
-  Strategy::beforeSatisfyInterest(pitEntry, ingress, data);
+    Strategy::beforeSatisfyInterest(pitEntry, ingress, data);
 }
 
 void
-DummyStrategy::afterContentStoreHit(const shared_ptr<pit::Entry>& pitEntry,
-                                    const FaceEndpoint& ingress, const Data& data)
+DummyStrategy::afterContentStoreHit(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress,
+                                    const Data& data)
 {
-  ++afterContentStoreHit_count;
+    ++afterContentStoreHit_count;
 
-  Strategy::afterContentStoreHit(pitEntry, ingress, data);
+    Strategy::afterContentStoreHit(pitEntry, ingress, data);
 }
 
 void
-DummyStrategy::afterReceiveData(const shared_ptr<pit::Entry>& pitEntry,
-                                const FaceEndpoint& ingress, const Data& data)
+DummyStrategy::afterReceiveData(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& ingress, const Data& data)
 {
-  ++afterReceiveData_count;
+    ++afterReceiveData_count;
 
-  Strategy::afterReceiveData(pitEntry, ingress, data);
+    Strategy::afterReceiveData(pitEntry, ingress, data);
 }
 
 void
 DummyStrategy::afterReceiveNack(const FaceEndpoint& ingress, const lp::Nack& nack,
                                 const shared_ptr<pit::Entry>& pitEntry)
 {
-  ++afterReceiveNack_count;
+    ++afterReceiveNack_count;
 
-  Strategy::afterReceiveNack(ingress, nack, pitEntry);
+    Strategy::afterReceiveNack(ingress, nack, pitEntry);
 }
 
 void
 DummyStrategy::afterNewNextHop(const fib::NextHop& nextHop, const shared_ptr<pit::Entry>& pitEntry)
 {
-  afterNewNextHopCalls.push_back(pitEntry->getName());
+    afterNewNextHopCalls.push_back(pitEntry->getName());
 
-  Strategy::afterNewNextHop(nextHop, pitEntry);
+    Strategy::afterNewNextHop(nextHop, pitEntry);
 }
 
 } // namespace tests

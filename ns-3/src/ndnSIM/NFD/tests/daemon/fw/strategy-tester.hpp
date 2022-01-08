@@ -49,111 +49,104 @@ using namespace nfd::tests;
  *  NFD_REGISTER_STRATEGY(MyStrategyTester);
  *  \endcode
  */
-template<typename S>
-class StrategyTester : public S
-{
-public:
-  explicit
-  StrategyTester(Forwarder& forwarder, const Name& name = getStrategyName())
-    : S(forwarder, name)
-  {
-  }
-
-  static Name
-  getStrategyName()
-  {
-    Name name = S::getStrategyName();
-    if (!name.empty() && name[-1].isVersion()) {
-      // insert "tester" before version component
-      name::Component versionComp = name[-1];
-      name = name.getPrefix(-1);
-      name.append("tester");
-      name.append(versionComp);
+template <typename S>
+class StrategyTester : public S {
+  public:
+    explicit StrategyTester(Forwarder& forwarder, const Name& name = getStrategyName())
+      : S(forwarder, name)
+    {
     }
-    else {
-      name.append("tester");
+
+    static Name
+    getStrategyName()
+    {
+        Name name = S::getStrategyName();
+        if (!name.empty() && name[-1].isVersion()) {
+            // insert "tester" before version component
+            name::Component versionComp = name[-1];
+            name = name.getPrefix(-1);
+            name.append("tester");
+            name.append(versionComp);
+        }
+        else {
+            name.append("tester");
+        }
+        return name;
     }
-    return name;
-  }
 
-  /** \brief signal emitted after each Action
-   */
-  signal::Signal<StrategyTester<S>> afterAction;
+    /** \brief signal emitted after each Action
+     */
+    signal::Signal<StrategyTester<S>> afterAction;
 
-  /** \brief execute f and wait for a number of strategy actions
-   *  \note The actions may occur either during f() invocation or afterwards.
-   *  \return whether expected number of actions have occurred
-   */
-  template<typename F>
-  bool
-  waitForAction(F&& f, LimitedIo& limitedIo, int nExpectedActions = 1)
-  {
-    int nActions = 0;
+    /** \brief execute f and wait for a number of strategy actions
+     *  \note The actions may occur either during f() invocation or afterwards.
+     *  \return whether expected number of actions have occurred
+     */
+    template <typename F>
+    bool
+    waitForAction(F&& f, LimitedIo& limitedIo, int nExpectedActions = 1)
+    {
+        int nActions = 0;
 
-    signal::ScopedConnection conn = afterAction.connect([&] {
-      limitedIo.afterOp();
-      ++nActions;
-    });
+        signal::ScopedConnection conn = afterAction.connect([&] {
+            limitedIo.afterOp();
+            ++nActions;
+        });
 
-    f();
+        f();
 
-    if (nActions < nExpectedActions) {
-      // A correctly implemented strategy is required to invoke reject pending Interest action if it
-      // decides to not forward an Interest. If a test case is stuck in the call below, check that
-      // rejectPendingInterest is invoked under proper condition.
-      return limitedIo.run(nExpectedActions - nActions, LimitedIo::UNLIMITED_TIME) == LimitedIo::EXCEED_OPS;
+        if (nActions < nExpectedActions) {
+            // A correctly implemented strategy is required to invoke reject pending Interest action if it
+            // decides to not forward an Interest. If a test case is stuck in the call below, check that
+            // rejectPendingInterest is invoked under proper condition.
+            return limitedIo.run(nExpectedActions - nActions, LimitedIo::UNLIMITED_TIME) == LimitedIo::EXCEED_OPS;
+        }
+        return nActions == nExpectedActions;
     }
-    return nActions == nExpectedActions;
-  }
 
-protected:
-  void
-  sendInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress,
-               const Interest& interest) override
-  {
-    sendInterestHistory.push_back({pitEntry->getInterest(), egress.face.getId(), interest});
-    pitEntry->insertOrUpdateOutRecord(egress.face, interest);
-    afterAction();
-  }
+  protected:
+    void
+    sendInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress, const Interest& interest) override
+    {
+        sendInterestHistory.push_back({pitEntry->getInterest(), egress.face.getId(), interest});
+        pitEntry->insertOrUpdateOutRecord(egress.face, interest);
+        afterAction();
+    }
 
-  void
-  rejectPendingInterest(const shared_ptr<pit::Entry>& pitEntry) override
-  {
-    rejectPendingInterestHistory.push_back({pitEntry->getInterest()});
-    afterAction();
-  }
+    void
+    rejectPendingInterest(const shared_ptr<pit::Entry>& pitEntry) override
+    {
+        rejectPendingInterestHistory.push_back({pitEntry->getInterest()});
+        afterAction();
+    }
 
-  void
-  sendNack(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress,
-           const lp::NackHeader& header) override
-  {
-    sendNackHistory.push_back({pitEntry->getInterest(), egress.face.getId(), header});
-    pitEntry->deleteInRecord(egress.face);
-    afterAction();
-  }
+    void
+    sendNack(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress, const lp::NackHeader& header) override
+    {
+        sendNackHistory.push_back({pitEntry->getInterest(), egress.face.getId(), header});
+        pitEntry->deleteInRecord(egress.face);
+        afterAction();
+    }
 
-public:
-  struct SendInterestArgs
-  {
-    Interest pitInterest;
-    FaceId outFaceId;
-    Interest interest;
-  };
-  std::vector<SendInterestArgs> sendInterestHistory;
+  public:
+    struct SendInterestArgs {
+        Interest pitInterest;
+        FaceId outFaceId;
+        Interest interest;
+    };
+    std::vector<SendInterestArgs> sendInterestHistory;
 
-  struct RejectPendingInterestArgs
-  {
-    Interest pitInterest;
-  };
-  std::vector<RejectPendingInterestArgs> rejectPendingInterestHistory;
+    struct RejectPendingInterestArgs {
+        Interest pitInterest;
+    };
+    std::vector<RejectPendingInterestArgs> rejectPendingInterestHistory;
 
-  struct SendNackArgs
-  {
-    Interest pitInterest;
-    FaceId outFaceId;
-    lp::NackHeader header;
-  };
-  std::vector<SendNackArgs> sendNackHistory;
+    struct SendNackArgs {
+        Interest pitInterest;
+        FaceId outFaceId;
+        lp::NackHeader header;
+    };
+    std::vector<SendNackArgs> sendNackHistory;
 };
 
 } // namespace tests

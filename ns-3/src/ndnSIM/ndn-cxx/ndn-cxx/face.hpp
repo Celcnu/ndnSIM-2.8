@@ -86,397 +86,365 @@ typedef function<void(const std::string&)> UnregisterPrefixFailureCallback;
 /**
  * @brief Provide a communication channel with local or remote NDN forwarder
  */
-class Face : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class Face : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * @brief Exception thrown when attempting to send a packet over size limit
-   */
-  class OversizedPacketError : public Error
-  {
-  public:
     /**
-     * @brief Constructor
-     * @param pktType packet type, 'I' for Interest, 'D' for Data, 'N' for Nack
-     * @param name packet name
-     * @param wireSize wire encoding size
+     * @brief Exception thrown when attempting to send a packet over size limit
      */
-    OversizedPacketError(char pktType, const Name& name, size_t wireSize);
+    class OversizedPacketError : public Error {
+      public:
+        /**
+         * @brief Constructor
+         * @param pktType packet type, 'I' for Interest, 'D' for Data, 'N' for Nack
+         * @param name packet name
+         * @param wireSize wire encoding size
+         */
+        OversizedPacketError(char pktType, const Name& name, size_t wireSize);
 
-  public:
-    const char pktType;
-    const Name name;
-    const size_t wireSize;
-  };
+      public:
+        const char pktType;
+        const Name name;
+        const size_t wireSize;
+    };
 
-public: // constructors
-  /**
-   * @brief Create Face using given transport (or default transport if omitted)
-   * @param transport the transport for lower layer communication. If nullptr,
-   *                  a default transport will be used. The default transport is
-   *                  determined from a FaceUri in NDN_CLIENT_TRANSPORT environ,
-   *                  a FaceUri in configuration file 'transport' key, or UnixTransport.
-   *
-   * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
-   *                          parsed or specifies an unsupported protocol
-   * @note shared_ptr is passed by value because ownership is shared with this class
-   */
-  explicit
-  Face(shared_ptr<Transport> transport = nullptr);
+  public: // constructors
+    /**
+     * @brief Create Face using given transport (or default transport if omitted)
+     * @param transport the transport for lower layer communication. If nullptr,
+     *                  a default transport will be used. The default transport is
+     *                  determined from a FaceUri in NDN_CLIENT_TRANSPORT environ,
+     *                  a FaceUri in configuration file 'transport' key, or UnixTransport.
+     *
+     * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
+     *                          parsed or specifies an unsupported protocol
+     * @note shared_ptr is passed by value because ownership is shared with this class
+     */
+    explicit Face(shared_ptr<Transport> transport = nullptr);
 
-  /**
-   * @brief Create Face using default transport and given io_service
-   *
-   * Usage examples:
-   *
-   * @code
-   * Face face1;
-   * Face face2(face1.getIoService());
-   *
-   * // Now the following ensures that events on both faces are processed
-   * face1.processEvents();
-   * // or face1.getIoService().run();
-   * @endcode
-   *
-   * or
-   *
-   * @code
-   * boost::asio::io_service ioService;
-   * Face face1(ioService);
-   * Face face2(ioService);
-   *
-   * ioService.run();
-   * @endcode
-   *
-   * @param ioService A reference to boost::io_service object that should control all
-   *                  IO operations.
-   * @throw ConfigFile::Error the configuration file cannot be parsed or specifies an unsupported protocol
-   */
-  explicit
-  Face(DummyIoService& ioService);
+    /**
+     * @brief Create Face using default transport and given io_service
+     *
+     * Usage examples:
+     *
+     * @code
+     * Face face1;
+     * Face face2(face1.getIoService());
+     *
+     * // Now the following ensures that events on both faces are processed
+     * face1.processEvents();
+     * // or face1.getIoService().run();
+     * @endcode
+     *
+     * or
+     *
+     * @code
+     * boost::asio::io_service ioService;
+     * Face face1(ioService);
+     * Face face2(ioService);
+     *
+     * ioService.run();
+     * @endcode
+     *
+     * @param ioService A reference to boost::io_service object that should control all
+     *                  IO operations.
+     * @throw ConfigFile::Error the configuration file cannot be parsed or specifies an unsupported protocol
+     */
+    explicit Face(DummyIoService& ioService);
 
-  /**
-   * @brief Create Face using given transport and KeyChain
-   * @param transport the transport for lower layer communication. If nullptr,
-   *                  a default transport will be used.
-   * @param keyChain the KeyChain to sign commands
-   *
-   * @sa Face(shared_ptr<Transport>)
-   *
-   * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
-   *                          parsed or specifies an unsupported protocol
-   * @note shared_ptr is passed by value because ownership is shared with this class
-   */
-  Face(shared_ptr<Transport> transport, KeyChain& keyChain);
+    /**
+     * @brief Create Face using given transport and KeyChain
+     * @param transport the transport for lower layer communication. If nullptr,
+     *                  a default transport will be used.
+     * @param keyChain the KeyChain to sign commands
+     *
+     * @sa Face(shared_ptr<Transport>)
+     *
+     * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
+     *                          parsed or specifies an unsupported protocol
+     * @note shared_ptr is passed by value because ownership is shared with this class
+     */
+    Face(shared_ptr<Transport> transport, KeyChain& keyChain);
 
-  virtual
-  ~Face();
+    virtual ~Face();
 
-public: // consumer
-  /**
-   * @brief Express Interest
-   * @param interest the Interest; a copy will be made, so that the caller is not
-   *                 required to maintain the argument unchanged
-   * @param afterSatisfied function to be invoked if Data is returned
-   * @param afterNacked function to be invoked if Network NACK is returned
-   * @param afterTimeout function to be invoked if neither Data nor Network NACK
-   *                     is returned within InterestLifetime
-   * @throw OversizedPacketError encoded Interest size exceeds MAX_NDN_PACKET_SIZE
-   * @return A handle for canceling the pending Interest.
-   */
-  PendingInterestHandle
-  expressInterest(const Interest& interest,
-                  const DataCallback& afterSatisfied,
-                  const NackCallback& afterNacked,
-                  const TimeoutCallback& afterTimeout);
+  public: // consumer
+    /**
+     * @brief Express Interest
+     * @param interest the Interest; a copy will be made, so that the caller is not
+     *                 required to maintain the argument unchanged
+     * @param afterSatisfied function to be invoked if Data is returned
+     * @param afterNacked function to be invoked if Network NACK is returned
+     * @param afterTimeout function to be invoked if neither Data nor Network NACK
+     *                     is returned within InterestLifetime
+     * @throw OversizedPacketError encoded Interest size exceeds MAX_NDN_PACKET_SIZE
+     * @return A handle for canceling the pending Interest.
+     */
+    PendingInterestHandle expressInterest(const Interest& interest, const DataCallback& afterSatisfied,
+                                          const NackCallback& afterNacked, const TimeoutCallback& afterTimeout);
 
-  /**
-   * @deprecated use PendingInterestHandle::cancel()
-   */
-  [[deprecated]]
-  void
-  removePendingInterest(const PendingInterestId* pendingInterestId)
-  {
-    cancelPendingInterest(pendingInterestId);
-  }
+    /**
+     * @deprecated use PendingInterestHandle::cancel()
+     */
+    [[deprecated]] void
+    removePendingInterest(const PendingInterestId* pendingInterestId)
+    {
+        cancelPendingInterest(pendingInterestId);
+    }
 
-  /**
-   * @brief Cancel all previously expressed Interests
-   */
-  void
-  removeAllPendingInterests();
+    /**
+     * @brief Cancel all previously expressed Interests
+     */
+    void removeAllPendingInterests();
 
-  /**
-   * @brief Get number of pending Interests
-   */
-  size_t
-  getNPendingInterests() const;
+    /**
+     * @brief Get number of pending Interests
+     */
+    size_t getNPendingInterests() const;
 
-public: // producer
-  /**
-   * @brief Set InterestFilter to dispatch incoming matching interest to onInterest
-   * callback and register the filtered prefix with the connected NDN forwarder
-   *
-   * This version of setInterestFilter combines setInterestFilter and registerPrefix
-   * operations and is intended to be used when only one filter for the same prefix needed
-   * to be set.  When multiple names sharing the same prefix should be dispatched to
-   * different callbacks, use one registerPrefix call, followed (in onSuccess callback) by
-   * a series of setInterestFilter calls.
-   *
-   * @param filter      Interest filter (prefix part will be registered with the forwarder)
-   * @param onInterest  A callback to be called when a matching interest is received
-   * @param onFailure   A callback to be called when prefixRegister command fails
-   * @param signingInfo Signing parameters. When omitted, a default parameters used in the
-   *                    signature will be used.
-   * @param flags       Prefix registration flags
-   *
-   * @return A handle for unregistering the prefix and unsetting the Interest filter.
-   */
-  RegisteredPrefixHandle
-  setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
-                    const RegisterPrefixFailureCallback& onFailure,
-                    const security::SigningInfo& signingInfo = security::SigningInfo(),
-                    uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
+  public: // producer
+    /**
+     * @brief Set InterestFilter to dispatch incoming matching interest to onInterest
+     * callback and register the filtered prefix with the connected NDN forwarder
+     *
+     * This version of setInterestFilter combines setInterestFilter and registerPrefix
+     * operations and is intended to be used when only one filter for the same prefix needed
+     * to be set.  When multiple names sharing the same prefix should be dispatched to
+     * different callbacks, use one registerPrefix call, followed (in onSuccess callback) by
+     * a series of setInterestFilter calls.
+     *
+     * @param filter      Interest filter (prefix part will be registered with the forwarder)
+     * @param onInterest  A callback to be called when a matching interest is received
+     * @param onFailure   A callback to be called when prefixRegister command fails
+     * @param signingInfo Signing parameters. When omitted, a default parameters used in the
+     *                    signature will be used.
+     * @param flags       Prefix registration flags
+     *
+     * @return A handle for unregistering the prefix and unsetting the Interest filter.
+     */
+    RegisteredPrefixHandle setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
+                                             const RegisterPrefixFailureCallback& onFailure,
+                                             const security::SigningInfo& signingInfo = security::SigningInfo(),
+                                             uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
 
-  /**
-   * @brief Set InterestFilter to dispatch incoming matching interest to onInterest
-   * callback and register the filtered prefix with the connected NDN forwarder
-   *
-   * This version of setInterestFilter combines setInterestFilter and registerPrefix
-   * operations and is intended to be used when only one filter for the same prefix needed
-   * to be set.  When multiple names sharing the same prefix should be dispatched to
-   * different callbacks, use one registerPrefix call, followed (in onSuccess callback) by
-   * a series of setInterestFilter calls.
-   *
-   * @param filter      Interest filter (prefix part will be registered with the forwarder)
-   * @param onInterest  A callback to be called when a matching interest is received
-   * @param onSuccess   A callback to be called when prefixRegister command succeeds
-   * @param onFailure   A callback to be called when prefixRegister command fails
-   * @param signingInfo Signing parameters. When omitted, a default parameters used in the
-   *                    signature will be used.
-   * @param flags       Prefix registration flags
-   *
-   * @return A handle for unregistering the prefix and unsetting the Interest filter.
-   */
-  RegisteredPrefixHandle
-  setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
-                    const RegisterPrefixSuccessCallback& onSuccess,
-                    const RegisterPrefixFailureCallback& onFailure,
-                    const security::SigningInfo& signingInfo = security::SigningInfo(),
-                    uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
+    /**
+     * @brief Set InterestFilter to dispatch incoming matching interest to onInterest
+     * callback and register the filtered prefix with the connected NDN forwarder
+     *
+     * This version of setInterestFilter combines setInterestFilter and registerPrefix
+     * operations and is intended to be used when only one filter for the same prefix needed
+     * to be set.  When multiple names sharing the same prefix should be dispatched to
+     * different callbacks, use one registerPrefix call, followed (in onSuccess callback) by
+     * a series of setInterestFilter calls.
+     *
+     * @param filter      Interest filter (prefix part will be registered with the forwarder)
+     * @param onInterest  A callback to be called when a matching interest is received
+     * @param onSuccess   A callback to be called when prefixRegister command succeeds
+     * @param onFailure   A callback to be called when prefixRegister command fails
+     * @param signingInfo Signing parameters. When omitted, a default parameters used in the
+     *                    signature will be used.
+     * @param flags       Prefix registration flags
+     *
+     * @return A handle for unregistering the prefix and unsetting the Interest filter.
+     */
+    RegisteredPrefixHandle
+    setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest,
+                      const RegisterPrefixSuccessCallback& onSuccess, const RegisterPrefixFailureCallback& onFailure,
+                      const security::SigningInfo& signingInfo = security::SigningInfo(),
+                      uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
 
-  /**
-   * @brief Set InterestFilter to dispatch incoming matching interest to onInterest callback
-   *
-   * @param filter     Interest filter
-   * @param onInterest A callback to be called when a matching interest is received
-   *
-   * This method modifies library's FIB only, and does not register the prefix with the
-   * forwarder.  It will always succeed.  To register prefix with the forwarder, use
-   * registerPrefix, or use the setInterestFilter overload taking two callbacks.
-   *
-   * @return A handle for unsetting the Interest filter.
-   */
-  InterestFilterHandle
-  setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest);
+    /**
+     * @brief Set InterestFilter to dispatch incoming matching interest to onInterest callback
+     *
+     * @param filter     Interest filter
+     * @param onInterest A callback to be called when a matching interest is received
+     *
+     * This method modifies library's FIB only, and does not register the prefix with the
+     * forwarder.  It will always succeed.  To register prefix with the forwarder, use
+     * registerPrefix, or use the setInterestFilter overload taking two callbacks.
+     *
+     * @return A handle for unsetting the Interest filter.
+     */
+    InterestFilterHandle setInterestFilter(const InterestFilter& filter, const InterestCallback& onInterest);
 
-  /**
-   * @brief Register prefix with the connected NDN forwarder
-   *
-   * This method only modifies forwarder's RIB and does not associate any
-   * onInterest callbacks.  Use setInterestFilter method to dispatch incoming Interests to
-   * the right callbacks.
-   *
-   * @param prefix      A prefix to register with the connected NDN forwarder
-   * @param onSuccess   A callback to be called when prefixRegister command succeeds
-   * @param onFailure   A callback to be called when prefixRegister command fails
-   * @param signingInfo Signing parameters. When omitted, a default parameters used in the
-   *                    signature will be used.
-   * @param flags       Prefix registration flags
-   *
-   * @return A handle for unregistering the prefix.
-   * @see nfd::RouteFlags
-   */
-  RegisteredPrefixHandle
-  registerPrefix(const Name& prefix,
-                 const RegisterPrefixSuccessCallback& onSuccess,
-                 const RegisterPrefixFailureCallback& onFailure,
-                 const security::SigningInfo& signingInfo = security::SigningInfo(),
-                 uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
+    /**
+     * @brief Register prefix with the connected NDN forwarder
+     *
+     * This method only modifies forwarder's RIB and does not associate any
+     * onInterest callbacks.  Use setInterestFilter method to dispatch incoming Interests to
+     * the right callbacks.
+     *
+     * @param prefix      A prefix to register with the connected NDN forwarder
+     * @param onSuccess   A callback to be called when prefixRegister command succeeds
+     * @param onFailure   A callback to be called when prefixRegister command fails
+     * @param signingInfo Signing parameters. When omitted, a default parameters used in the
+     *                    signature will be used.
+     * @param flags       Prefix registration flags
+     *
+     * @return A handle for unregistering the prefix.
+     * @see nfd::RouteFlags
+     */
+    RegisteredPrefixHandle registerPrefix(const Name& prefix, const RegisterPrefixSuccessCallback& onSuccess,
+                                          const RegisterPrefixFailureCallback& onFailure,
+                                          const security::SigningInfo& signingInfo = security::SigningInfo(),
+                                          uint64_t flags = nfd::ROUTE_FLAG_CHILD_INHERIT);
 
-  /**
-   * @deprecated use RegisteredPrefixHandle::unregister()
-   */
-  [[deprecated]]
-  void
-  unsetInterestFilter(const RegisteredPrefixId* registeredPrefixId)
-  {
-    unregisterPrefixImpl(registeredPrefixId, nullptr, nullptr);
-  }
+    /**
+     * @deprecated use RegisteredPrefixHandle::unregister()
+     */
+    [[deprecated]] void
+    unsetInterestFilter(const RegisteredPrefixId* registeredPrefixId)
+    {
+        unregisterPrefixImpl(registeredPrefixId, nullptr, nullptr);
+    }
 
-  /**
-   * @deprecated use InterestFilterHandle::cancel()
-   */
-  [[deprecated]]
-  void
-  unsetInterestFilter(const InterestFilterId* interestFilterId)
-  {
-    clearInterestFilter(interestFilterId);
-  }
+    /**
+     * @deprecated use InterestFilterHandle::cancel()
+     */
+    [[deprecated]] void
+    unsetInterestFilter(const InterestFilterId* interestFilterId)
+    {
+        clearInterestFilter(interestFilterId);
+    }
 
-  /**
-   * @deprecated use RegisteredPrefixHandle::unregister()
-   */
-  [[deprecated]]
-  void
-  unregisterPrefix(const RegisteredPrefixId* registeredPrefixId,
-                   const UnregisterPrefixSuccessCallback& onSuccess,
-                   const UnregisterPrefixFailureCallback& onFailure)
-  {
-    unregisterPrefixImpl(registeredPrefixId, onSuccess, onFailure);
-  }
+    /**
+     * @deprecated use RegisteredPrefixHandle::unregister()
+     */
+    [[deprecated]] void
+    unregisterPrefix(const RegisteredPrefixId* registeredPrefixId, const UnregisterPrefixSuccessCallback& onSuccess,
+                     const UnregisterPrefixFailureCallback& onFailure)
+    {
+        unregisterPrefixImpl(registeredPrefixId, onSuccess, onFailure);
+    }
 
-  /**
-   * @brief Publish data packet
-   * @param data the Data; a copy will be made, so that the caller is not required to
-   *             maintain the argument unchanged
-   *
-   * This method can be called to satisfy incoming Interests, or to add Data packet into the cache
-   * of the local NDN forwarder if forwarder is configured to accept unsolicited Data.
-   *
-   * @throw OversizedPacketError encoded Data size exceeds MAX_NDN_PACKET_SIZE
-   */
-  void
-  put(Data data);
+    /**
+     * @brief Publish data packet
+     * @param data the Data; a copy will be made, so that the caller is not required to
+     *             maintain the argument unchanged
+     *
+     * This method can be called to satisfy incoming Interests, or to add Data packet into the cache
+     * of the local NDN forwarder if forwarder is configured to accept unsolicited Data.
+     *
+     * @throw OversizedPacketError encoded Data size exceeds MAX_NDN_PACKET_SIZE
+     */
+    void put(Data data);
 
-  /**
-   * @brief Send a network NACK
-   * @param nack the Nack; a copy will be made, so that the caller is not required to
-   *             maintain the argument unchanged
-   * @throw OversizedPacketError encoded Nack size exceeds MAX_NDN_PACKET_SIZE
-   */
-  void
-  put(lp::Nack nack);
+    /**
+     * @brief Send a network NACK
+     * @param nack the Nack; a copy will be made, so that the caller is not required to
+     *             maintain the argument unchanged
+     * @throw OversizedPacketError encoded Nack size exceeds MAX_NDN_PACKET_SIZE
+     */
+    void put(lp::Nack nack);
 
-public: // IO routine
-  /**
-   * @brief Process any data to receive or call timeout callbacks.
-   *
-   * This call will block forever (default timeout == 0) to process IO on the face.
-   * To exit cleanly on a producer, unset any Interest filters with unsetInterestFilter() and wait
-   * for processEvents() to return. To exit after an error, one can call shutdown().
-   * In consumer applications, processEvents() will return when all expressed Interests have been
-   * satisfied, Nacked, or timed out. To terminate earlier, a consumer application should cancel
-   * all previously expressed and still-pending Interests.
-   *
-   * If a positive timeout is specified, then processEvents() will exit after this timeout, provided
-   * it is not stopped earlier with shutdown() or when all active events finish. processEvents()
-   * can be called repeatedly, if desired.
-   *
-   * If a negative timeout is specified, then processEvents will not block and will process only
-   * pending events.
-   *
-   * @param timeout     maximum time to block the thread
-   * @param keepThread  Keep thread in a blocked state (in event processing), even when
-   *                    there are no outstanding events (e.g., no Interest/Data is expected).
-   *                    If timeout is zero and this parameter is true, the only way to stop
-   *                    processEvents() is to call shutdown().
-   *
-   * @note This may throw an exception for reading data or in the callback for processing
-   * the data.  If you call this from an main event loop, you may want to catch and
-   * log/disregard all exceptions.
-   *
-   * @throw OversizedPacketError encoded packet size exceeds MAX_NDN_PACKET_SIZE
-   */
-  void
-  processEvents(time::milliseconds timeout = time::milliseconds::zero(),
-                bool keepThread = false)
-  {
-    this->doProcessEvents(timeout, keepThread);
-  }
+  public: // IO routine
+    /**
+     * @brief Process any data to receive or call timeout callbacks.
+     *
+     * This call will block forever (default timeout == 0) to process IO on the face.
+     * To exit cleanly on a producer, unset any Interest filters with unsetInterestFilter() and wait
+     * for processEvents() to return. To exit after an error, one can call shutdown().
+     * In consumer applications, processEvents() will return when all expressed Interests have been
+     * satisfied, Nacked, or timed out. To terminate earlier, a consumer application should cancel
+     * all previously expressed and still-pending Interests.
+     *
+     * If a positive timeout is specified, then processEvents() will exit after this timeout, provided
+     * it is not stopped earlier with shutdown() or when all active events finish. processEvents()
+     * can be called repeatedly, if desired.
+     *
+     * If a negative timeout is specified, then processEvents will not block and will process only
+     * pending events.
+     *
+     * @param timeout     maximum time to block the thread
+     * @param keepThread  Keep thread in a blocked state (in event processing), even when
+     *                    there are no outstanding events (e.g., no Interest/Data is expected).
+     *                    If timeout is zero and this parameter is true, the only way to stop
+     *                    processEvents() is to call shutdown().
+     *
+     * @note This may throw an exception for reading data or in the callback for processing
+     * the data.  If you call this from an main event loop, you may want to catch and
+     * log/disregard all exceptions.
+     *
+     * @throw OversizedPacketError encoded packet size exceeds MAX_NDN_PACKET_SIZE
+     */
+    void
+    processEvents(time::milliseconds timeout = time::milliseconds::zero(), bool keepThread = false)
+    {
+        this->doProcessEvents(timeout, keepThread);
+    }
 
-  /**
-   * @brief Shutdown face operations
-   *
-   * This method cancels all pending operations and closes connection to NDN Forwarder.
-   *
-   * Note that this method does not stop the io_service if it is shared between multiple Faces or
-   * with other IO objects (e.g., Scheduler).
-   *
-   * @warning Calling this method could cause outgoing packets to be lost. Producers that shut down
-   *          immediately after sending a Data packet should instead use unsetInterestFilter() to
-   *          shut down cleanly.
-   */
-  void
-  shutdown();
+    /**
+     * @brief Shutdown face operations
+     *
+     * This method cancels all pending operations and closes connection to NDN Forwarder.
+     *
+     * Note that this method does not stop the io_service if it is shared between multiple Faces or
+     * with other IO objects (e.g., Scheduler).
+     *
+     * @warning Calling this method could cause outgoing packets to be lost. Producers that shut down
+     *          immediately after sending a Data packet should instead use unsetInterestFilter() to
+     *          shut down cleanly.
+     */
+    void shutdown();
 
-  /**
-   * @return Dereferenced nullptr (cannot use IoService in simulations), preserved for API compatibility
-   */
-  DummyIoService&
-  getIoService()
-  {
-    static DummyIoService io;
-    return io;
-  }
+    /**
+     * @return Dereferenced nullptr (cannot use IoService in simulations), preserved for API compatibility
+     */
+    DummyIoService&
+    getIoService()
+    {
+        static DummyIoService io;
+        return io;
+    }
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:
-  /**
-   * @brief Returns the underlying transport.
-   */
-  shared_ptr<Transport>
-  getTransport() const
-  {
-    return m_transport;
-  }
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED :
+      /**
+       * @brief Returns the underlying transport.
+       */
+      shared_ptr<Transport>
+      getTransport() const
+    {
+        return m_transport;
+    }
 
-protected:
-  virtual void
-  doProcessEvents(time::milliseconds timeout, bool keepThread);
+  protected:
+    virtual void doProcessEvents(time::milliseconds timeout, bool keepThread);
 
-private:
-  /**
-   * @throw ConfigFile::Error on parse error and unsupported protocols
-   */
-  shared_ptr<Transport>
-  makeDefaultTransport();
+  private:
+    /**
+     * @throw ConfigFile::Error on parse error and unsupported protocols
+     */
+    shared_ptr<Transport> makeDefaultTransport();
 
-  /**
-   * @throw Face::Error on unsupported protocol
-   * @note shared_ptr is passed by value because ownership is transferred to this function
-   */
-  void
-  construct(shared_ptr<Transport> transport, KeyChain& keyChain);
+    /**
+     * @throw Face::Error on unsupported protocol
+     * @note shared_ptr is passed by value because ownership is transferred to this function
+     */
+    void construct(shared_ptr<Transport> transport, KeyChain& keyChain);
 
-  void
-  onReceiveElement(const Block& blockFromDaemon);
+    void onReceiveElement(const Block& blockFromDaemon);
 
-  void
-  cancelPendingInterest(const PendingInterestId* pendingInterestId);
+    void cancelPendingInterest(const PendingInterestId* pendingInterestId);
 
-  void
-  clearInterestFilter(const InterestFilterId* interestFilterId);
+    void clearInterestFilter(const InterestFilterId* interestFilterId);
 
-  void
-  unregisterPrefixImpl(const RegisteredPrefixId* registeredPrefixId,
-                       const UnregisterPrefixSuccessCallback& onSuccess,
-                       const UnregisterPrefixFailureCallback& onFailure);
+    void
+    unregisterPrefixImpl(const RegisteredPrefixId* registeredPrefixId, const UnregisterPrefixSuccessCallback& onSuccess,
+                         const UnregisterPrefixFailureCallback& onFailure);
 
-private:
-  shared_ptr<Transport> m_transport;
+  private:
+    shared_ptr<Transport> m_transport;
 
-  class Impl;
-  shared_ptr<Impl> m_impl;
+    class Impl;
+    shared_ptr<Impl> m_impl;
 
-  friend PendingInterestHandle;
-  friend RegisteredPrefixHandle;
-  friend InterestFilterHandle;
+    friend PendingInterestHandle;
+    friend RegisteredPrefixHandle;
+    friend InterestFilterHandle;
 };
 
 /** \brief A handle of pending Interest.
@@ -489,12 +457,11 @@ private:
  *  \warning Canceling a pending Interest after the face has been destructed may trigger undefined
  *           behavior.
  */
-class PendingInterestHandle : public detail::CancelHandle
-{
-public:
-  PendingInterestHandle() noexcept = default;
+class PendingInterestHandle : public detail::CancelHandle {
+  public:
+    PendingInterestHandle() noexcept = default;
 
-  PendingInterestHandle(Face& face, const PendingInterestId* id);
+    PendingInterestHandle(Face& face, const PendingInterestId* id);
 };
 
 /** \brief A scoped handle of pending Interest.
@@ -516,28 +483,26 @@ using ScopedPendingInterestHandle = detail::ScopedCancelHandle<PendingInterestHa
 
 /** \brief A handle of registered prefix.
  */
-class RegisteredPrefixHandle : public detail::CancelHandle
-{
-public:
-  RegisteredPrefixHandle() noexcept
-  {
-    // This could have been '= default', but there's compiler bug in Apple clang 9.0.0,
-    // see https://stackoverflow.com/a/44693603
-  }
+class RegisteredPrefixHandle : public detail::CancelHandle {
+  public:
+    RegisteredPrefixHandle() noexcept
+    {
+        // This could have been '= default', but there's compiler bug in Apple clang 9.0.0,
+        // see https://stackoverflow.com/a/44693603
+    }
 
-  RegisteredPrefixHandle(Face& face, const RegisteredPrefixId* id);
+    RegisteredPrefixHandle(Face& face, const RegisteredPrefixId* id);
 
-  /** \brief Unregister the prefix.
-   *  \warning Unregistering a prefix after the face has been destructed may trigger undefined
-   *           behavior.
-   */
-  void
-  unregister(const UnregisterPrefixSuccessCallback& onSuccess = nullptr,
-             const UnregisterPrefixFailureCallback& onFailure = nullptr);
+    /** \brief Unregister the prefix.
+     *  \warning Unregistering a prefix after the face has been destructed may trigger undefined
+     *           behavior.
+     */
+    void unregister(const UnregisterPrefixSuccessCallback& onSuccess = nullptr,
+                    const UnregisterPrefixFailureCallback& onFailure = nullptr);
 
-private:
-  Face* m_face = nullptr;
-  const RegisteredPrefixId* m_id = nullptr;
+  private:
+    Face* m_face = nullptr;
+    const RegisteredPrefixId* m_id = nullptr;
 };
 
 /** \brief A scoped handle of registered prefix.
@@ -568,12 +533,11 @@ using ScopedRegisteredPrefixHandle = detail::ScopedCancelHandle<RegisteredPrefix
  *  \warning Unsetting an Interest filter after the face has been destructed may trigger
  *           undefined behavior.
  */
-class InterestFilterHandle : public detail::CancelHandle
-{
-public:
-  InterestFilterHandle() noexcept = default;
+class InterestFilterHandle : public detail::CancelHandle {
+  public:
+    InterestFilterHandle() noexcept = default;
 
-  InterestFilterHandle(Face& face, const InterestFilterId* id);
+    InterestFilterHandle(Face& face, const InterestFilterId* id);
 };
 
 /** \brief A scoped handle of registered Interest filter.

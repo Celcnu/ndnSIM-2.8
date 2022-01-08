@@ -39,34 +39,34 @@ BOOST_FIXTURE_TEST_SUITE(TestClientToNlsrReadvertisePolicy, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(ReadvertiseClientRoute)
 {
-  auto entry = make_shared<RibEntry>();
-  entry->setName("/test/A");
-  Route route;
-  route.origin = ndn::nfd::ROUTE_ORIGIN_CLIENT;
-  auto routeIt = entry->insertRoute(route).first;
-  RibRouteRef rrr{entry, routeIt};
+    auto entry = make_shared<RibEntry>();
+    entry->setName("/test/A");
+    Route route;
+    route.origin = ndn::nfd::ROUTE_ORIGIN_CLIENT;
+    auto routeIt = entry->insertRoute(route).first;
+    RibRouteRef rrr{entry, routeIt};
 
-  ClientToNlsrReadvertisePolicy policy;
-  optional<ReadvertiseAction> action = policy.handleNewRoute(rrr);
+    ClientToNlsrReadvertisePolicy policy;
+    optional<ReadvertiseAction> action = policy.handleNewRoute(rrr);
 
-  BOOST_REQUIRE(action);
-  BOOST_CHECK_EQUAL(action->prefix, "/test/A");
-  BOOST_REQUIRE_EQUAL(action->signer, ndn::security::SigningInfo());
+    BOOST_REQUIRE(action);
+    BOOST_CHECK_EQUAL(action->prefix, "/test/A");
+    BOOST_REQUIRE_EQUAL(action->signer, ndn::security::SigningInfo());
 }
 
 BOOST_AUTO_TEST_CASE(DontReadvertiseRoute)
 {
-  auto entry = make_shared<RibEntry>();
-  entry->setName("/test/A");
-  Route route;
-  route.origin = ndn::nfd::ROUTE_ORIGIN_NLSR;
-  auto routeIt = entry->insertRoute(route).first;
-  RibRouteRef rrr{entry, routeIt};
+    auto entry = make_shared<RibEntry>();
+    entry->setName("/test/A");
+    Route route;
+    route.origin = ndn::nfd::ROUTE_ORIGIN_NLSR;
+    auto routeIt = entry->insertRoute(route).first;
+    RibRouteRef rrr{entry, routeIt};
 
-  ClientToNlsrReadvertisePolicy policy;
-  optional<ReadvertiseAction> action = policy.handleNewRoute(rrr);
+    ClientToNlsrReadvertisePolicy policy;
+    optional<ReadvertiseAction> action = policy.handleNewRoute(rrr);
 
-  BOOST_CHECK(!action);
+    BOOST_CHECK(!action);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestClientToNlsrReadvertisePolicy

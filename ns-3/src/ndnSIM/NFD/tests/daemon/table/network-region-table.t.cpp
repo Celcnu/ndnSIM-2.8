@@ -36,24 +36,24 @@ BOOST_FIXTURE_TEST_SUITE(TestNetworkRegionTable, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(InProducerRegion)
 {
-  DelegationList fh{{10, "/telia/terabits"}, {20, "/ucla/cs"}};
+    DelegationList fh{{10, "/telia/terabits"}, {20, "/ucla/cs"}};
 
-  NetworkRegionTable nrt1;
-  nrt1.insert("/verizon");
-  BOOST_CHECK_EQUAL(nrt1.isInProducerRegion(fh), false);
+    NetworkRegionTable nrt1;
+    nrt1.insert("/verizon");
+    BOOST_CHECK_EQUAL(nrt1.isInProducerRegion(fh), false);
 
-  NetworkRegionTable nrt2;
-  nrt2.insert("/ucla");
-  BOOST_CHECK_EQUAL(nrt2.isInProducerRegion(fh), false);
+    NetworkRegionTable nrt2;
+    nrt2.insert("/ucla");
+    BOOST_CHECK_EQUAL(nrt2.isInProducerRegion(fh), false);
 
-  NetworkRegionTable nrt3;
-  nrt3.insert("/ucla/cs");
-  BOOST_CHECK_EQUAL(nrt3.isInProducerRegion(fh), true);
+    NetworkRegionTable nrt3;
+    nrt3.insert("/ucla/cs");
+    BOOST_CHECK_EQUAL(nrt3.isInProducerRegion(fh), true);
 
-  NetworkRegionTable nrt4;
-  nrt4.insert("/ucla/cs/software");
-  nrt4.insert("/ucla/cs/irl");
-  BOOST_CHECK_EQUAL(nrt4.isInProducerRegion(fh), true);
+    NetworkRegionTable nrt4;
+    nrt4.insert("/ucla/cs/software");
+    nrt4.insert("/ucla/cs/irl");
+    BOOST_CHECK_EQUAL(nrt4.isInProducerRegion(fh), true);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNetworkRegionTable

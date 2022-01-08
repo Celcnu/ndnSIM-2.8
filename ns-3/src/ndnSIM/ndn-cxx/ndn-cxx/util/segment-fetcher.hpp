@@ -94,231 +94,201 @@ namespace util {
  *     fetcher->onError.connect(bind(&afterFetchError, this, _1, _2));
  *     @endcode
  */
-class SegmentFetcher : noncopyable
-{
-public:
-  /**
-   * @brief Error codes passed to #onError.
-   */
-  enum ErrorCode {
-    /// Retrieval timed out because the maximum timeout between the successful receipt of segments was exceeded
-    INTEREST_TIMEOUT = 1,
-    /// One of the retrieved Data packets lacked a segment number in the last Name component (excl. implicit digest)
-    DATA_HAS_NO_SEGMENT = 2,
-    /// One of the retrieved segments failed user-provided validation
-    SEGMENT_VALIDATION_FAIL = 3,
-    /// An unrecoverable Nack was received during retrieval
-    NACK_ERROR = 4,
-    /// A received FinalBlockId did not contain a segment component
-    FINALBLOCKID_NOT_SEGMENT = 5,
-  };
-
-  class Options
-  {
+class SegmentFetcher : noncopyable {
   public:
-    Options()
-    {
-    }
+    /**
+     * @brief Error codes passed to #onError.
+     */
+    enum ErrorCode {
+        /// Retrieval timed out because the maximum timeout between the successful receipt of segments was exceeded
+        INTEREST_TIMEOUT = 1,
+        /// One of the retrieved Data packets lacked a segment number in the last Name component (excl. implicit digest)
+        DATA_HAS_NO_SEGMENT = 2,
+        /// One of the retrieved segments failed user-provided validation
+        SEGMENT_VALIDATION_FAIL = 3,
+        /// An unrecoverable Nack was received during retrieval
+        NACK_ERROR = 4,
+        /// A received FinalBlockId did not contain a segment component
+        FINALBLOCKID_NOT_SEGMENT = 5,
+    };
+
+    class Options {
+      public:
+        Options()
+        {
+        }
+
+        void validate();
+
+      public:
+        bool useConstantCwnd = false;              ///< if true, window size is kept at `initCwnd`
+        bool useConstantInterestTimeout = false;   ///< if true, Interest timeout is kept at `maxTimeout`
+        time::milliseconds maxTimeout = 60_s;      ///< maximum allowed time between successful receipt of segments
+        time::milliseconds interestLifetime = 4_s; ///< lifetime of sent Interests - independent of Interest timeout
+        double initCwnd = 1.0;                     ///< initial congestion window size
+        double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
+        double aiStep = 1.0;                                      ///< additive increase step (in segments)
+        double mdCoef = 0.5;                                      ///< multiplicative decrease coefficient
+        bool disableCwa = false;                                  ///< disable Conservative Window Adaptation
+        bool resetCwndToInit = false;                             ///< reduce cwnd to initCwnd when loss event occurs
+        bool ignoreCongMarks = false;     ///< disable window decrease after congestion mark received
+        RttEstimator::Options rttOptions; ///< options for RTT estimator
+    };
+
+    /**
+     * @brief Initiates segment fetching.
+     *
+     * Transfer completion, failure, and progress are indicated via signals.
+     *
+     * @param face         Reference to the Face that should be used to fetch data.
+     * @param baseInterest Interest for the initial segment of requested data.
+     *                     This interest may include a custom InterestLifetime and parameters that
+     *                     will propagate to all subsequent Interests. The only exception is that the
+     *                     initial Interest will be forced to include the "CanBePrefix=true" and
+     *                     "MustBeFresh=true" parameters, which will not be included in subsequent
+     *                     Interests.
+     * @param validator    Reference to the Validator the fetcher will use to validate data.
+     *                     The caller must ensure the validator remains valid until either #onComplete
+     *                     or #onError has been signaled.
+     * @param options      Options controlling the transfer.
+     *
+     * @return             A shared_ptr to the constructed SegmentFetcher.
+     *                     This shared_ptr is kept internally for the lifetime of the transfer.
+     *                     Therefore, it does not need to be saved and is provided here so that the
+     *                     SegmentFetcher's signals can be connected to.
+     */
+    static shared_ptr<SegmentFetcher> start(Face& face, const Interest& baseInterest,
+                                            security::v2::Validator& validator, const Options& options = Options());
+
+    /**
+     * @brief Stops fetching.
+     *
+     * This cancels all interests that are still pending.
+     */
+    void stop();
+
+  private:
+    class PendingSegment;
+
+    SegmentFetcher(Face& face, security::v2::Validator& validator, const Options& options);
+
+    static bool shouldStop(const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void fetchFirstSegment(const Interest& baseInterest, bool isRetransmission);
+
+    void fetchSegmentsInWindow(const Interest& origInterest);
+
+    void sendInterest(uint64_t segNum, const Interest& interest, bool isRetransmission);
 
     void
-    validate();
+    afterSegmentReceivedCb(const Interest& origInterest, const Data& data, const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void afterValidationSuccess(const Data& data, const Interest& origInterest,
+                                std::map<uint64_t, PendingSegment>::iterator pendingSegmentIt,
+                                const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void afterValidationFailure(const Data& data, const security::v2::ValidationError& error,
+                                const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void
+    afterNackReceivedCb(const Interest& origInterest, const lp::Nack& nack, const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void afterTimeoutCb(const Interest& origInterest, const weak_ptr<SegmentFetcher>& weakSelf);
+
+    void afterNackOrTimeout(const Interest& origInterest);
+
+    void finalizeFetch();
+
+    void windowIncrease();
+
+    void windowDecrease();
+
+    void signalError(uint32_t code, const std::string& msg);
+
+    void updateRetransmittedSegment(uint64_t segmentNum, const PendingInterestHandle& pendingInterest,
+                                    scheduler::EventId timeoutEvent);
+
+    void cancelExcessInFlightSegments();
+
+    bool checkAllSegmentsReceived();
+
+    time::milliseconds getEstimatedRto();
 
   public:
-    bool useConstantCwnd = false; ///< if true, window size is kept at `initCwnd`
-    bool useConstantInterestTimeout = false; ///< if true, Interest timeout is kept at `maxTimeout`
-    time::milliseconds maxTimeout = 60_s; ///< maximum allowed time between successful receipt of segments
-    time::milliseconds interestLifetime = 4_s; ///< lifetime of sent Interests - independent of Interest timeout
-    double initCwnd = 1.0; ///< initial congestion window size
-    double initSsthresh = std::numeric_limits<double>::max(); ///< initial slow start threshold
-    double aiStep = 1.0; ///< additive increase step (in segments)
-    double mdCoef = 0.5; ///< multiplicative decrease coefficient
-    bool disableCwa = false; ///< disable Conservative Window Adaptation
-    bool resetCwndToInit = false; ///< reduce cwnd to initCwnd when loss event occurs
-    bool ignoreCongMarks = false; ///< disable window decrease after congestion mark received
-    RttEstimator::Options rttOptions; ///< options for RTT estimator
-  };
+    /**
+     * @brief Emits upon successful retrieval of the complete data.
+     */
+    Signal<SegmentFetcher, ConstBufferPtr> onComplete;
 
-  /**
-   * @brief Initiates segment fetching.
-   *
-   * Transfer completion, failure, and progress are indicated via signals.
-   *
-   * @param face         Reference to the Face that should be used to fetch data.
-   * @param baseInterest Interest for the initial segment of requested data.
-   *                     This interest may include a custom InterestLifetime and parameters that
-   *                     will propagate to all subsequent Interests. The only exception is that the
-   *                     initial Interest will be forced to include the "CanBePrefix=true" and
-   *                     "MustBeFresh=true" parameters, which will not be included in subsequent
-   *                     Interests.
-   * @param validator    Reference to the Validator the fetcher will use to validate data.
-   *                     The caller must ensure the validator remains valid until either #onComplete
-   *                     or #onError has been signaled.
-   * @param options      Options controlling the transfer.
-   *
-   * @return             A shared_ptr to the constructed SegmentFetcher.
-   *                     This shared_ptr is kept internally for the lifetime of the transfer.
-   *                     Therefore, it does not need to be saved and is provided here so that the
-   *                     SegmentFetcher's signals can be connected to.
-   */
-  static shared_ptr<SegmentFetcher>
-  start(Face& face,
-        const Interest& baseInterest,
-        security::v2::Validator& validator,
-        const Options& options = Options());
+    /**
+     * @brief Emits when the retrieval could not be completed due to an error.
+     *
+     * Handlers are provided with an error code and a string error message.
+     */
+    Signal<SegmentFetcher, uint32_t, std::string> onError;
 
-  /**
-   * @brief Stops fetching.
-   *
-   * This cancels all interests that are still pending.
-   */
-  void
-  stop();
+    /**
+     * @brief Emits whenever a data segment received.
+     */
+    Signal<SegmentFetcher, Data> afterSegmentReceived;
 
-private:
-  class PendingSegment;
+    /**
+     * @brief Emits whenever a received data segment has been successfully validated.
+     */
+    Signal<SegmentFetcher, Data> afterSegmentValidated;
 
-  SegmentFetcher(Face& face, security::v2::Validator& validator, const Options& options);
+    /**
+     * @brief Emits whenever an Interest for a data segment is nacked.
+     */
+    Signal<SegmentFetcher> afterSegmentNacked;
 
-  static bool
-  shouldStop(const weak_ptr<SegmentFetcher>& weakSelf);
+    /**
+     * @brief Emits whenever an Interest for a data segment times out.
+     */
+    Signal<SegmentFetcher> afterSegmentTimedOut;
 
-  void
-  fetchFirstSegment(const Interest& baseInterest, bool isRetransmission);
+  private:
+    enum class SegmentState {
+        FirstInterest, ///< the first Interest for this segment has been sent
+        InRetxQueue,   ///< the segment is awaiting Interest retransmission
+        Retransmitted, ///< one or more retransmitted Interests have been sent for this segment
+    };
 
-  void
-  fetchSegmentsInWindow(const Interest& origInterest);
+    class PendingSegment {
+      public:
+        SegmentState state;
+        time::steady_clock::TimePoint sendTime;
+        ScopedPendingInterestHandle hdl;
+        scheduler::ScopedEventId timeoutEvent;
+    };
 
-  void
-  sendInterest(uint64_t segNum, const Interest& interest, bool isRetransmission);
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE : static constexpr double MIN_SSTHRESH = 2.0;
 
-  void
-  afterSegmentReceivedCb(const Interest& origInterest, const Data& data,
-                         const weak_ptr<SegmentFetcher>& weakSelf);
+    shared_ptr<SegmentFetcher> m_this;
 
-  void
-  afterValidationSuccess(const Data& data, const Interest& origInterest,
-                         std::map<uint64_t, PendingSegment>::iterator pendingSegmentIt,
-                         const weak_ptr<SegmentFetcher>& weakSelf);
+    Options m_options;
+    Face& m_face;
+    Scheduler m_scheduler;
+    security::v2::Validator& m_validator;
+    RttEstimator m_rttEstimator;
+    // time::milliseconds m_timeout;
 
-  void
-  afterValidationFailure(const Data& data,
-                         const security::v2::ValidationError& error,
-                         const weak_ptr<SegmentFetcher>& weakSelf);
+    time::steady_clock::TimePoint m_timeLastSegmentReceived;
+    std::queue<uint64_t> m_retxQueue;
+    Name m_versionedDataName;
+    uint64_t m_nextSegmentNum;
+    double m_cwnd;
+    double m_ssthresh;
+    int64_t m_nSegmentsInFlight;
+    int64_t m_nSegments;
+    uint64_t m_highInterest;
+    uint64_t m_highData;
+    uint64_t m_recPoint;
+    int64_t m_nReceived;
+    int64_t m_nBytesReceived;
 
-  void
-  afterNackReceivedCb(const Interest& origInterest, const lp::Nack& nack,
-                      const weak_ptr<SegmentFetcher>& weakSelf);
-
-  void
-  afterTimeoutCb(const Interest& origInterest,
-                 const weak_ptr<SegmentFetcher>& weakSelf);
-
-  void
-  afterNackOrTimeout(const Interest& origInterest);
-
-  void
-  finalizeFetch();
-
-  void
-  windowIncrease();
-
-  void
-  windowDecrease();
-
-  void
-  signalError(uint32_t code, const std::string& msg);
-
-  void
-  updateRetransmittedSegment(uint64_t segmentNum,
-                             const PendingInterestHandle& pendingInterest,
-                             scheduler::EventId timeoutEvent);
-
-  void
-  cancelExcessInFlightSegments();
-
-  bool
-  checkAllSegmentsReceived();
-
-  time::milliseconds
-  getEstimatedRto();
-
-public:
-  /**
-   * @brief Emits upon successful retrieval of the complete data.
-   */
-  Signal<SegmentFetcher, ConstBufferPtr> onComplete;
-
-  /**
-   * @brief Emits when the retrieval could not be completed due to an error.
-   *
-   * Handlers are provided with an error code and a string error message.
-   */
-  Signal<SegmentFetcher, uint32_t, std::string> onError;
-
-  /**
-   * @brief Emits whenever a data segment received.
-   */
-  Signal<SegmentFetcher, Data> afterSegmentReceived;
-
-  /**
-   * @brief Emits whenever a received data segment has been successfully validated.
-   */
-  Signal<SegmentFetcher, Data> afterSegmentValidated;
-
-  /**
-   * @brief Emits whenever an Interest for a data segment is nacked.
-   */
-  Signal<SegmentFetcher> afterSegmentNacked;
-
-  /**
-   * @brief Emits whenever an Interest for a data segment times out.
-   */
-  Signal<SegmentFetcher> afterSegmentTimedOut;
-
-private:
-  enum class SegmentState {
-    FirstInterest, ///< the first Interest for this segment has been sent
-    InRetxQueue,   ///< the segment is awaiting Interest retransmission
-    Retransmitted, ///< one or more retransmitted Interests have been sent for this segment
-  };
-
-  class PendingSegment
-  {
-  public:
-    SegmentState state;
-    time::steady_clock::TimePoint sendTime;
-    ScopedPendingInterestHandle hdl;
-    scheduler::ScopedEventId timeoutEvent;
-  };
-
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  static constexpr double MIN_SSTHRESH = 2.0;
-
-  shared_ptr<SegmentFetcher> m_this;
-
-  Options m_options;
-  Face& m_face;
-  Scheduler m_scheduler;
-  security::v2::Validator& m_validator;
-  RttEstimator m_rttEstimator;
-  // time::milliseconds m_timeout;
-
-  time::steady_clock::TimePoint m_timeLastSegmentReceived;
-  std::queue<uint64_t> m_retxQueue;
-  Name m_versionedDataName;
-  uint64_t m_nextSegmentNum;
-  double m_cwnd;
-  double m_ssthresh;
-  int64_t m_nSegmentsInFlight;
-  int64_t m_nSegments;
-  uint64_t m_highInterest;
-  uint64_t m_highData;
-  uint64_t m_recPoint;
-  int64_t m_nReceived;
-  int64_t m_nBytesReceived;
-
-  std::map<uint64_t, Buffer> m_receivedSegments;
-  std::map<uint64_t, PendingSegment> m_pendingSegments;
+    std::map<uint64_t, Buffer> m_receivedSegments;
+    std::map<uint64_t, PendingSegment> m_pendingSegments;
 };
 
 } // namespace util

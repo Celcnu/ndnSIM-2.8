@@ -30,10 +30,10 @@ RegexMatcher::RegexMatcher(const std::string& expr, const RegexExprType& type,
   : m_expr(expr)
   , m_type(type)
 {
-  if (backrefManager)
-    m_backrefManager = std::move(backrefManager);
-  else
-    m_backrefManager = make_shared<RegexBackrefManager>();
+    if (backrefManager)
+        m_backrefManager = std::move(backrefManager);
+    else
+        m_backrefManager = make_shared<RegexBackrefManager>();
 }
 
 RegexMatcher::~RegexMatcher() = default;
@@ -41,40 +41,39 @@ RegexMatcher::~RegexMatcher() = default;
 bool
 RegexMatcher::match(const Name& name, size_t offset, size_t len)
 {
-  m_matchResult.clear();
+    m_matchResult.clear();
 
-  if (recursiveMatch(0, name, offset, len)) {
-    for (size_t i = offset; i < offset + len; i++)
-      m_matchResult.push_back(name.get(i));
-    return true;
-  }
+    if (recursiveMatch(0, name, offset, len)) {
+        for (size_t i = offset; i < offset + len; i++)
+            m_matchResult.push_back(name.get(i));
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 bool
 RegexMatcher::recursiveMatch(size_t matcherNo, const Name& name, size_t offset, size_t len)
 {
-  if (matcherNo >= m_matchers.size())
-    return len == 0;
+    if (matcherNo >= m_matchers.size())
+        return len == 0;
 
-  ssize_t tried = len;
-  auto matcher = m_matchers[matcherNo];
+    ssize_t tried = len;
+    auto matcher = m_matchers[matcherNo];
 
-  while (tried >= 0) {
-    if (matcher->match(name, offset, tried) &&
-        recursiveMatch(matcherNo + 1, name, offset + tried, len - tried))
-      return true;
-    tried--;
-  }
+    while (tried >= 0) {
+        if (matcher->match(name, offset, tried) && recursiveMatch(matcherNo + 1, name, offset + tried, len - tried))
+            return true;
+        tried--;
+    }
 
-  return false;
+    return false;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const RegexMatcher& rm)
 {
-  return os << rm.getExpr();
+    return os << rm.getExpr();
 }
 
 } // namespace ndn

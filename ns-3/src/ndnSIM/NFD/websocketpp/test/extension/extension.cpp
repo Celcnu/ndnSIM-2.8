@@ -32,6 +32,7 @@
 
 #include <websocketpp/extensions/extension.hpp>
 
-BOOST_AUTO_TEST_CASE( blank ) {
-    BOOST_CHECK( true );
+BOOST_AUTO_TEST_CASE(blank)
+{
+    BOOST_CHECK(true);
 }

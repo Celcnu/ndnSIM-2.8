@@ -44,74 +44,69 @@ namespace tests {
 inline void
 checkStaticPropertiesInitialized(const Transport& transport)
 {
-  BOOST_CHECK(!transport.getLocalUri().getScheme().empty());
-  BOOST_CHECK(!transport.getRemoteUri().getScheme().empty());
-  BOOST_CHECK_NE(transport.getScope(), ndn::nfd::FACE_SCOPE_NONE);
-  BOOST_CHECK_NE(transport.getPersistency(), ndn::nfd::FACE_PERSISTENCY_NONE);
-  BOOST_CHECK_NE(transport.getLinkType(), ndn::nfd::LINK_TYPE_NONE);
-  BOOST_CHECK_NE(transport.getMtu(), MTU_INVALID);
+    BOOST_CHECK(!transport.getLocalUri().getScheme().empty());
+    BOOST_CHECK(!transport.getRemoteUri().getScheme().empty());
+    BOOST_CHECK_NE(transport.getScope(), ndn::nfd::FACE_SCOPE_NONE);
+    BOOST_CHECK_NE(transport.getPersistency(), ndn::nfd::FACE_PERSISTENCY_NONE);
+    BOOST_CHECK_NE(transport.getLinkType(), ndn::nfd::LINK_TYPE_NONE);
+    BOOST_CHECK_NE(transport.getMtu(), MTU_INVALID);
 }
 
 /** \brief Generic wrapper for transport fixtures that require an IP address
  */
-template<typename TransportFixtureBase,
-         AddressFamily AF = AddressFamily::Any,
-         AddressScope AS = AddressScope::Any,
-         MulticastInterface MC = MulticastInterface::Any>
-class IpTransportFixture : public TransportFixtureBase
-{
-protected:
-  IpTransportFixture()
-  {
-    BOOST_TEST_MESSAGE("Testing with AddressFamily=" << AF <<
-                       " AddressScope=" << AS <<
-                       " MulticastInterface=" << MC <<
-                       " TestIp=" << address);
-  }
+template <typename TransportFixtureBase, AddressFamily AF = AddressFamily::Any, AddressScope AS = AddressScope::Any,
+          MulticastInterface MC = MulticastInterface::Any>
+class IpTransportFixture : public TransportFixtureBase {
+  protected:
+    IpTransportFixture()
+    {
+        BOOST_TEST_MESSAGE("Testing with AddressFamily=" << AF << " AddressScope=" << AS << " MulticastInterface=" << MC
+                                                         << " TestIp=" << address);
+    }
 
-  std::pair<bool, std::string>
-  checkPreconditions() const
-  {
-    return {!address.is_unspecified(), "no appropriate IP address available"};
-  }
+    std::pair<bool, std::string>
+    checkPreconditions() const
+    {
+        return {!address.is_unspecified(), "no appropriate IP address available"};
+    }
 
-  template<typename... Args>
-  void
-  initialize(Args&&... args)
-  {
-    TransportFixtureBase::initialize(address, std::forward<Args>(args)...);
-  }
+    template <typename... Args>
+    void
+    initialize(Args&&... args)
+    {
+        TransportFixtureBase::initialize(address, std::forward<Args>(args)...);
+    }
 
-protected:
-  static constexpr AddressFamily addressFamily = AF;
-  static constexpr AddressScope addressScope = AS;
-  const boost::asio::ip::address address = getTestIp(AF, AS, MC);
+  protected:
+    static constexpr AddressFamily addressFamily = AF;
+    static constexpr AddressScope addressScope = AS;
+    const boost::asio::ip::address address = getTestIp(AF, AS, MC);
 };
 
 } // namespace tests
 } // namespace face
 } // namespace nfd
 
-#define GENERATE_IP_TRANSPORT_FIXTURE_INSTANTIATIONS(F) \
-  IpTransportFixture<F, AddressFamily::V4, AddressScope::Loopback>,  \
-  IpTransportFixture<F, AddressFamily::V4, AddressScope::Global>,    \
-  IpTransportFixture<F, AddressFamily::V6, AddressScope::Loopback>,  \
-  IpTransportFixture<F, AddressFamily::V6, AddressScope::LinkLocal>, \
-  IpTransportFixture<F, AddressFamily::V6, AddressScope::Global>
+#define GENERATE_IP_TRANSPORT_FIXTURE_INSTANTIATIONS(F)                                                                \
+    IpTransportFixture<F, AddressFamily::V4, AddressScope::Loopback>,                                                  \
+      IpTransportFixture<F, AddressFamily::V4, AddressScope::Global>,                                                  \
+      IpTransportFixture<F, AddressFamily::V6, AddressScope::Loopback>,                                                \
+      IpTransportFixture<F, AddressFamily::V6, AddressScope::LinkLocal>,                                               \
+      IpTransportFixture<F, AddressFamily::V6, AddressScope::Global>
 
-#define TRANSPORT_TEST_CHECK_PRECONDITIONS() \
-  do { \
-    auto result = this->checkPreconditions(); \
-    if (!result.first) { \
-      BOOST_WARN_MESSAGE(false, "skipping test case: " << result.second); \
-      return; \
-    } \
-  } while (false)
+#define TRANSPORT_TEST_CHECK_PRECONDITIONS()                                                                           \
+    do {                                                                                                               \
+        auto result = this->checkPreconditions();                                                                      \
+        if (!result.first) {                                                                                           \
+            BOOST_WARN_MESSAGE(false, "skipping test case: " << result.second);                                        \
+            return;                                                                                                    \
+        }                                                                                                              \
+    } while (false)
 
-#define TRANSPORT_TEST_INIT(...) \
-  do { \
-    TRANSPORT_TEST_CHECK_PRECONDITIONS(); \
-    this->initialize(__VA_ARGS__); \
-  } while (false)
+#define TRANSPORT_TEST_INIT(...)                                                                                       \
+    do {                                                                                                               \
+        TRANSPORT_TEST_CHECK_PRECONDITIONS();                                                                          \
+        this->initialize(__VA_ARGS__);                                                                                 \
+    } while (false)
 
 #endif // NFD_TESTS_DAEMON_FACE_TRANSPORT_TEST_COMMON_HPP

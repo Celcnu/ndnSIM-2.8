@@ -35,97 +35,84 @@ namespace face {
 
 /** \brief Abstracts a transport that can be paired with another.
  */
-class InternalTransportBase
-{
-public:
-  virtual
-  ~InternalTransportBase() = default;
+class InternalTransportBase {
+  public:
+    virtual ~InternalTransportBase() = default;
 
-  virtual void
-  receivePacket(const Block& packet) = 0;
+    virtual void receivePacket(const Block& packet) = 0;
 };
 
 /** \brief Implements a forwarder-side transport that can be paired with another transport.
  */
-class InternalForwarderTransport final : public Transport, public InternalTransportBase
-{
-public:
-  explicit
-  InternalForwarderTransport(const FaceUri& localUri = FaceUri("internal://"),
-                             const FaceUri& remoteUri = FaceUri("internal://"),
-                             ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_LOCAL,
-                             ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+class InternalForwarderTransport final : public Transport, public InternalTransportBase {
+  public:
+    explicit InternalForwarderTransport(const FaceUri& localUri = FaceUri("internal://"),
+                                        const FaceUri& remoteUri = FaceUri("internal://"),
+                                        ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_LOCAL,
+                                        ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
 
-  void
-  setPeer(InternalTransportBase* peer)
-  {
-    m_peer = peer;
-  }
+    void
+    setPeer(InternalTransportBase* peer)
+    {
+        m_peer = peer;
+    }
 
-  void
-  receivePacket(const Block& packet) final;
+    void receivePacket(const Block& packet) final;
 
-protected:
-  void
-  doClose() final;
+  protected:
+    void doClose() final;
 
-private:
-  void
-  doSend(const Block& packet, const EndpointId& endpoint) final;
+  private:
+    void doSend(const Block& packet, const EndpointId& endpoint) final;
 
-private:
-  NFD_LOG_MEMBER_DECL();
+  private:
+    NFD_LOG_MEMBER_DECL();
 
-  InternalTransportBase* m_peer = nullptr;
+    InternalTransportBase* m_peer = nullptr;
 };
 
 /** \brief Implements a client-side transport that can be paired with an InternalForwarderTransport.
  */
-class InternalClientTransport final : public ndn::Transport, public InternalTransportBase
-{
-public:
-  ~InternalClientTransport() final;
+class InternalClientTransport final : public ndn::Transport, public InternalTransportBase {
+  public:
+    ~InternalClientTransport() final;
 
-  /** \brief Connect to a forwarder-side transport.
-   *  \param forwarder the forwarder-side transport to connect to; may be nullptr
-   *
-   *  The connected forwarder-side transport will be disconnected automatically if this method
-   *  is called again, or if that transport is closed.
-   *  It's safe to use InternalClientTransport without a connected forwarder-side transport:
-   *  all sent packets would be lost, and nothing would be received.
-   */
-  void
-  connectToForwarder(InternalForwarderTransport* forwarder);
+    /** \brief Connect to a forwarder-side transport.
+     *  \param forwarder the forwarder-side transport to connect to; may be nullptr
+     *
+     *  The connected forwarder-side transport will be disconnected automatically if this method
+     *  is called again, or if that transport is closed.
+     *  It's safe to use InternalClientTransport without a connected forwarder-side transport:
+     *  all sent packets would be lost, and nothing would be received.
+     */
+    void connectToForwarder(InternalForwarderTransport* forwarder);
 
-  void
-  receivePacket(const Block& packet) final;
+    void receivePacket(const Block& packet) final;
 
-  void
-  send(const Block& wire) final;
+    void send(const Block& wire) final;
 
-  void
-  send(const Block& header, const Block& payload) final;
+    void send(const Block& header, const Block& payload) final;
 
-  void
-  close() final
-  {
-  }
+    void
+    close() final
+    {
+    }
 
-  void
-  pause() final
-  {
-  }
+    void
+    pause() final
+    {
+    }
 
-  void
-  resume() final
-  {
-  }
+    void
+    resume() final
+    {
+    }
 
-private:
-  NFD_LOG_MEMBER_DECL();
+  private:
+    NFD_LOG_MEMBER_DECL();
 
-  InternalForwarderTransport* m_forwarder = nullptr;
-  signal::ScopedConnection m_fwTransportStateConn;
+    InternalForwarderTransport* m_forwarder = nullptr;
+    signal::ScopedConnection m_fwTransportStateConn;
 };
 
 } // namespace face

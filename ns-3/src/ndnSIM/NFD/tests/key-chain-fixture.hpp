@@ -35,45 +35,40 @@ namespace tests {
 
 /** \brief A fixture providing an in-memory KeyChain.
  */
-class KeyChainFixture
-{
-public:
-  /** \brief add identity
-   *  \return whether successful
-   */
-  bool
-  addIdentity(const Name& identity,
-              const ndn::KeyParams& params = ndn::KeyChain::getDefaultKeyParams());
+class KeyChainFixture {
+  public:
+    /** \brief add identity
+     *  \return whether successful
+     */
+    bool addIdentity(const Name& identity, const ndn::KeyParams& params = ndn::KeyChain::getDefaultKeyParams());
 
-  /** \brief save identity certificate to a file
-   *  \param identity identity name
-   *  \param filename file name, must be writable
-   *  \param allowAdd if true, add new identity when necessary
-   *  \return whether successful
-   */
-  bool
-  saveIdentityCertificate(const Name& identity, const std::string& filename, bool allowAdd = false);
+    /** \brief save identity certificate to a file
+     *  \param identity identity name
+     *  \param filename file name, must be writable
+     *  \param allowAdd if true, add new identity when necessary
+     *  \return whether successful
+     */
+    bool saveIdentityCertificate(const Name& identity, const std::string& filename, bool allowAdd = false);
 
-  /** \brief retrieve identity certificate as base64 string
-   *  \param identity identity name
-   *  \param allowAdd if true, add new identity when necessary
-   *  \throw std::runtime_error identity does not exist and \p allowAdd is false
-   */
-  std::string
-  getIdentityCertificateBase64(const Name& identity, bool allowAdd = false);
+    /** \brief retrieve identity certificate as base64 string
+     *  \param identity identity name
+     *  \param allowAdd if true, add new identity when necessary
+     *  \throw std::runtime_error identity does not exist and \p allowAdd is false
+     */
+    std::string getIdentityCertificateBase64(const Name& identity, bool allowAdd = false);
 
-protected:
-  KeyChainFixture();
+  protected:
+    KeyChainFixture();
 
-  /** \brief deletes saved certificate files
-   */
-  ~KeyChainFixture();
+    /** \brief deletes saved certificate files
+     */
+    ~KeyChainFixture();
 
-protected:
-  ndn::KeyChain m_keyChain;
+  protected:
+    ndn::KeyChain m_keyChain;
 
-private:
-  std::vector<std::string> m_certFiles;
+  private:
+    std::vector<std::string> m_certFiles;
 };
 
 } // namespace tests

@@ -34,99 +34,90 @@ namespace face {
 ProtocolFactory::Registry&
 ProtocolFactory::getRegistry()
 {
-  static Registry registry;
-  return registry;
+    static Registry registry;
+    return registry;
 }
 
 unique_ptr<ProtocolFactory>
 ProtocolFactory::create(const std::string& id, const CtorParams& params)
 {
-  Registry& registry = getRegistry();
-  auto found = registry.find(id);
-  if (found == registry.end()) {
-    return nullptr;
-  }
+    Registry& registry = getRegistry();
+    auto found = registry.find(id);
+    if (found == registry.end()) {
+        return nullptr;
+    }
 
-  return found->second(params);
+    return found->second(params);
 }
 
 std::set<std::string>
 ProtocolFactory::listRegistered()
 {
-  std::set<std::string> factoryIds;
-  boost::copy(getRegistry() | boost::adaptors::map_keys,
-              std::inserter(factoryIds, factoryIds.end()));
-  return factoryIds;
+    std::set<std::string> factoryIds;
+    boost::copy(getRegistry() | boost::adaptors::map_keys, std::inserter(factoryIds, factoryIds.end()));
+    return factoryIds;
 }
 
 ProtocolFactory::ProtocolFactory(const CtorParams& params)
   : addFace(params.addFace)
   , netmon(params.netmon)
 {
-  BOOST_ASSERT(addFace != nullptr);
-  BOOST_ASSERT(netmon != nullptr);
+    BOOST_ASSERT(addFace != nullptr);
+    BOOST_ASSERT(netmon != nullptr);
 }
 
 ProtocolFactory::~ProtocolFactory() = default;
 
 void
-ProtocolFactory::processConfig(OptionalConfigSection configSection,
-                               FaceSystem::ConfigContext& context)
+ProtocolFactory::processConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context)
 {
-  doProcessConfig(configSection, context);
+    doProcessConfig(configSection, context);
 }
 
 void
-ProtocolFactory::doProcessConfig(OptionalConfigSection,
-                                 FaceSystem::ConfigContext&)
+ProtocolFactory::doProcessConfig(OptionalConfigSection, FaceSystem::ConfigContext&)
 {
 }
 
 void
-ProtocolFactory::createFace(const CreateFaceRequest& req,
-                            const FaceCreatedCallback& onCreated,
+ProtocolFactory::createFace(const CreateFaceRequest& req, const FaceCreatedCallback& onCreated,
                             const FaceCreationFailedCallback& onFailure)
 {
-  BOOST_ASSERT(!FaceUri::canCanonize(req.remoteUri.getScheme()) ||
-               req.remoteUri.isCanonical());
-  BOOST_ASSERT(!req.localUri || !FaceUri::canCanonize(req.localUri->getScheme()) ||
-               req.localUri->isCanonical());
-  doCreateFace(req, onCreated, onFailure);
+    BOOST_ASSERT(!FaceUri::canCanonize(req.remoteUri.getScheme()) || req.remoteUri.isCanonical());
+    BOOST_ASSERT(!req.localUri || !FaceUri::canCanonize(req.localUri->getScheme()) || req.localUri->isCanonical());
+    doCreateFace(req, onCreated, onFailure);
 }
 
 void
-ProtocolFactory::doCreateFace(const CreateFaceRequest&,
-                              const FaceCreatedCallback&,
+ProtocolFactory::doCreateFace(const CreateFaceRequest&, const FaceCreatedCallback&,
                               const FaceCreationFailedCallback& onFailure)
 {
-  onFailure(406, "Unsupported protocol");
+    onFailure(406, "Unsupported protocol");
 }
 
 shared_ptr<Face>
-ProtocolFactory::createNetdevBoundFace(const FaceUri& remote,
-                                       const shared_ptr<const ndn::net::NetworkInterface>& netif)
+ProtocolFactory::createNetdevBoundFace(const FaceUri& remote, const shared_ptr<const ndn::net::NetworkInterface>& netif)
 {
-  BOOST_ASSERT(remote.isCanonical());
-  return doCreateNetdevBoundFace(remote, netif);
+    BOOST_ASSERT(remote.isCanonical());
+    return doCreateNetdevBoundFace(remote, netif);
 }
 
 shared_ptr<Face>
-ProtocolFactory::doCreateNetdevBoundFace(const FaceUri&,
-                                         const shared_ptr<const ndn::net::NetworkInterface>&)
+ProtocolFactory::doCreateNetdevBoundFace(const FaceUri&, const shared_ptr<const ndn::net::NetworkInterface>&)
 {
-  NDN_THROW(Error("This protocol factory does not support netdev-bound faces"));
+    NDN_THROW(Error("This protocol factory does not support netdev-bound faces"));
 }
 
 std::vector<shared_ptr<const Channel>>
 ProtocolFactory::getChannels() const
 {
-  return doGetChannels();
+    return doGetChannels();
 }
 
 std::vector<shared_ptr<const Channel>>
 ProtocolFactory::doGetChannels() const
 {
-  return {};
+    return {};
 }
 
 } // namespace face

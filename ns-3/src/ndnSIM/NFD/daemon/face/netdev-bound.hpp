@@ -35,51 +35,43 @@ class FaceSystem;
 
 /** \brief manages netdev-bound faces
  */
-class NetdevBound : noncopyable
-{
-public:
-  class RuleParseError : public ConfigFile::Error
-  {
+class NetdevBound : noncopyable {
   public:
-    RuleParseError(int index, std::string msg)
-      : Error("Error parsing face_system.netdev_bound.rule[" + to_string(index) + "]: " + msg)
-      , index(index)
-      , msg(std::move(msg))
-    {
-    }
+    class RuleParseError : public ConfigFile::Error {
+      public:
+        RuleParseError(int index, std::string msg)
+          : Error("Error parsing face_system.netdev_bound.rule[" + to_string(index) + "]: " + msg)
+          , index(index)
+          , msg(std::move(msg))
+        {
+        }
 
-  public:
-    int index;
-    std::string msg;
-  };
+      public:
+        int index;
+        std::string msg;
+    };
 
-  NetdevBound(const ProtocolFactoryCtorParams& params, const FaceSystem& faceSystem);
+    NetdevBound(const ProtocolFactoryCtorParams& params, const FaceSystem& faceSystem);
 
-  /** \brief process face_system.netdev_bound config section
-   */
-  void
-  processConfig(OptionalConfigSection configSection,
-                FaceSystem::ConfigContext& context);
+    /** \brief process face_system.netdev_bound config section
+     */
+    void processConfig(OptionalConfigSection configSection, FaceSystem::ConfigContext& context);
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  struct Rule
-  {
-    std::vector<FaceUri> remotes;
-    NetworkInterfacePredicate netifPredicate;
-  };
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : struct Rule {
+        std::vector<FaceUri> remotes;
+        NetworkInterfacePredicate netifPredicate;
+    };
 
-  Rule
-  parseRule(int index, const ConfigSection& confRule) const;
+    Rule parseRule(int index, const ConfigSection& confRule) const;
 
-PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  const FaceSystem& m_faceSystem;
-  FaceCreatedCallback m_addFace;
-  shared_ptr<ndn::net::NetworkMonitor> m_netmon;
+    PUBLIC_WITH_TESTS_ELSE_PRIVATE : const FaceSystem& m_faceSystem;
+    FaceCreatedCallback m_addFace;
+    shared_ptr<ndn::net::NetworkMonitor> m_netmon;
 
-  std::vector<Rule> m_rules;
+    std::vector<Rule> m_rules;
 
-  using Key = std::pair<FaceUri, std::string>;
-  std::map<Key, shared_ptr<Face>> m_faces;
+    using Key = std::pair<FaceUri, std::string>;
+    std::map<Key, shared_ptr<Face>> m_faces;
 };
 
 } // namespace face

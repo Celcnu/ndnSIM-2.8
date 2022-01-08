@@ -33,8 +33,7 @@ namespace face {
 
 /** \return a Face that has no underlying transport and drops every packet
  */
-shared_ptr<Face>
-makeNullFace(const FaceUri& uri = FaceUri("null://"));
+shared_ptr<Face> makeNullFace(const FaceUri& uri = FaceUri("null://"));
 
 } // namespace face
 } // namespace nfd

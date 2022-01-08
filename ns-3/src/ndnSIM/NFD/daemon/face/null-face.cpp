@@ -33,10 +33,10 @@ namespace face {
 shared_ptr<Face>
 makeNullFace(const FaceUri& uri)
 {
-  // FIB could restrict creating a nexthop record toward a non-local face in /localhost namespace.
-  // Therefore, NullFace has scope=local to enable creating a "blackhole" FIB entry under /localhost.
-  return make_shared<Face>(make_unique<NullLinkService>(),
-                           make_unique<NullTransport>(uri, uri, ndn::nfd::FACE_SCOPE_LOCAL));
+    // FIB could restrict creating a nexthop record toward a non-local face in /localhost namespace.
+    // Therefore, NullFace has scope=local to enable creating a "blackhole" FIB entry under /localhost.
+    return make_shared<Face>(make_unique<NullLinkService>(),
+                             make_unique<NullTransport>(uri, uri, ndn::nfd::FACE_SCOPE_LOCAL));
 }
 
 } // namespace face

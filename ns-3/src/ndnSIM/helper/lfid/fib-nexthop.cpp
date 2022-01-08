@@ -30,33 +30,33 @@ constexpr int NODE_ID_LIMIT = 1000;
 
 FibNextHop::FibNextHop(int cost, int nhId, int costDelta, NextHopType type)
 {
-  NS_ABORT_UNLESS(cost > 0 && cost <= MAX_COST);
-  NS_ABORT_UNLESS(nhId >= 0 && nhId <= NODE_ID_LIMIT);
+    NS_ABORT_UNLESS(cost > 0 && cost <= MAX_COST);
+    NS_ABORT_UNLESS(nhId >= 0 && nhId <= NODE_ID_LIMIT);
 
-  this->m_nhId = nhId;
-  this->m_cost = cost;
-  this->m_type = type;
-  this->m_costDelta = costDelta;
+    this->m_nhId = nhId;
+    this->m_cost = cost;
+    this->m_type = type;
+    this->m_costDelta = costDelta;
 }
 
 std::ostream&
 operator<<(std::ostream& os, const NextHopType& type)
 {
-  switch (type) {
-  case NextHopType::DOWNWARD:
-    return os << "DOWNWARD";
-  case NextHopType::UPWARD:
-    return os << "UPWARD";
-  case NextHopType::DISABLED:
-    return os << "DISABLED";
-  }
-  return os << static_cast<int>(type);
+    switch (type) {
+        case NextHopType::DOWNWARD:
+            return os << "DOWNWARD";
+        case NextHopType::UPWARD:
+            return os << "UPWARD";
+        case NextHopType::DISABLED:
+            return os << "DISABLED";
+    }
+    return os << static_cast<int>(type);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FibNextHop& a)
 {
-  return os << "Id: " << a.getNexthopId() << ", cost: " << a.m_cost << ", type: " << a.m_type;
+    return os << "Id: " << a.getNexthopId() << ", cost: " << a.m_cost << ", type: " << a.m_type;
 }
 
 } // namespace ndn
@@ -68,16 +68,16 @@ using ns3::ndn::FibNextHop;
 
 template <>
 struct hash<FibNextHop> {
-  size_t
-  operator()(const FibNextHop& k) const
-  {
-    // Combine hash via boost library
-    std::size_t seed = 0;
-    boost::hash_combine(seed, k.getNexthopId());
-    boost::hash_combine(seed, k.getCost());
+    size_t
+    operator()(const FibNextHop& k) const
+    {
+        // Combine hash via boost library
+        std::size_t seed = 0;
+        boost::hash_combine(seed, k.getNexthopId());
+        boost::hash_combine(seed, k.getCost());
 
-    return seed;
-  }
+        return seed;
+    }
 };
 
 }

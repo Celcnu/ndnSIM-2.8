@@ -41,138 +41,124 @@ namespace util {
  * ConstBufferPtr result = digest.computeDigest();
  * @endcode
  */
-class Sha256
-{
-public:
-  class Error : public std::runtime_error
-  {
+class Sha256 {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-  /**
-   * @brief Length in bytes of a SHA-256 digest.
-   */
-  static const size_t DIGEST_SIZE = 32;
+    /**
+     * @brief Length in bytes of a SHA-256 digest.
+     */
+    static const size_t DIGEST_SIZE = 32;
 
-  /**
-   * @brief Create an empty SHA-256 digest.
-   */
-  Sha256();
+    /**
+     * @brief Create an empty SHA-256 digest.
+     */
+    Sha256();
 
-  /**
-   * @brief Calculate SHA-256 digest of the input stream @p is.
-   */
-  explicit
-  Sha256(std::istream& is);
+    /**
+     * @brief Calculate SHA-256 digest of the input stream @p is.
+     */
+    explicit Sha256(std::istream& is);
 
-  /**
-   * @brief Check if digest is empty.
-   *
-   * An empty digest means nothing has been taken into calculation.
-   */
-  bool
-  empty() const
-  {
-    return m_isEmpty;
-  }
+    /**
+     * @brief Check if digest is empty.
+     *
+     * An empty digest means nothing has been taken into calculation.
+     */
+    bool
+    empty() const
+    {
+        return m_isEmpty;
+    }
 
-  /**
-   * @brief Discard the current state and start a new digest calculation.
-   */
-  void
-  reset();
+    /**
+     * @brief Discard the current state and start a new digest calculation.
+     */
+    void reset();
 
-  /**
-   * @brief Finalize and return the digest based on all previously supplied inputs.
-   */
-  ConstBufferPtr
-  computeDigest();
+    /**
+     * @brief Finalize and return the digest based on all previously supplied inputs.
+     */
+    ConstBufferPtr computeDigest();
 
-  /**
-   * @brief Check if the supplied digest is equal to this digest.
-   * @note This method invokes computeDigest() on both operands, finalizing the digest.
-   */
-  bool
-  operator==(Sha256& digest);
+    /**
+     * @brief Check if the supplied digest is equal to this digest.
+     * @note This method invokes computeDigest() on both operands, finalizing the digest.
+     */
+    bool operator==(Sha256& digest);
 
-  /**
-   * @brief Check if the supplied digest is not equal to this digest.
-   * @note This method invokes computeDigest() on both operands, finalizing the digest.
-   */
-  bool
-  operator!=(Sha256& digest)
-  {
-    return !(*this == digest);
-  }
+    /**
+     * @brief Check if the supplied digest is not equal to this digest.
+     * @note This method invokes computeDigest() on both operands, finalizing the digest.
+     */
+    bool
+    operator!=(Sha256& digest)
+    {
+        return !(*this == digest);
+    }
 
-  /**
-   * @brief Add existing digest to the digest calculation.
-   * @param src digest to combine with
-   *
-   * The result of this combination is `sha256(sha256(...))`
-   *
-   * @note This method invokes computeDigest() on @p src, finalizing the digest.
-   * @throw Error the digest has already been finalized
-   */
-  Sha256&
-  operator<<(Sha256& src);
+    /**
+     * @brief Add existing digest to the digest calculation.
+     * @param src digest to combine with
+     *
+     * The result of this combination is `sha256(sha256(...))`
+     *
+     * @note This method invokes computeDigest() on @p src, finalizing the digest.
+     * @throw Error the digest has already been finalized
+     */
+    Sha256& operator<<(Sha256& src);
 
-  /**
-   * @brief Add a string to the digest calculation.
-   * @throw Error the digest has already been finalized
-   */
-  Sha256&
-  operator<<(const std::string& str);
+    /**
+     * @brief Add a string to the digest calculation.
+     * @throw Error the digest has already been finalized
+     */
+    Sha256& operator<<(const std::string& str);
 
-  /**
-   * @brief Add a block to the digest calculation.
-   * @throw Error the digest has already been finalized
-   */
-  Sha256&
-  operator<<(const Block& block);
+    /**
+     * @brief Add a block to the digest calculation.
+     * @throw Error the digest has already been finalized
+     */
+    Sha256& operator<<(const Block& block);
 
-  /**
-   * @brief Add a uint64_t value to the digest calculation.
-   * @throw Error the digest has already been finalized
-   */
-  Sha256&
-  operator<<(uint64_t value);
+    /**
+     * @brief Add a uint64_t value to the digest calculation.
+     * @throw Error the digest has already been finalized
+     */
+    Sha256& operator<<(uint64_t value);
 
-  /**
-   * @brief Add a raw buffer to the digest calculation.
-   * @param buffer the input buffer
-   * @param size the size of the input buffer
-   * @throw Error the digest has already been finalized
-   */
-  void
-  update(const uint8_t* buffer, size_t size);
+    /**
+     * @brief Add a raw buffer to the digest calculation.
+     * @param buffer the input buffer
+     * @param size the size of the input buffer
+     * @throw Error the digest has already been finalized
+     */
+    void update(const uint8_t* buffer, size_t size);
 
-  /**
-   * @brief Convert digest to std::string.
-   * @note This method invokes computeDigest(), finalizing the digest.
-   */
-  std::string
-  toString();
+    /**
+     * @brief Convert digest to std::string.
+     * @note This method invokes computeDigest(), finalizing the digest.
+     */
+    std::string toString();
 
-  /**
-   * @brief Stateless SHA-256 digest calculation.
-   * @param buffer the input buffer
-   * @param size the size of the input buffer
-   * @return SHA-256 digest of the input buffer
-   */
-  static ConstBufferPtr
-  computeDigest(const uint8_t* buffer, size_t size);
+    /**
+     * @brief Stateless SHA-256 digest calculation.
+     * @param buffer the input buffer
+     * @param size the size of the input buffer
+     * @return SHA-256 digest of the input buffer
+     */
+    static ConstBufferPtr computeDigest(const uint8_t* buffer, size_t size);
 
-private:
-  unique_ptr<security::transform::StepSource> m_input;
-  unique_ptr<OBufferStream> m_output;
-  bool m_isEmpty;
-  bool m_isFinalized;
+  private:
+    unique_ptr<security::transform::StepSource> m_input;
+    unique_ptr<OBufferStream> m_output;
+    bool m_isEmpty;
+    bool m_isFinalized;
 };
 
-std::ostream&
-operator<<(std::ostream& os, Sha256& digest);
+std::ostream& operator<<(std::ostream& os, Sha256& digest);
 
 } // namespace util
 } // namespace ndn

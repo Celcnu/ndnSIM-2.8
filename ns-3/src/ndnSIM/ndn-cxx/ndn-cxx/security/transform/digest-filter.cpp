@@ -28,22 +28,20 @@ namespace ndn {
 namespace security {
 namespace transform {
 
-class DigestFilter::Impl
-{
-public:
-  detail::EvpMdCtx ctx;
+class DigestFilter::Impl {
+  public:
+    detail::EvpMdCtx ctx;
 };
-
 
 DigestFilter::DigestFilter(DigestAlgorithm algo)
   : m_impl(make_unique<Impl>())
 {
-  const EVP_MD* md = detail::digestAlgorithmToEvpMd(algo);
-  if (md == nullptr)
-    NDN_THROW(Error(getIndex(), "Unsupported digest algorithm " + boost::lexical_cast<std::string>(algo)));
+    const EVP_MD* md = detail::digestAlgorithmToEvpMd(algo);
+    if (md == nullptr)
+        NDN_THROW(Error(getIndex(), "Unsupported digest algorithm " + boost::lexical_cast<std::string>(algo)));
 
-  if (EVP_DigestInit_ex(m_impl->ctx, md, nullptr) == 0)
-    NDN_THROW(Error(getIndex(), "Cannot initialize digest " + boost::lexical_cast<std::string>(algo)));
+    if (EVP_DigestInit_ex(m_impl->ctx, md, nullptr) == 0)
+        NDN_THROW(Error(getIndex(), "Cannot initialize digest " + boost::lexical_cast<std::string>(algo)));
 }
 
 DigestFilter::~DigestFilter() = default;
@@ -51,31 +49,31 @@ DigestFilter::~DigestFilter() = default;
 size_t
 DigestFilter::convert(const uint8_t* buf, size_t size)
 {
-  if (EVP_DigestUpdate(m_impl->ctx, buf, size) == 0)
-    NDN_THROW(Error(getIndex(), "Failed to accept more input"));
+    if (EVP_DigestUpdate(m_impl->ctx, buf, size) == 0)
+        NDN_THROW(Error(getIndex(), "Failed to accept more input"));
 
-  return size;
+    return size;
 }
 
 void
 DigestFilter::finalize()
 {
-  auto buffer = make_unique<OBuffer>(EVP_MAX_MD_SIZE);
-  unsigned int mdLen = 0;
+    auto buffer = make_unique<OBuffer>(EVP_MAX_MD_SIZE);
+    unsigned int mdLen = 0;
 
-  if (EVP_DigestFinal_ex(m_impl->ctx, buffer->data(), &mdLen) == 0)
-    NDN_THROW(Error(getIndex(), "Failed to finalize digest"));
+    if (EVP_DigestFinal_ex(m_impl->ctx, buffer->data(), &mdLen) == 0)
+        NDN_THROW(Error(getIndex(), "Failed to finalize digest"));
 
-  buffer->erase(buffer->begin() + mdLen, buffer->end());
-  setOutputBuffer(std::move(buffer));
+    buffer->erase(buffer->begin() + mdLen, buffer->end());
+    setOutputBuffer(std::move(buffer));
 
-  flushAllOutput();
+    flushAllOutput();
 }
 
 unique_ptr<Transform>
 digestFilter(DigestAlgorithm algo)
 {
-  return make_unique<DigestFilter>(algo);
+    return make_unique<DigestFilter>(algo);
 }
 
 } // namespace transform

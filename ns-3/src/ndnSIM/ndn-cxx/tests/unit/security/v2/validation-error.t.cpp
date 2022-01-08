@@ -35,20 +35,20 @@ BOOST_AUTO_TEST_SUITE(TestValidationError)
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  ValidationError e1{ValidationError::Code::INVALID_SIGNATURE};
-  BOOST_CHECK_EQUAL(e1.getCode(), 1);
-  BOOST_CHECK_EQUAL(e1.getInfo(), "");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e1), "Invalid signature");
+    ValidationError e1{ValidationError::Code::INVALID_SIGNATURE};
+    BOOST_CHECK_EQUAL(e1.getCode(), 1);
+    BOOST_CHECK_EQUAL(e1.getInfo(), "");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e1), "Invalid signature");
 
-  ValidationError e2{ValidationError::Code::NO_SIGNATURE, "message"};
-  BOOST_CHECK_EQUAL(e2.getCode(), 2);
-  BOOST_CHECK_EQUAL(e2.getInfo(), "message");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e2), "Missing signature (message)");
+    ValidationError e2{ValidationError::Code::NO_SIGNATURE, "message"};
+    BOOST_CHECK_EQUAL(e2.getCode(), 2);
+    BOOST_CHECK_EQUAL(e2.getInfo(), "message");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e2), "Missing signature (message)");
 
-  ValidationError e3{65535, "other message"};
-  BOOST_CHECK_EQUAL(e3.getCode(), 65535);
-  BOOST_CHECK_EQUAL(e3.getInfo(), "other message");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e3), "Custom error code 65535 (other message)");
+    ValidationError e3{65535, "other message"};
+    BOOST_CHECK_EQUAL(e3.getCode(), 65535);
+    BOOST_CHECK_EQUAL(e3.getInfo(), "other message");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(e3), "Custom error code 65535 (other message)");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestValidationError

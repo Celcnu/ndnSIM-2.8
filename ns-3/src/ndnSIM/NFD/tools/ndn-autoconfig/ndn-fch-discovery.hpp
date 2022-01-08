@@ -37,28 +37,25 @@ namespace autoconfig {
  *
  * @see https://github.com/cawka/ndn-fch/blob/master/README.md
  */
-class NdnFchDiscovery : public Stage
-{
-public:
-  /**
-   * @brief Create stage to discover NDN hub using NDN-FCH protocol
-   */
-  explicit
-  NdnFchDiscovery(const std::string& url);
+class NdnFchDiscovery : public Stage {
+  public:
+    /**
+     * @brief Create stage to discover NDN hub using NDN-FCH protocol
+     */
+    explicit NdnFchDiscovery(const std::string& url);
 
-  const std::string&
-  getName() const override
-  {
-    static const std::string STAGE_NAME("NDN-FCH");
-    return STAGE_NAME;
-  }
+    const std::string&
+    getName() const override
+    {
+        static const std::string STAGE_NAME("NDN-FCH");
+        return STAGE_NAME;
+    }
 
-private:
-  void
-  doStart() override;
+  private:
+    void doStart() override;
 
-private:
-  std::string m_url;
+  private:
+    std::string m_url;
 };
 
 } // namespace autoconfig

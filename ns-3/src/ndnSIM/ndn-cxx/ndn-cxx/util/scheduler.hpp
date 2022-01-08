@@ -55,59 +55,53 @@ using EventCallback = std::function<void()>;
  *  \warning Canceling an event after the scheduler has been destructed may trigger undefined
  *           behavior.
  */
-class EventId : public detail::CancelHandle
-{
-public:
-  /** \brief Constructs an empty EventId
-   */
-  EventId() noexcept = default;
+class EventId : public detail::CancelHandle {
+  public:
+    /** \brief Constructs an empty EventId
+     */
+    EventId() noexcept = default;
 
-  /** \brief Determine whether the event is valid.
-   *  \retval true The event is valid.
-   *  \retval false This EventId is empty, or the event is expired or cancelled.
-   */
-  explicit
-  operator bool() const noexcept;
+    /** \brief Determine whether the event is valid.
+     *  \retval true The event is valid.
+     *  \retval false This EventId is empty, or the event is expired or cancelled.
+     */
+    explicit operator bool() const noexcept;
 
-  /** \brief Clear this EventId without canceling.
-   *  \post !(*this)
-   */
-  void
-  reset() noexcept;
+    /** \brief Clear this EventId without canceling.
+     *  \post !(*this)
+     */
+    void reset() noexcept;
 
-private:
-  // NOTE: the following "hidden friend" operators are available via
-  //       argument-dependent lookup only and must be defined inline.
+  private:
+    // NOTE: the following "hidden friend" operators are available via
+    //       argument-dependent lookup only and must be defined inline.
 
-  /** \brief Determine whether this and other refer to the same event, or are both
-   *         empty/expired/cancelled.
-   */
-  friend bool
-  operator==(const EventId& lhs, const EventId& rhs) noexcept
-  {
-    return (!lhs && !rhs) ||
-        (!lhs.m_info.owner_before(rhs.m_info) &&
-         !rhs.m_info.owner_before(lhs.m_info));
-  }
+    /** \brief Determine whether this and other refer to the same event, or are both
+     *         empty/expired/cancelled.
+     */
+    friend bool
+    operator==(const EventId& lhs, const EventId& rhs) noexcept
+    {
+        return (!lhs && !rhs) || (!lhs.m_info.owner_before(rhs.m_info) && !rhs.m_info.owner_before(lhs.m_info));
+    }
 
-  friend bool
-  operator!=(const EventId& lhs, const EventId& rhs) noexcept
-  {
-    return !(lhs == rhs);
-  }
+    friend bool
+    operator!=(const EventId& lhs, const EventId& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
 
-private:
-  EventId(Scheduler& sched, weak_ptr<EventInfo> info);
+  private:
+    EventId(Scheduler& sched, weak_ptr<EventInfo> info);
 
-private:
-  weak_ptr<EventInfo> m_info;
+  private:
+    weak_ptr<EventInfo> m_info;
 
-  friend class Scheduler;
-  friend std::ostream& operator<<(std::ostream& os, const EventId& eventId);
+    friend class Scheduler;
+    friend std::ostream& operator<<(std::ostream& os, const EventId& eventId);
 };
 
-std::ostream&
-operator<<(std::ostream& os, const EventId& eventId);
+std::ostream& operator<<(std::ostream& os, const EventId& eventId);
 
 /** \brief A scoped handle for a scheduled event.
  *
@@ -129,55 +123,46 @@ using ScopedEventId = detail::ScopedCancelHandle<EventId>;
 
 /** \brief Generic time-based scheduler
  */
-class Scheduler : noncopyable
-{
-public:
-  explicit
-  Scheduler(DummyIoService& ioService);
-
-  ~Scheduler();
-
-  /** \brief Schedule a one-time event after the specified delay
-   *  \return EventId that can be used to cancel the scheduled event
-   */
-  EventId
-  schedule(time::nanoseconds after, EventCallback callback);
-
-  /** \brief Cancel all scheduled events
-   */
-  void
-  cancelAllEvents();
-
-private:
-  void
-  cancelImpl(const shared_ptr<EventInfo>& info);
-
-  /** \brief Schedule the next event on the internal timer
-   */
-  void
-  scheduleNext();
-
-  /** \brief Execute expired events
-   */
-  void
-  executeEvent();
-
-private:
-  class EventQueueCompare
-  {
+class Scheduler : noncopyable {
   public:
-    bool
-    operator()(const shared_ptr<EventInfo>& a, const shared_ptr<EventInfo>& b) const noexcept;
-  };
+    explicit Scheduler(DummyIoService& ioService);
 
-  using EventQueue = std::multiset<shared_ptr<EventInfo>, EventQueueCompare>;
-  EventQueue m_queue;
+    ~Scheduler();
 
-  bool m_isEventExecuting = false;
-  ndn::optional<ns3::EventId> m_timerEvent;
+    /** \brief Schedule a one-time event after the specified delay
+     *  \return EventId that can be used to cancel the scheduled event
+     */
+    EventId schedule(time::nanoseconds after, EventCallback callback);
 
-  friend EventId;
-  friend EventInfo;
+    /** \brief Cancel all scheduled events
+     */
+    void cancelAllEvents();
+
+  private:
+    void cancelImpl(const shared_ptr<EventInfo>& info);
+
+    /** \brief Schedule the next event on the internal timer
+     */
+    void scheduleNext();
+
+    /** \brief Execute expired events
+     */
+    void executeEvent();
+
+  private:
+    class EventQueueCompare {
+      public:
+        bool operator()(const shared_ptr<EventInfo>& a, const shared_ptr<EventInfo>& b) const noexcept;
+    };
+
+    using EventQueue = std::multiset<shared_ptr<EventInfo>, EventQueueCompare>;
+    EventQueue m_queue;
+
+    bool m_isEventExecuting = false;
+    ndn::optional<ns3::EventId> m_timerEvent;
+
+    friend EventId;
+    friend EventInfo;
 };
 
 } // namespace scheduler

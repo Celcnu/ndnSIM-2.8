@@ -34,13 +34,13 @@ namespace detail {
 void
 SimulatorIo::post(const std::function<void()>& callback)
 {
-  getScheduler().schedule(0_s, callback);
+    getScheduler().schedule(0_s, callback);
 }
 
 void
 SimulatorIo::dispatch(const std::function<void()>& callback)
 {
-  getScheduler().schedule(0_s, callback);
+    getScheduler().schedule(0_s, callback);
 }
 
 } // namespace detail
@@ -48,50 +48,50 @@ SimulatorIo::dispatch(const std::function<void()>& callback)
 detail::SimulatorIo&
 getGlobalIoService()
 {
-  static detail::SimulatorIo io;
-  return io;
+    static detail::SimulatorIo io;
+    return io;
 }
 
 detail::SimulatorIo&
 getMainIoService()
 {
-  static detail::SimulatorIo io;
-  return io;
+    static detail::SimulatorIo io;
+    return io;
 }
 
 detail::SimulatorIo&
 getRibIoService()
 {
-  static detail::SimulatorIo io;
-  return io;
+    static detail::SimulatorIo io;
+    return io;
 }
 
 Scheduler&
 getScheduler()
 {
-  if (g_scheduler == nullptr) {
-    static ndn::DummyIoService io;
-    g_scheduler = make_unique<Scheduler>(io);
-  }
-  return *g_scheduler;
+    if (g_scheduler == nullptr) {
+        static ndn::DummyIoService io;
+        g_scheduler = make_unique<Scheduler>(io);
+    }
+    return *g_scheduler;
 }
 
 void
 runOnMainIoService(const std::function<void()>& f)
 {
-  getMainIoService().post(f);
+    getMainIoService().post(f);
 }
 
 void
 runOnRibIoService(const std::function<void()>& f)
 {
-  getRibIoService().post(f);
+    getRibIoService().post(f);
 }
 
 void
 resetGlobalScheduler()
 {
-  g_scheduler.reset();
+    g_scheduler.reset();
 }
 
 } // namespace nfd

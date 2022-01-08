@@ -28,49 +28,49 @@ namespace util {
 std::ostream&
 operator<<(std::ostream& os, LogLevel level)
 {
-  switch (level) {
-  case LogLevel::FATAL:
-    return os << "FATAL";
-  case LogLevel::NONE:
-    return os << "NONE";
-  case LogLevel::ERROR:
-    return os << "ERROR";
-  case LogLevel::WARN:
-    return os << "WARN";
-  case LogLevel::INFO:
-    return os << "INFO";
-  case LogLevel::DEBUG:
-    return os << "DEBUG";
-  case LogLevel::TRACE:
-    return os << "TRACE";
-  case LogLevel::ALL:
-    return os << "ALL";
-  }
+    switch (level) {
+        case LogLevel::FATAL:
+            return os << "FATAL";
+        case LogLevel::NONE:
+            return os << "NONE";
+        case LogLevel::ERROR:
+            return os << "ERROR";
+        case LogLevel::WARN:
+            return os << "WARN";
+        case LogLevel::INFO:
+            return os << "INFO";
+        case LogLevel::DEBUG:
+            return os << "DEBUG";
+        case LogLevel::TRACE:
+            return os << "TRACE";
+        case LogLevel::ALL:
+            return os << "ALL";
+    }
 
-  NDN_THROW(std::invalid_argument("unknown log level " + to_string(to_underlying(level))));
+    NDN_THROW(std::invalid_argument("unknown log level " + to_string(to_underlying(level))));
 }
 
 LogLevel
 parseLogLevel(const std::string& s)
 {
-  if (s == "FATAL")
-    return LogLevel::FATAL;
-  else if (s == "NONE")
-    return LogLevel::NONE;
-  else if (s == "ERROR")
-    return LogLevel::ERROR;
-  else if (s == "WARN")
-    return LogLevel::WARN;
-  else if (s == "INFO")
-    return LogLevel::INFO;
-  else if (s == "DEBUG")
-    return LogLevel::DEBUG;
-  else if (s == "TRACE")
-    return LogLevel::TRACE;
-  else if (s == "ALL")
-    return LogLevel::ALL;
+    if (s == "FATAL")
+        return LogLevel::FATAL;
+    else if (s == "NONE")
+        return LogLevel::NONE;
+    else if (s == "ERROR")
+        return LogLevel::ERROR;
+    else if (s == "WARN")
+        return LogLevel::WARN;
+    else if (s == "INFO")
+        return LogLevel::INFO;
+    else if (s == "DEBUG")
+        return LogLevel::DEBUG;
+    else if (s == "TRACE")
+        return LogLevel::TRACE;
+    else if (s == "ALL")
+        return LogLevel::ALL;
 
-  NDN_THROW(std::invalid_argument("unrecognized log level '" + s + "'"));
+    NDN_THROW(std::invalid_argument("unrecognized log level '" + s + "'"));
 }
 
 } // namespace util

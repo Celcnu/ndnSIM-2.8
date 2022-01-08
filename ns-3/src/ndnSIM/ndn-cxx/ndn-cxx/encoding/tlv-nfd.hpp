@@ -31,76 +31,76 @@ namespace nfd {
 
 // NFD Management protocol
 enum {
-  // ControlParameters
-  ControlParameters   = 104,
-  FaceId              = 105,
-  Uri                 = 114,
-  Origin              = 111,
-  Cost                = 106,
-  Capacity            = 131,
-  Count               = 132,
-  Flags               = 108,
-  Mask                = 112,
-  Strategy            = 107,
-  ExpirationPeriod    = 109,
+    // ControlParameters
+    ControlParameters = 104,
+    FaceId = 105,
+    Uri = 114,
+    Origin = 111,
+    Cost = 106,
+    Capacity = 131,
+    Count = 132,
+    Flags = 108,
+    Mask = 112,
+    Strategy = 107,
+    ExpirationPeriod = 109,
 
-  // ControlResponse
-  ControlResponse = 101,
-  StatusCode      = 102,
-  StatusText      = 103,
+    // ControlResponse
+    ControlResponse = 101,
+    StatusCode = 102,
+    StatusText = 103,
 
-  // ForwarderStatus
-  NfdVersion           = 128,
-  StartTimestamp       = 129,
-  CurrentTimestamp     = 130,
-  NNameTreeEntries     = 131,
-  NFibEntries          = 132,
-  NPitEntries          = 133,
-  NMeasurementsEntries = 134,
-  NCsEntries           = 135,
+    // ForwarderStatus
+    NfdVersion = 128,
+    StartTimestamp = 129,
+    CurrentTimestamp = 130,
+    NNameTreeEntries = 131,
+    NFibEntries = 132,
+    NPitEntries = 133,
+    NMeasurementsEntries = 134,
+    NCsEntries = 135,
 
-  // Face Management
-  FaceStatus                    = 128,
-  LocalUri                      = 129,
-  ChannelStatus                 = 130,
-  UriScheme                     = 131,
-  FaceScope                     = 132,
-  FacePersistency               = 133,
-  LinkType                      = 134,
-  BaseCongestionMarkingInterval = 135,
-  DefaultCongestionThreshold    = 136,
-  Mtu                           = 137,
-  FaceQueryFilter               = 150,
-  FaceEventNotification         = 192,
-  FaceEventKind                 = 193,
+    // Face Management
+    FaceStatus = 128,
+    LocalUri = 129,
+    ChannelStatus = 130,
+    UriScheme = 131,
+    FaceScope = 132,
+    FacePersistency = 133,
+    LinkType = 134,
+    BaseCongestionMarkingInterval = 135,
+    DefaultCongestionThreshold = 136,
+    Mtu = 137,
+    FaceQueryFilter = 150,
+    FaceEventNotification = 192,
+    FaceEventKind = 193,
 
-  // ForwarderStatus and FaceStatus counters
-  NInInterests          = 144,
-  NInData               = 145,
-  NInNacks              = 151,
-  NOutInterests         = 146,
-  NOutData              = 147,
-  NOutNacks             = 152,
-  NInBytes              = 148,
-  NOutBytes             = 149,
-  NSatisfiedInterests   = 153,
-  NUnsatisfiedInterests = 154,
+    // ForwarderStatus and FaceStatus counters
+    NInInterests = 144,
+    NInData = 145,
+    NInNacks = 151,
+    NOutInterests = 146,
+    NOutData = 147,
+    NOutNacks = 152,
+    NInBytes = 148,
+    NOutBytes = 149,
+    NSatisfiedInterests = 153,
+    NUnsatisfiedInterests = 154,
 
-  // Content Store Management
-  CsInfo  = 128,
-  NHits   = 129,
-  NMisses = 130,
+    // Content Store Management
+    CsInfo = 128,
+    NHits = 129,
+    NMisses = 130,
 
-  // FIB Management
-  FibEntry      = 128,
-  NextHopRecord = 129,
+    // FIB Management
+    FibEntry = 128,
+    NextHopRecord = 129,
 
-  // Strategy Choice Management
-  StrategyChoice = 128,
+    // Strategy Choice Management
+    StrategyChoice = 128,
 
-  // RIB Management
-  RibEntry = 128,
-  Route    = 129
+    // RIB Management
+    RibEntry = 128,
+    Route = 129
 };
 
 } // namespace nfd

@@ -31,18 +31,16 @@ namespace ndn {
  *  This signature type provides integrity protection using SHA-256 digest, but no provenance of a
  *  Data packet or any kind of guarantee that packet is from the original source.
  */
-class DigestSha256 : public Signature
-{
-public:
-  /** @brief Create empty DigestSha256 signature
-   */
-  DigestSha256();
+class DigestSha256 : public Signature {
+  public:
+    /** @brief Create empty DigestSha256 signature
+     */
+    DigestSha256();
 
-  /** @brief Convert base Signature to DigestSha256 signature
-   *  @throw Signature::Error SignatureType is not DigestSha256
-   */
-  explicit
-  DigestSha256(const Signature& signature);
+    /** @brief Convert base Signature to DigestSha256 signature
+     *  @throw Signature::Error SignatureType is not DigestSha256
+     */
+    explicit DigestSha256(const Signature& signature);
 };
 
 } // namespace ndn

@@ -28,10 +28,7 @@ namespace ndn {
 namespace tlv {
 namespace security {
 
-enum {
-  SafeBag = 128,
-  EncryptedKeyBag = 129
-};
+enum { SafeBag = 128, EncryptedKeyBag = 129 };
 
 } // namespace security
 } // namespace tlv

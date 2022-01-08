@@ -35,31 +35,31 @@ BOOST_FIXTURE_TEST_SUITE(TestPrefixAnnouncementHeader, ndn::tests::IdentityManag
 
 BOOST_AUTO_TEST_CASE(EncodeDecode)
 {
-  EncodingEstimator estimator;
-  PrefixAnnouncementHeader header;
-  BOOST_CHECK_THROW(header.wireEncode(estimator), PrefixAnnouncementHeader::Error);
-  BOOST_CHECK_THROW(PrefixAnnouncementHeader{PrefixAnnouncement()}, PrefixAnnouncementHeader::Error);
+    EncodingEstimator estimator;
+    PrefixAnnouncementHeader header;
+    BOOST_CHECK_THROW(header.wireEncode(estimator), PrefixAnnouncementHeader::Error);
+    BOOST_CHECK_THROW(PrefixAnnouncementHeader{PrefixAnnouncement()}, PrefixAnnouncementHeader::Error);
 
-  PrefixAnnouncement pa;
-  pa.setAnnouncedName("/net/example");
-  pa.setExpiration(1_h);
-  const Data& data = pa.toData(m_keyChain, signingWithSha256(), 1);
-  Block encodedData = data.wireEncode();
+    PrefixAnnouncement pa;
+    pa.setAnnouncedName("/net/example");
+    pa.setExpiration(1_h);
+    const Data& data = pa.toData(m_keyChain, signingWithSha256(), 1);
+    Block encodedData = data.wireEncode();
 
-  Block expectedBlock(tlv::PrefixAnnouncement);
-  expectedBlock.push_back(encodedData);
-  expectedBlock.encode();
+    Block expectedBlock(tlv::PrefixAnnouncement);
+    expectedBlock.push_back(encodedData);
+    expectedBlock.encode();
 
-  PrefixAnnouncementHeader pah0(pa);
-  size_t estimatedSize = pah0.wireEncode(estimator);
-  EncodingBuffer buffer(estimatedSize, 0);
-  pah0.wireEncode(buffer);
-  Block wire = buffer.block();
-  BOOST_CHECK_EQUAL(expectedBlock, wire);
+    PrefixAnnouncementHeader pah0(pa);
+    size_t estimatedSize = pah0.wireEncode(estimator);
+    EncodingBuffer buffer(estimatedSize, 0);
+    pah0.wireEncode(buffer);
+    Block wire = buffer.block();
+    BOOST_CHECK_EQUAL(expectedBlock, wire);
 
-  PrefixAnnouncementHeader pah1;
-  pah1.wireDecode(wire);
-  BOOST_CHECK_EQUAL(*pah0.getPrefixAnn(), *pah1.getPrefixAnn());
+    PrefixAnnouncementHeader pah1;
+    pah1.wireDecode(wire);
+    BOOST_CHECK_EQUAL(*pah0.getPrefixAnn(), *pah1.getPrefixAnn());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestPrefixAnnouncementHeader

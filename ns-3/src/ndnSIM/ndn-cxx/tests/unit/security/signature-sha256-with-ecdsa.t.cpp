@@ -33,111 +33,98 @@ namespace tests {
 
 using namespace ndn::tests;
 
-class SignatureSha256EcdsaTimeFixture : public IdentityManagementTimeFixture
-{
-public:
-  SignatureSha256EcdsaTimeFixture()
-    : scheduler(io)
-  {
-  }
+class SignatureSha256EcdsaTimeFixture : public IdentityManagementTimeFixture {
+  public:
+    SignatureSha256EcdsaTimeFixture()
+      : scheduler(io)
+    {
+    }
 
-public:
-  Scheduler scheduler;
+  public:
+    Scheduler scheduler;
 };
 
 BOOST_AUTO_TEST_SUITE(Security)
 BOOST_FIXTURE_TEST_SUITE(TestSignatureSha256WithEcdsa, SignatureSha256EcdsaTimeFixture)
 
-const uint8_t sigInfo[] = {
-  0x16, 0x1b, // SignatureInfo
-    0x1b, 0x01, // SignatureType
-      0x03,
-    0x1c, 0x16, // KeyLocator
-      0x07, 0x14, // Name: /test/key/locator
-        0x08, 0x04,
-          0x74, 0x65, 0x73, 0x74,
-        0x08, 0x03,
-          0x6b, 0x65, 0x79,
-        0x08, 0x07,
-          0x6c, 0x6f, 0x63, 0x61, 0x74, 0x6f, 0x72
-};
+const uint8_t sigInfo[] = {0x16, 0x1b,       // SignatureInfo
+                           0x1b, 0x01,       // SignatureType
+                           0x03, 0x1c, 0x16, // KeyLocator
+                           0x07, 0x14,       // Name: /test/key/locator
+                           0x08, 0x04, 0x74, 0x65, 0x73, 0x74, 0x08, 0x03, 0x6b, 0x65,
+                           0x79, 0x08, 0x07, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x6f, 0x72};
 
-const uint8_t sigValue[] = {
-  0x17, 0x40, // SignatureValue
-    0x2f, 0xd6, 0xf1, 0x6e, 0x80, 0x6f, 0x10, 0xbe, 0xb1, 0x6f, 0x3e, 0x31, 0xec,
-    0xe3, 0xb9, 0xea, 0x83, 0x30, 0x40, 0x03, 0xfc, 0xa0, 0x13, 0xd9, 0xb3, 0xc6,
-    0x25, 0x16, 0x2d, 0xa6, 0x58, 0x41, 0x69, 0x62, 0x56, 0xd8, 0xb3, 0x6a, 0x38,
-    0x76, 0x56, 0xea, 0x61, 0xb2, 0x32, 0x70, 0x1c, 0xb6, 0x4d, 0x10, 0x1d, 0xdc,
-    0x92, 0x8e, 0x52, 0xa5, 0x8a, 0x1d, 0xd9, 0x96, 0x5e, 0xc0, 0x62, 0x0b
-};
-
+const uint8_t sigValue[] = {0x17, 0x40, // SignatureValue
+                            0x2f, 0xd6, 0xf1, 0x6e, 0x80, 0x6f, 0x10, 0xbe, 0xb1, 0x6f, 0x3e, 0x31, 0xec,
+                            0xe3, 0xb9, 0xea, 0x83, 0x30, 0x40, 0x03, 0xfc, 0xa0, 0x13, 0xd9, 0xb3, 0xc6,
+                            0x25, 0x16, 0x2d, 0xa6, 0x58, 0x41, 0x69, 0x62, 0x56, 0xd8, 0xb3, 0x6a, 0x38,
+                            0x76, 0x56, 0xea, 0x61, 0xb2, 0x32, 0x70, 0x1c, 0xb6, 0x4d, 0x10, 0x1d, 0xdc,
+                            0x92, 0x8e, 0x52, 0xa5, 0x8a, 0x1d, 0xd9, 0x96, 0x5e, 0xc0, 0x62, 0x0b};
 
 BOOST_AUTO_TEST_CASE(Decoding)
 {
-  Block sigInfoBlock(sigInfo, sizeof(sigInfo));
-  Block sigValueBlock(sigValue, sizeof(sigValue));
+    Block sigInfoBlock(sigInfo, sizeof(sigInfo));
+    Block sigValueBlock(sigValue, sizeof(sigValue));
 
-  Signature sig(sigInfoBlock, sigValueBlock);
-  BOOST_CHECK_NO_THROW(SignatureSha256WithEcdsa{sig});
-  BOOST_CHECK_NO_THROW(sig.getKeyLocator());
+    Signature sig(sigInfoBlock, sigValueBlock);
+    BOOST_CHECK_NO_THROW(SignatureSha256WithEcdsa{sig});
+    BOOST_CHECK_NO_THROW(sig.getKeyLocator());
 }
 
 BOOST_AUTO_TEST_CASE(Encoding)
 {
-  Name name("/test/key/locator");
-  KeyLocator keyLocator(name);
+    Name name("/test/key/locator");
+    KeyLocator keyLocator(name);
 
-  SignatureSha256WithEcdsa sig(keyLocator);
+    SignatureSha256WithEcdsa sig(keyLocator);
 
-  BOOST_CHECK_NO_THROW(sig.getKeyLocator());
+    BOOST_CHECK_NO_THROW(sig.getKeyLocator());
 
-  const Block& encodeSigInfoBlock = sig.getInfo();
+    const Block& encodeSigInfoBlock = sig.getInfo();
 
-  Block sigInfoBlock(sigInfo, sizeof(sigInfo));
+    Block sigInfoBlock(sigInfo, sizeof(sigInfo));
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(sigInfoBlock.wire(),
-                                sigInfoBlock.wire() + sigInfoBlock.size(),
-                                encodeSigInfoBlock.wire(),
-                                encodeSigInfoBlock.wire() + encodeSigInfoBlock.size());
+    BOOST_CHECK_EQUAL_COLLECTIONS(sigInfoBlock.wire(), sigInfoBlock.wire() + sigInfoBlock.size(),
+                                  encodeSigInfoBlock.wire(), encodeSigInfoBlock.wire() + encodeSigInfoBlock.size());
 
-  sig.setKeyLocator(Name("/test/another/key/locator"));
+    sig.setKeyLocator(Name("/test/another/key/locator"));
 
-  const Block& encodeSigInfoBlock2 = sig.getInfo();
-  BOOST_CHECK_NE(sigInfoBlock, encodeSigInfoBlock2);
+    const Block& encodeSigInfoBlock2 = sig.getInfo();
+    BOOST_CHECK_NE(sigInfoBlock, encodeSigInfoBlock2);
 }
 
 BOOST_AUTO_TEST_CASE(DataSignature)
 {
-  Identity identity = addIdentity("/SecurityTestSignatureSha256WithEcdsa/DataSignature", EcKeyParams());
+    Identity identity = addIdentity("/SecurityTestSignatureSha256WithEcdsa/DataSignature", EcKeyParams());
 
-  Data testData("/SecurityTestSignatureSha256WithEcdsa/DataSignature/Data1");
-  char content[5] = "1234";
-  testData.setContent(reinterpret_cast<uint8_t*>(content), 5);
-  BOOST_CHECK_NO_THROW(m_keyChain.sign(testData, security::SigningInfo(identity)));
-  Block dataBlock(testData.wireEncode().wire(), testData.wireEncode().size());
+    Data testData("/SecurityTestSignatureSha256WithEcdsa/DataSignature/Data1");
+    char content[5] = "1234";
+    testData.setContent(reinterpret_cast<uint8_t*>(content), 5);
+    BOOST_CHECK_NO_THROW(m_keyChain.sign(testData, security::SigningInfo(identity)));
+    Block dataBlock(testData.wireEncode().wire(), testData.wireEncode().size());
 
-  Data testData2;
-  testData2.wireDecode(dataBlock);
-  BOOST_CHECK(verifySignature(testData2, identity.getDefaultKey()));
+    Data testData2;
+    testData2.wireDecode(dataBlock);
+    BOOST_CHECK(verifySignature(testData2, identity.getDefaultKey()));
 }
 
 BOOST_AUTO_TEST_CASE(InterestSignature)
 {
-  Identity identity = addIdentity("/SecurityTestSignatureSha256WithEcdsa/InterestSignature", EcKeyParams());
+    Identity identity = addIdentity("/SecurityTestSignatureSha256WithEcdsa/InterestSignature", EcKeyParams());
 
-  auto interest = makeInterest("/SecurityTestSignatureSha256WithEcdsa/InterestSignature/Interest1");
-  auto interest11 = makeInterest("/SecurityTestSignatureSha256WithEcdsa/InterestSignature/Interest1");
+    auto interest = makeInterest("/SecurityTestSignatureSha256WithEcdsa/InterestSignature/Interest1");
+    auto interest11 = makeInterest("/SecurityTestSignatureSha256WithEcdsa/InterestSignature/Interest1");
 
-  scheduler.schedule(100_ms, [&] { m_keyChain.sign(*interest, security::SigningInfo(identity)); });
-  advanceClocks(100_ms);
-  scheduler.schedule(100_ms, [&] { m_keyChain.sign(*interest11, security::SigningInfo(identity)); });
-  advanceClocks(100_ms);
+    scheduler.schedule(100_ms, [&] { m_keyChain.sign(*interest, security::SigningInfo(identity)); });
+    advanceClocks(100_ms);
+    scheduler.schedule(100_ms, [&] { m_keyChain.sign(*interest11, security::SigningInfo(identity)); });
+    advanceClocks(100_ms);
 
-  Block interestBlock(interest->wireEncode().wire(), interest->wireEncode().size());
+    Block interestBlock(interest->wireEncode().wire(), interest->wireEncode().size());
 
-  Interest interest2;
-  interest2.wireDecode(interestBlock);
-  BOOST_CHECK(verifySignature(interest2, identity.getDefaultKey()));
+    Interest interest2;
+    interest2.wireDecode(interestBlock);
+    BOOST_CHECK(verifySignature(interest2, identity.getDefaultKey()));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestSignatureSha256WithEcdsa

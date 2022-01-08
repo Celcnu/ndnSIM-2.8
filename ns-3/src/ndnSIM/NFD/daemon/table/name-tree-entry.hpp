@@ -38,173 +38,162 @@ class Node;
 
 /** \brief An entry in the name tree
  */
-class Entry : noncopyable
-{
-public:
-  Entry(const Name& prefix, Node* node);
+class Entry : noncopyable {
+  public:
+    Entry(const Name& prefix, Node* node);
 
-  const Name&
-  getName() const
-  {
-    return m_name;
-  }
+    const Name&
+    getName() const
+    {
+        return m_name;
+    }
 
-  /** \return entry of getName().getPrefix(-1)
-   *  \retval nullptr this entry is the root entry, i.e. getName() == Name()
-   */
-  Entry*
-  getParent() const
-  {
-    return m_parent;
-  }
+    /** \return entry of getName().getPrefix(-1)
+     *  \retval nullptr this entry is the root entry, i.e. getName() == Name()
+     */
+    Entry*
+    getParent() const
+    {
+        return m_parent;
+    }
 
-  /** \brief Set parent of this entry
-   *  \param entry entry of getName().getPrefix(-1)
-   *  \pre getParent() == nullptr
-   *  \post getParent() == &entry
-   *  \post entry.getChildren() contains this
-   */
-  void
-  setParent(Entry& entry);
+    /** \brief Set parent of this entry
+     *  \param entry entry of getName().getPrefix(-1)
+     *  \pre getParent() == nullptr
+     *  \post getParent() == &entry
+     *  \post entry.getChildren() contains this
+     */
+    void setParent(Entry& entry);
 
-  /** \brief Unset parent of this entry
-   *  \post getParent() == nullptr
-   *  \post parent.getChildren() does not contain this
-   */
-  void
-  unsetParent();
+    /** \brief Unset parent of this entry
+     *  \post getParent() == nullptr
+     *  \post parent.getChildren() does not contain this
+     */
+    void unsetParent();
 
-  /** \brief Check whether this entry has any children
-   */
-  bool
-  hasChildren() const
-  {
-    return !m_children.empty();
-  }
+    /** \brief Check whether this entry has any children
+     */
+    bool
+    hasChildren() const
+    {
+        return !m_children.empty();
+    }
 
-  /** \return children of this entry
-   */
-  const std::vector<Entry*>&
-  getChildren() const
-  {
-    return m_children;
-  }
+    /** \return children of this entry
+     */
+    const std::vector<Entry*>&
+    getChildren() const
+    {
+        return m_children;
+    }
 
-  /** \retval true this entry has no children and no table entries
-   *  \retval false this entry has child or attached table entry
-   */
-  bool
-  isEmpty() const
-  {
-    return !this->hasChildren() && !this->hasTableEntries();
-  }
+    /** \retval true this entry has no children and no table entries
+     *  \retval false this entry has child or attached table entry
+     */
+    bool
+    isEmpty() const
+    {
+        return !this->hasChildren() && !this->hasTableEntries();
+    }
 
-public: // attached table entries
-  /** \retval true at least one table entries is attached
-   *  \retval false no table entry is attached
-   */
-  bool
-  hasTableEntries() const;
+  public: // attached table entries
+    /** \retval true at least one table entries is attached
+     *  \retval false no table entry is attached
+     */
+    bool hasTableEntries() const;
 
-  fib::Entry*
-  getFibEntry() const
-  {
-    return m_fibEntry.get();
-  }
+    fib::Entry*
+    getFibEntry() const
+    {
+        return m_fibEntry.get();
+    }
 
-  void
-  setFibEntry(unique_ptr<fib::Entry> fibEntry);
+    void setFibEntry(unique_ptr<fib::Entry> fibEntry);
 
-  bool
-  hasPitEntries() const
-  {
-    return !this->getPitEntries().empty();
-  }
+    bool
+    hasPitEntries() const
+    {
+        return !this->getPitEntries().empty();
+    }
 
-  const std::vector<shared_ptr<pit::Entry>>&
-  getPitEntries() const
-  {
-    return m_pitEntries;
-  }
+    const std::vector<shared_ptr<pit::Entry>>&
+    getPitEntries() const
+    {
+        return m_pitEntries;
+    }
 
-  void
-  insertPitEntry(shared_ptr<pit::Entry> pitEntry);
+    void insertPitEntry(shared_ptr<pit::Entry> pitEntry);
 
-  void
-  erasePitEntry(pit::Entry* pitEntry);
+    void erasePitEntry(pit::Entry* pitEntry);
 
-  measurements::Entry*
-  getMeasurementsEntry() const
-  {
-    return m_measurementsEntry.get();
-  }
+    measurements::Entry*
+    getMeasurementsEntry() const
+    {
+        return m_measurementsEntry.get();
+    }
 
-  void
-  setMeasurementsEntry(unique_ptr<measurements::Entry> measurementsEntry);
+    void setMeasurementsEntry(unique_ptr<measurements::Entry> measurementsEntry);
 
-  strategy_choice::Entry*
-  getStrategyChoiceEntry() const
-  {
-    return m_strategyChoiceEntry.get();
-  }
+    strategy_choice::Entry*
+    getStrategyChoiceEntry() const
+    {
+        return m_strategyChoiceEntry.get();
+    }
 
-  void
-  setStrategyChoiceEntry(unique_ptr<strategy_choice::Entry> strategyChoiceEntry);
+    void setStrategyChoiceEntry(unique_ptr<strategy_choice::Entry> strategyChoiceEntry);
 
-  /** \return name tree entry on which a table entry is attached,
-   *          or nullptr if the table entry is detached
-   *  \note This function is for NameTree internal use. Other components
-   *        should use NameTree::getEntry(tableEntry) instead.
-   */
-  template<typename ENTRY>
-  static Entry*
-  get(const ENTRY& tableEntry)
-  {
-    return tableEntry.m_nameTreeEntry;
-  }
+    /** \return name tree entry on which a table entry is attached,
+     *          or nullptr if the table entry is detached
+     *  \note This function is for NameTree internal use. Other components
+     *        should use NameTree::getEntry(tableEntry) instead.
+     */
+    template <typename ENTRY>
+    static Entry*
+    get(const ENTRY& tableEntry)
+    {
+        return tableEntry.m_nameTreeEntry;
+    }
 
-private:
-  Name m_name;
-  Node* m_node;
-  Entry* m_parent = nullptr;
-  std::vector<Entry*> m_children;
+  private:
+    Name m_name;
+    Node* m_node;
+    Entry* m_parent = nullptr;
+    std::vector<Entry*> m_children;
 
-  unique_ptr<fib::Entry> m_fibEntry;
-  std::vector<shared_ptr<pit::Entry>> m_pitEntries;
-  unique_ptr<measurements::Entry> m_measurementsEntry;
-  unique_ptr<strategy_choice::Entry> m_strategyChoiceEntry;
+    unique_ptr<fib::Entry> m_fibEntry;
+    std::vector<shared_ptr<pit::Entry>> m_pitEntries;
+    unique_ptr<measurements::Entry> m_measurementsEntry;
+    unique_ptr<strategy_choice::Entry> m_strategyChoiceEntry;
 
-  friend Node* getNode(const Entry& entry);
+    friend Node* getNode(const Entry& entry);
 };
 
 /** \brief a functor to get a table entry from a name tree entry
  *  \tparam ENTRY type of single table entry attached to name tree entry, such as fib::Entry
  */
-template<typename ENTRY>
-class GetTableEntry
-{
-public:
-  /** \brief A function pointer to the getter on Entry class that returns ENTRY
-   */
-  using Getter = ENTRY* (Entry::*)() const;
+template <typename ENTRY>
+class GetTableEntry {
+  public:
+    /** \brief A function pointer to the getter on Entry class that returns ENTRY
+     */
+    using Getter = ENTRY* (Entry::*)() const;
 
-  /** \note The default argument is needed to ensure FIB and StrategyChoice iterators
-   *        are default-constructible.
-   */
-  explicit
-  GetTableEntry(Getter getter = nullptr)
-    : m_getter(getter)
-  {
-  }
+    /** \note The default argument is needed to ensure FIB and StrategyChoice iterators
+     *        are default-constructible.
+     */
+    explicit GetTableEntry(Getter getter = nullptr)
+      : m_getter(getter)
+    {
+    }
 
-  const ENTRY&
-  operator()(const Entry& nte) const
-  {
-    return *(nte.*m_getter)();
-  }
+    const ENTRY&
+    operator()(const Entry& nte) const
+    {
+        return *(nte.*m_getter)();
+    }
 
-private:
-  Getter m_getter;
+  private:
+    Getter m_getter;
 };
 
 } // namespace name_tree

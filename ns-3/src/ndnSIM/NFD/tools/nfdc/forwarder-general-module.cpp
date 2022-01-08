@@ -33,101 +33,91 @@ namespace tools {
 namespace nfdc {
 
 void
-ForwarderGeneralModule::fetchStatus(Controller& controller,
-                                    const std::function<void()>& onSuccess,
-                                    const Controller::DatasetFailCallback& onFailure,
-                                    const CommandOptions& options)
+ForwarderGeneralModule::fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                                    const Controller::DatasetFailCallback& onFailure, const CommandOptions& options)
 {
-  controller.fetch<ndn::nfd::ForwarderGeneralStatusDataset>(
-    [this, onSuccess] (const ForwarderStatus& result) {
-      m_status = result;
-      onSuccess();
-    },
-    onFailure, options);
+    controller.fetch<ndn::nfd::ForwarderGeneralStatusDataset>(
+      [this, onSuccess](const ForwarderStatus& result) {
+          m_status = result;
+          onSuccess();
+      },
+      onFailure, options);
 }
 
 static time::system_clock::Duration
 calculateUptime(const ForwarderStatus& status)
 {
-  return status.getCurrentTimestamp() - status.getStartTimestamp();
+    return status.getCurrentTimestamp() - status.getStartTimestamp();
 }
 
 void
 ForwarderGeneralModule::formatStatusXml(std::ostream& os) const
 {
-  formatItemXml(os, m_status);
+    formatItemXml(os, m_status);
 }
 
 void
 ForwarderGeneralModule::formatItemXml(std::ostream& os, const ForwarderStatus& item)
 {
-  os << "<generalStatus>";
+    os << "<generalStatus>";
 
-  os << "<version>" << xml::Text{item.getNfdVersion()} << "</version>";
-  os << "<startTime>" << xml::formatTimestamp(item.getStartTimestamp()) << "</startTime>";
-  os << "<currentTime>" << xml::formatTimestamp(item.getCurrentTimestamp()) << "</currentTime>";
-  os << "<uptime>" << xml::formatDuration(time::duration_cast<time::seconds>(calculateUptime(item)))
-     << "</uptime>";
+    os << "<version>" << xml::Text{item.getNfdVersion()} << "</version>";
+    os << "<startTime>" << xml::formatTimestamp(item.getStartTimestamp()) << "</startTime>";
+    os << "<currentTime>" << xml::formatTimestamp(item.getCurrentTimestamp()) << "</currentTime>";
+    os << "<uptime>" << xml::formatDuration(time::duration_cast<time::seconds>(calculateUptime(item))) << "</uptime>";
 
-  os << "<nNameTreeEntries>" << item.getNNameTreeEntries() << "</nNameTreeEntries>";
-  os << "<nFibEntries>" << item.getNFibEntries() << "</nFibEntries>";
-  os << "<nPitEntries>" << item.getNPitEntries() << "</nPitEntries>";
-  os << "<nMeasurementsEntries>" << item.getNMeasurementsEntries() << "</nMeasurementsEntries>";
-  os << "<nCsEntries>" << item.getNCsEntries() << "</nCsEntries>";
+    os << "<nNameTreeEntries>" << item.getNNameTreeEntries() << "</nNameTreeEntries>";
+    os << "<nFibEntries>" << item.getNFibEntries() << "</nFibEntries>";
+    os << "<nPitEntries>" << item.getNPitEntries() << "</nPitEntries>";
+    os << "<nMeasurementsEntries>" << item.getNMeasurementsEntries() << "</nMeasurementsEntries>";
+    os << "<nCsEntries>" << item.getNCsEntries() << "</nCsEntries>";
 
-  os << "<packetCounters>";
-  os << "<incomingPackets>"
-     << "<nInterests>" << item.getNInInterests() << "</nInterests>"
-     << "<nData>" << item.getNInData() << "</nData>"
-     << "<nNacks>" << item.getNInNacks() << "</nNacks>"
-     << "</incomingPackets>";
-  os << "<outgoingPackets>"
-     << "<nInterests>" << item.getNOutInterests() << "</nInterests>"
-     << "<nData>" << item.getNOutData() << "</nData>"
-     << "<nNacks>" << item.getNOutNacks() << "</nNacks>"
-     << "</outgoingPackets>";
-  os << "</packetCounters>";
+    os << "<packetCounters>";
+    os << "<incomingPackets>"
+       << "<nInterests>" << item.getNInInterests() << "</nInterests>"
+       << "<nData>" << item.getNInData() << "</nData>"
+       << "<nNacks>" << item.getNInNacks() << "</nNacks>"
+       << "</incomingPackets>";
+    os << "<outgoingPackets>"
+       << "<nInterests>" << item.getNOutInterests() << "</nInterests>"
+       << "<nData>" << item.getNOutData() << "</nData>"
+       << "<nNacks>" << item.getNOutNacks() << "</nNacks>"
+       << "</outgoingPackets>";
+    os << "</packetCounters>";
 
-  os << "<nSatisfiedInterests>" << item.getNSatisfiedInterests() << "</nSatisfiedInterests>";
-  os << "<nUnsatisfiedInterests>" << item.getNUnsatisfiedInterests() << "</nUnsatisfiedInterests>";
+    os << "<nSatisfiedInterests>" << item.getNSatisfiedInterests() << "</nSatisfiedInterests>";
+    os << "<nUnsatisfiedInterests>" << item.getNUnsatisfiedInterests() << "</nUnsatisfiedInterests>";
 
-  os << "</generalStatus>";
+    os << "</generalStatus>";
 }
 
 void
 ForwarderGeneralModule::formatStatusText(std::ostream& os) const
 {
-  os << "General NFD status:\n";
-  ndn::util::IndentedStream indented(os, "  ");
-  formatItemText(indented, m_status);
+    os << "General NFD status:\n";
+    ndn::util::IndentedStream indented(os, "  ");
+    formatItemText(indented, m_status);
 }
 
 void
 ForwarderGeneralModule::formatItemText(std::ostream& os, const ForwarderStatus& item)
 {
-  text::ItemAttributes ia(true, 21);
+    text::ItemAttributes ia(true, 21);
 
-  os << ia("version") << item.getNfdVersion()
-     << ia("startTime") << text::formatTimestamp(item.getStartTimestamp())
-     << ia("currentTime") << text::formatTimestamp(item.getCurrentTimestamp())
-     << ia("uptime") << text::formatDuration<time::seconds>(calculateUptime(item), true);
+    os << ia("version") << item.getNfdVersion() << ia("startTime") << text::formatTimestamp(item.getStartTimestamp())
+       << ia("currentTime") << text::formatTimestamp(item.getCurrentTimestamp()) << ia("uptime")
+       << text::formatDuration<time::seconds>(calculateUptime(item), true);
 
-  os << ia("nNameTreeEntries") << item.getNNameTreeEntries()
-     << ia("nFibEntries") << item.getNFibEntries()
-     << ia("nPitEntries") << item.getNPitEntries()
-     << ia("nMeasurementsEntries") << item.getNMeasurementsEntries()
-     << ia("nCsEntries") << item.getNCsEntries();
+    os << ia("nNameTreeEntries") << item.getNNameTreeEntries() << ia("nFibEntries") << item.getNFibEntries()
+       << ia("nPitEntries") << item.getNPitEntries() << ia("nMeasurementsEntries") << item.getNMeasurementsEntries()
+       << ia("nCsEntries") << item.getNCsEntries();
 
-  os << ia("nInInterests") << item.getNInInterests()
-     << ia("nOutInterests") << item.getNOutInterests()
-     << ia("nInData") << item.getNInData()
-     << ia("nOutData") << item.getNOutData()
-     << ia("nInNacks") << item.getNInNacks()
-     << ia("nOutNacks") << item.getNOutNacks()
-     << ia("nSatisfiedInterests") << item.getNSatisfiedInterests()
-     << ia("nUnsatisfiedInterests") << item.getNUnsatisfiedInterests();
+    os << ia("nInInterests") << item.getNInInterests() << ia("nOutInterests") << item.getNOutInterests()
+       << ia("nInData") << item.getNInData() << ia("nOutData") << item.getNOutData() << ia("nInNacks")
+       << item.getNInNacks() << ia("nOutNacks") << item.getNOutNacks() << ia("nSatisfiedInterests")
+       << item.getNSatisfiedInterests() << ia("nUnsatisfiedInterests") << item.getNUnsatisfiedInterests();
 
-  os << ia.end();
+    os << ia.end();
 }
 
 } // namespace nfdc

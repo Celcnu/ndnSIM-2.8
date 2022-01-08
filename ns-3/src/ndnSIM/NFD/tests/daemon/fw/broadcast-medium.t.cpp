@@ -39,81 +39,75 @@ namespace nfd {
 namespace fw {
 namespace tests {
 
-template<typename S>
-class BroadcastMediumFixture : public GlobalIoTimeFixture
-{
-protected:
-  BroadcastMediumFixture()
-  {
-    nodeC = topo.addForwarder("C");
-    nodeD = topo.addForwarder("D");
-    nodeP = topo.addForwarder("P");
+template <typename S>
+class BroadcastMediumFixture : public GlobalIoTimeFixture {
+  protected:
+    BroadcastMediumFixture()
+    {
+        nodeC = topo.addForwarder("C");
+        nodeD = topo.addForwarder("D");
+        nodeP = topo.addForwarder("P");
 
-    for (TopologyNode node : {nodeC, nodeD, nodeP}) {
-      topo.setStrategy<S>(node);
+        for (TopologyNode node : {nodeC, nodeD, nodeP}) {
+            topo.setStrategy<S>(node);
+        }
+
+        auto w = topo.addLink("W", 10_ms, {nodeC, nodeD, nodeP}, ndn::nfd::LINK_TYPE_MULTI_ACCESS);
+        faceC = &w->getFace(nodeC);
+        faceD = &w->getFace(nodeD);
+        faceP = &w->getFace(nodeP);
+
+        appC = topo.addAppFace("consumer1", nodeC);
+        topo.registerPrefix(nodeC, *faceC, "/P");
+        topo.addIntervalConsumer(appC->getClientFace(), "/P", 0_ms, 1, 1);
+        appD = topo.addAppFace("consumer2", nodeD);
+        topo.registerPrefix(nodeD, *faceD, "/P");
+        topo.addIntervalConsumer(appD->getClientFace(), "/P", 0_ms, 1, 1);
+        appP = topo.addAppFace("producer", nodeP, "/P");
+        topo.addEchoProducer(appP->getClientFace(), "/P", 100_ms);
     }
 
-    auto w = topo.addLink("W", 10_ms, {nodeC, nodeD, nodeP}, ndn::nfd::LINK_TYPE_MULTI_ACCESS);
-    faceC = &w->getFace(nodeC);
-    faceD = &w->getFace(nodeD);
-    faceP = &w->getFace(nodeP);
-
-    appC = topo.addAppFace("consumer1", nodeC);
-    topo.registerPrefix(nodeC, *faceC, "/P");
-    topo.addIntervalConsumer(appC->getClientFace(), "/P", 0_ms, 1, 1);
-    appD = topo.addAppFace("consumer2", nodeD);
-    topo.registerPrefix(nodeD, *faceD, "/P");
-    topo.addIntervalConsumer(appD->getClientFace(), "/P", 0_ms, 1, 1);
-    appP = topo.addAppFace("producer", nodeP, "/P");
-    topo.addEchoProducer(appP->getClientFace(), "/P", 100_ms);
-  }
-
-protected:
-  TopologyTester topo;
-  TopologyNode nodeC;
-  TopologyNode nodeD;
-  TopologyNode nodeP;
-  Face* faceC;
-  Face* faceD;
-  Face* faceP;
-  shared_ptr<TopologyAppLink> appC;
-  shared_ptr<TopologyAppLink> appD;
-  shared_ptr<TopologyAppLink> appP;
+  protected:
+    TopologyTester topo;
+    TopologyNode nodeC;
+    TopologyNode nodeD;
+    TopologyNode nodeP;
+    Face* faceC;
+    Face* faceD;
+    Face* faceP;
+    shared_ptr<TopologyAppLink> appC;
+    shared_ptr<TopologyAppLink> appD;
+    shared_ptr<TopologyAppLink> appP;
 };
 
 BOOST_AUTO_TEST_SUITE(Fw)
 BOOST_AUTO_TEST_SUITE(TestBroadcastMedium)
 
-using Strategies = boost::mpl::vector<
-  AsfStrategy,
-  BestRouteStrategy2,
-  MulticastStrategy,
-  RandomStrategy
->;
+using Strategies = boost::mpl::vector<AsfStrategy, BestRouteStrategy2, MulticastStrategy, RandomStrategy>;
 
 BOOST_FIXTURE_TEST_CASE_TEMPLATE(SameFaceDifferentEndpoint, S, Strategies, BroadcastMediumFixture<S>)
 {
-  //   C   D   P
-  //   |   |   |
-  // --+---+---+--
-  //
-  // C and D are consumers. P is the producer. They communicate with each other
-  // through a multi-access face over a (wired or wireless) broadcast medium.
+    //   C   D   P
+    //   |   |   |
+    // --+---+---+--
+    //
+    // C and D are consumers. P is the producer. They communicate with each other
+    // through a multi-access face over a (wired or wireless) broadcast medium.
 
-  this->advanceClocks(10_ms, 50_ms);
+    this->advanceClocks(10_ms, 50_ms);
 
-  BOOST_CHECK_EQUAL(this->faceC->getCounters().nOutInterests, 1);
-  BOOST_CHECK_EQUAL(this->faceD->getCounters().nOutInterests, 1);
-  BOOST_CHECK_EQUAL(this->faceP->getCounters().nInInterests, 2);
-  BOOST_CHECK_EQUAL(this->faceC->getCounters().nInData, 0);
-  BOOST_CHECK_EQUAL(this->faceD->getCounters().nInData, 0);
-  BOOST_CHECK_EQUAL(this->faceP->getCounters().nOutData, 0);
+    BOOST_CHECK_EQUAL(this->faceC->getCounters().nOutInterests, 1);
+    BOOST_CHECK_EQUAL(this->faceD->getCounters().nOutInterests, 1);
+    BOOST_CHECK_EQUAL(this->faceP->getCounters().nInInterests, 2);
+    BOOST_CHECK_EQUAL(this->faceC->getCounters().nInData, 0);
+    BOOST_CHECK_EQUAL(this->faceD->getCounters().nInData, 0);
+    BOOST_CHECK_EQUAL(this->faceP->getCounters().nOutData, 0);
 
-  this->advanceClocks(10_ms, 200_ms);
+    this->advanceClocks(10_ms, 200_ms);
 
-  BOOST_CHECK_EQUAL(this->faceC->getCounters().nInData, 1);
-  BOOST_CHECK_EQUAL(this->faceD->getCounters().nInData, 1);
-  BOOST_CHECK_EQUAL(this->faceP->getCounters().nOutData, 1);
+    BOOST_CHECK_EQUAL(this->faceC->getCounters().nInData, 1);
+    BOOST_CHECK_EQUAL(this->faceD->getCounters().nInData, 1);
+    BOOST_CHECK_EQUAL(this->faceP->getCounters().nOutData, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestBroadcastMedium

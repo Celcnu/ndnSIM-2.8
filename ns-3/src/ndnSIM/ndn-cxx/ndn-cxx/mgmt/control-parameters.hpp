@@ -29,17 +29,13 @@ namespace mgmt {
 
 /** \brief base class for a struct that contains ControlCommand parameters
  */
-class ControlParameters
-{
-public:
-  virtual
-  ~ControlParameters() = default;
+class ControlParameters {
+  public:
+    virtual ~ControlParameters() = default;
 
-  virtual void
-  wireDecode(const Block& wire) = 0;
+    virtual void wireDecode(const Block& wire) = 0;
 
-  virtual Block
-  wireEncode() const = 0;
+    virtual Block wireEncode() const = 0;
 };
 
 } // namespace mgmt

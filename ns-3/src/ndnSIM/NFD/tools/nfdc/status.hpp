@@ -33,22 +33,20 @@ namespace nfd {
 namespace tools {
 namespace nfdc {
 
-struct StatusReportOptions
-{
-  ReportFormat output = ReportFormat::TEXT;
-  bool wantForwarderGeneral = false;
-  bool wantChannels = false;
-  bool wantFaces = false;
-  bool wantFib = false;
-  bool wantRib = false;
-  bool wantCs = false;
-  bool wantStrategyChoice = false;
+struct StatusReportOptions {
+    ReportFormat output = ReportFormat::TEXT;
+    bool wantForwarderGeneral = false;
+    bool wantChannels = false;
+    bool wantFaces = false;
+    bool wantFib = false;
+    bool wantRib = false;
+    bool wantCs = false;
+    bool wantStrategyChoice = false;
 };
 
 /** \brief collect a status report and write to stdout
  */
-void
-reportStatus(ExecuteContext& ctx, const StatusReportOptions& options);
+void reportStatus(ExecuteContext& ctx, const StatusReportOptions& options);
 
 /** \brief registers status commands
  *
@@ -60,8 +58,7 @@ reportStatus(ExecuteContext& ctx, const StatusReportOptions& options);
  *  \li fib list
  *  \li route list
  */
-void
-registerStatusCommands(CommandParser& parser);
+void registerStatusCommands(CommandParser& parser);
 
 } // namespace nfdc
 } // namespace tools

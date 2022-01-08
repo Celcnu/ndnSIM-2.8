@@ -34,126 +34,123 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-class WebSocketChannelFixture : public ChannelFixture<WebSocketChannel, websocket::Endpoint>
-{
-protected:
-  unique_ptr<WebSocketChannel>
-  makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
-  {
-    if (port == 0)
-      port = getNextPort();
+class WebSocketChannelFixture : public ChannelFixture<WebSocketChannel, websocket::Endpoint> {
+  protected:
+    unique_ptr<WebSocketChannel>
+    makeChannel(const boost::asio::ip::address& addr, uint16_t port = 0) final
+    {
+        if (port == 0)
+            port = getNextPort();
 
-    return make_unique<WebSocketChannel>(websocket::Endpoint(addr, port));
-  }
-
-  void
-  listen(const boost::asio::ip::address& addr,
-         const time::milliseconds& pingInterval = 10_s,
-         const time::milliseconds& pongTimeout = 1_s)
-  {
-    listenerEp = websocket::Endpoint(addr, 20030);
-    listenerChannel = makeChannel(addr, 20030);
-    listenerChannel->setPingInterval(pingInterval);
-    listenerChannel->setPongTimeout(pongTimeout);
-    listenerChannel->listen(bind(&WebSocketChannelFixture::listenerOnFaceCreated, this, _1));
-  }
-
-  void
-  clientConnect(websocket::Client& client)
-  {
-    client.clear_access_channels(websocketpp::log::alevel::all);
-    client.clear_error_channels(websocketpp::log::elevel::all);
-
-    client.init_asio(&g_io);
-    client.set_open_handler(bind(&WebSocketChannelFixture::clientHandleOpen, this, _1));
-    client.set_message_handler(bind(&WebSocketChannelFixture::clientHandleMessage, this, _1, _2));
-    client.set_ping_handler(bind(&WebSocketChannelFixture::clientHandlePing, this, _1, _2));
-
-    websocketpp::lib::error_code ec;
-    auto con = client.get_connection(FaceUri(listenerEp, "ws").toString(), ec);
-    BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
-
-    client.connect(con);
-  }
-
-  void
-  initialize(const boost::asio::ip::address& addr,
-             const time::milliseconds& pingInterval = 10_s,
-             const time::milliseconds& pongTimeout = 1_s)
-  {
-    listen(addr, pingInterval, pongTimeout);
-    clientConnect(client);
-    BOOST_REQUIRE_EQUAL(limitedIo.run(2, // listenerOnFaceCreated, clientHandleOpen
-                                      1_s), LimitedIo::EXCEED_OPS);
-    BOOST_REQUIRE_EQUAL(listenerChannel->size(), 1);
-  }
-
-  void
-  clientSendInterest(const Interest& interest)
-  {
-    const Block& payload = interest.wireEncode();
-    client.send(clientHandle, payload.wire(), payload.size(), websocketpp::frame::opcode::binary);
-  }
-
-private:
-  void
-  listenerOnFaceCreated(const shared_ptr<Face>& newFace)
-  {
-    BOOST_REQUIRE(newFace != nullptr);
-    newFace->afterReceiveInterest.connect(bind(&WebSocketChannelFixture::faceAfterReceiveInterest, this, _1));
-    connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
-    listenerFaces.push_back(newFace);
-    limitedIo.afterOp();
-  }
-
-  void
-  faceAfterReceiveInterest(const Interest& interest)
-  {
-    faceReceivedInterests.push_back(interest);
-    limitedIo.afterOp();
-  }
-
-  void
-  clientHandleOpen(websocketpp::connection_hdl hdl)
-  {
-    clientHandle = hdl;
-    limitedIo.afterOp();
-  }
-
-  void
-  clientHandleMessage(websocketpp::connection_hdl, websocket::Client::message_ptr msg)
-  {
-    clientReceivedMessages.push_back(msg->get_payload());
-    limitedIo.afterOp();
-  }
-
-  bool
-  clientHandlePing(websocketpp::connection_hdl, std::string)
-  {
-    auto now = time::steady_clock::now();
-    if (m_prevPingRecvTime != time::steady_clock::TimePoint()) {
-      measuredPingInterval = now - m_prevPingRecvTime;
+        return make_unique<WebSocketChannel>(websocket::Endpoint(addr, port));
     }
-    m_prevPingRecvTime = now;
 
-    limitedIo.afterOp();
-    return clientShouldPong;
-  }
+    void
+    listen(const boost::asio::ip::address& addr, const time::milliseconds& pingInterval = 10_s,
+           const time::milliseconds& pongTimeout = 1_s)
+    {
+        listenerEp = websocket::Endpoint(addr, 20030);
+        listenerChannel = makeChannel(addr, 20030);
+        listenerChannel->setPingInterval(pingInterval);
+        listenerChannel->setPongTimeout(pongTimeout);
+        listenerChannel->listen(bind(&WebSocketChannelFixture::listenerOnFaceCreated, this, _1));
+    }
 
-protected:
-  std::vector<Interest> faceReceivedInterests;
+    void
+    clientConnect(websocket::Client& client)
+    {
+        client.clear_access_channels(websocketpp::log::alevel::all);
+        client.clear_error_channels(websocketpp::log::elevel::all);
 
-  websocket::Client client;
-  websocketpp::connection_hdl clientHandle;
-  std::vector<std::string> clientReceivedMessages;
+        client.init_asio(&g_io);
+        client.set_open_handler(bind(&WebSocketChannelFixture::clientHandleOpen, this, _1));
+        client.set_message_handler(bind(&WebSocketChannelFixture::clientHandleMessage, this, _1, _2));
+        client.set_ping_handler(bind(&WebSocketChannelFixture::clientHandlePing, this, _1, _2));
 
-  time::steady_clock::Duration measuredPingInterval;
-  // set clientShouldPong to false to disable the pong response,
-  // which will eventually cause a timeout in listenerChannel
-  bool clientShouldPong = true;
+        websocketpp::lib::error_code ec;
+        auto con = client.get_connection(FaceUri(listenerEp, "ws").toString(), ec);
+        BOOST_REQUIRE_EQUAL(ec, websocketpp::lib::error_code());
 
-private:
-  time::steady_clock::TimePoint m_prevPingRecvTime;
+        client.connect(con);
+    }
+
+    void
+    initialize(const boost::asio::ip::address& addr, const time::milliseconds& pingInterval = 10_s,
+               const time::milliseconds& pongTimeout = 1_s)
+    {
+        listen(addr, pingInterval, pongTimeout);
+        clientConnect(client);
+        BOOST_REQUIRE_EQUAL(limitedIo.run(2, // listenerOnFaceCreated, clientHandleOpen
+                                          1_s),
+                            LimitedIo::EXCEED_OPS);
+        BOOST_REQUIRE_EQUAL(listenerChannel->size(), 1);
+    }
+
+    void
+    clientSendInterest(const Interest& interest)
+    {
+        const Block& payload = interest.wireEncode();
+        client.send(clientHandle, payload.wire(), payload.size(), websocketpp::frame::opcode::binary);
+    }
+
+  private:
+    void
+    listenerOnFaceCreated(const shared_ptr<Face>& newFace)
+    {
+        BOOST_REQUIRE(newFace != nullptr);
+        newFace->afterReceiveInterest.connect(bind(&WebSocketChannelFixture::faceAfterReceiveInterest, this, _1));
+        connectFaceClosedSignal(*newFace, [this] { limitedIo.afterOp(); });
+        listenerFaces.push_back(newFace);
+        limitedIo.afterOp();
+    }
+
+    void
+    faceAfterReceiveInterest(const Interest& interest)
+    {
+        faceReceivedInterests.push_back(interest);
+        limitedIo.afterOp();
+    }
+
+    void
+    clientHandleOpen(websocketpp::connection_hdl hdl)
+    {
+        clientHandle = hdl;
+        limitedIo.afterOp();
+    }
+
+    void
+    clientHandleMessage(websocketpp::connection_hdl, websocket::Client::message_ptr msg)
+    {
+        clientReceivedMessages.push_back(msg->get_payload());
+        limitedIo.afterOp();
+    }
+
+    bool clientHandlePing(websocketpp::connection_hdl, std::string)
+    {
+        auto now = time::steady_clock::now();
+        if (m_prevPingRecvTime != time::steady_clock::TimePoint()) {
+            measuredPingInterval = now - m_prevPingRecvTime;
+        }
+        m_prevPingRecvTime = now;
+
+        limitedIo.afterOp();
+        return clientShouldPong;
+    }
+
+  protected:
+    std::vector<Interest> faceReceivedInterests;
+
+    websocket::Client client;
+    websocketpp::connection_hdl clientHandle;
+    std::vector<std::string> clientReceivedMessages;
+
+    time::steady_clock::Duration measuredPingInterval;
+    // set clientShouldPong to false to disable the pong response,
+    // which will eventually cause a timeout in listenerChannel
+    bool clientShouldPong = true;
+
+  private:
+    time::steady_clock::TimePoint m_prevPingRecvTime;
 };
 
 } // namespace tests

@@ -33,13 +33,13 @@ namespace autoconfig {
 void
 GuessFromSearchDomains::doStart()
 {
-  try {
-    std::string hubUri = querySrvRrSearch();
-    this->provideHubFaceUri(hubUri);
-  }
-  catch (const DnsSrvError& e) {
-    this->fail(e.what());
-  }
+    try {
+        std::string hubUri = querySrvRrSearch();
+        this->provideHubFaceUri(hubUri);
+    }
+    catch (const DnsSrvError& e) {
+        this->fail(e.what());
+    }
 }
 
 } // namespace autoconfig

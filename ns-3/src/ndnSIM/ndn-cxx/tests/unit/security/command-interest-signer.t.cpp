@@ -36,29 +36,29 @@ BOOST_FIXTURE_TEST_SUITE(TestCommandInterestSigner, IdentityManagementTimeFixtur
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  addIdentity("/test");
+    addIdentity("/test");
 
-  CommandInterestSigner signer(m_keyChain);
-  Interest i1 = signer.makeCommandInterest("/hello/world");
-  BOOST_CHECK_EQUAL(i1.getName().size(), 6);
-  BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_SIG_VALUE).blockFromValue().type(), tlv::SignatureValue);
-  BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_SIG_INFO).blockFromValue().type(), tlv::SignatureInfo);
+    CommandInterestSigner signer(m_keyChain);
+    Interest i1 = signer.makeCommandInterest("/hello/world");
+    BOOST_CHECK_EQUAL(i1.getName().size(), 6);
+    BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_SIG_VALUE).blockFromValue().type(), tlv::SignatureValue);
+    BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_SIG_INFO).blockFromValue().type(), tlv::SignatureInfo);
 
-  time::milliseconds timestamp = toUnixTimestamp(time::system_clock::now());
-  BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_TIMESTAMP).toNumber(), timestamp.count());
+    time::milliseconds timestamp = toUnixTimestamp(time::system_clock::now());
+    BOOST_CHECK_EQUAL(i1.getName().at(command_interest::POS_TIMESTAMP).toNumber(), timestamp.count());
 
-  Interest i2 = signer.makeCommandInterest("/hello/world/!", signingByIdentity("/test"));
-  BOOST_CHECK_EQUAL(i2.getName().size(), 7);
-  BOOST_CHECK_EQUAL(i2.getName().at(command_interest::POS_SIG_VALUE).blockFromValue().type(), tlv::SignatureValue);
-  BOOST_CHECK_EQUAL(i2.getName().at(command_interest::POS_SIG_INFO).blockFromValue().type(), tlv::SignatureInfo);
-  BOOST_CHECK_GT(i2.getName().at(command_interest::POS_TIMESTAMP), i1.getName().at(command_interest::POS_TIMESTAMP));
-  BOOST_CHECK_NE(i2.getName().at(command_interest::POS_RANDOM_VAL),
-                 i1.getName().at(command_interest::POS_RANDOM_VAL)); // this sometimes can fail
+    Interest i2 = signer.makeCommandInterest("/hello/world/!", signingByIdentity("/test"));
+    BOOST_CHECK_EQUAL(i2.getName().size(), 7);
+    BOOST_CHECK_EQUAL(i2.getName().at(command_interest::POS_SIG_VALUE).blockFromValue().type(), tlv::SignatureValue);
+    BOOST_CHECK_EQUAL(i2.getName().at(command_interest::POS_SIG_INFO).blockFromValue().type(), tlv::SignatureInfo);
+    BOOST_CHECK_GT(i2.getName().at(command_interest::POS_TIMESTAMP), i1.getName().at(command_interest::POS_TIMESTAMP));
+    BOOST_CHECK_NE(i2.getName().at(command_interest::POS_RANDOM_VAL),
+                   i1.getName().at(command_interest::POS_RANDOM_VAL)); // this sometimes can fail
 
-  advanceClocks(100_s);
+    advanceClocks(100_s);
 
-  i2 = signer.makeCommandInterest("/hello/world/!");
-  BOOST_CHECK_GT(i2.getName().at(command_interest::POS_TIMESTAMP), i1.getName().at(command_interest::POS_TIMESTAMP));
+    i2 = signer.makeCommandInterest("/hello/world/!");
+    BOOST_CHECK_GT(i2.getName().at(command_interest::POS_TIMESTAMP), i1.getName().at(command_interest::POS_TIMESTAMP));
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestCommandInterestSigner

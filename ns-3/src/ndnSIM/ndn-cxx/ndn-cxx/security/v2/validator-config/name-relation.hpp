@@ -30,27 +30,20 @@ namespace security {
 namespace v2 {
 namespace validator_config {
 
-enum class NameRelation {
-  EQUAL,
-  IS_PREFIX_OF,
-  IS_STRICT_PREFIX_OF
-};
+enum class NameRelation { EQUAL, IS_PREFIX_OF, IS_STRICT_PREFIX_OF };
 
-std::ostream&
-operator<<(std::ostream& os, NameRelation relation);
+std::ostream& operator<<(std::ostream& os, NameRelation relation);
 
 /**
  * @brief check whether @p name1 and @p name2 satisfies @p relation
  */
-bool
-checkNameRelation(NameRelation relation, const Name& name1, const Name& name2);
+bool checkNameRelation(NameRelation relation, const Name& name1, const Name& name2);
 
 /**
  * @brief convert @p relationString to NameRelation
  * @throw Error if @p relationString cannot be converted
  */
-NameRelation
-getNameRelationFromString(const std::string& relationString);
+NameRelation getNameRelationFromString(const std::string& relationString);
 
 } // namespace validator_config
 } // namespace v2

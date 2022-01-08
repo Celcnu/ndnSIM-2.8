@@ -212,11 +212,12 @@ CsTracer::Connect()
     // TODO: 需要将hit/miss和转发的pipeline回调绑定! 类似上面的实现 ↑
     // NFD 中的CS是怎么实现的?
 
-	auto l3proto = m_nodePtr->GetObject<ndn::L3Protocol>();
-	auto fwd = l3proto->getForwarder();
-	
-	fwd->afterCsHit.connect([this](Interest interest, Data data) { CacheHits(interest, data); });
-	fwd->afterCsMiss.connect([this](Interest interest) { CacheMisses(interest); });
+    auto l3proto = m_nodePtr->GetObject<ndn::L3Protocol>();
+    auto fwd = l3proto->getForwarder();
+    // // 你都拿到fowarder了, 不能直接去读它的counter吗 ???
+
+    fwd->afterCsHit.connect([this](Interest interest, Data data) { CacheHits(interest, data); });
+    fwd->afterCsMiss.connect([this](Interest interest) { CacheMisses(interest); });
 
     Reset();
 }
@@ -235,6 +236,13 @@ void
 CsTracer::PeriodicPrinter()
 {
     // NS_LOG_INFO("chaochao printer()");
+
+    // // chaochao (deleted)
+    // auto fwd = (m_nodePtr->GetObject<ndn::L3Protocol>())->getForwarder();
+    // const auto& fwdCounters = fwd ->getCounters();
+    // m_stats.m_cacheHits = fwdCounters.nCsHits;
+    // m_stats.m_cacheMisses = fwdCounters.nCsMisses;
+
     Print(*m_os);
     Reset(); // 每一个周期单独统计
 
@@ -277,13 +285,15 @@ CsTracer::Print(std::ostream& os) const
 
 // 什么时候会调用到这个? 在哪里调用?
 // TODO: 缓存命中时, 如何触发对应的tracer?
-void CsTracer::CacheHits(const Interest&, const Data&)
+void
+CsTracer::CacheHits(const Interest&, const Data&)
 {
     m_stats.m_cacheHits++;
     NS_LOG_INFO("chaochao hits++");
 }
 
-void CsTracer::CacheMisses(const Interest&)
+void
+CsTracer::CacheMisses(const Interest&)
 {
     m_stats.m_cacheMisses++;
     NS_LOG_INFO("chaochao misses++");

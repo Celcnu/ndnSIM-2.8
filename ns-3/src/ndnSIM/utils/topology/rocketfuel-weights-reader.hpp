@@ -37,79 +37,71 @@ namespace ns3 {
  * Only weights and latencies file is supported
  */
 class RocketfuelWeightsReader : public AnnotatedTopologyReader {
-public:
-  RocketfuelWeightsReader(const std::string& path = "", double scale = 1.0);
-  virtual ~RocketfuelWeightsReader();
+  public:
+    RocketfuelWeightsReader(const std::string& path = "", double scale = 1.0);
+    virtual ~RocketfuelWeightsReader();
 
-  void
-  SetFileType(uint8_t inputType);
+    void SetFileType(uint8_t inputType);
 
-  /**
-   * \brief Main topology reading function.
-   *
-   * This method opens an input stream and reads the Rocketfuel-format file.
-   * Every row represents a topology link (the ids of a couple of nodes),
-   * so the input file is read line by line to figure out how many links
-   * and nodes are in the topology.
-   *
-   * \return the container of the nodes created (or empty container if there was an error)
-   */
-  virtual NodeContainer
-  Read(void);
+    /**
+     * \brief Main topology reading function.
+     *
+     * This method opens an input stream and reads the Rocketfuel-format file.
+     * Every row represents a topology link (the ids of a couple of nodes),
+     * so the input file is read line by line to figure out how many links
+     * and nodes are in the topology.
+     *
+     * \return the container of the nodes created (or empty container if there was an error)
+     */
+    virtual NodeContainer Read(void);
 
-  void
-  Commit();
+    void Commit();
 
-  enum { LINKS, WEIGHTS, LATENCIES, POSITIONS };
+    enum { LINKS, WEIGHTS, LATENCIES, POSITIONS };
 
-  inline void
-  SetDefaultBandwidth(const std::string& bw);
+    inline void SetDefaultBandwidth(const std::string& bw);
 
-  inline std::string
-  GetDefaultBandwidth() const;
+    inline std::string GetDefaultBandwidth() const;
 
-  inline void
-  SetDefaultQueue(const std::string& queue);
+    inline void SetDefaultQueue(const std::string& queue);
 
-  inline std::string
-  GetDefaultQueue() const;
+    inline std::string GetDefaultQueue() const;
 
-private:
-  RocketfuelWeightsReader(const RocketfuelWeightsReader&);
-  RocketfuelWeightsReader&
-  operator=(const RocketfuelWeightsReader&);
+  private:
+    RocketfuelWeightsReader(const RocketfuelWeightsReader&);
+    RocketfuelWeightsReader& operator=(const RocketfuelWeightsReader&);
 
-private:
-  uint8_t m_inputType;
-  std::string m_defaultBandwidth; // since the topology files don't provide bandwidth parameter
-  std::string m_queue;
+  private:
+    uint8_t m_inputType;
+    std::string m_defaultBandwidth; // since the topology files don't provide bandwidth parameter
+    std::string m_queue;
 
 }; // end class RocketfuelWeightsReader
 
 inline void
 RocketfuelWeightsReader::SetDefaultBandwidth(const std::string& bw)
 {
-  m_defaultBandwidth = bw;
+    m_defaultBandwidth = bw;
 }
 
 inline std::string
 RocketfuelWeightsReader::GetDefaultBandwidth() const
 {
-  return m_defaultBandwidth;
+    return m_defaultBandwidth;
 }
 
 inline void
 RocketfuelWeightsReader::SetDefaultQueue(const std::string& queue)
 {
-  m_queue = queue;
+    m_queue = queue;
 }
 
 inline std::string
 RocketfuelWeightsReader::GetDefaultQueue() const
 {
-  return m_queue;
+    return m_queue;
 }
 
-}  // end namespace ns3
+} // end namespace ns3
 
 #endif /* ROCKETFUEL_TOPOLOGY_WEIGHTS_READER_H */

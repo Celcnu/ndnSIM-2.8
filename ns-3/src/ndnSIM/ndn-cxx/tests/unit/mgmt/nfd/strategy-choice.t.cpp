@@ -34,57 +34,49 @@ BOOST_AUTO_TEST_SUITE(TestStrategyChoice)
 
 BOOST_AUTO_TEST_CASE(Encode)
 {
-  StrategyChoice sc1;
-  sc1.setName("/hello/world")
-     .setStrategy("/some/non/existing/strategy/name");
-  Block wire = sc1.wireEncode();
+    StrategyChoice sc1;
+    sc1.setName("/hello/world").setStrategy("/some/non/existing/strategy/name");
+    Block wire = sc1.wireEncode();
 
-  // These octets are obtained by the snippet below.
-  // This check is intended to detect unexpected encoding change in the future.
-  // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
-  //   printf("0x%02x, ", *it);
-  // }
-  static const uint8_t expected[] = {
-    0x80, 0x39, 0x07, 0x0e, 0x08, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x08, 0x05, 0x77,
-    0x6f, 0x72, 0x6c, 0x64, 0x6b, 0x27, 0x07, 0x25, 0x08, 0x04, 0x73, 0x6f, 0x6d, 0x65,
-    0x08, 0x03, 0x6e, 0x6f, 0x6e, 0x08, 0x08, 0x65, 0x78, 0x69, 0x73, 0x74, 0x69, 0x6e,
-    0x67, 0x08, 0x08, 0x73, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x08, 0x04, 0x6e,
-    0x61, 0x6d, 0x65
-  };
-  BOOST_CHECK_EQUAL_COLLECTIONS(expected, expected + sizeof(expected),
-                                wire.begin(), wire.end());
+    // These octets are obtained by the snippet below.
+    // This check is intended to detect unexpected encoding change in the future.
+    // for (Buffer::const_iterator it = wire.begin(); it != wire.end(); ++it) {
+    //   printf("0x%02x, ", *it);
+    // }
+    static const uint8_t expected[] = {0x80, 0x39, 0x07, 0x0e, 0x08, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x08,
+                                       0x05, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x6b, 0x27, 0x07, 0x25, 0x08, 0x04,
+                                       0x73, 0x6f, 0x6d, 0x65, 0x08, 0x03, 0x6e, 0x6f, 0x6e, 0x08, 0x08, 0x65,
+                                       0x78, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x08, 0x08, 0x73, 0x74, 0x72,
+                                       0x61, 0x74, 0x65, 0x67, 0x79, 0x08, 0x04, 0x6e, 0x61, 0x6d, 0x65};
+    BOOST_CHECK_EQUAL_COLLECTIONS(expected, expected + sizeof(expected), wire.begin(), wire.end());
 
-  StrategyChoice sc2(wire);
-  BOOST_CHECK_EQUAL(sc1, sc2);
+    StrategyChoice sc2(wire);
+    BOOST_CHECK_EQUAL(sc1, sc2);
 }
 
 BOOST_AUTO_TEST_CASE(Equality)
 {
-  StrategyChoice sc1, sc2;
+    StrategyChoice sc1, sc2;
 
-  sc1.setName("/A")
-     .setStrategy("/strategyP");
-  sc2 = sc1;
-  BOOST_CHECK_EQUAL(sc1, sc2);
+    sc1.setName("/A").setStrategy("/strategyP");
+    sc2 = sc1;
+    BOOST_CHECK_EQUAL(sc1, sc2);
 
-  sc2.setName("/B");
-  BOOST_CHECK_NE(sc1, sc2);
+    sc2.setName("/B");
+    BOOST_CHECK_NE(sc1, sc2);
 
-  sc2 = sc1;
-  sc2.setStrategy("/strategyQ");
-  BOOST_CHECK_NE(sc1, sc2);
+    sc2 = sc1;
+    sc2.setStrategy("/strategyQ");
+    BOOST_CHECK_NE(sc1, sc2);
 }
 
 BOOST_AUTO_TEST_CASE(Print)
 {
-  StrategyChoice sc;
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(sc),
-                    "StrategyChoice(Name: /, Strategy: /)");
+    StrategyChoice sc;
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(sc), "StrategyChoice(Name: /, Strategy: /)");
 
-  sc.setName("/A")
-    .setStrategy("/strategyP");
-  BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(sc),
-                    "StrategyChoice(Name: /A, Strategy: /strategyP)");
+    sc.setName("/A").setStrategy("/strategyP");
+    BOOST_CHECK_EQUAL(boost::lexical_cast<std::string>(sc), "StrategyChoice(Name: /A, Strategy: /strategyP)");
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestStrategyChoice

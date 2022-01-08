@@ -38,67 +38,57 @@ namespace validator_config {
  * @note This policy does not support inner policies (a sole policy or a terminal inner policy)
  * @sa https://named-data.net/doc/ndn-cxx/current/tutorials/security-validator-config.html
  */
-class ValidationPolicyConfig : public ValidationPolicy
-{
-public:
-  /**
-   * @brief Load policy from file @p filename
-   * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
-   */
-  void
-  load(const std::string& filename);
+class ValidationPolicyConfig : public ValidationPolicy {
+  public:
+    /**
+     * @brief Load policy from file @p filename
+     * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
+     */
+    void load(const std::string& filename);
 
-  /**
-   * @brief Load policy from direct @p input
-   * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
-   */
-  void
-  load(const std::string& input, const std::string& filename);
+    /**
+     * @brief Load policy from direct @p input
+     * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
+     */
+    void load(const std::string& input, const std::string& filename);
 
-  /**
-   * @brief Load policy from direct @p input
-   * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
-   */
-  void
-  load(std::istream& input, const std::string& filename);
+    /**
+     * @brief Load policy from direct @p input
+     * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
+     */
+    void load(std::istream& input, const std::string& filename);
 
-  /**
-   * @brief Load policy from @p configSection
-   * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
-   */
-  void
-  load(const ConfigSection& configSection, const std::string& filename);
+    /**
+     * @brief Load policy from @p configSection
+     * @throw Error Validator instance not assigned to the policy (m_validator == nullptr)
+     */
+    void load(const ConfigSection& configSection, const std::string& filename);
 
-protected:
-  void
-  checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+  protected:
+    void checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) override;
+    void checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
+                     const ValidationContinuation& continueValidation) override;
 
-private:
-  void
-  processConfigTrustAnchor(const ConfigSection& section, const std::string& filename);
+  private:
+    void processConfigTrustAnchor(const ConfigSection& section, const std::string& filename);
 
-  time::nanoseconds
-  getRefreshPeriod(ConfigSection::const_iterator& it, const ConfigSection::const_iterator& end);
+    time::nanoseconds getRefreshPeriod(ConfigSection::const_iterator& it, const ConfigSection::const_iterator& end);
 
-  time::nanoseconds
-  getDefaultRefreshPeriod();
+    time::nanoseconds getDefaultRefreshPeriod();
 
-NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE:
-  /** @brief Whether to always bypass validation.
-   *
-   *  This is set to true when 'any' is specified as a trust anchor.
-   *  It causes all packets to bypass validation.
-   */
-  bool m_shouldBypass = false;
-  bool m_isConfigured = false;
+    NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PRIVATE :
+      /** @brief Whether to always bypass validation.
+       *
+       *  This is set to true when 'any' is specified as a trust anchor.
+       *  It causes all packets to bypass validation.
+       */
+      bool m_shouldBypass = false;
+    bool m_isConfigured = false;
 
-  std::vector<unique_ptr<Rule>> m_dataRules;
-  std::vector<unique_ptr<Rule>> m_interestRules;
+    std::vector<unique_ptr<Rule>> m_dataRules;
+    std::vector<unique_ptr<Rule>> m_interestRules;
 };
 
 } // namespace validator_config

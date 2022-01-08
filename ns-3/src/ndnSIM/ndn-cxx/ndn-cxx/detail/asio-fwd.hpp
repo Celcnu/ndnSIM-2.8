@@ -24,9 +24,8 @@
 
 namespace ndn {
 
-class DummyIoService
-{
-public:
+class DummyIoService {
+  public:
 };
 
 } // namespace ndn

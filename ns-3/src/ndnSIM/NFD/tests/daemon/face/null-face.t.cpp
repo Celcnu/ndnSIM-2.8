@@ -40,63 +40,63 @@ BOOST_FIXTURE_TEST_SUITE(TestNullFace, GlobalIoFixture)
 
 BOOST_AUTO_TEST_CASE(StaticProperties)
 {
-  FaceUri uri("testnull://hhppt12sy");
-  auto face = makeNullFace(uri);
-  auto transport = face->getTransport();
+    FaceUri uri("testnull://hhppt12sy");
+    auto face = makeNullFace(uri);
+    auto transport = face->getTransport();
 
-  checkStaticPropertiesInitialized(*transport);
+    checkStaticPropertiesInitialized(*transport);
 
-  BOOST_CHECK_EQUAL(transport->getLocalUri(), uri);
-  BOOST_CHECK_EQUAL(transport->getRemoteUri(), uri);
-  BOOST_CHECK_EQUAL(transport->getScope(), ndn::nfd::FACE_SCOPE_LOCAL);
-  BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
-  BOOST_CHECK_EQUAL(transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
-  BOOST_CHECK_EQUAL(transport->getMtu(), MTU_UNLIMITED);
+    BOOST_CHECK_EQUAL(transport->getLocalUri(), uri);
+    BOOST_CHECK_EQUAL(transport->getRemoteUri(), uri);
+    BOOST_CHECK_EQUAL(transport->getScope(), ndn::nfd::FACE_SCOPE_LOCAL);
+    BOOST_CHECK_EQUAL(transport->getPersistency(), ndn::nfd::FACE_PERSISTENCY_PERMANENT);
+    BOOST_CHECK_EQUAL(transport->getLinkType(), ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+    BOOST_CHECK_EQUAL(transport->getMtu(), MTU_UNLIMITED);
 }
 
 BOOST_AUTO_TEST_CASE(ExpirationTime)
 {
-  auto transport = make_unique<NullTransport>();
+    auto transport = make_unique<NullTransport>();
 
-  BOOST_CHECK_EQUAL(transport->getExpirationTime(), time::steady_clock::TimePoint::max());
+    BOOST_CHECK_EQUAL(transport->getExpirationTime(), time::steady_clock::TimePoint::max());
 }
 
 BOOST_AUTO_TEST_CASE(SendQueue)
 {
-  auto transport = make_unique<NullTransport>();
+    auto transport = make_unique<NullTransport>();
 
-  BOOST_CHECK_EQUAL(transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
-  BOOST_CHECK_EQUAL(transport->getSendQueueLength(), QUEUE_UNSUPPORTED);
+    BOOST_CHECK_EQUAL(transport->getSendQueueCapacity(), QUEUE_UNSUPPORTED);
+    BOOST_CHECK_EQUAL(transport->getSendQueueLength(), QUEUE_UNSUPPORTED);
 }
 
 BOOST_AUTO_TEST_CASE(Send)
 {
-  auto face = makeNullFace();
-  BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
+    auto face = makeNullFace();
+    BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
 
-  face->sendInterest(*makeInterest("/A"), 0);
-  BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
+    face->sendInterest(*makeInterest("/A"), 0);
+    BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
 
-  face->sendData(*makeData("/B"), 0);
-  BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
+    face->sendData(*makeData("/B"), 0);
+    BOOST_CHECK_EQUAL(face->getState(), FaceState::UP);
 }
 
 BOOST_AUTO_TEST_CASE(PersistencyChange)
 {
-  auto transport = make_unique<NullTransport>();
+    auto transport = make_unique<NullTransport>();
 
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
-  BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_ON_DEMAND), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERSISTENT), false);
+    BOOST_CHECK_EQUAL(transport->canChangePersistencyTo(ndn::nfd::FACE_PERSISTENCY_PERMANENT), true);
 }
 
 BOOST_AUTO_TEST_CASE(Close)
 {
-  auto transport = make_unique<NullTransport>();
-  BOOST_CHECK_EQUAL(transport->getState(), TransportState::UP);
+    auto transport = make_unique<NullTransport>();
+    BOOST_CHECK_EQUAL(transport->getState(), TransportState::UP);
 
-  transport->close();
-  BOOST_CHECK_EQUAL(transport->getState(), TransportState::CLOSED);
+    transport->close();
+    BOOST_CHECK_EQUAL(transport->getState(), TransportState::CLOSED);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestNullFace

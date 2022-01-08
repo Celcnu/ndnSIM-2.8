@@ -33,24 +33,23 @@ namespace nfd {
 /** \brief Represents a face-endpoint pair in the forwarder.
  *  \sa face::Face, face::EndpointId
  */
-class FaceEndpoint
-{
-public:
-  FaceEndpoint(const Face& face, EndpointId endpoint)
-    : face(const_cast<Face&>(face))
-    , endpoint(endpoint)
-  {
-  }
+class FaceEndpoint {
+  public:
+    FaceEndpoint(const Face& face, EndpointId endpoint)
+      : face(const_cast<Face&>(face))
+      , endpoint(endpoint)
+    {
+    }
 
-public:
-  Face& face;
-  const EndpointId endpoint;
+  public:
+    Face& face;
+    const EndpointId endpoint;
 };
 
 inline std::ostream&
 operator<<(std::ostream& os, const FaceEndpoint& fe)
 {
-  return os << '(' << fe.face.getId() << ',' << fe.endpoint << ')';
+    return os << '(' << fe.face.getId() << ',' << fe.endpoint << ')';
 }
 
 } // namespace nfd

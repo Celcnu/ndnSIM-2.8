@@ -104,12 +104,9 @@ struct minimal_server {
     typedef http::parser::response response_type;
 
     // Message Policies
-    typedef message_buffer::message<message_buffer::alloc::con_msg_manager>
-        message_type;
-    typedef message_buffer::alloc::con_msg_manager<message_type>
-        con_msg_manager_type;
-    typedef message_buffer::alloc::endpoint_msg_manager<con_msg_manager_type>
-        endpoint_msg_manager_type;
+    typedef message_buffer::message<message_buffer::alloc::con_msg_manager> message_type;
+    typedef message_buffer::alloc::con_msg_manager<message_type> con_msg_manager_type;
+    typedef message_buffer::alloc::endpoint_msg_manager<con_msg_manager_type> endpoint_msg_manager_type;
 
     /// Logging policies
     typedef websocketpp::log::stub elog_type;
@@ -164,8 +161,7 @@ struct minimal_server {
     };
 
     /// Transport Endpoint Component
-    typedef websocketpp::transport::stub::endpoint<transport_config>
-        transport_type;
+    typedef websocketpp::transport::stub::endpoint<transport_config> transport_type;
 
     /// User overridable Endpoint base class
     typedef websocketpp::endpoint_base endpoint_base;
@@ -199,8 +195,7 @@ struct minimal_server {
      *
      * Default is all except for development/debug level errors
      */
-    static const websocketpp::log::level elog_level =
-        websocketpp::log::elevel::none;
+    static const websocketpp::log::level elog_level = websocketpp::log::elevel::none;
 
     /// Default static access logging channels
     /**
@@ -212,8 +207,7 @@ struct minimal_server {
      *
      * Default is all except for development/debug level access messages
      */
-    static const websocketpp::log::level alog_level =
-        websocketpp::log::alevel::none;
+    static const websocketpp::log::level alog_level = websocketpp::log::alevel::none;
 
     ///
     static const size_t connection_read_buffer_size = 16384;
@@ -245,7 +239,7 @@ struct minimal_server {
     /// Default maximum message size
     /**
      * Default value for the processor's maximum message size. Maximum message size
-     * determines the point at which the library will fail a connection with the 
+     * determines the point at which the library will fail a connection with the
      * message_too_big protocol error.
      *
      * The default is 32MB
@@ -287,8 +281,7 @@ struct minimal_server {
         static const uint8_t minimum_outgoing_window_bits = 8;
     };
 
-    typedef websocketpp::extensions::permessage_deflate::disabled
-        <permessage_deflate_config> permessage_deflate_type;
+    typedef websocketpp::extensions::permessage_deflate::disabled<permessage_deflate_config> permessage_deflate_type;
 
     /// Autonegotiate permessage-deflate
     /**
@@ -303,7 +296,7 @@ struct minimal_server {
      * auto-negotiate on, you may still override the auto-negotiate manually if
      * needed.
      */
-    //static const bool autonegotiate_compression = false;
+    // static const bool autonegotiate_compression = false;
 };
 
 } // namespace config

@@ -59,12 +59,10 @@ struct asio : public core {
         typedef type::elog_type elog_type;
         typedef type::request_type request_type;
         typedef type::response_type response_type;
-        typedef websocketpp::transport::asio::basic_socket::endpoint
-            socket_type;
+        typedef websocketpp::transport::asio::basic_socket::endpoint socket_type;
     };
 
-    typedef websocketpp::transport::asio::endpoint<transport_config>
-        transport_type;
+    typedef websocketpp::transport::asio::endpoint<transport_config> transport_type;
 };
 
 } // namespace config

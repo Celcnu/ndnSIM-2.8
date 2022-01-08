@@ -31,202 +31,180 @@ using ::ndn::DelegationList;
 
 BOOST_AUTO_TEST_SUITE(HelperNdnNetworkRegionTableHelper)
 
-class BasicFixture : public ScenarioHelperWithCleanupFixture
-{
-public:
-  BasicFixture()
-  {
-    createTopology({
-     {"1"}
-    });
-  }
+class BasicFixture : public ScenarioHelperWithCleanupFixture {
+  public:
+    BasicFixture()
+    {
+        createTopology({{"1"}});
+    }
 
-  ~BasicFixture()
-  {
-  }
+    ~BasicFixture()
+    {
+    }
 };
 
 BOOST_FIXTURE_TEST_SUITE(Basic, BasicFixture)
 
 BOOST_AUTO_TEST_CASE(AddBase)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ucla"));
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 1);
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ucla"));
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 1);
 }
 
-BOOST_AUTO_TEST_CASE(RemoveBase){
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ucla"));
-  NetworkRegionTableHelper::RemoveRegionName(getNode("1"), Name("/ucla"));
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 0);
+BOOST_AUTO_TEST_CASE(RemoveBase)
+{
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ucla"));
+    NetworkRegionTableHelper::RemoveRegionName(getNode("1"), Name("/ucla"));
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 0);
 }
 
 BOOST_AUTO_TEST_CASE(AddSet)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), { Name("/ucla"), Name("/att") });
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 1);
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/att"), 1);
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().size(), 2);
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), {Name("/ucla"), Name("/att")});
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/ucla"), 1);
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().count("/att"), 1);
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().size(), 2);
 }
 
 BOOST_AUTO_TEST_CASE(RemoveSet)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), { "/ucla", "/att" });
-  NetworkRegionTableHelper::RemoveRegionName(getNode("1"), { "/att", "/ucla" });
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().empty(), true);
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), {"/ucla", "/att"});
+    NetworkRegionTableHelper::RemoveRegionName(getNode("1"), {"/att", "/ucla"});
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().empty(), true);
 }
 
 BOOST_AUTO_TEST_CASE(Empty)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), { Name("/ucla"), Name("/att") });
-  NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ndnSIM"));
-  NetworkRegionTableHelper::EmptyNetworkRegionTable(getNode("1"));
-  BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().empty(), true);
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), {Name("/ucla"), Name("/att")});
+    NetworkRegionTableHelper::AddRegionName(getNode("1"), Name("/ndnSIM"));
+    NetworkRegionTableHelper::EmptyNetworkRegionTable(getNode("1"));
+    BOOST_CHECK_EQUAL(getNode("1")->GetObject<L3Protocol>()->getForwarder()->getNetworkRegionTable().empty(), true);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Basic
 
 class MultiNodeWithAppFixture;
-class TesterApp
-{
-public:
-  TesterApp(const Interest& interest, MultiNodeWithAppFixture* fixture);
+class TesterApp {
+  public:
+    TesterApp(const Interest& interest, MultiNodeWithAppFixture* fixture);
 
-protected:
-  ::ndn::Face m_face;
+  protected:
+    ::ndn::Face m_face;
 };
 
 DelegationList
 makeHint(const Name& delegation)
 {
-  Delegation del;
-  del.name = Name(delegation);
-  del.preference = 1;
-  DelegationList list({del});
-  return list;
+    Delegation del;
+    del.name = Name(delegation);
+    del.preference = 1;
+    DelegationList list({del});
+    return list;
 }
 
-class MultiNodeWithAppFixture : public ScenarioHelperWithCleanupFixture
-{
-public:
-  MultiNodeWithAppFixture()
-    : m_nData(0)
-    , m_nTimeouts(0)
-    , m_nNacks(0)
-  {
-    createTopology({
-        {"1", "2"}
-      });
+class MultiNodeWithAppFixture : public ScenarioHelperWithCleanupFixture {
+  public:
+    MultiNodeWithAppFixture()
+      : m_nData(0)
+      , m_nTimeouts(0)
+      , m_nNacks(0)
+    {
+        createTopology({{"1", "2"}});
 
-    addApps({
-        {"2", "ns3::ndn::Producer",
-            {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}},
-            "0s", "100s"}
-      });
+        addApps({{"2", "ns3::ndn::Producer", {{"Prefix", "/prefix"}, {"PayloadSize", "1024"}}, "0s", "100s"}});
 
-    addRoutes({
-        {"1", "2", "/otherPrefix", 1},
-      });
-  }
+        addRoutes({
+          {"1", "2", "/otherPrefix", 1},
+        });
+    }
 
-public:
-  size_t m_nData;
-  size_t m_nTimeouts;
-  size_t m_nNacks;
+  public:
+    size_t m_nData;
+    size_t m_nTimeouts;
+    size_t m_nNacks;
 };
 
 TesterApp::TesterApp(const Interest& interest, MultiNodeWithAppFixture* fixture)
 {
-  m_face.expressInterest(interest,
-                         std::bind([fixture] {
-                             ++fixture->m_nData;
-                           }),
-                         std::bind([fixture] {
-                             ++fixture->m_nNacks;
-                           }),
-                         std::bind([fixture] {
-                             ++fixture->m_nTimeouts;
-                           }));
+    m_face.expressInterest(interest, std::bind([fixture] { ++fixture->m_nData; }),
+                           std::bind([fixture] { ++fixture->m_nNacks; }),
+                           std::bind([fixture] { ++fixture->m_nTimeouts; }));
 }
-
 
 BOOST_FIXTURE_TEST_SUITE(MultiNode, MultiNodeWithAppFixture)
 
 BOOST_AUTO_TEST_CASE(WithoutNetworkRegion)
 {
-  FactoryCallbackApp::Install(getNode("1"), [this] () -> shared_ptr<void> {
-      Interest i("/prefix/someData");
-      i.setCanBePrefix(false);
-      i.setForwardingHint(makeHint(Name("/otherPrefix")));
-      return make_shared<TesterApp>(i, this);
-    })
-    .Start(Seconds(0.01));
+    FactoryCallbackApp::Install(getNode("1"), [this]() -> shared_ptr<void> {
+        Interest i("/prefix/someData");
+        i.setCanBePrefix(false);
+        i.setForwardingHint(makeHint(Name("/otherPrefix")));
+        return make_shared<TesterApp>(i, this);
+    }).Start(Seconds(0.01));
 
-  Simulator::Stop(Seconds(20.001));
-  Simulator::Run();
+    Simulator::Stop(Seconds(20.001));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(this->m_nData, 0);
-  BOOST_CHECK_EQUAL(m_nTimeouts, 0);
-  BOOST_CHECK_EQUAL(m_nNacks, 1);
+    BOOST_CHECK_EQUAL(this->m_nData, 0);
+    BOOST_CHECK_EQUAL(m_nTimeouts, 0);
+    BOOST_CHECK_EQUAL(m_nNacks, 1);
 }
 
 BOOST_AUTO_TEST_CASE(WithNetworkRegion)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix"));
+    NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix"));
 
-  FactoryCallbackApp::Install(getNode("1"), [this] () -> shared_ptr<void> {
-      Interest i("/prefix/someData");
-      i.setCanBePrefix(false);
-      i.setForwardingHint(makeHint(Name("/otherPrefix")));
-      return make_shared<TesterApp>(i, this);
-    })
-    .Start(Seconds(0.01));
+    FactoryCallbackApp::Install(getNode("1"), [this]() -> shared_ptr<void> {
+        Interest i("/prefix/someData");
+        i.setCanBePrefix(false);
+        i.setForwardingHint(makeHint(Name("/otherPrefix")));
+        return make_shared<TesterApp>(i, this);
+    }).Start(Seconds(0.01));
 
-  Simulator::Stop(Seconds(20.001));
-  Simulator::Run();
+    Simulator::Stop(Seconds(20.001));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(m_nData, 1);
-  BOOST_CHECK_EQUAL(m_nTimeouts, 0);
-  BOOST_CHECK_EQUAL(m_nNacks, 0);
+    BOOST_CHECK_EQUAL(m_nData, 1);
+    BOOST_CHECK_EQUAL(m_nTimeouts, 0);
+    BOOST_CHECK_EQUAL(m_nNacks, 0);
 }
 
 BOOST_AUTO_TEST_CASE(WithMoreSpecificNetworkRegion)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix/moreSpecific"));
+    NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix/moreSpecific"));
 
-  FactoryCallbackApp::Install(getNode("1"), [this] () -> shared_ptr<void> {
-      Interest i("/prefix/someData");
-      i.setCanBePrefix(false);
-      i.setForwardingHint(makeHint(Name("/otherPrefix")));
-      return make_shared<TesterApp>(i, this);
-    })
-    .Start(Seconds(0.01));
+    FactoryCallbackApp::Install(getNode("1"), [this]() -> shared_ptr<void> {
+        Interest i("/prefix/someData");
+        i.setCanBePrefix(false);
+        i.setForwardingHint(makeHint(Name("/otherPrefix")));
+        return make_shared<TesterApp>(i, this);
+    }).Start(Seconds(0.01));
 
-  Simulator::Stop(Seconds(20.001));
-  Simulator::Run();
+    Simulator::Stop(Seconds(20.001));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(m_nData, 1);
-  BOOST_CHECK_EQUAL(m_nTimeouts, 0);
-  BOOST_CHECK_EQUAL(m_nNacks, 0);
+    BOOST_CHECK_EQUAL(m_nData, 1);
+    BOOST_CHECK_EQUAL(m_nTimeouts, 0);
+    BOOST_CHECK_EQUAL(m_nNacks, 0);
 }
 
 BOOST_AUTO_TEST_CASE(WithLessSpecificLink)
 {
-  NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix"));
+    NetworkRegionTableHelper::AddRegionName(getNode("2"), Name("/otherPrefix"));
 
-  FactoryCallbackApp::Install(getNode("1"), [this] () -> shared_ptr<void> {
-      Interest i("/prefix/someData");
-      i.setCanBePrefix(false);
-      i.setForwardingHint(makeHint(Name("/otherPrefix/moreSpecific")));
-      return make_shared<TesterApp>(i, this);
-    })
-    .Start(Seconds(0.01));
+    FactoryCallbackApp::Install(getNode("1"), [this]() -> shared_ptr<void> {
+        Interest i("/prefix/someData");
+        i.setCanBePrefix(false);
+        i.setForwardingHint(makeHint(Name("/otherPrefix/moreSpecific")));
+        return make_shared<TesterApp>(i, this);
+    }).Start(Seconds(0.01));
 
-  Simulator::Stop(Seconds(20.001));
-  Simulator::Run();
+    Simulator::Stop(Seconds(20.001));
+    Simulator::Run();
 
-  BOOST_CHECK_EQUAL(m_nData, 0);
-  BOOST_CHECK_EQUAL(m_nTimeouts, 0);
-  BOOST_CHECK_EQUAL(m_nNacks, 1);
+    BOOST_CHECK_EQUAL(m_nData, 0);
+    BOOST_CHECK_EQUAL(m_nTimeouts, 0);
+    BOOST_CHECK_EQUAL(m_nNacks, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // MultiNode

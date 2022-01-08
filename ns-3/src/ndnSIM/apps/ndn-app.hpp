@@ -46,83 +46,74 @@ namespace ndn {
  * The class implements virtual calls onInterest, onNack, and onData
  */
 class App : public Application {
-public:
-  static TypeId
-  GetTypeId();
+  public:
+    static TypeId GetTypeId();
 
-  /**
-   * @brief Default constructor
-   */
-  App();
-  virtual ~App();
+    /**
+     * @brief Default constructor
+     */
+    App();
+    virtual ~App();
 
-  /**
-   * @brief Get application ID (ID of applications face)
-   */
-  uint32_t
-  GetId() const;
+    /**
+     * @brief Get application ID (ID of applications face)
+     */
+    uint32_t GetId() const;
 
-  /**
-   * @brief Method that will be called every time new Interest arrives
-   */
-  virtual void
-  OnInterest(shared_ptr<const Interest> interest);
+    /**
+     * @brief Method that will be called every time new Interest arrives
+     */
+    virtual void OnInterest(shared_ptr<const Interest> interest);
 
-  /**
-   * @brief Method that will be called every time new Data arrives
-   */
-  virtual void
-  OnData(shared_ptr<const Data> data);
+    /**
+     * @brief Method that will be called every time new Data arrives
+     */
+    virtual void OnData(shared_ptr<const Data> data);
 
-   /**
-   * @brief Method that will be called every time new Nack arrives
-   */
-  virtual void
-  OnNack(shared_ptr<const lp::Nack> nack);
+    /**
+     * @brief Method that will be called every time new Nack arrives
+     */
+    virtual void OnNack(shared_ptr<const lp::Nack> nack);
 
-public:
-  typedef void (*InterestTraceCallback)(shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>);
-  typedef void (*DataTraceCallback)(shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>);
-  typedef void (*NackTraceCallback)(shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>);
+  public:
+    typedef void (*InterestTraceCallback)(shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>);
+    typedef void (*DataTraceCallback)(shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>);
+    typedef void (*NackTraceCallback)(shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>);
 
-protected:
-  virtual void
-  DoInitialize();
+  protected:
+    virtual void DoInitialize();
 
-  virtual void
-  DoDispose();
+    virtual void DoDispose();
 
-  // inherited from Application base class. Originally they were private
-  virtual void
-  StartApplication(); ///< @brief Called at time specified by Start
+    // inherited from Application base class. Originally they were private
+    virtual void StartApplication(); ///< @brief Called at time specified by Start
 
-  virtual void
-  StopApplication(); ///< @brief Called at time specified by Stop
+    virtual void StopApplication(); ///< @brief Called at time specified by Stop
 
-protected:
-  bool m_active; ///< @brief Flag to indicate that application is active (set by StartApplication and StopApplication)
-  shared_ptr<Face> m_face;
-  AppLinkService* m_appLink;
+  protected:
+    bool m_active; ///< @brief Flag to indicate that application is active (set by StartApplication and StopApplication)
+    shared_ptr<Face> m_face;
+    AppLinkService* m_appLink;
 
-  uint32_t m_appId;
+    uint32_t m_appId;
 
-  TracedCallback<shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>>
-    m_receivedInterests; ///< @brief App-level trace of received Interests
+    TracedCallback<shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>>
+      m_receivedInterests; ///< @brief App-level trace of received Interests
 
-  TracedCallback<shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>>
-    m_receivedDatas; ///< @brief App-level trace of received Data
+    TracedCallback<shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>>
+      m_receivedDatas; ///< @brief App-level trace of received Data
 
-  TracedCallback<shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>>
-    m_receivedNacks; ///< @brief App-level trace of received Nacks
+    TracedCallback<shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>>
+      m_receivedNacks; ///< @brief App-level trace of received Nacks
 
-  TracedCallback<shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>>
-    m_transmittedInterests; ///< @brief App-level trace of transmitted Interests
+    TracedCallback<shared_ptr<const Interest>, Ptr<App>, shared_ptr<Face>>
+      m_transmittedInterests; ///< @brief App-level trace of transmitted Interests
 
-  TracedCallback<shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>>
-    m_transmittedDatas; ///< @brief App-level trace of transmitted Data
+    TracedCallback<shared_ptr<const Data>, Ptr<App>, shared_ptr<Face>>
+      m_transmittedDatas; ///< @brief App-level trace of transmitted Data
 
-  TracedCallback<shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>>
-    m_transmittedNacks; ///< @brief App-level trace of transmitted Nacks
+    TracedCallback<shared_ptr<const lp::Nack>, Ptr<App>, shared_ptr<Face>>
+      m_transmittedNacks; ///< @brief App-level trace of transmitted Nacks
 };
 
 } // namespace ndn

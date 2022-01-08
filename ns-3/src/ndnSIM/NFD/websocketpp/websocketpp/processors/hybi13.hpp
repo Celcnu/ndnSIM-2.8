@@ -52,7 +52,7 @@ namespace processor {
 /// Processor for Hybi version 13 (RFC6455)
 template <typename config>
 class hybi13 : public processor<config> {
-public:
+  public:
     typedef processor<config> base;
 
     typedef typename config::request_type request_type;
@@ -67,7 +67,7 @@ public:
 
     typedef typename config::permessage_deflate_type permessage_deflate_type;
 
-    typedef std::pair<lib::error_code,std::string> err_str_pair;
+    typedef std::pair<lib::error_code, std::string> err_str_pair;
 
     explicit hybi13(bool secure, bool p_is_server, msg_manager_ptr manager, rng_type& rng)
       : processor<config>(secure, p_is_server)
@@ -77,29 +77,39 @@ public:
         reset_headers();
     }
 
-    int get_version() const {
+    int
+    get_version() const
+    {
         return 13;
     }
 
-    bool has_permessage_deflate() const {
+    bool
+    has_permessage_deflate() const
+    {
         return m_permessage_deflate.is_implemented();
     }
 
-    err_str_pair negotiate_extensions(request_type const & request) {
+    err_str_pair
+    negotiate_extensions(request_type const& request)
+    {
         return negotiate_extensions_helper(request);
     }
-    
-    err_str_pair negotiate_extensions(response_type const & response) {
+
+    err_str_pair
+    negotiate_extensions(response_type const& response)
+    {
         return negotiate_extensions_helper(response);
     }
-    
+
     /// Extension negotiation helper function
     /**
      * This exists mostly because the code for requests and responses is
      * identical and I can't have virtual template methods.
      */
     template <typename header_type>
-    err_str_pair negotiate_extensions_helper(header_type const & header) {
+    err_str_pair
+    negotiate_extensions_helper(header_type const& header)
+    {
         err_str_pair ret;
 
         // Respect blanket disabling of all extensions and don't even parse
@@ -111,7 +121,7 @@ public:
 
         http::parameter_list p;
 
-        bool error = header.get_header_as_plist("Sec-WebSocket-Extensions",p);
+        bool error = header.get_header_as_plist("Sec-WebSocket-Extensions", p);
 
         if (error) {
             ret.first = make_error_code(error::extension_parse_error);
@@ -137,11 +147,11 @@ public:
 
                 // if we have already successfully negotiated this extension
                 // then skip any other requests to negotiate the same one
-                // with different parameters 
+                // with different parameters
                 if (m_permessage_deflate.is_enabled()) {
                     continue;
                 }
-                
+
                 // attempt to negotiate this offer
                 neg_ret = m_permessage_deflate.negotiate(it->second);
 
@@ -158,13 +168,14 @@ public:
                 lib::error_code ec = m_permessage_deflate.init(base::m_server);
 
                 if (ec) {
-                    // Negotiation succeeded but initialization failed this is 
-                    // an error that should stop negotiation of permessage 
+                    // Negotiation succeeded but initialization failed this is
+                    // an error that should stop negotiation of permessage
                     // deflate. Return the reason for the init failure
 
                     ret.first = ec;
                     break;
-                } else {
+                }
+                else {
                     // Successfully initialized, push the negotiated response into
                     // the reply and stop looking for additional permessage-deflate
                     // extensions
@@ -174,7 +185,7 @@ public:
             }
         }
 
-        // support for future extensions would go here. Should check the value of 
+        // support for future extensions would go here. Should check the value of
         // ret.first before continuing. Might need to consider whether failure of
         // negotiation of an earlier extension should stop negotiation of subsequent
         // ones
@@ -182,7 +193,9 @@ public:
         return ret;
     }
 
-    lib::error_code validate_handshake(request_type const & r) const {
+    lib::error_code
+    validate_handshake(request_type const& r) const
+    {
         if (r.get_method() != "GET") {
             return make_error_code(error::invalid_http_method);
         }
@@ -206,8 +219,8 @@ public:
      * generic struct if other user input parameters to the processed handshake
      * are found.
      */
-    lib::error_code process_handshake(request_type const & request, 
-        std::string const & subprotocol, response_type & response) const
+    lib::error_code
+    process_handshake(request_type const& request, std::string const& subprotocol, response_type& response) const
     {
         std::string server_key = request.get_header("Sec-WebSocket-Key");
 
@@ -217,12 +230,12 @@ public:
             return ec;
         }
 
-        response.replace_header("Sec-WebSocket-Accept",server_key);
-        response.append_header("Upgrade",constants::upgrade_token);
-        response.append_header("Connection",constants::connection_token);
+        response.replace_header("Sec-WebSocket-Accept", server_key);
+        response.append_header("Upgrade", constants::upgrade_token);
+        response.append_header("Connection", constants::connection_token);
 
         if (!subprotocol.empty()) {
-            response.replace_header("Sec-WebSocket-Protocol",subprotocol);
+            response.replace_header("Sec-WebSocket-Protocol", subprotocol);
         }
 
         return lib::error_code();
@@ -234,17 +247,17 @@ public:
      * @param [in] uri The uri being connected to
      * @param [in] subprotocols The list of subprotocols to request
      */
-    lib::error_code client_handshake_request(request_type & req, uri_ptr
-        uri, std::vector<std::string> const & subprotocols) const
+    lib::error_code
+    client_handshake_request(request_type& req, uri_ptr uri, std::vector<std::string> const& subprotocols) const
     {
         req.set_method("GET");
         req.set_uri(uri->get_resource());
         req.set_version("HTTP/1.1");
 
-        req.append_header("Upgrade","websocket");
-        req.append_header("Connection","Upgrade");
-        req.replace_header("Sec-WebSocket-Version","13");
-        req.replace_header("Host",uri->get_host_port());
+        req.append_header("Upgrade", "websocket");
+        req.append_header("Connection", "Upgrade");
+        req.replace_header("Sec-WebSocket-Version", "13");
+        req.replace_header("Host", uri->get_host_port());
 
         if (!subprotocols.empty()) {
             std::ostringstream result;
@@ -254,7 +267,7 @@ public:
                 result << ", " << *it++;
             }
 
-            req.replace_header("Sec-WebSocket-Protocol",result.str());
+            req.replace_header("Sec-WebSocket-Protocol", result.str());
         }
 
         // Generate handshake key
@@ -263,15 +276,15 @@ public:
 
         for (int i = 0; i < 4; i++) {
             conv.i = m_rng();
-            std::copy(conv.c,conv.c+4,&raw_key[i*4]);
+            std::copy(conv.c, conv.c + 4, &raw_key[i * 4]);
         }
 
-        req.replace_header("Sec-WebSocket-Key",base64_encode(raw_key, 16));
+        req.replace_header("Sec-WebSocket-Key", base64_encode(raw_key, 16));
 
         if (m_permessage_deflate.is_implemented()) {
             std::string offer = m_permessage_deflate.generate_offer();
             if (!offer.empty()) {
-                req.replace_header("Sec-WebSocket-Extensions",offer);
+                req.replace_header("Sec-WebSocket-Extensions", offer);
             }
         }
 
@@ -284,8 +297,8 @@ public:
      * @param res The reponse to generate
      * @return An error code, 0 on success, non-zero for other errors
      */
-    lib::error_code validate_server_handshake_response(request_type const & req,
-        response_type& res) const
+    lib::error_code
+    validate_server_handshake_response(request_type const& req, response_type& res) const
     {
         // A valid response has an HTTP 101 switching protocols code
         if (res.get_status_code() != http::status_code::switching_protocols) {
@@ -293,18 +306,16 @@ public:
         }
 
         // And the upgrade token in an upgrade header
-        std::string const & upgrade_header = res.get_header("Upgrade");
-        if (utility::ci_find_substr(upgrade_header, constants::upgrade_token,
-            sizeof(constants::upgrade_token)-1) == upgrade_header.end())
-        {
+        std::string const& upgrade_header = res.get_header("Upgrade");
+        if (utility::ci_find_substr(upgrade_header, constants::upgrade_token, sizeof(constants::upgrade_token) - 1)
+            == upgrade_header.end()) {
             return error::make_error_code(error::missing_required_header);
         }
 
         // And the websocket token in the connection header
-        std::string const & con_header = res.get_header("Connection");
-        if (utility::ci_find_substr(con_header, constants::connection_token,
-            sizeof(constants::connection_token)-1) == con_header.end())
-        {
+        std::string const& con_header = res.get_header("Connection");
+        if (utility::ci_find_substr(con_header, constants::connection_token, sizeof(constants::connection_token) - 1)
+            == con_header.end()) {
             return error::make_error_code(error::missing_required_header);
         }
 
@@ -321,35 +332,42 @@ public:
         return lib::error_code();
     }
 
-    std::string get_raw(response_type const & res) const {
+    std::string
+    get_raw(response_type const& res) const
+    {
         return res.raw();
     }
 
-    std::string const & get_origin(request_type const & r) const {
+    std::string const&
+    get_origin(request_type const& r) const
+    {
         return r.get_header("Origin");
     }
 
-    lib::error_code extract_subprotocols(request_type const & req,
-        std::vector<std::string> & subprotocol_list)
+    lib::error_code
+    extract_subprotocols(request_type const& req, std::vector<std::string>& subprotocol_list)
     {
         if (!req.get_header("Sec-WebSocket-Protocol").empty()) {
             http::parameter_list p;
 
-             if (!req.get_header_as_plist("Sec-WebSocket-Protocol",p)) {
-                 http::parameter_list::const_iterator it;
+            if (!req.get_header_as_plist("Sec-WebSocket-Protocol", p)) {
+                http::parameter_list::const_iterator it;
 
-                 for (it = p.begin(); it != p.end(); ++it) {
-                     subprotocol_list.push_back(it->first);
-                 }
-             } else {
-                 return error::make_error_code(error::subprotocol_parse_error);
-             }
+                for (it = p.begin(); it != p.end(); ++it) {
+                    subprotocol_list.push_back(it->first);
+                }
+            }
+            else {
+                return error::make_error_code(error::subprotocol_parse_error);
+            }
         }
         return lib::error_code();
     }
 
-    uri_ptr get_uri(request_type const & request) const {
-        return get_uri_from_host(request,(base::m_secure ? "wss" : "ws"));
+    uri_ptr
+    get_uri(request_type const& request) const
+    {
+        return get_uri_from_host(request, (base::m_secure ? "wss" : "ws"));
     }
 
     /// Process new websocket connection bytes
@@ -379,47 +397,49 @@ public:
      *
      * @return Number of bytes processed or zero on error
      */
-    size_t consume(uint8_t * buf, size_t len, lib::error_code & ec) {
+    size_t
+    consume(uint8_t* buf, size_t len, lib::error_code& ec)
+    {
         size_t p = 0;
 
         ec = lib::error_code();
 
-        //std::cout << "consume: " << utility::to_hex(buf,len) << std::endl;
+        // std::cout << "consume: " << utility::to_hex(buf,len) << std::endl;
 
         // Loop while we don't have a message ready and we still have bytes
         // left to process.
-        while (m_state != READY && m_state != FATAL_ERROR &&
-               (p < len || m_bytes_needed == 0))
-        {
+        while (m_state != READY && m_state != FATAL_ERROR && (p < len || m_bytes_needed == 0)) {
             if (m_state == HEADER_BASIC) {
-                p += this->copy_basic_header_bytes(buf+p,len-p);
+                p += this->copy_basic_header_bytes(buf + p, len - p);
 
                 if (m_bytes_needed > 0) {
                     continue;
                 }
 
-                ec = this->validate_incoming_basic_header(
-                    m_basic_header, base::m_server, !m_data_msg.msg_ptr
-                );
-                if (ec) {break;}
+                ec = this->validate_incoming_basic_header(m_basic_header, base::m_server, !m_data_msg.msg_ptr);
+                if (ec) {
+                    break;
+                }
 
                 // extract full header size and adjust consume state accordingly
                 m_state = HEADER_EXTENDED;
                 m_cursor = 0;
-                m_bytes_needed = frame::get_header_len(m_basic_header) -
-                    frame::BASIC_HEADER_LENGTH;
-            } else if (m_state == HEADER_EXTENDED) {
-                p += this->copy_extended_header_bytes(buf+p,len-p);
+                m_bytes_needed = frame::get_header_len(m_basic_header) - frame::BASIC_HEADER_LENGTH;
+            }
+            else if (m_state == HEADER_EXTENDED) {
+                p += this->copy_extended_header_bytes(buf + p, len - p);
 
                 if (m_bytes_needed > 0) {
                     continue;
                 }
 
-                ec = validate_incoming_extended_header(m_basic_header,m_extended_header);
-                if (ec){break;}
+                ec = validate_incoming_extended_header(m_basic_header, m_extended_header);
+                if (ec) {
+                    break;
+                }
 
                 m_state = APPLICATION;
-                m_bytes_needed = static_cast<size_t>(get_payload_size(m_basic_header,m_extended_header));
+                m_bytes_needed = static_cast<size_t>(get_payload_size(m_basic_header, m_extended_header));
 
                 // check if this frame is the start of a new message and set up
                 // the appropriate message metadata.
@@ -428,59 +448,57 @@ public:
                 // TODO: get_message failure conditions
 
                 if (frame::opcode::is_control(op)) {
-                    m_control_msg = msg_metadata(
-                        m_msg_manager->get_message(op,m_bytes_needed),
-                        frame::get_masking_key(m_basic_header,m_extended_header)
-                    );
+                    m_control_msg = msg_metadata(m_msg_manager->get_message(op, m_bytes_needed),
+                                                 frame::get_masking_key(m_basic_header, m_extended_header));
 
                     m_current_msg = &m_control_msg;
-                } else {
+                }
+                else {
                     if (!m_data_msg.msg_ptr) {
                         if (m_bytes_needed > base::m_max_message_size) {
                             ec = make_error_code(error::message_too_big);
                             break;
                         }
-                        
-                        m_data_msg = msg_metadata(
-                            m_msg_manager->get_message(op,m_bytes_needed),
-                            frame::get_masking_key(m_basic_header,m_extended_header)
-                        );
-                        
+
+                        m_data_msg = msg_metadata(m_msg_manager->get_message(op, m_bytes_needed),
+                                                  frame::get_masking_key(m_basic_header, m_extended_header));
+
                         if (m_permessage_deflate.is_enabled()) {
                             m_data_msg.msg_ptr->set_compressed(frame::get_rsv1(m_basic_header));
                         }
-                    } else {
+                    }
+                    else {
                         // Fetch the underlying payload buffer from the data message we
                         // are writing into.
-                        std::string & out = m_data_msg.msg_ptr->get_raw_payload();
-                        
+                        std::string& out = m_data_msg.msg_ptr->get_raw_payload();
+
                         if (out.size() + m_bytes_needed > base::m_max_message_size) {
                             ec = make_error_code(error::message_too_big);
                             break;
                         }
-                        
+
                         // Each frame starts a new masking key. All other state
                         // remains between frames.
-                        m_data_msg.prepared_key = prepare_masking_key(
-                            frame::get_masking_key(
-                                m_basic_header,
-                                m_extended_header
-                            )
-                        );
-                        
+                        m_data_msg.prepared_key =
+                          prepare_masking_key(frame::get_masking_key(m_basic_header, m_extended_header));
+
                         out.reserve(out.size() + m_bytes_needed);
                     }
                     m_current_msg = &m_data_msg;
                 }
-            } else if (m_state == EXTENSION) {
+            }
+            else if (m_state == EXTENSION) {
                 m_state = APPLICATION;
-            } else if (m_state == APPLICATION) {
-                size_t bytes_to_process = (std::min)(m_bytes_needed,len-p);
+            }
+            else if (m_state == APPLICATION) {
+                size_t bytes_to_process = (std::min)(m_bytes_needed, len - p);
 
                 if (bytes_to_process > 0) {
-                    p += this->process_payload_bytes(buf+p,bytes_to_process,ec);
+                    p += this->process_payload_bytes(buf + p, bytes_to_process, ec);
 
-                    if (ec) {break;}
+                    if (ec) {
+                        break;
+                    }
                 }
 
                 if (m_bytes_needed > 0) {
@@ -494,10 +512,12 @@ public:
                     if (ec) {
                         break;
                     }
-                } else {
+                }
+                else {
                     this->reset_headers();
                 }
-            } else {
+            }
+            else {
                 // shouldn't be here
                 ec = make_error_code(error::general);
                 return 0;
@@ -515,19 +535,19 @@ public:
      *
      * @return A code indicating errors, if any
      */
-    lib::error_code finalize_message() {
-        std::string & out = m_current_msg->msg_ptr->get_raw_payload();
+    lib::error_code
+    finalize_message()
+    {
+        std::string& out = m_current_msg->msg_ptr->get_raw_payload();
 
         // if the frame is compressed, append the compression
         // trailer and flush the compression buffer.
-        if (m_permessage_deflate.is_enabled()
-            && m_current_msg->msg_ptr->get_compressed())
-        {
+        if (m_permessage_deflate.is_enabled() && m_current_msg->msg_ptr->get_compressed()) {
             uint8_t trailer[4] = {0x00, 0x00, 0xff, 0xff};
 
             // Decompress current buffer into the message buffer
             lib::error_code ec;
-            ec = m_permessage_deflate.decompress(trailer,4,out);
+            ec = m_permessage_deflate.decompress(trailer, 4, out);
             if (ec) {
                 return ec;
             }
@@ -545,26 +565,28 @@ public:
         return lib::error_code();
     }
 
-    void reset_headers() {
+    void
+    reset_headers()
+    {
         m_state = HEADER_BASIC;
         m_bytes_needed = frame::BASIC_HEADER_LENGTH;
 
         m_basic_header.b0 = 0x00;
         m_basic_header.b1 = 0x00;
 
-        std::fill_n(
-            m_extended_header.bytes,
-            frame::MAX_EXTENDED_HEADER_LENGTH,
-            0x00
-        );
+        std::fill_n(m_extended_header.bytes, frame::MAX_EXTENDED_HEADER_LENGTH, 0x00);
     }
 
     /// Test whether or not the processor has a message ready
-    bool ready() const {
+    bool
+    ready() const
+    {
         return (m_state == READY);
     }
 
-    message_ptr get_message() {
+    message_ptr
+    get_message()
+    {
         if (!ready()) {
             return message_ptr();
         }
@@ -573,7 +595,8 @@ public:
 
         if (frame::opcode::is_control(ret->get_opcode())) {
             m_control_msg.msg_ptr.reset();
-        } else {
+        }
+        else {
             m_data_msg.msg_ptr.reset();
         }
 
@@ -583,11 +606,15 @@ public:
     }
 
     /// Test whether or not the processor is in a fatal error state.
-    bool get_error() const {
+    bool
+    get_error() const
+    {
         return m_state == FATAL_ERROR;
     }
 
-    size_t get_bytes_needed() const {
+    size_t
+    get_bytes_needed() const
+    {
         return m_bytes_needed;
     }
 
@@ -602,7 +629,8 @@ public:
      * @param out A message to be overwritten with the prepared message
      * @return error code
      */
-    virtual lib::error_code prepare_data_frame(message_ptr in, message_ptr out)
+    virtual lib::error_code
+    prepare_data_frame(message_ptr in, message_ptr out)
     {
         if (!in || !out) {
             return make_error_code(error::invalid_arguments);
@@ -625,21 +653,21 @@ public:
 
         frame::masking_key_type key;
         bool masked = !base::m_server;
-        bool compressed = m_permessage_deflate.is_enabled()
-                          && in->get_compressed();
+        bool compressed = m_permessage_deflate.is_enabled() && in->get_compressed();
         bool fin = in->get_fin();
 
         if (masked) {
             // Generate masking key.
             key.i = m_rng();
-        } else {
+        }
+        else {
             key.i = 0;
         }
 
         // prepare payload
         if (compressed) {
             // compress and store in o after header.
-            m_permessage_deflate.compress(i,o);
+            m_permessage_deflate.compress(i, o);
 
             if (o.size() < 4) {
                 return make_error_code(error::general);
@@ -647,13 +675,14 @@ public:
 
             // Strip trailing 4 0x00 0x00 0xff 0xff bytes before writing to the
             // wire
-            o.resize(o.size()-4);
+            o.resize(o.size() - 4);
 
             // mask in place if necessary
             if (masked) {
-                this->masked_copy(o,o,key);
+                this->masked_copy(o, o, key);
             }
-        } else {
+        }
+        else {
             // no compression, just copy data into the output buffer
             o.resize(i.size());
 
@@ -661,21 +690,23 @@ public:
             // buffer directly to avoid another copy. If not masked, copy
             // directly without masking.
             if (masked) {
-                this->masked_copy(i,o,key);
-            } else {
-                std::copy(i.begin(),i.end(),o.begin());
+                this->masked_copy(i, o, key);
+            }
+            else {
+                std::copy(i.begin(), i.end(), o.begin());
             }
         }
 
         // generate header
-        frame::basic_header h(op,o.size(),fin,masked,compressed);
+        frame::basic_header h(op, o.size(), fin, masked, compressed);
 
         if (masked) {
-            frame::extended_header e(o.size(),key.i);
-            out->set_header(frame::prepare_header(h,e));
-        } else {
+            frame::extended_header e(o.size(), key.i);
+            out->set_header(frame::prepare_header(h, e));
+        }
+        else {
             frame::extended_header e(o.size());
-            out->set_header(frame::prepare_header(h,e));
+            out->set_header(frame::prepare_header(h, e));
         }
 
         out->set_prepared(true);
@@ -685,16 +716,20 @@ public:
     }
 
     /// Get URI
-    lib::error_code prepare_ping(std::string const & in, message_ptr out) const {
-        return this->prepare_control(frame::opcode::PING,in,out);
+    lib::error_code
+    prepare_ping(std::string const& in, message_ptr out) const
+    {
+        return this->prepare_control(frame::opcode::PING, in, out);
     }
 
-    lib::error_code prepare_pong(std::string const & in, message_ptr out) const {
-        return this->prepare_control(frame::opcode::PONG,in,out);
+    lib::error_code
+    prepare_pong(std::string const& in, message_ptr out) const
+    {
+        return this->prepare_control(frame::opcode::PONG, in, out);
     }
 
-    virtual lib::error_code prepare_close(close::status::value code,
-        std::string const & reason, message_ptr out) const
+    virtual lib::error_code
+    prepare_close(close::status::value code, std::string const& reason, message_ptr out) const
     {
         if (close::status::reserved(code)) {
             return make_error_code(error::reserved_close_code);
@@ -708,7 +743,7 @@ public:
             return make_error_code(error::reason_requires_code);
         }
 
-        if (reason.size() > frame:: limits::payload_size_basic-2) {
+        if (reason.size() > frame::limits::payload_size_basic - 2) {
             return make_error_code(error::control_too_big);
         }
 
@@ -718,30 +753,35 @@ public:
             close::code_converter val;
             val.i = htons(code);
 
-            payload.resize(reason.size()+2);
+            payload.resize(reason.size() + 2);
 
             payload[0] = val.c[0];
             payload[1] = val.c[1];
 
-            std::copy(reason.begin(),reason.end(),payload.begin()+2);
+            std::copy(reason.begin(), reason.end(), payload.begin() + 2);
         }
 
-        return this->prepare_control(frame::opcode::CLOSE,payload,out);
+        return this->prepare_control(frame::opcode::CLOSE, payload, out);
     }
-protected:
+
+  protected:
     /// Convert a client handshake key into a server response key in place
-    lib::error_code process_handshake_key(std::string & key) const {
+    lib::error_code
+    process_handshake_key(std::string& key) const
+    {
         key.append(constants::handshake_guid);
 
         unsigned char message_digest[20];
-        sha1::calc(key.c_str(),key.length(),message_digest);
-        key = base64_encode(message_digest,20);
+        sha1::calc(key.c_str(), key.length(), message_digest);
+        key = base64_encode(message_digest, 20);
 
         return lib::error_code();
     }
 
     /// Reads bytes from buf into m_basic_header
-    size_t copy_basic_header_bytes(uint8_t const * buf, size_t len) {
+    size_t
+    copy_basic_header_bytes(uint8_t const* buf, size_t len)
+    {
         if (len == 0 || m_bytes_needed == 0) {
             return 0;
         }
@@ -753,18 +793,21 @@ protected:
                 m_basic_header.b1 = buf[1];
                 m_bytes_needed -= 2;
                 return 2;
-            } else {
+            }
+            else {
                 m_basic_header.b1 = buf[0];
                 m_bytes_needed--;
                 return 1;
             }
-        } else {
+        }
+        else {
             // have exactly one byte
             if (m_bytes_needed == 2) {
                 m_basic_header.b0 = buf[0];
                 m_bytes_needed--;
                 return 1;
-            } else {
+            }
+            else {
                 m_basic_header.b1 = buf[0];
                 m_bytes_needed--;
                 return 1;
@@ -773,10 +816,12 @@ protected:
     }
 
     /// Reads bytes from buf into m_extended_header
-    size_t copy_extended_header_bytes(uint8_t const * buf, size_t len) {
-        size_t bytes_to_read = (std::min)(m_bytes_needed,len);
+    size_t
+    copy_extended_header_bytes(uint8_t const* buf, size_t len)
+    {
+        size_t bytes_to_read = (std::min)(m_bytes_needed, len);
 
-        std::copy(buf,buf+bytes_to_read,m_extended_header.bytes+m_cursor);
+        std::copy(buf, buf + bytes_to_read, m_extended_header.bytes + m_cursor);
         m_cursor += bytes_to_read;
         m_bytes_needed -= bytes_to_read;
 
@@ -796,35 +841,34 @@ protected:
      * @param len Length of buf
      * @return Number of bytes processed or zero in case of an error
      */
-    size_t process_payload_bytes(uint8_t * buf, size_t len, lib::error_code& ec)
+    size_t
+    process_payload_bytes(uint8_t* buf, size_t len, lib::error_code& ec)
     {
         // unmask if masked
         if (frame::get_masked(m_basic_header)) {
-            m_current_msg->prepared_key = frame::byte_mask_circ(
-                buf, len, m_current_msg->prepared_key);
+            m_current_msg->prepared_key = frame::byte_mask_circ(buf, len, m_current_msg->prepared_key);
             // TODO: SIMD masking
         }
 
-        std::string & out = m_current_msg->msg_ptr->get_raw_payload();
+        std::string& out = m_current_msg->msg_ptr->get_raw_payload();
         size_t offset = out.size();
 
         // decompress message if needed.
-        if (m_permessage_deflate.is_enabled()
-            && m_current_msg->msg_ptr->get_compressed())
-        {
+        if (m_permessage_deflate.is_enabled() && m_current_msg->msg_ptr->get_compressed()) {
             // Decompress current buffer into the message buffer
-            ec = m_permessage_deflate.decompress(buf,len,out);
+            ec = m_permessage_deflate.decompress(buf, len, out);
             if (ec) {
                 return 0;
             }
-        } else {
+        }
+        else {
             // No compression, straight copy
-            out.append(reinterpret_cast<char *>(buf),len);
+            out.append(reinterpret_cast<char*>(buf), len);
         }
 
         // validate unmasked, decompressed values
         if (m_current_msg->msg_ptr->get_opcode() == frame::opcode::TEXT) {
-            if (!m_current_msg->validator.decode(out.begin()+offset,out.end())) {
+            if (!m_current_msg->validator.decode(out.begin() + offset, out.end())) {
                 ec = make_error_code(error::invalid_utf8);
                 return 0;
             }
@@ -845,15 +889,13 @@ protected:
      * @param new_msg Whether or not this is the first frame of the message
      * @return 0 on success or a non-zero error code on failure
      */
-    lib::error_code validate_incoming_basic_header(frame::basic_header const & h,
-        bool is_server, bool new_msg) const
+    lib::error_code
+    validate_incoming_basic_header(frame::basic_header const& h, bool is_server, bool new_msg) const
     {
         frame::opcode::value op = frame::get_opcode(h);
 
         // Check control frame size limit
-        if (frame::opcode::is_control(op) &&
-            frame::get_basic_size(h) > frame::limits::payload_size_basic)
-        {
+        if (frame::opcode::is_control(op) && frame::get_basic_size(h) > frame::limits::payload_size_basic) {
             return make_error_code(error::control_too_big);
         }
 
@@ -863,9 +905,7 @@ protected:
         // a control message.
         //
         // TODO: unit tests for this
-        if (frame::get_rsv1(h) && (!m_permessage_deflate.is_enabled()
-                || frame::opcode::is_control(op)))
-        {
+        if (frame::get_rsv1(h) && (!m_permessage_deflate.is_enabled() || frame::opcode::is_control(op))) {
             return make_error_code(error::invalid_rsv_bit);
         }
 
@@ -895,9 +935,7 @@ protected:
         }
 
         // Check for new data frame when expecting continuation
-        if (!new_msg && !frame::opcode::is_control(op) &&
-            op != frame::opcode::CONTINUATION)
-        {
+        if (!new_msg && !frame::opcode::is_control(op) && op != frame::opcode::CONTINUATION) {
             return make_error_code(error::invalid_continuation);
         }
 
@@ -905,7 +943,8 @@ protected:
         // Clients should reject any masked frames from servers.
         if (is_server && !frame::get_masked(h)) {
             return make_error_code(error::masking_required);
-        } else if (!is_server && frame::get_masked(h)) {
+        }
+        else if (!is_server && frame::get_masked(h)) {
             return make_error_code(error::masking_forbidden);
         }
 
@@ -923,22 +962,18 @@ protected:
      * @return An error_code, non-zero values indicate why the validation
      * failed
      */
-    lib::error_code validate_incoming_extended_header(frame::basic_header h,
-        frame::extended_header e) const
+    lib::error_code
+    validate_incoming_extended_header(frame::basic_header h, frame::extended_header e) const
     {
         uint8_t basic_size = frame::get_basic_size(h);
-        uint64_t payload_size = frame::get_payload_size(h,e);
+        uint64_t payload_size = frame::get_payload_size(h, e);
 
         // Check for non-minimally encoded payloads
-        if (basic_size == frame::payload_size_code_16bit &&
-            payload_size <= frame::limits::payload_size_basic)
-        {
+        if (basic_size == frame::payload_size_code_16bit && payload_size <= frame::limits::payload_size_basic) {
             return make_error_code(error::non_minimal_encoding);
         }
 
-        if (basic_size == frame::payload_size_code_64bit &&
-            payload_size <= frame::limits::payload_size_extended)
-        {
+        if (basic_size == frame::payload_size_code_64bit && payload_size <= frame::limits::payload_size_extended) {
             return make_error_code(error::non_minimal_encoding);
         }
 
@@ -958,10 +993,10 @@ protected:
      * @param [out] o The output string.
      * @param [in] key The masking key to use for masking/unmasking
      */
-    void masked_copy (std::string const & i, std::string & o,
-        frame::masking_key_type key) const
+    void
+    masked_copy(std::string const& i, std::string& o, frame::masking_key_type key) const
     {
-        frame::byte_mask(i.begin(),i.end(),o.begin(),key);
+        frame::byte_mask(i.begin(), i.end(), o.begin(), key);
         // TODO: SIMD masking
     }
 
@@ -974,8 +1009,8 @@ protected:
      * @param out The message buffer to store the prepared frame in
      * @return Status code, zero on success, non-zero on error
      */
-    lib::error_code prepare_control(frame::opcode::value op,
-        std::string const & payload, message_ptr out) const
+    lib::error_code
+    prepare_control(frame::opcode::value op, std::string const& payload, message_ptr out) const
     {
         if (!out) {
             return make_error_code(error::invalid_arguments);
@@ -992,51 +1027,53 @@ protected:
         frame::masking_key_type key;
         bool masked = !base::m_server;
 
-        frame::basic_header h(op,payload.size(),true,masked);
+        frame::basic_header h(op, payload.size(), true, masked);
 
-        std::string & o = out->get_raw_payload();
+        std::string& o = out->get_raw_payload();
         o.resize(payload.size());
 
         if (masked) {
             // Generate masking key.
             key.i = m_rng();
 
-            frame::extended_header e(payload.size(),key.i);
-            out->set_header(frame::prepare_header(h,e));
-            this->masked_copy(payload,o,key);
-        } else {
-            frame::extended_header e(payload.size());
-            out->set_header(frame::prepare_header(h,e));
-            std::copy(payload.begin(),payload.end(),o.begin());
+            frame::extended_header e(payload.size(), key.i);
+            out->set_header(frame::prepare_header(h, e));
+            this->masked_copy(payload, o, key);
         }
-    
+        else {
+            frame::extended_header e(payload.size());
+            out->set_header(frame::prepare_header(h, e));
+            std::copy(payload.begin(), payload.end(), o.begin());
+        }
+
         out->set_opcode(op);
         out->set_prepared(true);
 
         return lib::error_code();
     }
 
-    enum state {
-        HEADER_BASIC = 0,
-        HEADER_EXTENDED = 1,
-        EXTENSION = 2,
-        APPLICATION = 3,
-        READY = 4,
-        FATAL_ERROR = 5
-    };
+    enum state { HEADER_BASIC = 0, HEADER_EXTENDED = 1, EXTENSION = 2, APPLICATION = 3, READY = 4, FATAL_ERROR = 5 };
 
     /// This data structure holds data related to processing a message, such as
     /// the buffer it is being written to, its masking key, its UTF8 validation
     /// state, and sometimes its compression state.
     struct msg_metadata {
-        msg_metadata() {}
-        msg_metadata(message_ptr m, size_t p) : msg_ptr(m),prepared_key(p) {}
+        msg_metadata()
+        {
+        }
+        msg_metadata(message_ptr m, size_t p)
+          : msg_ptr(m)
+          , prepared_key(p)
+        {
+        }
         msg_metadata(message_ptr m, frame::masking_key_type p)
           : msg_ptr(m)
-          , prepared_key(prepare_masking_key(p)) {}
+          , prepared_key(prepare_masking_key(p))
+        {
+        }
 
-        message_ptr msg_ptr;        // pointer to the message data buffer
-        size_t      prepared_key;   // prepared masking key
+        message_ptr msg_ptr;                 // pointer to the message data buffer
+        size_t prepared_key;                 // prepared masking key
         utf8_validator::validator validator; // utf8 validation state
     };
 
@@ -1058,12 +1095,12 @@ protected:
     msg_metadata m_control_msg;
 
     // Pointer to the metadata associated with the frame being read
-    msg_metadata * m_current_msg;
+    msg_metadata* m_current_msg;
 
     // Extended header of current frame
     frame::extended_header m_extended_header;
 
-    rng_type & m_rng;
+    rng_type& m_rng;
 
     // Overall state of the processor
     state m_state;
@@ -1075,4 +1112,4 @@ protected:
 } // namespace processor
 } // namespace websocketpp
 
-#endif //WEBSOCKETPP_PROCESSOR_HYBI13_HPP
+#endif // WEBSOCKETPP_PROCESSOR_HYBI13_HPP

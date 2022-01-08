@@ -34,92 +34,92 @@ namespace tests {
 
 RibIoFixture::RibIoFixture()
 {
-  std::mutex m;
-  std::condition_variable cv;
+    std::mutex m;
+    std::condition_variable cv;
 
-  g_mainIo = &getGlobalIoService();
-  setMainIoService(g_mainIo);
+    g_mainIo = &getGlobalIoService();
+    setMainIoService(g_mainIo);
 
-  g_ribThread = std::thread([&] {
+    g_ribThread = std::thread([&] {
+        {
+            std::lock_guard<std::mutex> lock(m);
+            g_ribIo = &getGlobalIoService();
+            setRibIoService(g_ribIo);
+            BOOST_ASSERT(&g_io != g_ribIo);
+            BOOST_ASSERT(g_ribIo == &getRibIoService());
+        }
+        cv.notify_all();
+
+        try {
+            while (true) {
+                {
+                    std::unique_lock<std::mutex> lock(m_ribPollMutex);
+                    m_ribPollStartCv.wait(lock, [this] { return m_shouldStopRibIo || m_shouldPollRibIo; });
+                    if (m_shouldStopRibIo) {
+                        break;
+                    }
+                    BOOST_ASSERT(m_shouldPollRibIo);
+                }
+
+                if (g_ribIo->stopped()) {
+                    g_ribIo->reset();
+                }
+                while (g_ribIo->poll() > 0)
+                    ;
+
+                {
+                    std::lock_guard<std::mutex> lock(m_ribPollMutex);
+                    m_shouldPollRibIo = false;
+                }
+                m_ribPollEndCv.notify_all();
+            }
+        }
+        catch (...) {
+            BOOST_WARN_MESSAGE(false, boost::current_exception_diagnostic_information());
+            NDN_THROW_NESTED(std::runtime_error("Fatal exception in RIB thread"));
+        }
+    });
+
     {
-      std::lock_guard<std::mutex> lock(m);
-      g_ribIo = &getGlobalIoService();
-      setRibIoService(g_ribIo);
-      BOOST_ASSERT(&g_io != g_ribIo);
-      BOOST_ASSERT(g_ribIo == &getRibIoService());
+        std::unique_lock<std::mutex> lock(m);
+        cv.wait(lock, [this] { return g_ribIo != nullptr; });
     }
-    cv.notify_all();
-
-    try {
-      while (true) {
-        {
-          std::unique_lock<std::mutex> lock(m_ribPollMutex);
-          m_ribPollStartCv.wait(lock, [this] { return m_shouldStopRibIo || m_shouldPollRibIo; });
-          if (m_shouldStopRibIo) {
-            break;
-          }
-          BOOST_ASSERT(m_shouldPollRibIo);
-        }
-
-        if (g_ribIo->stopped()) {
-          g_ribIo->reset();
-        }
-        while (g_ribIo->poll() > 0)
-          ;
-
-        {
-          std::lock_guard<std::mutex> lock(m_ribPollMutex);
-          m_shouldPollRibIo = false;
-        }
-        m_ribPollEndCv.notify_all();
-      }
-    }
-    catch (...) {
-      BOOST_WARN_MESSAGE(false, boost::current_exception_diagnostic_information());
-      NDN_THROW_NESTED(std::runtime_error("Fatal exception in RIB thread"));
-    }
-  });
-
-  {
-    std::unique_lock<std::mutex> lock(m);
-    cv.wait(lock, [this] { return g_ribIo != nullptr; });
-  }
 }
 
 RibIoFixture::~RibIoFixture()
 {
-  {
-    std::lock_guard<std::mutex> lock(m_ribPollMutex);
-    m_shouldStopRibIo = true;
-  }
-  m_ribPollStartCv.notify_all();
-  g_ribThread.join();
+    {
+        std::lock_guard<std::mutex> lock(m_ribPollMutex);
+        m_shouldStopRibIo = true;
+    }
+    m_ribPollStartCv.notify_all();
+    g_ribThread.join();
 }
 
 void
 RibIoFixture::poll()
 {
-  BOOST_ASSERT(&getGlobalIoService() == &g_io);
+    BOOST_ASSERT(&getGlobalIoService() == &g_io);
 
-  size_t nHandlersRun = 0;
-  do {
-    {
-      std::lock_guard<std::mutex> lock(m_ribPollMutex);
-      m_shouldPollRibIo = true;
-    }
-    m_ribPollStartCv.notify_all();
+    size_t nHandlersRun = 0;
+    do {
+        {
+            std::lock_guard<std::mutex> lock(m_ribPollMutex);
+            m_shouldPollRibIo = true;
+        }
+        m_ribPollStartCv.notify_all();
 
-    if (g_io.stopped()) {
-      g_io.reset();
-    }
+        if (g_io.stopped()) {
+            g_io.reset();
+        }
 
-    nHandlersRun = g_io.poll();
+        nHandlersRun = g_io.poll();
 
-    {
-      std::unique_lock<std::mutex> lock(m_ribPollMutex);
-      m_ribPollEndCv.wait(lock, [this] { return !m_shouldPollRibIo; });
-    }
-  } while (nHandlersRun > 0);
+        {
+            std::unique_lock<std::mutex> lock(m_ribPollMutex);
+            m_ribPollEndCv.wait(lock, [this] { return !m_shouldPollRibIo; });
+        }
+    } while (nHandlersRun > 0);
 }
 
 RibIoTimeFixture::RibIoTimeFixture()
@@ -130,7 +130,7 @@ RibIoTimeFixture::RibIoTimeFixture()
 void
 RibIoTimeFixture::pollAfterClockTick()
 {
-  poll();
+    poll();
 }
 
 } // namespace tests

@@ -32,39 +32,34 @@ namespace transform {
 /**
  * @brief The module to calculate digest.
  */
-class DigestFilter : public Transform
-{
-public:
-  /**
-   * @brief Create a digest module with algorithm @p algo
-   */
-  explicit
-  DigestFilter(DigestAlgorithm algo);
+class DigestFilter : public Transform {
+  public:
+    /**
+     * @brief Create a digest module with algorithm @p algo
+     */
+    explicit DigestFilter(DigestAlgorithm algo);
 
-  ~DigestFilter();
+    ~DigestFilter();
 
-private:
-  /**
-   * @brief Append data @p buf into digest calculation
-   *
-   * @return The number of bytes that have been accepted
-   */
-  size_t
-  convert(const uint8_t* buf, size_t size) final;
+  private:
+    /**
+     * @brief Append data @p buf into digest calculation
+     *
+     * @return The number of bytes that have been accepted
+     */
+    size_t convert(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize digest calculation and write the digest into next module.
-   */
-  void
-  finalize() final;
+    /**
+     * @brief Finalize digest calculation and write the digest into next module.
+     */
+    void finalize() final;
 
-private:
-  class Impl;
-  const unique_ptr<Impl> m_impl;
+  private:
+    class Impl;
+    const unique_ptr<Impl> m_impl;
 };
 
-unique_ptr<Transform>
-digestFilter(DigestAlgorithm algo);
+unique_ptr<Transform> digestFilter(DigestAlgorithm algo);
 
 } // namespace transform
 } // namespace security

@@ -40,73 +40,73 @@ namespace tests {
 KeyChainFixture::KeyChainFixture()
   : m_keyChain("pib-memory:", "tpm-memory:")
 {
-  m_keyChain.createIdentity("/DEFAULT");
+    m_keyChain.createIdentity("/DEFAULT");
 }
 
 KeyChainFixture::~KeyChainFixture()
 {
-  boost::system::error_code ec;
-  for (const auto& certFile : m_certFiles) {
-    boost::filesystem::remove(certFile, ec); // ignore error
-  }
+    boost::system::error_code ec;
+    for (const auto& certFile : m_certFiles) {
+        boost::filesystem::remove(certFile, ec); // ignore error
+    }
 }
 
 bool
 KeyChainFixture::addIdentity(const Name& identity, const ndn::KeyParams& params)
 {
-  try {
-    m_keyChain.createIdentity(identity, params);
-    return true;
-  }
-  catch (const std::runtime_error&) {
-    return false;
-  }
+    try {
+        m_keyChain.createIdentity(identity, params);
+        return true;
+    }
+    catch (const std::runtime_error&) {
+        return false;
+    }
 }
 
 bool
 KeyChainFixture::saveIdentityCertificate(const Name& identity, const std::string& filename, bool allowAdd)
 {
-  ndn::security::v2::Certificate cert;
-  try {
-    cert = m_keyChain.getPib().getIdentity(identity).getDefaultKey().getDefaultCertificate();
-  }
-  catch (const ndn::security::Pib::Error&) {
-    if (allowAdd && addIdentity(identity)) {
-      return saveIdentityCertificate(identity, filename, false);
+    ndn::security::v2::Certificate cert;
+    try {
+        cert = m_keyChain.getPib().getIdentity(identity).getDefaultKey().getDefaultCertificate();
     }
-    return false;
-  }
+    catch (const ndn::security::Pib::Error&) {
+        if (allowAdd && addIdentity(identity)) {
+            return saveIdentityCertificate(identity, filename, false);
+        }
+        return false;
+    }
 
-  m_certFiles.push_back(filename);
-  try {
-    ndn::io::save(cert, filename);
-    return true;
-  }
-  catch (const ndn::io::Error&) {
-    return false;
-  }
+    m_certFiles.push_back(filename);
+    try {
+        ndn::io::save(cert, filename);
+        return true;
+    }
+    catch (const ndn::io::Error&) {
+        return false;
+    }
 }
 
 std::string
 KeyChainFixture::getIdentityCertificateBase64(const Name& identity, bool allowAdd)
 {
-  ndn::security::v2::Certificate cert;
-  try {
-    cert = m_keyChain.getPib().getIdentity(identity).getDefaultKey().getDefaultCertificate();
-  }
-  catch (const ndn::security::Pib::Error&) {
-    if (!allowAdd) {
-      NDN_THROW_NESTED(std::runtime_error("Identity does not exist"));
+    ndn::security::v2::Certificate cert;
+    try {
+        cert = m_keyChain.getPib().getIdentity(identity).getDefaultKey().getDefaultCertificate();
     }
-    cert = m_keyChain.createIdentity(identity).getDefaultKey().getDefaultCertificate();
-  }
+    catch (const ndn::security::Pib::Error&) {
+        if (!allowAdd) {
+            NDN_THROW_NESTED(std::runtime_error("Identity does not exist"));
+        }
+        cert = m_keyChain.createIdentity(identity).getDefaultKey().getDefaultCertificate();
+    }
 
-  const auto& block = cert.wireEncode();
+    const auto& block = cert.wireEncode();
 
-  namespace tr = ndn::security::transform;
-  std::ostringstream oss;
-  tr::bufferSource(block.wire(), block.size()) >> tr::base64Encode(false) >> tr::streamSink(oss);
-  return oss.str();
+    namespace tr = ndn::security::transform;
+    std::ostringstream oss;
+    tr::bufferSource(block.wire(), block.size()) >> tr::base64Encode(false) >> tr::streamSink(oss);
+    return oss.str();
 }
 
 } // namespace tests

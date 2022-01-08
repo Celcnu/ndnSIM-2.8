@@ -37,32 +37,32 @@ namespace ns3 {
 int
 main(int argc, char* argv[])
 {
-  // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
-  CommandLine cmd;
-  cmd.Parse(argc, argv);
+    // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
+    CommandLine cmd;
+    cmd.Parse(argc, argv);
 
-  // Creating nodes
-  Ptr<Node> node = CreateObject<Node>();
+    // Creating nodes
+    Ptr<Node> node = CreateObject<Node>();
 
-  // Install NDN stack on all nodes
-  ndn::StackHelper ndnHelper;
-  ndnHelper.SetDefaultRoutes(true);
-  ndnHelper.InstallAll();
+    // Install NDN stack on all nodes
+    ndn::StackHelper ndnHelper;
+    ndnHelper.SetDefaultRoutes(true);
+    ndnHelper.InstallAll();
 
-  // App1
-  ndn::AppHelper app1("CustomApp");
-  app1.Install(node);
+    // App1
+    ndn::AppHelper app1("CustomApp");
+    app1.Install(node);
 
-  // App2
-  ndn::AppHelper app2("Hijacker");
-  app2.Install(node); // last node
+    // App2
+    ndn::AppHelper app2("Hijacker");
+    app2.Install(node); // last node
 
-  Simulator::Stop(Seconds(20.0));
+    Simulator::Stop(Seconds(20.0));
 
-  Simulator::Run();
-  Simulator::Destroy();
+    Simulator::Run();
+    Simulator::Destroy();
 
-  return 0;
+    return 0;
 }
 
 } // namespace ns3
@@ -70,5 +70,5 @@ main(int argc, char* argv[])
 int
 main(int argc, char* argv[])
 {
-  return ns3::main(argc, argv);
+    return ns3::main(argc, argv);
 }

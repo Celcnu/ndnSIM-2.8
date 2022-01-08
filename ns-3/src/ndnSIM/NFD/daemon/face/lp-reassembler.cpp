@@ -43,128 +43,128 @@ LpReassembler::LpReassembler(const LpReassembler::Options& options, const LinkSe
 std::tuple<bool, Block, lp::Packet>
 LpReassembler::receiveFragment(EndpointId remoteEndpoint, const lp::Packet& packet)
 {
-  BOOST_ASSERT(packet.has<lp::FragmentField>());
+    BOOST_ASSERT(packet.has<lp::FragmentField>());
 
-  static auto FALSE_RETURN = std::make_tuple(false, Block(), lp::Packet());
+    static auto FALSE_RETURN = std::make_tuple(false, Block(), lp::Packet());
 
-  // read and check FragIndex and FragCount
-  uint64_t fragIndex = 0;
-  uint64_t fragCount = 1;
-  if (packet.has<lp::FragIndexField>()) {
-    fragIndex = packet.get<lp::FragIndexField>();
-  }
-  if (packet.has<lp::FragCountField>()) {
-    fragCount = packet.get<lp::FragCountField>();
-  }
-
-  if (fragIndex >= fragCount) {
-    NFD_LOG_FACE_WARN("reassembly error, FragIndex>=FragCount: DROP");
-    return FALSE_RETURN;
-  }
-
-  if (fragCount > m_options.nMaxFragments) {
-    NFD_LOG_FACE_WARN("reassembly error, FragCount over limit: DROP");
-    return FALSE_RETURN;
-  }
-
-  // check for fast path
-  if (fragIndex == 0 && fragCount == 1) {
-    ndn::Buffer::const_iterator fragBegin, fragEnd;
-    std::tie(fragBegin, fragEnd) = packet.get<lp::FragmentField>();
-    Block netPkt(&*fragBegin, std::distance(fragBegin, fragEnd));
-    return std::make_tuple(true, netPkt, packet);
-  }
-
-  // check Sequence and compute message identifier
-  if (!packet.has<lp::SequenceField>()) {
-    NFD_LOG_FACE_WARN("reassembly error, Sequence missing: DROP");
-    return FALSE_RETURN;
-  }
-  lp::Sequence messageIdentifier = packet.get<lp::SequenceField>() - fragIndex;
-  Key key = std::make_tuple(remoteEndpoint, messageIdentifier);
-
-  // add to PartialPacket
-  PartialPacket& pp = m_partialPackets[key];
-  if (pp.fragCount == 0) { // new PartialPacket
-    pp.fragCount = fragCount;
-    pp.nReceivedFragments = 0;
-    pp.fragments.resize(fragCount);
-  }
-  else {
-    if (fragCount != pp.fragCount) {
-      NFD_LOG_FACE_WARN("reassembly error, FragCount changed: DROP");
-      return FALSE_RETURN;
+    // read and check FragIndex and FragCount
+    uint64_t fragIndex = 0;
+    uint64_t fragCount = 1;
+    if (packet.has<lp::FragIndexField>()) {
+        fragIndex = packet.get<lp::FragIndexField>();
     }
-  }
+    if (packet.has<lp::FragCountField>()) {
+        fragCount = packet.get<lp::FragCountField>();
+    }
 
-  if (pp.fragments[fragIndex].has<lp::SequenceField>()) {
-    NFD_LOG_FACE_TRACE("fragment already received: DROP");
+    if (fragIndex >= fragCount) {
+        NFD_LOG_FACE_WARN("reassembly error, FragIndex>=FragCount: DROP");
+        return FALSE_RETURN;
+    }
+
+    if (fragCount > m_options.nMaxFragments) {
+        NFD_LOG_FACE_WARN("reassembly error, FragCount over limit: DROP");
+        return FALSE_RETURN;
+    }
+
+    // check for fast path
+    if (fragIndex == 0 && fragCount == 1) {
+        ndn::Buffer::const_iterator fragBegin, fragEnd;
+        std::tie(fragBegin, fragEnd) = packet.get<lp::FragmentField>();
+        Block netPkt(&*fragBegin, std::distance(fragBegin, fragEnd));
+        return std::make_tuple(true, netPkt, packet);
+    }
+
+    // check Sequence and compute message identifier
+    if (!packet.has<lp::SequenceField>()) {
+        NFD_LOG_FACE_WARN("reassembly error, Sequence missing: DROP");
+        return FALSE_RETURN;
+    }
+    lp::Sequence messageIdentifier = packet.get<lp::SequenceField>() - fragIndex;
+    Key key = std::make_tuple(remoteEndpoint, messageIdentifier);
+
+    // add to PartialPacket
+    PartialPacket& pp = m_partialPackets[key];
+    if (pp.fragCount == 0) { // new PartialPacket
+        pp.fragCount = fragCount;
+        pp.nReceivedFragments = 0;
+        pp.fragments.resize(fragCount);
+    }
+    else {
+        if (fragCount != pp.fragCount) {
+            NFD_LOG_FACE_WARN("reassembly error, FragCount changed: DROP");
+            return FALSE_RETURN;
+        }
+    }
+
+    if (pp.fragments[fragIndex].has<lp::SequenceField>()) {
+        NFD_LOG_FACE_TRACE("fragment already received: DROP");
+        return FALSE_RETURN;
+    }
+
+    pp.fragments[fragIndex] = packet;
+    ++pp.nReceivedFragments;
+
+    // check complete condition
+    if (pp.nReceivedFragments == pp.fragCount) {
+        Block reassembled = doReassembly(key);
+        lp::Packet firstFrag(std::move(pp.fragments[0]));
+        m_partialPackets.erase(key);
+        return std::make_tuple(true, reassembled, firstFrag);
+    }
+
+    // set drop timer
+    pp.dropTimer = getScheduler().schedule(m_options.reassemblyTimeout, [=] { timeoutPartialPacket(key); });
+
     return FALSE_RETURN;
-  }
-
-  pp.fragments[fragIndex] = packet;
-  ++pp.nReceivedFragments;
-
-  // check complete condition
-  if (pp.nReceivedFragments == pp.fragCount) {
-    Block reassembled = doReassembly(key);
-    lp::Packet firstFrag(std::move(pp.fragments[0]));
-    m_partialPackets.erase(key);
-    return std::make_tuple(true, reassembled, firstFrag);
-  }
-
-  // set drop timer
-  pp.dropTimer = getScheduler().schedule(m_options.reassemblyTimeout, [=] { timeoutPartialPacket(key); });
-
-  return FALSE_RETURN;
 }
 
 Block
 LpReassembler::doReassembly(const Key& key)
 {
-  PartialPacket& pp = m_partialPackets[key];
+    PartialPacket& pp = m_partialPackets[key];
 
-  size_t payloadSize = std::accumulate(pp.fragments.begin(), pp.fragments.end(), 0U,
-    [&] (size_t sum, const lp::Packet& pkt) -> size_t {
-      ndn::Buffer::const_iterator fragBegin, fragEnd;
-      std::tie(fragBegin, fragEnd) = pkt.get<lp::FragmentField>();
-      return sum + std::distance(fragBegin, fragEnd);
-    });
+    size_t payloadSize =
+      std::accumulate(pp.fragments.begin(), pp.fragments.end(), 0U, [&](size_t sum, const lp::Packet& pkt) -> size_t {
+          ndn::Buffer::const_iterator fragBegin, fragEnd;
+          std::tie(fragBegin, fragEnd) = pkt.get<lp::FragmentField>();
+          return sum + std::distance(fragBegin, fragEnd);
+      });
 
-  ndn::Buffer fragBuffer(payloadSize);
-  auto it = fragBuffer.begin();
+    ndn::Buffer fragBuffer(payloadSize);
+    auto it = fragBuffer.begin();
 
-  for (const lp::Packet& frag : pp.fragments) {
-    ndn::Buffer::const_iterator fragBegin, fragEnd;
-    std::tie(fragBegin, fragEnd) = frag.get<lp::FragmentField>();
-    it = std::copy(fragBegin, fragEnd, it);
-  }
+    for (const lp::Packet& frag : pp.fragments) {
+        ndn::Buffer::const_iterator fragBegin, fragEnd;
+        std::tie(fragBegin, fragEnd) = frag.get<lp::FragmentField>();
+        it = std::copy(fragBegin, fragEnd, it);
+    }
 
-  return Block(&*(fragBuffer.cbegin()), std::distance(fragBuffer.cbegin(), fragBuffer.cend()));
+    return Block(&*(fragBuffer.cbegin()), std::distance(fragBuffer.cbegin(), fragBuffer.cend()));
 }
 
 void
 LpReassembler::timeoutPartialPacket(const Key& key)
 {
-  auto it = m_partialPackets.find(key);
-  if (it == m_partialPackets.end()) {
-    return;
-  }
+    auto it = m_partialPackets.find(key);
+    if (it == m_partialPackets.end()) {
+        return;
+    }
 
-  this->beforeTimeout(std::get<0>(key), it->second.nReceivedFragments);
-  m_partialPackets.erase(it);
+    this->beforeTimeout(std::get<0>(key), it->second.nReceivedFragments);
+    m_partialPackets.erase(it);
 }
 
 std::ostream&
 operator<<(std::ostream& os, const FaceLogHelper<LpReassembler>& flh)
 {
-  if (flh.obj.getLinkService() == nullptr) {
-    os << "[id=0,local=unknown,remote=unknown] ";
-  }
-  else {
-    os << FaceLogHelper<LinkService>(*flh.obj.getLinkService());
-  }
-  return os;
+    if (flh.obj.getLinkService() == nullptr) {
+        os << "[id=0,local=unknown,remote=unknown] ";
+    }
+    else {
+        os << FaceLogHelper<LinkService>(*flh.obj.getLinkService());
+    }
+    return os;
 }
 
 } // namespace face

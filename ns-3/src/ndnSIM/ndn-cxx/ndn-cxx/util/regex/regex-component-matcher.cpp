@@ -26,54 +26,53 @@
 
 namespace ndn {
 
-RegexComponentMatcher::RegexComponentMatcher(const std::string& expr,
-                                             shared_ptr<RegexBackrefManager> backrefManager,
+RegexComponentMatcher::RegexComponentMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager,
                                              bool isExactMatch)
   : RegexMatcher(expr, EXPR_COMPONENT, std::move(backrefManager))
   , m_isExactMatch(isExactMatch)
 {
-  compile();
+    compile();
 }
 
 void
 RegexComponentMatcher::compile()
 {
-  m_componentRegex.assign(m_expr);
+    m_componentRegex.assign(m_expr);
 
-  m_pseudoMatchers.clear();
-  m_pseudoMatchers.push_back(make_shared<RegexPseudoMatcher>());
-
-  for (size_t i = 1; i <= m_componentRegex.mark_count(); i++) {
+    m_pseudoMatchers.clear();
     m_pseudoMatchers.push_back(make_shared<RegexPseudoMatcher>());
-    m_backrefManager->pushRef(m_pseudoMatchers.back());
-  }
+
+    for (size_t i = 1; i <= m_componentRegex.mark_count(); i++) {
+        m_pseudoMatchers.push_back(make_shared<RegexPseudoMatcher>());
+        m_backrefManager->pushRef(m_pseudoMatchers.back());
+    }
 }
 
 bool
 RegexComponentMatcher::match(const Name& name, size_t offset, size_t len)
 {
-  m_matchResult.clear();
+    m_matchResult.clear();
 
-  if (m_expr.empty()) {
-    m_matchResult.push_back(name.get(offset));
-    return true;
-  }
-
-  if (!m_isExactMatch)
-    NDN_THROW(Error("Non-exact component search is not supported yet"));
-
-  std::smatch subResult;
-  std::string targetStr = name.get(offset).toUri();
-  if (std::regex_match(targetStr, subResult, m_componentRegex)) {
-    for (size_t i = 1; i <= m_componentRegex.mark_count(); i++) {
-      m_pseudoMatchers[i]->resetMatchResult();
-      m_pseudoMatchers[i]->setMatchResult(subResult[i]);
+    if (m_expr.empty()) {
+        m_matchResult.push_back(name.get(offset));
+        return true;
     }
-    m_matchResult.push_back(name.get(offset));
-    return true;
-  }
 
-  return false;
+    if (!m_isExactMatch)
+        NDN_THROW(Error("Non-exact component search is not supported yet"));
+
+    std::smatch subResult;
+    std::string targetStr = name.get(offset).toUri();
+    if (std::regex_match(targetStr, subResult, m_componentRegex)) {
+        for (size_t i = 1; i <= m_componentRegex.mark_count(); i++) {
+            m_pseudoMatchers[i]->resetMatchResult();
+            m_pseudoMatchers[i]->setMatchResult(subResult[i]);
+        }
+        m_matchResult.push_back(name.get(offset));
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace ndn

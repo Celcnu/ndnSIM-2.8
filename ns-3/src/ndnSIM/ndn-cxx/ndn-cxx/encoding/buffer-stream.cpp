@@ -32,8 +32,8 @@ BufferAppendDevice::BufferAppendDevice(Buffer& container)
 std::streamsize
 BufferAppendDevice::write(const char_type* s, std::streamsize n)
 {
-  m_container.insert(m_container.end(), s, s + n);
-  return n;
+    m_container.insert(m_container.end(), s, s + n);
+    return n;
 }
 
 } // namespace detail
@@ -42,19 +42,19 @@ OBufferStream::OBufferStream()
   : m_buffer(make_shared<Buffer>())
   , m_device(*m_buffer)
 {
-  open(m_device);
+    open(m_device);
 }
 
 OBufferStream::~OBufferStream()
 {
-  close();
+    close();
 }
 
 shared_ptr<Buffer>
 OBufferStream::buf()
 {
-  flush();
-  return m_buffer;
+    flush();
+    return m_buffer;
 }
 
 } // namespace ndn

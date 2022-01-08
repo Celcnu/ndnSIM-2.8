@@ -35,180 +35,171 @@ namespace nfdc {
 /** \brief indicates argument value type
  */
 enum class ArgValueType {
-  /** \brief boolean argument without value
-   *
-   *  The argument appears in CommandArguments as bool value 'true'.
-   *  It must not be declared as positional.
-   */
-  NONE,
+    /** \brief boolean argument without value
+     *
+     *  The argument appears in CommandArguments as bool value 'true'.
+     *  It must not be declared as positional.
+     */
+    NONE,
 
-  /** \brief any arguments
-   *
-   *  The argument appears in CommandArguments as std::vector<std::string>.
-   *  It must be declared as positional, and will consume all subsequent tokens.
-   */
-  ANY,
+    /** \brief any arguments
+     *
+     *  The argument appears in CommandArguments as std::vector<std::string>.
+     *  It must be declared as positional, and will consume all subsequent tokens.
+     */
+    ANY,
 
-  /** \brief boolean
-   *
-   * The argument appears in CommandArguments as bool.
-   */
-  BOOLEAN,
+    /** \brief boolean
+     *
+     * The argument appears in CommandArguments as bool.
+     */
+    BOOLEAN,
 
-  /** \brief non-negative integer
-   *
-   *  The argument appears in CommandArguments as uint64_t.
-   *  Acceptable input range is [0, std::numeric_limits<int64_t>::max()].
-   */
-  UNSIGNED,
+    /** \brief non-negative integer
+     *
+     *  The argument appears in CommandArguments as uint64_t.
+     *  Acceptable input range is [0, std::numeric_limits<int64_t>::max()].
+     */
+    UNSIGNED,
 
-  /** \brief arbitrary string
-   *
-   *  The argument appears in CommandArguments as std::string.
-   */
-  STRING,
+    /** \brief arbitrary string
+     *
+     *  The argument appears in CommandArguments as std::string.
+     */
+    STRING,
 
-  /** \brief report format 'xml' or 'text'
-   *
-   *  The argument appears in CommandArguments as nfd::tools::nfdc::ReportFormat.
-   */
-  REPORT_FORMAT,
+    /** \brief report format 'xml' or 'text'
+     *
+     *  The argument appears in CommandArguments as nfd::tools::nfdc::ReportFormat.
+     */
+    REPORT_FORMAT,
 
-  /** \brief Name prefix
-   *
-   *  The argument appears in CommandArguments as ndn::Name.
-   */
-  NAME,
+    /** \brief Name prefix
+     *
+     *  The argument appears in CommandArguments as ndn::Name.
+     */
+    NAME,
 
-  /** \brief FaceUri
-   *
-   *  The argument appears in CommandArguments as ndn::FaceUri.
-   */
-  FACE_URI,
+    /** \brief FaceUri
+     *
+     *  The argument appears in CommandArguments as ndn::FaceUri.
+     */
+    FACE_URI,
 
-  /** \brief FaceId or FaceUri
-   *
-   *  The argument appears in CommandArguments as either uint64_t or ndn::FaceUri.
-   */
-  FACE_ID_OR_URI,
+    /** \brief FaceId or FaceUri
+     *
+     *  The argument appears in CommandArguments as either uint64_t or ndn::FaceUri.
+     */
+    FACE_ID_OR_URI,
 
-  /** \brief face persistency 'persistent' or 'permanent'
-   *
-   *  The argument appears in CommandArguments as ndn::nfd::FacePersistency.
-   */
-  FACE_PERSISTENCY,
+    /** \brief face persistency 'persistent' or 'permanent'
+     *
+     *  The argument appears in CommandArguments as ndn::nfd::FacePersistency.
+     */
+    FACE_PERSISTENCY,
 
-  /** \brief route origin
-   *
-   *  The argument appears in CommandArguments as ndn::nfd::RouteOrigin.
-   */
-  ROUTE_ORIGIN,
+    /** \brief route origin
+     *
+     *  The argument appears in CommandArguments as ndn::nfd::RouteOrigin.
+     */
+    ROUTE_ORIGIN,
 };
 
-std::ostream&
-operator<<(std::ostream& os, ArgValueType vt);
+std::ostream& operator<<(std::ostream& os, ArgValueType vt);
 
 /** \brief indicates whether an argument is required
  */
 enum class Required {
-  NO = false, ///< argument is optional
-  YES = true  ///< argument is required
+    NO = false, ///< argument is optional
+    YES = true  ///< argument is required
 };
 
 /** \brief indicates whether an argument can be specified as positional
  */
 enum class Positional {
-  NO = false, ///< argument must be named
-  YES = true  ///< argument can be specified as positional
+    NO = false, ///< argument must be named
+    YES = true  ///< argument can be specified as positional
 };
 
 /** \brief declares semantics of a command
  */
-class CommandDefinition
-{
-public:
-  class Error : public std::invalid_argument
-  {
+class CommandDefinition {
   public:
-    using std::invalid_argument::invalid_argument;
-  };
+    class Error : public std::invalid_argument {
+      public:
+        using std::invalid_argument::invalid_argument;
+    };
 
-  CommandDefinition(const std::string& noun, const std::string& verb);
+    CommandDefinition(const std::string& noun, const std::string& verb);
 
-  ~CommandDefinition();
+    ~CommandDefinition();
 
-  const std::string
-  getNoun() const
-  {
-    return m_noun;
-  }
+    const std::string
+    getNoun() const
+    {
+        return m_noun;
+    }
 
-  const std::string
-  getVerb() const
-  {
-    return m_verb;
-  }
+    const std::string
+    getVerb() const
+    {
+        return m_verb;
+    }
 
-public: // help
-  /** \return one-line description
-   */
-  const std::string&
-  getTitle() const
-  {
-    return m_title;
-  }
+  public: // help
+    /** \return one-line description
+     */
+    const std::string&
+    getTitle() const
+    {
+        return m_title;
+    }
 
-  /** \brief set one-line description
-   *  \param title one-line description, written in lower case
-   */
-  CommandDefinition&
-  setTitle(const std::string& title)
-  {
-    m_title = title;
-    return *this;
-  }
+    /** \brief set one-line description
+     *  \param title one-line description, written in lower case
+     */
+    CommandDefinition&
+    setTitle(const std::string& title)
+    {
+        m_title = title;
+        return *this;
+    }
 
-public: // arguments
-  /** \brief declare an argument
-   *  \param name argument name, must be unique
-   *  \param valueType argument value type
-   *  \param isRequired whether the argument is required
-   *  \param allowPositional whether the argument value can be specified as positional
-   *  \param metavar displayed argument value placeholder
-   */
-  CommandDefinition&
-  addArg(const std::string& name, ArgValueType valueType,
-         Required isRequired = Required::NO,
-         Positional allowPositional = Positional::NO,
-         const std::string& metavar = "");
+  public: // arguments
+    /** \brief declare an argument
+     *  \param name argument name, must be unique
+     *  \param valueType argument value type
+     *  \param isRequired whether the argument is required
+     *  \param allowPositional whether the argument value can be specified as positional
+     *  \param metavar displayed argument value placeholder
+     */
+    CommandDefinition& addArg(const std::string& name, ArgValueType valueType, Required isRequired = Required::NO,
+                              Positional allowPositional = Positional::NO, const std::string& metavar = "");
 
-  /** \brief parse a command line
-   *  \param tokens command line tokens
-   *  \param start command line start position, after noun and verb
-   *  \throw Error command line is invalid
-   */
-  CommandArguments
-  parse(const std::vector<std::string>& tokens, size_t start = 0) const;
+    /** \brief parse a command line
+     *  \param tokens command line tokens
+     *  \param start command line start position, after noun and verb
+     *  \throw Error command line is invalid
+     */
+    CommandArguments parse(const std::vector<std::string>& tokens, size_t start = 0) const;
 
-private:
-  ndn::any
-  parseValue(ArgValueType valueType, const std::string& token) const;
+  private:
+    ndn::any parseValue(ArgValueType valueType, const std::string& token) const;
 
-private:
-  std::string m_noun;
-  std::string m_verb;
-  std::string m_title;
+  private:
+    std::string m_noun;
+    std::string m_verb;
+    std::string m_title;
 
-  struct Arg
-  {
-    std::string name;
-    ArgValueType valueType;
-    bool isRequired;
-    std::string metavar;
-  };
-  std::map<std::string, Arg> m_args;
-  std::set<std::string> m_requiredArgs;
-  std::vector<std::string> m_positionalArgs;
+    struct Arg {
+        std::string name;
+        ArgValueType valueType;
+        bool isRequired;
+        std::string metavar;
+    };
+    std::map<std::string, Arg> m_args;
+    std::set<std::string> m_requiredArgs;
+    std::vector<std::string> m_positionalArgs;
 };
 
 } // namespace nfdc

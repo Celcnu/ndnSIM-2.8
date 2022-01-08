@@ -50,8 +50,8 @@ struct stub_config : public websocketpp::config::core {
     typedef core::alog_type alog_type;
     typedef core::elog_type elog_type;
 
-    //typedef core::rng_type rng_type;
-    typedef websocketpp::random::random_device::int_generator<uint32_t,concurrency_type> rng_type;
+    // typedef core::rng_type rng_type;
+    typedef websocketpp::random::random_device::int_generator<uint32_t, concurrency_type> rng_type;
 
     typedef core::transport_type transport_type;
 
@@ -64,38 +64,42 @@ struct stub_config : public websocketpp::config::core {
 typedef websocketpp::client<stub_config> client;
 typedef client::connection_ptr connection_ptr;
 
-BOOST_AUTO_TEST_CASE( invalid_uri ) {
+BOOST_AUTO_TEST_CASE(invalid_uri)
+{
     client c;
     websocketpp::lib::error_code ec;
 
     connection_ptr con = c.get_connection("foo", ec);
 
-    BOOST_CHECK_EQUAL( ec , websocketpp::error::make_error_code(websocketpp::error::invalid_uri) );
+    BOOST_CHECK_EQUAL(ec, websocketpp::error::make_error_code(websocketpp::error::invalid_uri));
 }
 
-BOOST_AUTO_TEST_CASE( unsecure_endpoint ) {
+BOOST_AUTO_TEST_CASE(unsecure_endpoint)
+{
     client c;
     websocketpp::lib::error_code ec;
 
     connection_ptr con = c.get_connection("wss://localhost/", ec);
 
-    BOOST_CHECK_EQUAL( ec , websocketpp::error::make_error_code(websocketpp::error::endpoint_not_secure) );
+    BOOST_CHECK_EQUAL(ec, websocketpp::error::make_error_code(websocketpp::error::endpoint_not_secure));
 }
 
-BOOST_AUTO_TEST_CASE( get_connection ) {
+BOOST_AUTO_TEST_CASE(get_connection)
+{
     client c;
     websocketpp::lib::error_code ec;
 
     connection_ptr con = c.get_connection("ws://localhost/", ec);
 
-    BOOST_CHECK( con );
-    BOOST_CHECK_EQUAL( con->get_host() , "localhost" );
-    BOOST_CHECK_EQUAL( con->get_port() , 80 );
-    BOOST_CHECK_EQUAL( con->get_secure() , false );
-    BOOST_CHECK_EQUAL( con->get_resource() , "/" );
+    BOOST_CHECK(con);
+    BOOST_CHECK_EQUAL(con->get_host(), "localhost");
+    BOOST_CHECK_EQUAL(con->get_port(), 80);
+    BOOST_CHECK_EQUAL(con->get_secure(), false);
+    BOOST_CHECK_EQUAL(con->get_resource(), "/");
 }
 
-BOOST_AUTO_TEST_CASE( connect_con ) {
+BOOST_AUTO_TEST_CASE(connect_con)
+{
     client c;
     websocketpp::lib::error_code ec;
     std::stringstream out;
@@ -108,22 +112,22 @@ BOOST_AUTO_TEST_CASE( connect_con ) {
 
     o = out.str();
     websocketpp::http::parser::request r;
-    r.consume(o.data(),o.size());
+    r.consume(o.data(), o.size());
 
-    BOOST_CHECK( r.ready() );
-    BOOST_CHECK_EQUAL( r.get_method(), "GET");
-    BOOST_CHECK_EQUAL( r.get_version(), "HTTP/1.1");
-    BOOST_CHECK_EQUAL( r.get_uri(), "/");
+    BOOST_CHECK(r.ready());
+    BOOST_CHECK_EQUAL(r.get_method(), "GET");
+    BOOST_CHECK_EQUAL(r.get_version(), "HTTP/1.1");
+    BOOST_CHECK_EQUAL(r.get_uri(), "/");
 
-    BOOST_CHECK_EQUAL( r.get_header("Host"), "localhost");
-    BOOST_CHECK_EQUAL( r.get_header("Sec-WebSocket-Version"), "13");
-    BOOST_CHECK_EQUAL( r.get_header("Connection"), "Upgrade");
-    BOOST_CHECK_EQUAL( r.get_header("Upgrade"), "websocket");
+    BOOST_CHECK_EQUAL(r.get_header("Host"), "localhost");
+    BOOST_CHECK_EQUAL(r.get_header("Sec-WebSocket-Version"), "13");
+    BOOST_CHECK_EQUAL(r.get_header("Connection"), "Upgrade");
+    BOOST_CHECK_EQUAL(r.get_header("Upgrade"), "websocket");
 
     // Key is randomly generated & User-Agent will change so just check that
     // they are not empty.
-    BOOST_CHECK_NE( r.get_header("Sec-WebSocket-Key"), "");
-    BOOST_CHECK_NE( r.get_header("User-Agent"), "" );
+    BOOST_CHECK_NE(r.get_header("Sec-WebSocket-Key"), "");
+    BOOST_CHECK_NE(r.get_header("User-Agent"), "");
 
     // connection should have written out an opening handshake request and be in
     // the read response internal state
@@ -134,38 +138,41 @@ BOOST_AUTO_TEST_CASE( connect_con ) {
     channel2 >> *con;
 }
 
-BOOST_AUTO_TEST_CASE( select_subprotocol ) {
+BOOST_AUTO_TEST_CASE(select_subprotocol)
+{
     client c;
     websocketpp::lib::error_code ec;
     using websocketpp::error::make_error_code;
 
     connection_ptr con = c.get_connection("ws://localhost/", ec);
 
-    BOOST_CHECK( con );
+    BOOST_CHECK(con);
 
-    con->select_subprotocol("foo",ec);
-    BOOST_CHECK_EQUAL( ec , make_error_code(websocketpp::error::server_only) );
-    BOOST_CHECK_THROW( con->select_subprotocol("foo") , websocketpp::exception );
+    con->select_subprotocol("foo", ec);
+    BOOST_CHECK_EQUAL(ec, make_error_code(websocketpp::error::server_only));
+    BOOST_CHECK_THROW(con->select_subprotocol("foo"), websocketpp::exception);
 }
 
-BOOST_AUTO_TEST_CASE( add_subprotocols_invalid ) {
+BOOST_AUTO_TEST_CASE(add_subprotocols_invalid)
+{
     client c;
     websocketpp::lib::error_code ec;
     using websocketpp::error::make_error_code;
 
     connection_ptr con = c.get_connection("ws://localhost/", ec);
-    BOOST_CHECK( con );
+    BOOST_CHECK(con);
 
-    con->add_subprotocol("",ec);
-    BOOST_CHECK_EQUAL( ec , make_error_code(websocketpp::error::invalid_subprotocol) );
-    BOOST_CHECK_THROW( con->add_subprotocol("") , websocketpp::exception );
+    con->add_subprotocol("", ec);
+    BOOST_CHECK_EQUAL(ec, make_error_code(websocketpp::error::invalid_subprotocol));
+    BOOST_CHECK_THROW(con->add_subprotocol(""), websocketpp::exception);
 
-    con->add_subprotocol("foo,bar",ec);
-    BOOST_CHECK_EQUAL( ec , make_error_code(websocketpp::error::invalid_subprotocol) );
-    BOOST_CHECK_THROW( con->add_subprotocol("foo,bar") , websocketpp::exception );
+    con->add_subprotocol("foo,bar", ec);
+    BOOST_CHECK_EQUAL(ec, make_error_code(websocketpp::error::invalid_subprotocol));
+    BOOST_CHECK_THROW(con->add_subprotocol("foo,bar"), websocketpp::exception);
 }
 
-BOOST_AUTO_TEST_CASE( add_subprotocols ) {
+BOOST_AUTO_TEST_CASE(add_subprotocols)
+{
     client c;
     websocketpp::lib::error_code ec;
     std::stringstream out;
@@ -174,21 +181,19 @@ BOOST_AUTO_TEST_CASE( add_subprotocols ) {
     c.register_ostream(&out);
 
     connection_ptr con = c.get_connection("ws://localhost/", ec);
-    BOOST_CHECK( con );
+    BOOST_CHECK(con);
 
-    con->add_subprotocol("foo",ec);
-    BOOST_CHECK( !ec );
+    con->add_subprotocol("foo", ec);
+    BOOST_CHECK(!ec);
 
-    BOOST_CHECK_NO_THROW( con->add_subprotocol("bar") );
+    BOOST_CHECK_NO_THROW(con->add_subprotocol("bar"));
 
     c.connect(con);
 
     o = out.str();
     websocketpp::http::parser::request r;
-    r.consume(o.data(),o.size());
+    r.consume(o.data(), o.size());
 
-    BOOST_CHECK( r.ready() );
-    BOOST_CHECK_EQUAL( r.get_header("Sec-WebSocket-Protocol"), "foo, bar");
+    BOOST_CHECK(r.ready());
+    BOOST_CHECK_EQUAL(r.get_header("Sec-WebSocket-Protocol"), "foo, bar");
 }
-
-

@@ -31,9 +31,8 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-DummyFace::DummyFace(const std::string& localUri, const std::string& remoteUri,
-                     ndn::nfd::FaceScope scope, ndn::nfd::FacePersistency persistency,
-                     ndn::nfd::LinkType linkType)
+DummyFace::DummyFace(const std::string& localUri, const std::string& remoteUri, ndn::nfd::FaceScope scope,
+                     ndn::nfd::FacePersistency persistency, ndn::nfd::LinkType linkType)
   : Face(make_unique<DummyLinkService>(),
          make_unique<DummyTransport>(localUri, remoteUri, scope, persistency, linkType))
   , afterSend(getDummyLinkService()->afterSend)
@@ -41,37 +40,37 @@ DummyFace::DummyFace(const std::string& localUri, const std::string& remoteUri,
   , sentData(getDummyLinkService()->sentData)
   , sentNacks(getDummyLinkService()->sentNacks)
 {
-  getDummyLinkService()->setPacketLogging(LogSentPackets);
+    getDummyLinkService()->setPacketLogging(LogSentPackets);
 }
 
 void
 DummyFace::setState(FaceState state)
 {
-  static_cast<DummyTransport*>(getTransport())->setState(state);
+    static_cast<DummyTransport*>(getTransport())->setState(state);
 }
 
 void
 DummyFace::receiveInterest(const Interest& interest, const EndpointId& endpointId)
 {
-  getDummyLinkService()->receiveInterest(interest, endpointId);
+    getDummyLinkService()->receiveInterest(interest, endpointId);
 }
 
 void
 DummyFace::receiveData(const Data& data, const EndpointId& endpointId)
 {
-  getDummyLinkService()->receiveData(data, endpointId);
+    getDummyLinkService()->receiveData(data, endpointId);
 }
 
 void
 DummyFace::receiveNack(const lp::Nack& nack, const EndpointId& endpointId)
 {
-  getDummyLinkService()->receiveNack(nack, endpointId);
+    getDummyLinkService()->receiveNack(nack, endpointId);
 }
 
 DummyLinkService*
 DummyFace::getDummyLinkService() const
 {
-  return static_cast<DummyLinkService*>(getLinkService());
+    return static_cast<DummyLinkService*>(getLinkService());
 }
 
 } // namespace tests

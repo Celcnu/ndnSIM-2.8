@@ -44,178 +44,165 @@ TcpChannel::TcpChannel(const tcp::Endpoint& localEndpoint, bool wantCongestionMa
   , m_wantCongestionMarking(wantCongestionMarking)
   , m_determineFaceScope(std::move(determineFaceScope))
 {
-  setUri(FaceUri(m_localEndpoint));
-  NFD_LOG_CHAN_INFO("Creating channel");
+    setUri(FaceUri(m_localEndpoint));
+    NFD_LOG_CHAN_INFO("Creating channel");
 }
 
 void
-TcpChannel::listen(const FaceCreatedCallback& onFaceCreated,
-                   const FaceCreationFailedCallback& onAcceptFailed,
-                   int backlog/* = tcp::acceptor::max_connections*/)
+TcpChannel::listen(const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onAcceptFailed,
+                   int backlog /* = tcp::acceptor::max_connections*/)
 {
-  if (isListening()) {
-    NFD_LOG_CHAN_WARN("Already listening");
-    return;
-  }
+    if (isListening()) {
+        NFD_LOG_CHAN_WARN("Already listening");
+        return;
+    }
 
-  m_acceptor.open(m_localEndpoint.protocol());
-  m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
-  if (m_localEndpoint.address().is_v6()) {
-    m_acceptor.set_option(ip::v6_only(true));
-  }
-  m_acceptor.bind(m_localEndpoint);
-  m_acceptor.listen(backlog);
+    m_acceptor.open(m_localEndpoint.protocol());
+    m_acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
+    if (m_localEndpoint.address().is_v6()) {
+        m_acceptor.set_option(ip::v6_only(true));
+    }
+    m_acceptor.bind(m_localEndpoint);
+    m_acceptor.listen(backlog);
 
-  accept(onFaceCreated, onAcceptFailed);
-  NFD_LOG_CHAN_DEBUG("Started listening");
+    accept(onFaceCreated, onAcceptFailed);
+    NFD_LOG_CHAN_DEBUG("Started listening");
 }
 
 void
-TcpChannel::connect(const tcp::Endpoint& remoteEndpoint,
-                    const FaceParams& params,
-                    const FaceCreatedCallback& onFaceCreated,
-                    const FaceCreationFailedCallback& onConnectFailed,
+TcpChannel::connect(const tcp::Endpoint& remoteEndpoint, const FaceParams& params,
+                    const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onConnectFailed,
                     time::nanoseconds timeout)
 {
-  auto it = m_channelFaces.find(remoteEndpoint);
-  if (it != m_channelFaces.end()) {
-    NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
-    onFaceCreated(it->second);
-    return;
-  }
+    auto it = m_channelFaces.find(remoteEndpoint);
+    if (it != m_channelFaces.end()) {
+        NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
+        onFaceCreated(it->second);
+        return;
+    }
 
-  auto clientSocket = make_shared<ip::tcp::socket>(getGlobalIoService());
-  auto timeoutEvent = getScheduler().schedule(timeout, [=] {
-    handleConnectTimeout(remoteEndpoint, clientSocket, onConnectFailed);
-  });
+    auto clientSocket = make_shared<ip::tcp::socket>(getGlobalIoService());
+    auto timeoutEvent =
+      getScheduler().schedule(timeout, [=] { handleConnectTimeout(remoteEndpoint, clientSocket, onConnectFailed); });
 
-  NFD_LOG_CHAN_TRACE("Connecting to " << remoteEndpoint);
-  clientSocket->async_connect(remoteEndpoint, [=] (const auto& e) {
-    this->handleConnect(e, remoteEndpoint, clientSocket, params, timeoutEvent, onFaceCreated, onConnectFailed);
-  });
+    NFD_LOG_CHAN_TRACE("Connecting to " << remoteEndpoint);
+    clientSocket->async_connect(remoteEndpoint, [=](const auto& e) {
+        this->handleConnect(e, remoteEndpoint, clientSocket, params, timeoutEvent, onFaceCreated, onConnectFailed);
+    });
 }
 
 void
-TcpChannel::createFace(ip::tcp::socket&& socket,
-                       const FaceParams& params,
-                       const FaceCreatedCallback& onFaceCreated)
+TcpChannel::createFace(ip::tcp::socket&& socket, const FaceParams& params, const FaceCreatedCallback& onFaceCreated)
 {
-  shared_ptr<Face> face;
-  tcp::Endpoint remoteEndpoint = socket.remote_endpoint();
+    shared_ptr<Face> face;
+    tcp::Endpoint remoteEndpoint = socket.remote_endpoint();
 
-  auto it = m_channelFaces.find(remoteEndpoint);
-  if (it == m_channelFaces.end()) {
-    GenericLinkService::Options options;
-    options.allowLocalFields = params.wantLocalFields;
-    options.reliabilityOptions.isEnabled = params.wantLpReliability;
+    auto it = m_channelFaces.find(remoteEndpoint);
+    if (it == m_channelFaces.end()) {
+        GenericLinkService::Options options;
+        options.allowLocalFields = params.wantLocalFields;
+        options.reliabilityOptions.isEnabled = params.wantLpReliability;
 
-    if (boost::logic::indeterminate(params.wantCongestionMarking)) {
-      // Use default value for this channel if parameter is indeterminate
-      options.allowCongestionMarking = m_wantCongestionMarking;
+        if (boost::logic::indeterminate(params.wantCongestionMarking)) {
+            // Use default value for this channel if parameter is indeterminate
+            options.allowCongestionMarking = m_wantCongestionMarking;
+        }
+        else {
+            options.allowCongestionMarking = bool(params.wantCongestionMarking);
+        }
+
+        if (params.baseCongestionMarkingInterval) {
+            options.baseCongestionMarkingInterval = *params.baseCongestionMarkingInterval;
+        }
+        if (params.defaultCongestionThreshold) {
+            options.defaultCongestionThreshold = *params.defaultCongestionThreshold;
+        }
+
+        auto linkService = make_unique<GenericLinkService>(options);
+        auto faceScope = m_determineFaceScope(socket.local_endpoint().address(), socket.remote_endpoint().address());
+        auto transport = make_unique<TcpTransport>(std::move(socket), params.persistency, faceScope);
+        face = make_shared<Face>(std::move(linkService), std::move(transport));
+
+        m_channelFaces[remoteEndpoint] = face;
+        connectFaceClosedSignal(*face, [this, remoteEndpoint] { m_channelFaces.erase(remoteEndpoint); });
     }
     else {
-      options.allowCongestionMarking = bool(params.wantCongestionMarking);
+        // we already have a face for this endpoint, just reuse it
+        face = it->second;
+        NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
+
+        boost::system::error_code error;
+        socket.shutdown(ip::tcp::socket::shutdown_both, error);
+        socket.close(error);
     }
 
-    if (params.baseCongestionMarkingInterval) {
-      options.baseCongestionMarkingInterval = *params.baseCongestionMarkingInterval;
-    }
-    if (params.defaultCongestionThreshold) {
-      options.defaultCongestionThreshold = *params.defaultCongestionThreshold;
-    }
-
-    auto linkService = make_unique<GenericLinkService>(options);
-    auto faceScope = m_determineFaceScope(socket.local_endpoint().address(),
-                                          socket.remote_endpoint().address());
-    auto transport = make_unique<TcpTransport>(std::move(socket), params.persistency, faceScope);
-    face = make_shared<Face>(std::move(linkService), std::move(transport));
-
-    m_channelFaces[remoteEndpoint] = face;
-    connectFaceClosedSignal(*face, [this, remoteEndpoint] { m_channelFaces.erase(remoteEndpoint); });
-  }
-  else {
-    // we already have a face for this endpoint, just reuse it
-    face = it->second;
-    NFD_LOG_CHAN_TRACE("Reusing existing face for " << remoteEndpoint);
-
-    boost::system::error_code error;
-    socket.shutdown(ip::tcp::socket::shutdown_both, error);
-    socket.close(error);
-  }
-
-  // Need to invoke the callback regardless of whether or not we have already created
-  // the face so that control responses and such can be sent.
-  onFaceCreated(face);
+    // Need to invoke the callback regardless of whether or not we have already created
+    // the face so that control responses and such can be sent.
+    onFaceCreated(face);
 }
 
 void
-TcpChannel::accept(const FaceCreatedCallback& onFaceCreated,
-                   const FaceCreationFailedCallback& onAcceptFailed)
+TcpChannel::accept(const FaceCreatedCallback& onFaceCreated, const FaceCreationFailedCallback& onAcceptFailed)
 {
-  m_acceptor.async_accept(m_socket, [=] (const auto& e) { this->handleAccept(e, onFaceCreated, onAcceptFailed); });
+    m_acceptor.async_accept(m_socket, [=](const auto& e) { this->handleAccept(e, onFaceCreated, onAcceptFailed); });
 }
 
 void
-TcpChannel::handleAccept(const boost::system::error_code& error,
-                         const FaceCreatedCallback& onFaceCreated,
+TcpChannel::handleAccept(const boost::system::error_code& error, const FaceCreatedCallback& onFaceCreated,
                          const FaceCreationFailedCallback& onAcceptFailed)
 {
-  if (error) {
-    if (error != boost::asio::error::operation_aborted) {
-      NFD_LOG_CHAN_DEBUG("Accept failed: " << error.message());
-      if (onAcceptFailed)
-        onAcceptFailed(500, "Accept failed: " + error.message());
+    if (error) {
+        if (error != boost::asio::error::operation_aborted) {
+            NFD_LOG_CHAN_DEBUG("Accept failed: " << error.message());
+            if (onAcceptFailed)
+                onAcceptFailed(500, "Accept failed: " + error.message());
+        }
+        return;
     }
-    return;
-  }
 
-  NFD_LOG_CHAN_TRACE("Incoming connection from " << m_socket.remote_endpoint());
+    NFD_LOG_CHAN_TRACE("Incoming connection from " << m_socket.remote_endpoint());
 
-  FaceParams params;
-  params.persistency = ndn::nfd::FACE_PERSISTENCY_ON_DEMAND;
-  createFace(std::move(m_socket), params, onFaceCreated);
+    FaceParams params;
+    params.persistency = ndn::nfd::FACE_PERSISTENCY_ON_DEMAND;
+    createFace(std::move(m_socket), params, onFaceCreated);
 
-  // prepare accepting the next connection
-  accept(onFaceCreated, onAcceptFailed);
+    // prepare accepting the next connection
+    accept(onFaceCreated, onAcceptFailed);
 }
 
 void
-TcpChannel::handleConnect(const boost::system::error_code& error,
-                          const tcp::Endpoint& remoteEndpoint,
-                          const shared_ptr<ip::tcp::socket>& socket,
-                          const FaceParams& params,
-                          const scheduler::EventId& connectTimeoutEvent,
-                          const FaceCreatedCallback& onFaceCreated,
+TcpChannel::handleConnect(const boost::system::error_code& error, const tcp::Endpoint& remoteEndpoint,
+                          const shared_ptr<ip::tcp::socket>& socket, const FaceParams& params,
+                          const scheduler::EventId& connectTimeoutEvent, const FaceCreatedCallback& onFaceCreated,
                           const FaceCreationFailedCallback& onConnectFailed)
 {
-  connectTimeoutEvent.cancel();
+    connectTimeoutEvent.cancel();
 
-  if (error) {
-    if (error != boost::asio::error::operation_aborted) {
-      NFD_LOG_CHAN_DEBUG("Connection to " << remoteEndpoint << " failed: " << error.message());
-      if (onConnectFailed)
-        onConnectFailed(504, "Connection failed: " + error.message());
+    if (error) {
+        if (error != boost::asio::error::operation_aborted) {
+            NFD_LOG_CHAN_DEBUG("Connection to " << remoteEndpoint << " failed: " << error.message());
+            if (onConnectFailed)
+                onConnectFailed(504, "Connection failed: " + error.message());
+        }
+        return;
     }
-    return;
-  }
 
-  NFD_LOG_CHAN_TRACE("Connected to " << socket->remote_endpoint());
-  createFace(std::move(*socket), params, onFaceCreated);
+    NFD_LOG_CHAN_TRACE("Connected to " << socket->remote_endpoint());
+    createFace(std::move(*socket), params, onFaceCreated);
 }
 
 void
-TcpChannel::handleConnectTimeout(const tcp::Endpoint& remoteEndpoint,
-                                 const shared_ptr<ip::tcp::socket>& socket,
+TcpChannel::handleConnectTimeout(const tcp::Endpoint& remoteEndpoint, const shared_ptr<ip::tcp::socket>& socket,
                                  const FaceCreationFailedCallback& onConnectFailed)
 {
-  NFD_LOG_CHAN_DEBUG("Connection to " << remoteEndpoint << " timed out");
+    NFD_LOG_CHAN_DEBUG("Connection to " << remoteEndpoint << " timed out");
 
-  // abort the connection attempt
-  boost::system::error_code error;
-  socket->close(error);
+    // abort the connection attempt
+    boost::system::error_code error;
+    socket->close(error);
 
-  if (onConnectFailed)
-    onConnectFailed(504, "Connection timed out");
+    if (onConnectFailed)
+        onConnectFailed(504, "Connection timed out");
 }
 
 } // namespace face

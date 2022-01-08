@@ -30,8 +30,7 @@ namespace lp {
 /**
  * \brief represents a zero-length TLV-VALUE
  */
-struct EmptyValue
-{
+struct EmptyValue {
 };
 
 } // namespace lp

@@ -45,104 +45,103 @@ namespace detail {
  * @note The filename cf-releaser-osx.hpp is an intentional violation of code-style rule 2.1.
  *       Having '-osx' suffix is necessary to prevent installation on non-macOS platforms.
  */
-template<class T>
-class CFReleaser
-{
-public: // Construction/destruction
-  CFReleaser()
-    : m_typeRef(nullptr)
-  {
-  }
-
-  CFReleaser(const T& typeRef)
-    : m_typeRef(typeRef)
-  {
-  }
-
-  CFReleaser(const CFReleaser& inReleaser)
-    : m_typeRef(nullptr)
-  {
-    retain(inReleaser.m_typeRef);
-  }
-
-  CFReleaser&
-  operator=(const T& typeRef)
-  {
-    if (typeRef != m_typeRef) {
-      release();
-      m_typeRef = typeRef;
+template <class T>
+class CFReleaser {
+  public: // Construction/destruction
+    CFReleaser()
+      : m_typeRef(nullptr)
+    {
     }
-    return *this;
-  }
 
-  CFReleaser&
-  operator=(const CFReleaser& inReleaser)
-  {
-    retain(inReleaser.m_typeRef);
-    return *this;
-  }
-
-  ~CFReleaser()
-  {
-    release();
-  }
-
-public: // Access
-  const T&
-  get() const
-  {
-    return m_typeRef;
-  }
-
-  T&
-  get()
-  {
-    return m_typeRef;
-  }
-
-public: // Miscellaneous
-  void
-  retain(const T& typeRef)
-  {
-    if (typeRef != nullptr) {
-      CFRetain(typeRef);
+    CFReleaser(const T& typeRef)
+      : m_typeRef(typeRef)
+    {
     }
-    release();
-    m_typeRef = typeRef;
-  }
 
-  void
-  retain()
-  {
-    T typeRef = m_typeRef;
-    m_typeRef = nullptr;
-    retain(typeRef);
-  }
-
-  void
-  release()
-  {
-    if (m_typeRef != nullptr) {
-      CFRelease(m_typeRef);
-      m_typeRef = nullptr;
+    CFReleaser(const CFReleaser& inReleaser)
+      : m_typeRef(nullptr)
+    {
+        retain(inReleaser.m_typeRef);
     }
-  }
 
-private: // Comparison with nullptr
-  friend bool
-  operator==(const CFReleaser& lhs, std::nullptr_t)
-  {
-    return lhs.m_typeRef == nullptr;
-  }
+    CFReleaser&
+    operator=(const T& typeRef)
+    {
+        if (typeRef != m_typeRef) {
+            release();
+            m_typeRef = typeRef;
+        }
+        return *this;
+    }
 
-  friend bool
-  operator!=(const CFReleaser& lhs, std::nullptr_t)
-  {
-    return lhs.m_typeRef != nullptr;
-  }
+    CFReleaser&
+    operator=(const CFReleaser& inReleaser)
+    {
+        retain(inReleaser.m_typeRef);
+        return *this;
+    }
 
-private:
-  T m_typeRef;
+    ~CFReleaser()
+    {
+        release();
+    }
+
+  public: // Access
+    const T&
+    get() const
+    {
+        return m_typeRef;
+    }
+
+    T&
+    get()
+    {
+        return m_typeRef;
+    }
+
+  public: // Miscellaneous
+    void
+    retain(const T& typeRef)
+    {
+        if (typeRef != nullptr) {
+            CFRetain(typeRef);
+        }
+        release();
+        m_typeRef = typeRef;
+    }
+
+    void
+    retain()
+    {
+        T typeRef = m_typeRef;
+        m_typeRef = nullptr;
+        retain(typeRef);
+    }
+
+    void
+    release()
+    {
+        if (m_typeRef != nullptr) {
+            CFRelease(m_typeRef);
+            m_typeRef = nullptr;
+        }
+    }
+
+  private: // Comparison with nullptr
+    friend bool
+    operator==(const CFReleaser& lhs, std::nullptr_t)
+    {
+        return lhs.m_typeRef == nullptr;
+    }
+
+    friend bool
+    operator!=(const CFReleaser& lhs, std::nullptr_t)
+    {
+        return lhs.m_typeRef != nullptr;
+    }
+
+  private:
+    T m_typeRef;
 };
 
 } // namespace detail

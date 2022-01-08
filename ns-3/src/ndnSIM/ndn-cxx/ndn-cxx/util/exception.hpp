@@ -42,8 +42,7 @@ namespace exception {
 #ifdef NDN_CXX_HAVE_STACKTRACE
 using errinfo_stacktrace = boost::error_info<struct stacktrace, boost::stacktrace::stacktrace>;
 
-std::string
-to_string(const errinfo_stacktrace&);
+std::string to_string(const errinfo_stacktrace&);
 #endif
 
 } // namespace exception
@@ -51,24 +50,19 @@ to_string(const errinfo_stacktrace&);
 
 /** \cond */
 #ifdef NDN_CXX_HAVE_STACKTRACE
-#define NDN_DETAIL_THROW_STACKTRACE \
-  << ndn::exception::errinfo_stacktrace(boost::stacktrace::stacktrace())
+#define NDN_DETAIL_THROW_STACKTRACE << ndn::exception::errinfo_stacktrace(boost::stacktrace::stacktrace())
 #else
 #define NDN_DETAIL_THROW_STACKTRACE
 #endif
 /** \endcond */
 
-#define NDN_THROW(e) \
-  throw boost::enable_current_exception(boost::enable_error_info(e)) \
-     << boost::throw_file(__FILE__) \
-     << boost::throw_line(__LINE__) \
-     << boost::throw_function(__func__) \
-     NDN_DETAIL_THROW_STACKTRACE
+#define NDN_THROW(e)                                                                                                   \
+    throw boost::enable_current_exception(boost::enable_error_info(e))                                                 \
+      << boost::throw_file(__FILE__) << boost::throw_line(__LINE__)                                                    \
+      << boost::throw_function(__func__) NDN_DETAIL_THROW_STACKTRACE
 
-#define NDN_THROW_ERRNO(e) \
-  NDN_THROW(e) << boost::errinfo_errno(errno)
+#define NDN_THROW_ERRNO(e) NDN_THROW(e) << boost::errinfo_errno(errno)
 
-#define NDN_THROW_NESTED(e) \
-  NDN_THROW(e) << boost::errinfo_nested_exception(boost::current_exception())
+#define NDN_THROW_NESTED(e) NDN_THROW(e) << boost::errinfo_nested_exception(boost::current_exception())
 
 #endif // NDN_UTIL_EXCEPTION_HPP

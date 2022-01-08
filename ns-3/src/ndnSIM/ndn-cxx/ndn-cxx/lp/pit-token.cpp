@@ -32,17 +32,17 @@ static constexpr size_t LENGTH_MAX = 32;
 void
 PitToken::validate() const
 {
-  if (size() < LENGTH_MIN || size() > LENGTH_MAX) {
-    NDN_THROW(ndn::tlv::Error("PitToken length must be between " +
-      to_string(LENGTH_MIN) + " and " + to_string(LENGTH_MAX)));
-  }
+    if (size() < LENGTH_MIN || size() > LENGTH_MAX) {
+        NDN_THROW(ndn::tlv::Error("PitToken length must be between " + to_string(LENGTH_MIN) + " and "
+                                  + to_string(LENGTH_MAX)));
+    }
 }
 
 std::ostream&
 operator<<(std::ostream& os, const PitToken& pitToken)
 {
-  printHex(os, pitToken, false);
-  return os;
+    printHex(os, pitToken, false);
+    return os;
 }
 
 } // namespace lp

@@ -36,38 +36,38 @@ BOOST_AUTO_TEST_SUITE(TestInterestFilter)
 
 BOOST_AUTO_TEST_CASE(Matching)
 {
-  BOOST_CHECK_EQUAL(InterestFilter("/a").doesMatch("/a/b"), true);
-  BOOST_CHECK_EQUAL(InterestFilter("/a/b").doesMatch("/a/b"), true);
-  BOOST_CHECK_EQUAL(InterestFilter("/a/b/c").doesMatch("/a/b"), false);
+    BOOST_CHECK_EQUAL(InterestFilter("/a").doesMatch("/a/b"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a/b").doesMatch("/a/b"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a/b/c").doesMatch("/a/b"), false);
 
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b>").doesMatch("/a/b"), true);
-  BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<b>").doesMatch("/a/b"), false);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b>").doesMatch("/a/b"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<b>").doesMatch("/a/b"), false);
 
-  BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<b>").doesMatch("/a/b/c/b"), false);
-  BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<>*<b>").doesMatch("/a/b/c/b"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<b>").doesMatch("/a/b/c/b"), false);
+    BOOST_CHECK_EQUAL(InterestFilter("/a/b", "<>*<b>").doesMatch("/a/b/c/b"), true);
 
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b>").doesMatch("/a/b/c/d"), false);
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>*").doesMatch("/a/b/c/d"), true);
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>*").doesMatch("/a/b"), true);
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>+").doesMatch("/a/b"), false);
-  BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>+").doesMatch("/a/b/c"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b>").doesMatch("/a/b/c/d"), false);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>*").doesMatch("/a/b/c/d"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>*").doesMatch("/a/b"), true);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>+").doesMatch("/a/b"), false);
+    BOOST_CHECK_EQUAL(InterestFilter("/a", "<b><>+").doesMatch("/a/b/c"), true);
 }
 
 BOOST_AUTO_TEST_CASE(RegexConvertToName)
 {
-  util::DummyClientFace face;
-  face.setInterestFilter(InterestFilter("/Hello/World", "<><b><c>?"),
-    [] (const Name&, const Interest&) { BOOST_ERROR("unexpected Interest"); });
-  face.processEvents(1_ms);
-  BOOST_CHECK_THROW(face.receive(*makeInterest("/Hello/World/a/b/c")), InterestFilter::Error);
+    util::DummyClientFace face;
+    face.setInterestFilter(InterestFilter("/Hello/World", "<><b><c>?"),
+                           [](const Name&, const Interest&) { BOOST_ERROR("unexpected Interest"); });
+    face.processEvents(1_ms);
+    BOOST_CHECK_THROW(face.receive(*makeInterest("/Hello/World/a/b/c")), InterestFilter::Error);
 }
 
 BOOST_AUTO_TEST_CASE(AllowLoopback)
 {
-  InterestFilter filter("/A");
-  BOOST_CHECK_EQUAL(filter.allowsLoopback(), true);
-  BOOST_CHECK_EQUAL(&filter.allowLoopback(false), &filter);
-  BOOST_CHECK_EQUAL(filter.allowsLoopback(), false);
+    InterestFilter filter("/A");
+    BOOST_CHECK_EQUAL(filter.allowsLoopback(), true);
+    BOOST_CHECK_EQUAL(&filter.allowLoopback(false), &filter);
+    BOOST_CHECK_EQUAL(filter.allowsLoopback(), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestInterestFilter

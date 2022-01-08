@@ -28,15 +28,14 @@ namespace transform {
 size_t
 StepSource::write(const uint8_t* buf, size_t size)
 {
-  return m_next->write(buf, size);
+    return m_next->write(buf, size);
 }
 
 void
 StepSource::end()
 {
-  m_next->end();
+    m_next->end();
 }
-
 
 void
 StepSource::doPump()

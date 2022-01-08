@@ -40,93 +40,90 @@ namespace rib {
 
 /** \brief represents a route for a name prefix
  */
-class Route : public ndn::nfd::RouteFlagsTraits<Route>
-{
-public:
-  /** \brief default constructor
-   */
-  Route() = default;
+class Route : public ndn::nfd::RouteFlagsTraits<Route> {
+  public:
+    /** \brief default constructor
+     */
+    Route() = default;
 
-  /** \brief construct from a prefix announcement
-   *  \param ann a prefix announcement that has passed verification
-   *  \param faceId the face on which \p ann arrived
-   */
-  Route(const ndn::PrefixAnnouncement& ann, uint64_t faceId);
+    /** \brief construct from a prefix announcement
+     *  \param ann a prefix announcement that has passed verification
+     *  \param faceId the face on which \p ann arrived
+     */
+    Route(const ndn::PrefixAnnouncement& ann, uint64_t faceId);
 
-  const scheduler::EventId&
-  getExpirationEvent() const
-  {
-    return m_expirationEvent;
-  }
+    const scheduler::EventId&
+    getExpirationEvent() const
+    {
+        return m_expirationEvent;
+    }
 
-  void
-  setExpirationEvent(const scheduler::EventId& eid)
-  {
-    m_expirationEvent = eid;
-  }
+    void
+    setExpirationEvent(const scheduler::EventId& eid)
+    {
+        m_expirationEvent = eid;
+    }
 
-  void
-  cancelExpirationEvent()
-  {
-    m_expirationEvent.cancel();
-  }
+    void
+    cancelExpirationEvent()
+    {
+        m_expirationEvent.cancel();
+    }
 
-  std::underlying_type_t<ndn::nfd::RouteFlags>
-  getFlags() const
-  {
-    return flags;
-  }
+    std::underlying_type_t<ndn::nfd::RouteFlags>
+    getFlags() const
+    {
+        return flags;
+    }
 
-public:
-  uint64_t faceId = 0;
-  ndn::nfd::RouteOrigin origin = ndn::nfd::ROUTE_ORIGIN_APP;
-  uint64_t cost = 0;
-  std::underlying_type_t<ndn::nfd::RouteFlags> flags = ndn::nfd::ROUTE_FLAGS_NONE;
-  optional<time::steady_clock::TimePoint> expires;
+  public:
+    uint64_t faceId = 0;
+    ndn::nfd::RouteOrigin origin = ndn::nfd::ROUTE_ORIGIN_APP;
+    uint64_t cost = 0;
+    std::underlying_type_t<ndn::nfd::RouteFlags> flags = ndn::nfd::ROUTE_FLAGS_NONE;
+    optional<time::steady_clock::TimePoint> expires;
 
-  /** \brief The prefix announcement that caused the creation of this route.
-   *
-   *  This is nullopt if this route is not created by a prefix announcement.
-   */
-  optional<ndn::PrefixAnnouncement> announcement;
+    /** \brief The prefix announcement that caused the creation of this route.
+     *
+     *  This is nullopt if this route is not created by a prefix announcement.
+     */
+    optional<ndn::PrefixAnnouncement> announcement;
 
-  /** \brief Expiration time of the prefix announcement.
-   *
-   *  Valid only if announcement is not nullopt.
-   *
-   *  If this field is before or equal the current time, it indicates the prefix announcement is
-   *  not yet valid or has expired. In this case, the exact value of this field does not matter.
-   *  If this field is after the current time, it indicates when the prefix announcement expires.
-   */
-  time::steady_clock::TimePoint annExpires;
+    /** \brief Expiration time of the prefix announcement.
+     *
+     *  Valid only if announcement is not nullopt.
+     *
+     *  If this field is before or equal the current time, it indicates the prefix announcement is
+     *  not yet valid or has expired. In this case, the exact value of this field does not matter.
+     *  If this field is after the current time, it indicates when the prefix announcement expires.
+     */
+    time::steady_clock::TimePoint annExpires;
 
-private:
-  scheduler::EventId m_expirationEvent;
+  private:
+    scheduler::EventId m_expirationEvent;
 };
 
-bool
-operator==(const Route& lhs, const Route& rhs);
+bool operator==(const Route& lhs, const Route& rhs);
 
 inline bool
 operator!=(const Route& lhs, const Route& rhs)
 {
-  return !(lhs == rhs);
+    return !(lhs == rhs);
 }
 
 inline bool
 compareFaceIdAndOrigin(const Route& lhs, const Route& rhs)
 {
-  return (lhs.faceId == rhs.faceId && lhs.origin == rhs.origin);
+    return (lhs.faceId == rhs.faceId && lhs.origin == rhs.origin);
 }
 
 inline bool
 compareFaceId(const Route& route, const uint64_t faceId)
 {
-  return (route.faceId == faceId);
+    return (route.faceId == faceId);
 }
 
-std::ostream&
-operator<<(std::ostream& os, const Route& route);
+std::ostream& operator<<(std::ostream& os, const Route& route);
 
 } // namespace rib
 } // namespace nfd

@@ -39,12 +39,12 @@ BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(Normal)
 {
-  faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  faceSystem.m_factories["f2"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
-  auto f2 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f2"));
+    faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    faceSystem.m_factories["f2"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
+    auto f2 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f2"));
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       general
@@ -62,35 +62,35 @@ BOOST_AUTO_TEST_CASE(Normal)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 1);
-  BOOST_CHECK(f1->processConfigHistory.back().isDryRun);
-  BOOST_CHECK(f1->processConfigHistory.back().wantCongestionMarking);
-  BOOST_CHECK_EQUAL(f1->processConfigHistory.back().configSection->get<std::string>("key"), "v1");
-  BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 1);
-  BOOST_CHECK(f2->processConfigHistory.back().isDryRun);
-  BOOST_CHECK(f2->processConfigHistory.back().wantCongestionMarking);
-  BOOST_CHECK_EQUAL(f2->processConfigHistory.back().configSection->get<std::string>("key"), "v2");
+    parseConfig(CONFIG, true);
+    BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 1);
+    BOOST_CHECK(f1->processConfigHistory.back().isDryRun);
+    BOOST_CHECK(f1->processConfigHistory.back().wantCongestionMarking);
+    BOOST_CHECK_EQUAL(f1->processConfigHistory.back().configSection->get<std::string>("key"), "v1");
+    BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 1);
+    BOOST_CHECK(f2->processConfigHistory.back().isDryRun);
+    BOOST_CHECK(f2->processConfigHistory.back().wantCongestionMarking);
+    BOOST_CHECK_EQUAL(f2->processConfigHistory.back().configSection->get<std::string>("key"), "v2");
 
-  parseConfig(CONFIG, false);
-  BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 2);
-  BOOST_CHECK(!f1->processConfigHistory.back().isDryRun);
-  BOOST_CHECK(f1->processConfigHistory.back().wantCongestionMarking);
-  BOOST_CHECK_EQUAL(f1->processConfigHistory.back().configSection->get<std::string>("key"), "v1");
-  BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 2);
-  BOOST_CHECK(!f2->processConfigHistory.back().isDryRun);
-  BOOST_CHECK(f2->processConfigHistory.back().wantCongestionMarking);
-  BOOST_CHECK_EQUAL(f2->processConfigHistory.back().configSection->get<std::string>("key"), "v2");
+    parseConfig(CONFIG, false);
+    BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 2);
+    BOOST_CHECK(!f1->processConfigHistory.back().isDryRun);
+    BOOST_CHECK(f1->processConfigHistory.back().wantCongestionMarking);
+    BOOST_CHECK_EQUAL(f1->processConfigHistory.back().configSection->get<std::string>("key"), "v1");
+    BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 2);
+    BOOST_CHECK(!f2->processConfigHistory.back().isDryRun);
+    BOOST_CHECK(f2->processConfigHistory.back().wantCongestionMarking);
+    BOOST_CHECK_EQUAL(f2->processConfigHistory.back().configSection->get<std::string>("key"), "v2");
 }
 
 BOOST_AUTO_TEST_CASE(OmittedSection)
 {
-  faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  faceSystem.m_factories["f2"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
-  auto f2 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f2"));
+    faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    faceSystem.m_factories["f2"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
+    auto f2 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f2"));
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       f1
@@ -99,24 +99,24 @@ BOOST_AUTO_TEST_CASE(OmittedSection)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 1);
-  BOOST_CHECK_EQUAL(f1->processConfigHistory.back().isDryRun, true);
-  BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 1);
-  BOOST_CHECK_EQUAL(f2->processConfigHistory.back().isDryRun, true);
-  BOOST_CHECK(!f2->processConfigHistory.back().configSection);
+    parseConfig(CONFIG, true);
+    BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 1);
+    BOOST_CHECK_EQUAL(f1->processConfigHistory.back().isDryRun, true);
+    BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 1);
+    BOOST_CHECK_EQUAL(f2->processConfigHistory.back().isDryRun, true);
+    BOOST_CHECK(!f2->processConfigHistory.back().configSection);
 
-  parseConfig(CONFIG, false);
-  BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 2);
-  BOOST_CHECK_EQUAL(f1->processConfigHistory.back().isDryRun, false);
-  BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 2);
-  BOOST_CHECK_EQUAL(f2->processConfigHistory.back().isDryRun, false);
-  BOOST_CHECK(!f2->processConfigHistory.back().configSection);
+    parseConfig(CONFIG, false);
+    BOOST_REQUIRE_EQUAL(f1->processConfigHistory.size(), 2);
+    BOOST_CHECK_EQUAL(f1->processConfigHistory.back().isDryRun, false);
+    BOOST_REQUIRE_EQUAL(f2->processConfigHistory.size(), 2);
+    BOOST_CHECK_EQUAL(f2->processConfigHistory.back().isDryRun, false);
+    BOOST_CHECK(!f2->processConfigHistory.back().configSection);
 }
 
 BOOST_AUTO_TEST_CASE(UnknownSection)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       f0
@@ -125,16 +125,16 @@ BOOST_AUTO_TEST_CASE(UnknownSection)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(ChangeProvidedSchemes)
 {
-  faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
-  auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
+    faceSystem.m_factories["f1"] = make_unique<DummyProtocolFactory>(faceSystem.makePFCtorParams());
+    auto f1 = static_cast<DummyProtocolFactory*>(faceSystem.getFactoryById("f1"));
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       f1
@@ -143,20 +143,20 @@ BOOST_AUTO_TEST_CASE(ChangeProvidedSchemes)
     }
   )CONFIG";
 
-  f1->newProvidedSchemes.insert("s1");
-  f1->newProvidedSchemes.insert("s2");
-  parseConfig(CONFIG, false);
-  BOOST_CHECK(faceSystem.getFactoryByScheme("f1") == nullptr);
-  BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s1"), f1);
-  BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s2"), f1);
+    f1->newProvidedSchemes.insert("s1");
+    f1->newProvidedSchemes.insert("s2");
+    parseConfig(CONFIG, false);
+    BOOST_CHECK(faceSystem.getFactoryByScheme("f1") == nullptr);
+    BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s1"), f1);
+    BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s2"), f1);
 
-  f1->newProvidedSchemes.erase("s2");
-  f1->newProvidedSchemes.insert("s3");
-  parseConfig(CONFIG, false);
-  BOOST_CHECK(faceSystem.getFactoryByScheme("f1") == nullptr);
-  BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s1"), f1);
-  BOOST_CHECK(faceSystem.getFactoryByScheme("s2") == nullptr);
-  BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s3"), f1);
+    f1->newProvidedSchemes.erase("s2");
+    f1->newProvidedSchemes.insert("s3");
+    parseConfig(CONFIG, false);
+    BOOST_CHECK(faceSystem.getFactoryByScheme("f1") == nullptr);
+    BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s1"), f1);
+    BOOST_CHECK(faceSystem.getFactoryByScheme("s2") == nullptr);
+    BOOST_CHECK_EQUAL(faceSystem.getFactoryByScheme("s3"), f1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig

@@ -36,7 +36,7 @@ Pib::Pib(const std::string& scheme, const std::string& location, shared_ptr<PibI
   , m_identities(impl)
   , m_impl(std::move(impl))
 {
-  BOOST_ASSERT(m_impl != nullptr);
+    BOOST_ASSERT(m_impl != nullptr);
 }
 
 Pib::~Pib() = default;
@@ -44,101 +44,101 @@ Pib::~Pib() = default;
 std::string
 Pib::getPibLocator() const
 {
-  return m_scheme + ":" + m_location;
+    return m_scheme + ":" + m_location;
 }
 
 void
 Pib::setTpmLocator(const std::string& tpmLocator)
 {
-  if (tpmLocator == m_impl->getTpmLocator()) {
-    return;
-  }
-  reset();
-  m_impl->setTpmLocator(tpmLocator);
+    if (tpmLocator == m_impl->getTpmLocator()) {
+        return;
+    }
+    reset();
+    m_impl->setTpmLocator(tpmLocator);
 }
 
 std::string
 Pib::getTpmLocator() const
 {
-  std::string tpmLocator = m_impl->getTpmLocator();
-  if (tpmLocator.empty()) {
-    NDN_THROW(Pib::Error("TPM info does not exist"));
-  }
-  return tpmLocator;
+    std::string tpmLocator = m_impl->getTpmLocator();
+    if (tpmLocator.empty()) {
+        NDN_THROW(Pib::Error("TPM info does not exist"));
+    }
+    return tpmLocator;
 }
 
 void
 Pib::reset()
 {
-  m_impl->clearIdentities();
-  m_impl->setTpmLocator("");
-  m_isDefaultIdentityLoaded = false;
-  m_identities.reset();
+    m_impl->clearIdentities();
+    m_impl->setTpmLocator("");
+    m_isDefaultIdentityLoaded = false;
+    m_identities.reset();
 }
 
 Identity
 Pib::addIdentity(const Name& identity)
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  return m_identities.add(identity);
+    return m_identities.add(identity);
 }
 
 void
 Pib::removeIdentity(const Name& identity)
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  if (m_isDefaultIdentityLoaded && m_defaultIdentity.getName() == identity) {
-    m_isDefaultIdentityLoaded = false;
-  }
+    if (m_isDefaultIdentityLoaded && m_defaultIdentity.getName() == identity) {
+        m_isDefaultIdentityLoaded = false;
+    }
 
-  m_identities.remove(identity);
+    m_identities.remove(identity);
 }
 
 Identity
 Pib::getIdentity(const Name& identity) const
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  return m_identities.get(identity);
+    return m_identities.get(identity);
 }
 
 const IdentityContainer&
 Pib::getIdentities() const
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  return m_identities;
+    return m_identities;
 }
 
 const Identity&
 Pib::setDefaultIdentity(const Name& identityName)
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  m_defaultIdentity = m_identities.add(identityName);
-  m_isDefaultIdentityLoaded = true;
-  NDN_LOG_DEBUG("Default identity is set to " << identityName);
+    m_defaultIdentity = m_identities.add(identityName);
+    m_isDefaultIdentityLoaded = true;
+    NDN_LOG_DEBUG("Default identity is set to " << identityName);
 
-  m_impl->setDefaultIdentity(identityName);
-  return m_defaultIdentity;
+    m_impl->setDefaultIdentity(identityName);
+    return m_defaultIdentity;
 }
 
 const Identity&
 Pib::getDefaultIdentity() const
 {
-  BOOST_ASSERT(m_identities.isConsistent());
+    BOOST_ASSERT(m_identities.isConsistent());
 
-  if (!m_isDefaultIdentityLoaded) {
-    m_defaultIdentity = m_identities.get(m_impl->getDefaultIdentity());
-    m_isDefaultIdentityLoaded = true;
-    NDN_LOG_DEBUG("Default identity is " << m_defaultIdentity.getName());
-  }
+    if (!m_isDefaultIdentityLoaded) {
+        m_defaultIdentity = m_identities.get(m_impl->getDefaultIdentity());
+        m_isDefaultIdentityLoaded = true;
+        NDN_LOG_DEBUG("Default identity is " << m_defaultIdentity.getName());
+    }
 
-  BOOST_ASSERT(m_impl->getDefaultIdentity() == m_defaultIdentity.getName());
+    BOOST_ASSERT(m_impl->getDefaultIdentity() == m_defaultIdentity.getName());
 
-  return m_defaultIdentity;
+    return m_defaultIdentity;
 }
 
 } // namespace pib

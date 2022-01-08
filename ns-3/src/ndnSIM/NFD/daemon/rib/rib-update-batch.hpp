@@ -37,38 +37,31 @@ typedef std::list<RibUpdate> RibUpdateList;
 
 /** \brief Represents a collection of RibUpdates to be applied to a single FaceId.
  */
-class RibUpdateBatch
-{
-public:
-  typedef RibUpdateList::const_iterator const_iterator;
+class RibUpdateBatch {
+  public:
+    typedef RibUpdateList::const_iterator const_iterator;
 
-  explicit
-  RibUpdateBatch(uint64_t faceId);
+    explicit RibUpdateBatch(uint64_t faceId);
 
-  uint64_t
-  getFaceId() const;
+    uint64_t getFaceId() const;
 
-  void
-  add(const RibUpdate& update);
+    void add(const RibUpdate& update);
 
-  const_iterator
-  begin() const;
+    const_iterator begin() const;
 
-  const_iterator
-  end() const;
+    const_iterator end() const;
 
-  size_t
-  size() const;
+    size_t size() const;
 
-private:
-  uint64_t m_faceId;
-  RibUpdateList m_updates;
+  private:
+    uint64_t m_faceId;
+    RibUpdateList m_updates;
 };
 
 inline uint64_t
 RibUpdateBatch::getFaceId() const
 {
-  return m_faceId;
+    return m_faceId;
 }
 
 } // namespace rib

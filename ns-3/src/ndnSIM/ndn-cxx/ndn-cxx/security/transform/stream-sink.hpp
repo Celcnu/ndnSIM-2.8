@@ -31,36 +31,31 @@ namespace transform {
 /**
  * @brief A sink which directs output to an std::ostream.
  */
-class StreamSink : public Sink
-{
-public:
-  /**
-   * @brief Create a stream sink which outputs to @p os
-   */
-  explicit
-  StreamSink(std::ostream& os);
+class StreamSink : public Sink {
+  public:
+    /**
+     * @brief Create a stream sink which outputs to @p os
+     */
+    explicit StreamSink(std::ostream& os);
 
-private:
-  /**
-   * @brief Write data into the stream
-   *
-   * @return number of bytes that have been written into the stream
-   */
-  size_t
-  doWrite(const uint8_t* buf, size_t size) final;
+  private:
+    /**
+     * @brief Write data into the stream
+     *
+     * @return number of bytes that have been written into the stream
+     */
+    size_t doWrite(const uint8_t* buf, size_t size) final;
 
-  /**
-   * @brief Finalize sink processing
-   */
-  void
-  doEnd() final;
+    /**
+     * @brief Finalize sink processing
+     */
+    void doEnd() final;
 
-private:
-  std::ostream& m_os;
+  private:
+    std::ostream& m_os;
 };
 
-unique_ptr<Sink>
-streamSink(std::ostream& os);
+unique_ptr<Sink> streamSink(std::ostream& os);
 
 } // namespace transform
 } // namespace security

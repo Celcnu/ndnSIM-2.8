@@ -28,24 +28,19 @@
 
 namespace ndn {
 
-class RegexPatternListMatcher : public RegexMatcher
-{
-public:
-  RegexPatternListMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
+class RegexPatternListMatcher : public RegexMatcher {
+  public:
+    RegexPatternListMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager);
 
-protected:
-  void
-  compile() override;
+  protected:
+    void compile() override;
 
-private:
-  bool
-  extractPattern(size_t index, size_t* next);
+  private:
+    bool extractPattern(size_t index, size_t* next);
 
-  size_t
-  extractSubPattern(const char left, const char right, size_t index);
+    size_t extractSubPattern(const char left, const char right, size_t index);
 
-  size_t
-  extractRepetition(size_t index);
+    size_t extractRepetition(size_t index);
 };
 
 } // namespace ndn

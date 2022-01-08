@@ -37,20 +37,17 @@
 namespace ndn {
 namespace ndnsec {
 
-class CannotLoadCertificate : public std::runtime_error
-{
-public:
-  CannotLoadCertificate(const std::string& msg)
-    : std::runtime_error(msg)
-  {
-  }
+class CannotLoadCertificate : public std::runtime_error {
+  public:
+    CannotLoadCertificate(const std::string& msg)
+      : std::runtime_error(msg)
+    {
+    }
 };
 
-bool
-getPassword(std::string& password, const std::string& prompt, bool shouldConfirm = true);
+bool getPassword(std::string& password, const std::string& prompt, bool shouldConfirm = true);
 
-security::v2::Certificate
-loadCertificate(const std::string& fileName);
+security::v2::Certificate loadCertificate(const std::string& fileName);
 
 /**
  * @brief An accumulating option value to handle multiple incrementing options.
@@ -58,133 +55,131 @@ loadCertificate(const std::string& fileName);
  * Based on https://gitorious.org/bwy/bwy/source/8753148c324ddfacb1f3cdc315650586bd7b75a4:use/accumulator.hpp
  * @sa http://benjaminwolsey.de/node/103
  */
-template<typename T>
-class AccumulatorType : public boost::program_options::value_semantic
-{
-public:
-  explicit
-  AccumulatorType(T* store)
-    : m_store(store)
-    , m_interval(1)
-    , m_default(0)
-  {
-  }
+template <typename T>
+class AccumulatorType : public boost::program_options::value_semantic {
+  public:
+    explicit AccumulatorType(T* store)
+      : m_store(store)
+      , m_interval(1)
+      , m_default(0)
+    {
+    }
 
-  /// @brief Set the default value for this option.
-  AccumulatorType*
-  setDefaultValue(const T& t)
-  {
-    m_default = t;
-    return this;
-  }
+    /// @brief Set the default value for this option.
+    AccumulatorType*
+    setDefaultValue(const T& t)
+    {
+        m_default = t;
+        return this;
+    }
 
-  /**
-   * @brief Set the interval for this option.
-   *
-   * Unlike for program_options::value, this specifies a value
-   * to be applied on each occurrence of the option.
-   */
-  AccumulatorType*
-  setInterval(const T& t)
-  {
-    m_interval = t;
-    return this;
-  }
+    /**
+     * @brief Set the interval for this option.
+     *
+     * Unlike for program_options::value, this specifies a value
+     * to be applied on each occurrence of the option.
+     */
+    AccumulatorType*
+    setInterval(const T& t)
+    {
+        m_interval = t;
+        return this;
+    }
 
-  std::string
-  name() const final
-  {
-    return std::string();
-  }
+    std::string
+    name() const final
+    {
+        return std::string();
+    }
 
-  // There are no tokens for an AccumulatorType
-  unsigned
-  min_tokens() const final
-  {
-    return 0;
-  }
+    // There are no tokens for an AccumulatorType
+    unsigned
+    min_tokens() const final
+    {
+        return 0;
+    }
 
-  unsigned
-  max_tokens() const final
-  {
-    return 0;
-  }
+    unsigned
+    max_tokens() const final
+    {
+        return 0;
+    }
 
-  // Accumulating from different sources is silly.
-  bool
-  is_composing() const final
-  {
-    return false;
-  }
+    // Accumulating from different sources is silly.
+    bool
+    is_composing() const final
+    {
+        return false;
+    }
 
-  // Requiring one or more appearances is unlikely.
-  bool
-  is_required() const final
-  {
-    return false;
-  }
+    // Requiring one or more appearances is unlikely.
+    bool
+    is_required() const final
+    {
+        return false;
+    }
 
-  /**
-   * @brief Parse options
-   *
-   * Every appearance of the option simply increments the value
-   * There should never be any tokens.
-   */
-  void
-  parse(boost::any& value_store, const std::vector<std::string>& new_tokens, bool utf8) const final
-  {
-    if (value_store.empty())
-      value_store = T();
-    boost::any_cast<T&>(value_store) += m_interval;
-  }
+    /**
+     * @brief Parse options
+     *
+     * Every appearance of the option simply increments the value
+     * There should never be any tokens.
+     */
+    void
+    parse(boost::any& value_store, const std::vector<std::string>& new_tokens, bool utf8) const final
+    {
+        if (value_store.empty())
+            value_store = T();
+        boost::any_cast<T&>(value_store) += m_interval;
+    }
 
-  /**
-   * @brief If the option doesn't appear, this is the default value.
-   */
-  bool
-  apply_default(boost::any& value_store) const final
-  {
-    value_store = m_default;
-    return true;
-  }
+    /**
+     * @brief If the option doesn't appear, this is the default value.
+     */
+    bool
+    apply_default(boost::any& value_store) const final
+    {
+        value_store = m_default;
+        return true;
+    }
 
-  /**
-   * @brief Notify the user function with the value of the value store.
-   */
-  void
-  notify(const boost::any& value_store) const final
-  {
-    const T* val = boost::any_cast<T>(&value_store);
-    if (m_store)
-      *m_store = *val;
-  }
+    /**
+     * @brief Notify the user function with the value of the value store.
+     */
+    void
+    notify(const boost::any& value_store) const final
+    {
+        const T* val = boost::any_cast<T>(&value_store);
+        if (m_store)
+            *m_store = *val;
+    }
 
 #if (BOOST_VERSION >= 105900) && (BOOST_VERSION < 106500)
-  bool
-  adjacent_tokens_only() const final
-  {
-    return false;
-  }
+    bool
+    adjacent_tokens_only() const final
+    {
+        return false;
+    }
 #endif // (BOOST_VERSION >= 105900) && (BOOST_VERSION < 106500)
 
-private:
-  T* m_store;
-  T m_interval;
-  T m_default;
+  private:
+    T* m_store;
+    T m_interval;
+    T m_default;
 };
 
 template <typename T>
 AccumulatorType<T>*
 accumulator()
 {
-  return new AccumulatorType<T>(0);
+    return new AccumulatorType<T>(0);
 }
 
 template <typename T>
 AccumulatorType<T>*
 accumulator(T* store)
 {
-  return new AccumulatorType<T>(store);
+    return new AccumulatorType<T>(store);
 }
 
 } // namespace ndnsec

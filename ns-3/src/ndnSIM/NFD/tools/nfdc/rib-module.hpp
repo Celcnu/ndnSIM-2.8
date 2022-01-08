@@ -39,78 +39,62 @@ using ndn::nfd::Route;
 /** \brief provides access to NFD RIB management
  *  \sa https://redmine.named-data.net/projects/nfd/wiki/RibMgmt
  */
-class RibModule : public Module, noncopyable
-{
-public:
-  /** \brief register 'route list', 'route show', 'route add', 'route remove' commands
-   */
-  static void
-  registerCommands(CommandParser& parser);
+class RibModule : public Module, noncopyable {
+  public:
+    /** \brief register 'route list', 'route show', 'route add', 'route remove' commands
+     */
+    static void registerCommands(CommandParser& parser);
 
-  /** \brief the 'route list' command
-   */
-  static void
-  list(ExecuteContext& ctx);
+    /** \brief the 'route list' command
+     */
+    static void list(ExecuteContext& ctx);
 
-  /** \brief the 'route show' command
-   */
-  static void
-  show(ExecuteContext& ctx);
+    /** \brief the 'route show' command
+     */
+    static void show(ExecuteContext& ctx);
 
-  /** \brief the 'route add' command
-   */
-  static void
-  add(ExecuteContext& ctx);
+    /** \brief the 'route add' command
+     */
+    static void add(ExecuteContext& ctx);
 
-  /** \brief the 'route remove' command
-   */
-  static void
-  remove(ExecuteContext& ctx);
+    /** \brief the 'route remove' command
+     */
+    static void remove(ExecuteContext& ctx);
 
-  void
-  fetchStatus(Controller& controller,
-              const std::function<void()>& onSuccess,
-              const Controller::DatasetFailCallback& onFailure,
-              const CommandOptions& options) override;
+    void fetchStatus(Controller& controller, const std::function<void()>& onSuccess,
+                     const Controller::DatasetFailCallback& onFailure, const CommandOptions& options) override;
 
-  void
-  formatStatusXml(std::ostream& os) const override;
+    void formatStatusXml(std::ostream& os) const override;
 
-  void
-  formatStatusText(std::ostream& os) const override;
+    void formatStatusText(std::ostream& os) const override;
 
-private:
-  using RoutePredicate = std::function<bool(const RibEntry&, const Route&)>;
+  private:
+    using RoutePredicate = std::function<bool(const RibEntry&, const Route&)>;
 
-  static void
-  listRoutesImpl(ExecuteContext& ctx, const RoutePredicate& filter);
+    static void listRoutesImpl(ExecuteContext& ctx, const RoutePredicate& filter);
 
-  /** \brief format a single status item as XML
-   *  \param os output stream
-   *  \param item status item
-   */
-  void
-  formatItemXml(std::ostream& os, const RibEntry& item) const;
+    /** \brief format a single status item as XML
+     *  \param os output stream
+     *  \param item status item
+     */
+    void formatItemXml(std::ostream& os, const RibEntry& item) const;
 
-  /** \brief format a RibEntry as text
-   *  \param os output stream
-   *  \param entry RIB entry
-   */
-  static void
-  formatEntryText(std::ostream& os, const RibEntry& entry);
+    /** \brief format a RibEntry as text
+     *  \param os output stream
+     *  \param entry RIB entry
+     */
+    static void formatEntryText(std::ostream& os, const RibEntry& entry);
 
-  /** \brief format a Route as text
-   *  \param os output stream
-   *  \param entry RIB entry
-   *  \param route RIB route within \p entry
-   *  \param includePrefix whether to print the name prefix
-   */
-  static void
-  formatRouteText(std::ostream& os, const RibEntry& entry, const Route& route,
-                  bool includePrefix);
+    /** \brief format a Route as text
+     *  \param os output stream
+     *  \param entry RIB entry
+     *  \param route RIB route within \p entry
+     *  \param includePrefix whether to print the name prefix
+     */
+    static void formatRouteText(std::ostream& os, const RibEntry& entry, const Route& route, bool includePrefix);
 
-private:
-  std::vector<RibEntry> m_status;
+  private:
+    std::vector<RibEntry> m_status;
 };
 
 } // namespace nfdc

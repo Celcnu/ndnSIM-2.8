@@ -34,72 +34,61 @@ namespace tpm {
  *
  * KeyHandle provides an interface to perform crypto operations with a key stored in the TPM.
  */
-class KeyHandle : noncopyable
-{
-public:
-  class Error : public std::runtime_error
-  {
+class KeyHandle : noncopyable {
   public:
-    using std::runtime_error::runtime_error;
-  };
+    class Error : public std::runtime_error {
+      public:
+        using std::runtime_error::runtime_error;
+    };
 
-public:
-  virtual
-  ~KeyHandle();
+  public:
+    virtual ~KeyHandle();
 
-  /**
-   * @return a digital signature created on @p buf using this key with @p digestAlgorithm.
-   */
-  ConstBufferPtr
-  sign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const;
+    /**
+     * @return a digital signature created on @p buf using this key with @p digestAlgorithm.
+     */
+    ConstBufferPtr sign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const;
 
-  /**
-   * @brief Verify the signature @p sig created on @p buf using this key and @p digestAlgorithm.
-   */
-  bool
-  verify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen,
-         const uint8_t* sig, size_t sigLen) const;
+    /**
+     * @brief Verify the signature @p sig created on @p buf using this key and @p digestAlgorithm.
+     */
+    bool
+    verify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen, const uint8_t* sig, size_t sigLen) const;
 
-  /**
-   * @return plain text content decrypted from @p cipherText using this key.
-   */
-  ConstBufferPtr
-  decrypt(const uint8_t* cipherText, size_t cipherTextLen) const;
+    /**
+     * @return plain text content decrypted from @p cipherText using this key.
+     */
+    ConstBufferPtr decrypt(const uint8_t* cipherText, size_t cipherTextLen) const;
 
-  /**
-   * @return the PCKS#8 encoded public key bits derived from this key.
-   */
-  ConstBufferPtr
-  derivePublicKey() const;
+    /**
+     * @return the PCKS#8 encoded public key bits derived from this key.
+     */
+    ConstBufferPtr derivePublicKey() const;
 
-  Name
-  getKeyName() const
-  {
-    return m_keyName;
-  }
+    Name
+    getKeyName() const
+    {
+        return m_keyName;
+    }
 
-  void
-  setKeyName(const Name& keyName)
-  {
-    m_keyName = keyName;
-  }
+    void
+    setKeyName(const Name& keyName)
+    {
+        m_keyName = keyName;
+    }
 
-private:
-  virtual ConstBufferPtr
-  doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const = 0;
+  private:
+    virtual ConstBufferPtr doSign(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t size) const = 0;
 
-  virtual bool
-  doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen,
-           const uint8_t* sig, size_t sigLen) const = 0;
+    virtual bool doVerify(DigestAlgorithm digestAlgorithm, const uint8_t* buf, size_t bufLen, const uint8_t* sig,
+                          size_t sigLen) const = 0;
 
-  virtual ConstBufferPtr
-  doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const = 0;
+    virtual ConstBufferPtr doDecrypt(const uint8_t* cipherText, size_t cipherTextLen) const = 0;
 
-  virtual ConstBufferPtr
-  doDerivePublicKey() const = 0;
+    virtual ConstBufferPtr doDerivePublicKey() const = 0;
 
-private:
-  Name m_keyName;
+  private:
+    Name m_keyName;
 };
 
 } // namespace tpm

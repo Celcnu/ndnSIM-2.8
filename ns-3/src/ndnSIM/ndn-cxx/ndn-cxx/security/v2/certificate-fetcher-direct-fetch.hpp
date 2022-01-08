@@ -37,25 +37,21 @@ namespace v2 {
  * packet was received, in addition to fetching from the infrastructure. The application must
  * enable NextHopFaceId privilege on the face used by this fetcher prior to the validation.
  */
-class CertificateFetcherDirectFetch : public CertificateFetcherFromNetwork
-{
-public:
-  explicit
-  CertificateFetcherDirectFetch(Face& face);
+class CertificateFetcherDirectFetch : public CertificateFetcherFromNetwork {
+  public:
+    explicit CertificateFetcherDirectFetch(Face& face);
 
-  /**
-   * If \p wantDirectInterestOnly, only the direct Interest will be sent out.
-   */
-  void
-  setSendDirectInterestOnly(bool wantDirectInterestOnly);
+    /**
+     * If \p wantDirectInterestOnly, only the direct Interest will be sent out.
+     */
+    void setSendDirectInterestOnly(bool wantDirectInterestOnly);
 
-protected:
-  void
-  doFetch(const shared_ptr<CertificateRequest>& keyRequest, const shared_ptr<ValidationState>& state,
-          const ValidationContinuation& continueValidation) override;
+  protected:
+    void doFetch(const shared_ptr<CertificateRequest>& keyRequest, const shared_ptr<ValidationState>& state,
+                 const ValidationContinuation& continueValidation) override;
 
-private:
-  bool m_wantDirectInterestOnly = false;
+  private:
+    bool m_wantDirectInterestOnly = false;
 };
 
 } // namespace v2

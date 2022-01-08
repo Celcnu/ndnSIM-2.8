@@ -34,22 +34,22 @@ namespace ns3 {
  * streams
  */
 class Batches : public std::list<std::tuple<Time, uint32_t>> {
-public:
-  /**
-   * @brief Default constructor
-   */
-  Batches(){};
+  public:
+    /**
+     * @brief Default constructor
+     */
+    Batches(){};
 
-  /**
-   * @brief Add tuple
-   * @param when   time for the tuple
-   * @param amount number for the tuple
-   */
-  void
-  Add(const Time& when, uint32_t amount)
-  {
-    push_back(std::make_tuple(when, amount));
-  }
+    /**
+     * @brief Add tuple
+     * @param when   time for the tuple
+     * @param amount number for the tuple
+     */
+    void
+    Add(const Time& when, uint32_t amount)
+    {
+        push_back(std::make_tuple(when, amount));
+    }
 };
 
 ATTRIBUTE_HELPER_HEADER(Batches);
@@ -59,15 +59,13 @@ ATTRIBUTE_HELPER_HEADER(Batches);
  * @param os reference to std::ostream
  * @param batch constant reference to Batch object
  */
-std::ostream&
-operator<<(std::ostream& os, const Batches& batch);
+std::ostream& operator<<(std::ostream& os, const Batches& batch);
 
 /**
  * \brief Read components from input and add them to components. Will read input stream till eof
  * Substrings separated by slashes will become separate components
  */
-std::istream&
-operator>>(std::istream& is, Batches& batch);
+std::istream& operator>>(std::istream& is, Batches& batch);
 
 } // namespace ns3
 

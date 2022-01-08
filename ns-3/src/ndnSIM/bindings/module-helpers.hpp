@@ -25,8 +25,7 @@
 namespace nfd {
 namespace fib {
 
-std::shared_ptr<Face>
-getFaceFromFibNextHop(const NextHop& nextHop);
+std::shared_ptr<Face> getFaceFromFibNextHop(const NextHop& nextHop);
 
 } // namespace fib
 } // namespace nfd

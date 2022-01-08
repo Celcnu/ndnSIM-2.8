@@ -35,37 +35,33 @@ namespace nfd {
 namespace face {
 namespace tests {
 
-class EthernetFactoryFixture : public EthernetFixture
-                             , public FaceSystemFactoryFixture<EthernetFactory>
-{
-protected:
-  EthernetFactoryFixture()
-  {
-    this->copyRealNetifsToNetmon();
-  }
+class EthernetFactoryFixture : public EthernetFixture, public FaceSystemFactoryFixture<EthernetFactory> {
+  protected:
+    EthernetFactoryFixture()
+    {
+        this->copyRealNetifsToNetmon();
+    }
 
-  std::set<std::string>
-  listUrisOfAvailableNetifs() const
-  {
-    std::set<std::string> uris;
-    std::transform(netifs.begin(), netifs.end(), std::inserter(uris, uris.end()),
-                   [] (const auto& netif) {
-                     return FaceUri::fromDev(netif->getName()).toString();
-                   });
-    return uris;
-  }
+    std::set<std::string>
+    listUrisOfAvailableNetifs() const
+    {
+        std::set<std::string> uris;
+        std::transform(netifs.begin(), netifs.end(), std::inserter(uris, uris.end()),
+                       [](const auto& netif) { return FaceUri::fromDev(netif->getName()).toString(); });
+        return uris;
+    }
 
-  std::vector<const Face*>
-  listEtherMcastFaces(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS) const
-  {
-    return this->listFacesByScheme("ether", linkType);
-  }
+    std::vector<const Face*>
+    listEtherMcastFaces(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS) const
+    {
+        return this->listFacesByScheme("ether", linkType);
+    }
 
-  size_t
-  countEtherMcastFaces(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS) const
-  {
-    return this->listEtherMcastFaces(linkType).size();
-  }
+    size_t
+    countEtherMcastFaces(ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_MULTI_ACCESS) const
+    {
+        return this->listEtherMcastFaces(linkType).size();
+    }
 };
 
 BOOST_AUTO_TEST_SUITE(Face)
@@ -75,9 +71,9 @@ BOOST_AUTO_TEST_SUITE(ProcessConfig)
 
 BOOST_AUTO_TEST_CASE(Defaults)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -87,21 +83,20 @@ BOOST_AUTO_TEST_CASE(Defaults)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  checkChannelListEqual(factory, this->listUrisOfAvailableNetifs());
-  auto channels = factory.getChannels();
-  BOOST_CHECK(std::all_of(channels.begin(), channels.end(),
-                          [] (const auto& ch) { return ch->isListening(); }));
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
+    checkChannelListEqual(factory, this->listUrisOfAvailableNetifs());
+    auto channels = factory.getChannels();
+    BOOST_CHECK(std::all_of(channels.begin(), channels.end(), [](const auto& ch) { return ch->isListening(); }));
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(DisableListen)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -113,21 +108,20 @@ BOOST_AUTO_TEST_CASE(DisableListen)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  checkChannelListEqual(factory, this->listUrisOfAvailableNetifs());
-  auto channels = factory.getChannels();
-  BOOST_CHECK(std::none_of(channels.begin(), channels.end(),
-                           [] (const auto& ch) { return ch->isListening(); }));
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
+    checkChannelListEqual(factory, this->listUrisOfAvailableNetifs());
+    auto channels = factory.getChannels();
+    BOOST_CHECK(std::none_of(channels.begin(), channels.end(), [](const auto& ch) { return ch->isListening(); }));
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(McastNormal)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -147,15 +141,15 @@ BOOST_AUTO_TEST_CASE(McastNormal)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), netifs.size());
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), netifs.size());
 }
 
 BOOST_AUTO_TEST_CASE(EnableDisableMcast)
 {
-  const std::string CONFIG_WITH_MCAST = R"CONFIG(
+    const std::string CONFIG_WITH_MCAST = R"CONFIG(
     face_system
     {
       ether
@@ -165,7 +159,7 @@ BOOST_AUTO_TEST_CASE(EnableDisableMcast)
       }
     }
   )CONFIG";
-  const std::string CONFIG_WITHOUT_MCAST = R"CONFIG(
+    const std::string CONFIG_WITHOUT_MCAST = R"CONFIG(
     face_system
     {
       ether
@@ -176,25 +170,25 @@ BOOST_AUTO_TEST_CASE(EnableDisableMcast)
     }
   )CONFIG";
 
-  parseConfig(CONFIG_WITHOUT_MCAST, false);
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
+    parseConfig(CONFIG_WITHOUT_MCAST, false);
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
 
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  parseConfig(CONFIG_WITH_MCAST, false);
-  g_io.poll();
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), netifs.size());
+    parseConfig(CONFIG_WITH_MCAST, false);
+    g_io.poll();
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), netifs.size());
 
-  parseConfig(CONFIG_WITHOUT_MCAST, false);
-  g_io.poll();
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
+    parseConfig(CONFIG_WITHOUT_MCAST, false);
+    g_io.poll();
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(McastAdHoc)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -206,16 +200,16 @@ BOOST_AUTO_TEST_CASE(McastAdHoc)
     }
   )CONFIG";
 
-  parseConfig(CONFIG, false);
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(ndn::nfd::LINK_TYPE_MULTI_ACCESS), 0);
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(ndn::nfd::LINK_TYPE_AD_HOC), netifs.size());
+    parseConfig(CONFIG, false);
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(ndn::nfd::LINK_TYPE_MULTI_ACCESS), 0);
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(ndn::nfd::LINK_TYPE_AD_HOC), netifs.size());
 }
 
 BOOST_AUTO_TEST_CASE(ChangeMcastGroup)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  const std::string CONFIG1 = R"CONFIG(
+    const std::string CONFIG1 = R"CONFIG(
     face_system
     {
       ether
@@ -224,7 +218,7 @@ BOOST_AUTO_TEST_CASE(ChangeMcastGroup)
       }
     }
   )CONFIG";
-  const std::string CONFIG2 = R"CONFIG(
+    const std::string CONFIG2 = R"CONFIG(
     face_system
     {
       ether
@@ -234,25 +228,25 @@ BOOST_AUTO_TEST_CASE(ChangeMcastGroup)
     }
   )CONFIG";
 
-  parseConfig(CONFIG1, false);
-  auto etherMcastFaces = this->listEtherMcastFaces();
-  BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), netifs.size());
-  BOOST_CHECK_EQUAL(etherMcastFaces.front()->getRemoteUri(),
-                    FaceUri(ethernet::Address{0x01, 0x00, 0x5e, 0x90, 0x10, 0x01}));
+    parseConfig(CONFIG1, false);
+    auto etherMcastFaces = this->listEtherMcastFaces();
+    BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), netifs.size());
+    BOOST_CHECK_EQUAL(etherMcastFaces.front()->getRemoteUri(),
+                      FaceUri(ethernet::Address{0x01, 0x00, 0x5e, 0x90, 0x10, 0x01}));
 
-  parseConfig(CONFIG2, false);
-  g_io.poll();
-  etherMcastFaces = this->listEtherMcastFaces();
-  BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), netifs.size());
-  BOOST_CHECK_EQUAL(etherMcastFaces.front()->getRemoteUri(),
-                    FaceUri(ethernet::Address{0x01, 0x00, 0x5e, 0x90, 0x10, 0x02}));
+    parseConfig(CONFIG2, false);
+    g_io.poll();
+    etherMcastFaces = this->listEtherMcastFaces();
+    BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), netifs.size());
+    BOOST_CHECK_EQUAL(etherMcastFaces.front()->getRemoteUri(),
+                      FaceUri(ethernet::Address{0x01, 0x00, 0x5e, 0x90, 0x10, 0x02}));
 }
 
 BOOST_AUTO_TEST_CASE(Whitelist)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  std::string CONFIG = R"CONFIG(
+    std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -264,21 +258,21 @@ BOOST_AUTO_TEST_CASE(Whitelist)
       }
     }
   )CONFIG";
-  auto ifname = netifs.front()->getName();
-  boost::replace_first(CONFIG, "%ifname", ifname);
+    auto ifname = netifs.front()->getName();
+    boost::replace_first(CONFIG, "%ifname", ifname);
 
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, false);
 
-  auto etherMcastFaces = this->listEtherMcastFaces();
-  BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), 1);
-  BOOST_CHECK_EQUAL(etherMcastFaces.front()->getLocalUri(), FaceUri::fromDev(ifname));
+    auto etherMcastFaces = this->listEtherMcastFaces();
+    BOOST_REQUIRE_EQUAL(etherMcastFaces.size(), 1);
+    BOOST_CHECK_EQUAL(etherMcastFaces.front()->getLocalUri(), FaceUri::fromDev(ifname));
 }
 
 BOOST_AUTO_TEST_CASE(Blacklist)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  std::string CONFIG = R"CONFIG(
+    std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -290,37 +284,35 @@ BOOST_AUTO_TEST_CASE(Blacklist)
       }
     }
   )CONFIG";
-  auto ifname = netifs.front()->getName();
-  boost::replace_first(CONFIG, "%ifname", ifname);
+    auto ifname = netifs.front()->getName();
+    boost::replace_first(CONFIG, "%ifname", ifname);
 
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, false);
 
-  auto etherMcastFaces = this->listEtherMcastFaces();
-  BOOST_CHECK_EQUAL(etherMcastFaces.size(), netifs.size() - 1);
-  BOOST_CHECK(std::none_of(etherMcastFaces.begin(), etherMcastFaces.end(),
-    [ifname] (const nfd::Face* face) {
-      return face->getLocalUri() == FaceUri::fromDev(ifname);
-    }
-  ));
+    auto etherMcastFaces = this->listEtherMcastFaces();
+    BOOST_CHECK_EQUAL(etherMcastFaces.size(), netifs.size() - 1);
+    BOOST_CHECK(std::none_of(etherMcastFaces.begin(), etherMcastFaces.end(), [ifname](const nfd::Face* face) {
+        return face->getLocalUri() == FaceUri::fromDev(ifname);
+    }));
 }
 
 BOOST_AUTO_TEST_CASE(Omitted)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
     }
   )CONFIG";
 
-  parseConfig(CONFIG, true);
-  parseConfig(CONFIG, false);
+    parseConfig(CONFIG, true);
+    parseConfig(CONFIG, false);
 
-  BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
+    BOOST_CHECK_EQUAL(this->countEtherMcastFaces(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(BadListen)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -330,15 +322,15 @@ BOOST_AUTO_TEST_CASE(BadListen)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(BadIdleTimeout, 2) // Bug #4489
 BOOST_AUTO_TEST_CASE(BadIdleTimeout)
 {
-  // not a number
-  const std::string CONFIG1 = R"CONFIG(
+    // not a number
+    const std::string CONFIG1 = R"CONFIG(
     face_system
     {
       ether
@@ -348,11 +340,11 @@ BOOST_AUTO_TEST_CASE(BadIdleTimeout)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
 
-  // negative number
-  const std::string CONFIG2 = R"CONFIG(
+    // negative number
+    const std::string CONFIG2 = R"CONFIG(
     face_system
     {
       ether
@@ -362,13 +354,13 @@ BOOST_AUTO_TEST_CASE(BadIdleTimeout)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(BadMcast)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -378,14 +370,14 @@ BOOST_AUTO_TEST_CASE(BadMcast)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(BadMcastGroup)
 {
-  // not an address
-  const std::string CONFIG1 = R"CONFIG(
+    // not an address
+    const std::string CONFIG1 = R"CONFIG(
     face_system
     {
       ether
@@ -395,11 +387,11 @@ BOOST_AUTO_TEST_CASE(BadMcastGroup)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG1, false), ConfigFile::Error);
 
-  // non-multicast address
-  const std::string CONFIG2 = R"CONFIG(
+    // non-multicast address
+    const std::string CONFIG2 = R"CONFIG(
     face_system
     {
       ether
@@ -409,13 +401,13 @@ BOOST_AUTO_TEST_CASE(BadMcastGroup)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG2, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_CASE(UnknownOption)
 {
-  const std::string CONFIG = R"CONFIG(
+    const std::string CONFIG = R"CONFIG(
     face_system
     {
       ether
@@ -425,120 +417,94 @@ BOOST_AUTO_TEST_CASE(UnknownOption)
     }
   )CONFIG";
 
-  BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
-  BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, true), ConfigFile::Error);
+    BOOST_CHECK_THROW(parseConfig(CONFIG, false), ConfigFile::Error);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // ProcessConfig
 
 BOOST_AUTO_TEST_CASE(GetChannels)
 {
-  BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    BOOST_CHECK_EQUAL(factory.getChannels().empty(), true);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  factory.createChannel(netifs.front(), 1_min);
-  checkChannelListEqual(factory, {FaceUri::fromDev(netifs.front()->getName()).toString()});
+    factory.createChannel(netifs.front(), 1_min);
+    checkChannelListEqual(factory, {FaceUri::fromDev(netifs.front()->getName()).toString()});
 }
 
 BOOST_AUTO_TEST_CASE(CreateChannel)
 {
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
 
-  auto channel1 = factory.createChannel(netifs.front(), 1_min);
-  auto channel1a = factory.createChannel(netifs.front(), 5_min);
-  BOOST_CHECK_EQUAL(channel1, channel1a);
-  BOOST_CHECK_EQUAL(channel1->getUri().toString(), "dev://" + netifs.front()->getName());
+    auto channel1 = factory.createChannel(netifs.front(), 1_min);
+    auto channel1a = factory.createChannel(netifs.front(), 5_min);
+    BOOST_CHECK_EQUAL(channel1, channel1a);
+    BOOST_CHECK_EQUAL(channel1->getUri().toString(), "dev://" + netifs.front()->getName());
 
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(2);
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(2);
 
-  auto channel2 = factory.createChannel(netifs.back(), 1_min);
-  BOOST_CHECK_NE(channel1, channel2);
+    auto channel2 = factory.createChannel(netifs.back(), 1_min);
+    BOOST_CHECK_NE(channel1, channel2);
 }
 
 BOOST_AUTO_TEST_CASE(CreateFace)
 {
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             FaceUri("dev://eth0"),
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 504, "No channels available to connect"});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), FaceUri("dev://eth0"),
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 504, "No channels available to connect"});
 
-  SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
-  auto localUri = factory.createChannel(netifs.front(), 1_min)->getUri();
+    SKIP_IF_ETHERNET_NETIF_COUNT_LT(1);
+    auto localUri = factory.createChannel(netifs.front(), 1_min)->getUri();
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:53]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:53]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:57]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, true, false},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:57]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, true, false},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5b]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, true},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5b]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERMANENT, {}, {}, {}, false, false, true},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5c]"),
-             localUri,
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, 1000, false, false, false},
-             {CreateFaceExpectedResult::SUCCESS, 0, ""});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5c]"), localUri,
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, 1000, false, false, false},
+               {CreateFaceExpectedResult::SUCCESS, 0, ""});
 }
 
 BOOST_AUTO_TEST_CASE(UnsupportedCreateFace)
 {
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             {},
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406,
-              "Creation of unicast Ethernet faces requires a LocalUri with dev:// scheme"});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), {},
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406,
+                "Creation of unicast Ethernet faces requires a LocalUri with dev:// scheme"});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             FaceUri("udp4://127.0.0.1:20071"),
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406,
-              "Creation of unicast Ethernet faces requires a LocalUri with dev:// scheme"});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), FaceUri("udp4://127.0.0.1:20071"),
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406,
+                "Creation of unicast Ethernet faces requires a LocalUri with dev:// scheme"});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             FaceUri("dev://eth0"),
-             {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406,
-              "Outgoing Ethernet faces do not support on-demand persistency"});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), FaceUri("dev://eth0"),
+               {ndn::nfd::FACE_PERSISTENCY_ON_DEMAND, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406,
+                "Outgoing Ethernet faces do not support on-demand persistency"});
 
-  createFace(factory,
-             FaceUri("ether://[01:00:5e:90:10:5e]"),
-             FaceUri("dev://eth0"),
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406,
-              "Cannot create multicast Ethernet faces"});
+    createFace(factory, FaceUri("ether://[01:00:5e:90:10:5e]"), FaceUri("dev://eth0"),
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, false, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Cannot create multicast Ethernet faces"});
 
-  createFace(factory,
-             FaceUri("ether://[00:00:5e:00:53:5e]"),
-             FaceUri("dev://eth0"),
-             {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, true, false, false},
-             {CreateFaceExpectedResult::FAILURE, 406,
-              "Local fields can only be enabled on faces with local scope"});
+    createFace(factory, FaceUri("ether://[00:00:5e:00:53:5e]"), FaceUri("dev://eth0"),
+               {ndn::nfd::FACE_PERSISTENCY_PERSISTENT, {}, {}, {}, true, false, false},
+               {CreateFaceExpectedResult::FAILURE, 406, "Local fields can only be enabled on faces with local scope"});
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestEthernetFactory

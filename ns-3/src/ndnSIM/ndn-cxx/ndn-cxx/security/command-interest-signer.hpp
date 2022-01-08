@@ -38,21 +38,19 @@ namespace security {
  *
  * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
  */
-class CommandInterestPreparer : noncopyable
-{
-public:
-  CommandInterestPreparer();
+class CommandInterestPreparer : noncopyable {
+  public:
+    CommandInterestPreparer();
 
-  /**
-   * @brief Prepare name of the CommandInterest
-   *
-   * This method appends the timestamp and nonce name components to the supplied name.
-   */
-  Name
-  prepareCommandInterestName(Name name);
+    /**
+     * @brief Prepare name of the CommandInterest
+     *
+     * This method appends the timestamp and nonce name components to the supplied name.
+     */
+    Name prepareCommandInterestName(Name name);
 
-private:
-  time::milliseconds m_lastUsedTimestamp;
+  private:
+    time::milliseconds m_lastUsedTimestamp;
 };
 
 /**
@@ -63,33 +61,29 @@ private:
  *
  * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
  */
-class CommandInterestSigner : private CommandInterestPreparer
-{
-public:
-  explicit
-  CommandInterestSigner(KeyChain& keyChain);
+class CommandInterestSigner : private CommandInterestPreparer {
+  public:
+    explicit CommandInterestSigner(KeyChain& keyChain);
 
-  /**
-   * @brief Create CommandInterest
-   *
-   * This method appends the timestamp and nonce name components to the supplied name, create
-   * an Interest object and signs it with the keychain.
-   *
-   * Note that signature of the command interest covers only Name of the interest.  Therefore,
-   * other fields in the returned interest can be changed without breaking validity of the
-   * signature, because s
-   *
-   * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
-   */
-  Interest
-  makeCommandInterest(const Name& name, const SigningInfo& params = KeyChain::getDefaultSigningInfo());
+    /**
+     * @brief Create CommandInterest
+     *
+     * This method appends the timestamp and nonce name components to the supplied name, create
+     * an Interest object and signs it with the keychain.
+     *
+     * Note that signature of the command interest covers only Name of the interest.  Therefore,
+     * other fields in the returned interest can be changed without breaking validity of the
+     * signature, because s
+     *
+     * @sa https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
+     */
+    Interest makeCommandInterest(const Name& name, const SigningInfo& params = KeyChain::getDefaultSigningInfo());
 
-private:
-  KeyChain& m_keyChain;
+  private:
+    KeyChain& m_keyChain;
 };
 
 } // namespace security
 } // namespace ndn
-
 
 #endif // NDN_SECURITY_COMMAND_INTEREST_SIGNER_HPP

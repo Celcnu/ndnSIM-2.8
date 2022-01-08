@@ -50,41 +50,35 @@ namespace autoconfig {
  *  Signature on this Data is currently not verified. This stage succeeds when the Data is
  *  successfully decoded.
  */
-class MulticastDiscovery : public Stage
-{
-public:
-  MulticastDiscovery(Face& face, nfd::Controller& controller);
+class MulticastDiscovery : public Stage {
+  public:
+    MulticastDiscovery(Face& face, nfd::Controller& controller);
 
-  const std::string&
-  getName() const final
-  {
-    static const std::string STAGE_NAME("multicast discovery");
-    return STAGE_NAME;
-  }
+    const std::string&
+    getName() const final
+    {
+        static const std::string STAGE_NAME("multicast discovery");
+        return STAGE_NAME;
+    }
 
-private:
-  void
-  doStart() final;
+  private:
+    void doStart() final;
 
-  void
-  registerHubDiscoveryPrefix(const std::vector<nfd::FaceStatus>& dataset);
+    void registerHubDiscoveryPrefix(const std::vector<nfd::FaceStatus>& dataset);
 
-  void
-  afterReg();
+    void afterReg();
 
-  void
-  setStrategy();
+    void setStrategy();
 
-  void
-  requestHubData();
+    void requestHubData();
 
-private:
-  Face& m_face;
-  nfd::Controller& m_controller;
+  private:
+    Face& m_face;
+    nfd::Controller& m_controller;
 
-  int m_nRegs = 0;
-  int m_nRegSuccess = 0;
-  int m_nRegFailure = 0;
+    int m_nRegs = 0;
+    int m_nRegSuccess = 0;
+    int m_nRegFailure = 0;
 };
 
 } // namespace autoconfig

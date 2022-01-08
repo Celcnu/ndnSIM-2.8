@@ -26,8 +26,7 @@
 
 namespace ndn {
 
-RegexBackrefMatcher::RegexBackrefMatcher(const std::string& expr,
-                                         shared_ptr<RegexBackrefManager> backrefManager)
+RegexBackrefMatcher::RegexBackrefMatcher(const std::string& expr, shared_ptr<RegexBackrefManager> backrefManager)
   : RegexMatcher(expr, EXPR_BACKREF, std::move(backrefManager))
 {
 }
@@ -35,16 +34,15 @@ RegexBackrefMatcher::RegexBackrefMatcher(const std::string& expr,
 void
 RegexBackrefMatcher::compile()
 {
-  if (m_expr.size() < 2)
-    NDN_THROW(Error("Unrecognized format: " + m_expr));
+    if (m_expr.size() < 2)
+        NDN_THROW(Error("Unrecognized format: " + m_expr));
 
-  size_t lastIndex = m_expr.size() - 1;
-  if ('(' == m_expr[0] && ')' == m_expr[lastIndex]) {
-    m_matchers.push_back(make_shared<RegexPatternListMatcher>(m_expr.substr(1, lastIndex - 1),
-                                                              m_backrefManager));
-  }
-  else
-    NDN_THROW(Error("Unrecognized format: " + m_expr));
+    size_t lastIndex = m_expr.size() - 1;
+    if ('(' == m_expr[0] && ')' == m_expr[lastIndex]) {
+        m_matchers.push_back(make_shared<RegexPatternListMatcher>(m_expr.substr(1, lastIndex - 1), m_backrefManager));
+    }
+    else
+        NDN_THROW(Error("Unrecognized format: " + m_expr));
 }
 
 } // namespace ndn

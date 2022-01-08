@@ -41,127 +41,127 @@ using pib::Pib;
 
 BOOST_AUTO_TEST_CASE(Basic)
 {
-  auto pibImpl = make_shared<PibMemory>();
+    auto pibImpl = make_shared<PibMemory>();
 
-  // start with an empty container
-  KeyContainer container(id1, pibImpl);
-  BOOST_CHECK_EQUAL(container.size(), 0);
-  BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 0);
+    // start with an empty container
+    KeyContainer container(id1, pibImpl);
+    BOOST_CHECK_EQUAL(container.size(), 0);
+    BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 0);
 
-  // add the first key
-  Key key11 = container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  BOOST_CHECK_EQUAL(key11.getName(), id1Key1Name);
-  BOOST_CHECK(key11.getPublicKey() == id1Key1);
-  BOOST_CHECK_EQUAL(container.size(), 1);
-  BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 1);
-  BOOST_CHECK(container.find(id1Key1Name) != container.end());
+    // add the first key
+    Key key11 = container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    BOOST_CHECK_EQUAL(key11.getName(), id1Key1Name);
+    BOOST_CHECK(key11.getPublicKey() == id1Key1);
+    BOOST_CHECK_EQUAL(container.size(), 1);
+    BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 1);
+    BOOST_CHECK(container.find(id1Key1Name) != container.end());
 
-  // add the same key again
-  Key key12 = container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  BOOST_CHECK_EQUAL(key12.getName(), id1Key1Name);
-  BOOST_CHECK(key12.getPublicKey() == id1Key1);
-  BOOST_CHECK_EQUAL(container.size(), 1);
-  BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 1);
-  BOOST_CHECK(container.find(id1Key1Name) != container.end());
+    // add the same key again
+    Key key12 = container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    BOOST_CHECK_EQUAL(key12.getName(), id1Key1Name);
+    BOOST_CHECK(key12.getPublicKey() == id1Key1);
+    BOOST_CHECK_EQUAL(container.size(), 1);
+    BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 1);
+    BOOST_CHECK(container.find(id1Key1Name) != container.end());
 
-  // add the second key
-  Key key21 = container.add(id1Key2.data(), id1Key2.size(), id1Key2Name);
-  BOOST_CHECK_EQUAL(key21.getName(), id1Key2Name);
-  BOOST_CHECK(key21.getPublicKey() == id1Key2);
-  BOOST_CHECK_EQUAL(container.size(), 2);
-  BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 2);
-  BOOST_CHECK(container.find(id1Key1Name) != container.end());
-  BOOST_CHECK(container.find(id1Key2Name) != container.end());
+    // add the second key
+    Key key21 = container.add(id1Key2.data(), id1Key2.size(), id1Key2Name);
+    BOOST_CHECK_EQUAL(key21.getName(), id1Key2Name);
+    BOOST_CHECK(key21.getPublicKey() == id1Key2);
+    BOOST_CHECK_EQUAL(container.size(), 2);
+    BOOST_CHECK_EQUAL(container.getLoadedKeys().size(), 2);
+    BOOST_CHECK(container.find(id1Key1Name) != container.end());
+    BOOST_CHECK(container.find(id1Key2Name) != container.end());
 
-  // get keys
-  BOOST_REQUIRE_NO_THROW(container.get(id1Key1Name));
-  BOOST_REQUIRE_NO_THROW(container.get(id1Key2Name));
-  Name id1Key3Name = v2::constructKeyName(id1, name::Component("non-existing-id"));
-  BOOST_CHECK_THROW(container.get(id1Key3Name), Pib::Error);
+    // get keys
+    BOOST_REQUIRE_NO_THROW(container.get(id1Key1Name));
+    BOOST_REQUIRE_NO_THROW(container.get(id1Key2Name));
+    Name id1Key3Name = v2::constructKeyName(id1, name::Component("non-existing-id"));
+    BOOST_CHECK_THROW(container.get(id1Key3Name), Pib::Error);
 
-  // check key
-  Key key1 = container.get(id1Key1Name);
-  Key key2 = container.get(id1Key2Name);
-  BOOST_CHECK_EQUAL(key1.getName(), id1Key1Name);
-  BOOST_CHECK(key1.getPublicKey() == id1Key1);
-  BOOST_CHECK_EQUAL(key2.getName(), id1Key2Name);
-  BOOST_CHECK(key2.getPublicKey() == id1Key2);
+    // check key
+    Key key1 = container.get(id1Key1Name);
+    Key key2 = container.get(id1Key2Name);
+    BOOST_CHECK_EQUAL(key1.getName(), id1Key1Name);
+    BOOST_CHECK(key1.getPublicKey() == id1Key1);
+    BOOST_CHECK_EQUAL(key2.getName(), id1Key2Name);
+    BOOST_CHECK(key2.getPublicKey() == id1Key2);
 
-  // create another container from the same PibImpl
-  // cache should be empty
-  KeyContainer container2(id1, pibImpl);
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 0);
+    // create another container from the same PibImpl
+    // cache should be empty
+    KeyContainer container2(id1, pibImpl);
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 0);
 
-  // get key, cache should be filled
-  BOOST_REQUIRE_NO_THROW(container2.get(id1Key1Name));
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 1);
+    // get key, cache should be filled
+    BOOST_REQUIRE_NO_THROW(container2.get(id1Key1Name));
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 1);
 
-  BOOST_REQUIRE_NO_THROW(container2.get(id1Key2Name));
-  BOOST_CHECK_EQUAL(container2.size(), 2);
-  BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 2);
+    BOOST_REQUIRE_NO_THROW(container2.get(id1Key2Name));
+    BOOST_CHECK_EQUAL(container2.size(), 2);
+    BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 2);
 
-  // remove a key
-  container2.remove(id1Key1Name);
-  BOOST_CHECK_EQUAL(container2.size(), 1);
-  BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 1);
-  BOOST_CHECK(container2.find(id1Key1Name) == container2.end());
-  BOOST_CHECK(container2.find(id1Key2Name) != container2.end());
+    // remove a key
+    container2.remove(id1Key1Name);
+    BOOST_CHECK_EQUAL(container2.size(), 1);
+    BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 1);
+    BOOST_CHECK(container2.find(id1Key1Name) == container2.end());
+    BOOST_CHECK(container2.find(id1Key2Name) != container2.end());
 
-  // remove another key
-  container2.remove(id1Key2Name);
-  BOOST_CHECK_EQUAL(container2.size(), 0);
-  BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 0);
-  BOOST_CHECK(container2.find(id1Key2Name) == container2.end());
+    // remove another key
+    container2.remove(id1Key2Name);
+    BOOST_CHECK_EQUAL(container2.size(), 0);
+    BOOST_CHECK_EQUAL(container2.getLoadedKeys().size(), 0);
+    BOOST_CHECK(container2.find(id1Key2Name) == container2.end());
 }
 
 BOOST_AUTO_TEST_CASE(Errors)
 {
-  auto pibImpl = make_shared<PibMemory>();
+    auto pibImpl = make_shared<PibMemory>();
 
-  KeyContainer container(id1, pibImpl);
+    KeyContainer container(id1, pibImpl);
 
-  BOOST_CHECK_THROW(container.add(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(container.remove(id2Key1Name), std::invalid_argument);
-  BOOST_CHECK_THROW(container.get(id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(container.add(id2Key1.data(), id2Key1.size(), id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(container.remove(id2Key1Name), std::invalid_argument);
+    BOOST_CHECK_THROW(container.get(id2Key1Name), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(Iterator)
 {
-  auto pibImpl = make_shared<PibMemory>();
-  KeyContainer container(id1, pibImpl);
+    auto pibImpl = make_shared<PibMemory>();
+    KeyContainer container(id1, pibImpl);
 
-  container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
-  container.add(id1Key2.data(), id1Key2.size(), id1Key2Name);
+    container.add(id1Key1.data(), id1Key1.size(), id1Key1Name);
+    container.add(id1Key2.data(), id1Key2.size(), id1Key2Name);
 
-  std::set<Name> keyNames;
-  keyNames.insert(id1Key1Name);
-  keyNames.insert(id1Key2Name);
+    std::set<Name> keyNames;
+    keyNames.insert(id1Key1Name);
+    keyNames.insert(id1Key2Name);
 
-  KeyContainer::const_iterator it = container.begin();
-  std::set<Name>::const_iterator testIt = keyNames.begin();
-  BOOST_CHECK_EQUAL((*it).getName(), *testIt);
-  it++;
-  testIt++;
-  BOOST_CHECK_EQUAL((*it).getName(), *testIt);
-  ++it;
-  testIt++;
-  BOOST_CHECK(it == container.end());
-
-  size_t count = 0;
-  testIt = keyNames.begin();
-  for (const auto& key : container) {
-    BOOST_CHECK_EQUAL(key.getIdentity(), id1);
-    BOOST_CHECK_EQUAL(key.getName(), *testIt);
+    KeyContainer::const_iterator it = container.begin();
+    std::set<Name>::const_iterator testIt = keyNames.begin();
+    BOOST_CHECK_EQUAL((*it).getName(), *testIt);
+    it++;
     testIt++;
-    count++;
-  }
-  BOOST_CHECK_EQUAL(count, 2);
+    BOOST_CHECK_EQUAL((*it).getName(), *testIt);
+    ++it;
+    testIt++;
+    BOOST_CHECK(it == container.end());
 
-  BOOST_CHECK(KeyContainer::const_iterator() == KeyContainer::const_iterator());
-  BOOST_CHECK(KeyContainer::const_iterator() == container.end());
-  BOOST_CHECK(container.end() == KeyContainer::const_iterator());
+    size_t count = 0;
+    testIt = keyNames.begin();
+    for (const auto& key : container) {
+        BOOST_CHECK_EQUAL(key.getIdentity(), id1);
+        BOOST_CHECK_EQUAL(key.getName(), *testIt);
+        testIt++;
+        count++;
+    }
+    BOOST_CHECK_EQUAL(count, 2);
+
+    BOOST_CHECK(KeyContainer::const_iterator() == KeyContainer::const_iterator());
+    BOOST_CHECK(KeyContainer::const_iterator() == container.end());
+    BOOST_CHECK(container.end() == KeyContainer::const_iterator());
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestKeyContainer

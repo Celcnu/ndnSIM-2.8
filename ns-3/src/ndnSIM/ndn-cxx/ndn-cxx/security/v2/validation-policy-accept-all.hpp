@@ -31,22 +31,21 @@ namespace v2 {
 /**
  * @brief A validator policy that accepts any signature of data and interest packets
  */
-class ValidationPolicyAcceptAll : public ValidationPolicy
-{
-public:
-  void
-  checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) final
-  {
-    continueValidation(nullptr, state);
-  }
+class ValidationPolicyAcceptAll : public ValidationPolicy {
+  public:
+    void
+    checkPolicy(const Data& data, const shared_ptr<ValidationState>& state,
+                const ValidationContinuation& continueValidation) final
+    {
+        continueValidation(nullptr, state);
+    }
 
-  void
-  checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
-              const ValidationContinuation& continueValidation) final
-  {
-    continueValidation(nullptr, state);
-  }
+    void
+    checkPolicy(const Interest& interest, const shared_ptr<ValidationState>& state,
+                const ValidationContinuation& continueValidation) final
+    {
+        continueValidation(nullptr, state);
+    }
 };
 
 } // namespace v2

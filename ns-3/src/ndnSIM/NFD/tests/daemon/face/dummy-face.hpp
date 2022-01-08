@@ -44,52 +44,45 @@ class DummyLinkService;
  *  which can be observed in test cases.
  *  Incoming network-layer packets can be injected from test cases through receive* method.
  */
-class DummyFace : public Face
-{
-public:
-  explicit
-  DummyFace(const std::string& localUri = "dummy://", const std::string& remoteUri = "dummy://",
-            ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
-            ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
-            ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
+class DummyFace : public Face {
+  public:
+    explicit DummyFace(const std::string& localUri = "dummy://", const std::string& remoteUri = "dummy://",
+                       ndn::nfd::FaceScope scope = ndn::nfd::FACE_SCOPE_NON_LOCAL,
+                       ndn::nfd::FacePersistency persistency = ndn::nfd::FACE_PERSISTENCY_PERSISTENT,
+                       ndn::nfd::LinkType linkType = ndn::nfd::LINK_TYPE_POINT_TO_POINT);
 
-  /** \brief changes face state
-   *  \throw std::runtime_error state transition is invalid
-   */
-  void
-  setState(FaceState state);
+    /** \brief changes face state
+     *  \throw std::runtime_error state transition is invalid
+     */
+    void setState(FaceState state);
 
-  /** \brief causes the face to receive an Interest
-   */
-  void
-  receiveInterest(const Interest& interest, const EndpointId& endpointId);
+    /** \brief causes the face to receive an Interest
+     */
+    void receiveInterest(const Interest& interest, const EndpointId& endpointId);
 
-  /** \brief causes the face to receive a Data
-   */
-  void
-  receiveData(const Data& data, const EndpointId& endpointId);
+    /** \brief causes the face to receive a Data
+     */
+    void receiveData(const Data& data, const EndpointId& endpointId);
 
-  /** \brief causes the face to receive a Nack
-   */
-  void
-  receiveNack(const lp::Nack& nack, const EndpointId& endpointId);
+    /** \brief causes the face to receive a Nack
+     */
+    void receiveNack(const lp::Nack& nack, const EndpointId& endpointId);
 
-  /** \brief Emitted after a network-layer packet is sent.
-   *
-   *  The packet type is reported via the argument, whose value will be one of
-   *  tlv::Interest, tlv::Data, or lp::tlv::Nack. Signal handlers may retrieve
-   *  the packet via `sentInterests.back()`, `sentData.back()`, or `sentNacks.back()`.
-   */
-  signal::Signal<DummyLinkService, uint32_t>& afterSend;
+    /** \brief Emitted after a network-layer packet is sent.
+     *
+     *  The packet type is reported via the argument, whose value will be one of
+     *  tlv::Interest, tlv::Data, or lp::tlv::Nack. Signal handlers may retrieve
+     *  the packet via `sentInterests.back()`, `sentData.back()`, or `sentNacks.back()`.
+     */
+    signal::Signal<DummyLinkService, uint32_t>& afterSend;
 
-private:
-  DummyLinkService*
-  getDummyLinkService() const;
+  private:
+    DummyLinkService* getDummyLinkService() const;
 
-public:
-  std::vector<Interest>& sentInterests;
-  std::vector<Data>& sentData;
-  std::vector<lp::Nack>& sentNacks;
+  public:
+    std::vector<Interest>& sentInterests;
+    std::vector<Data>& sentData;
+    std::vector<lp::Nack>& sentNacks;
 };
 
 } // namespace tests

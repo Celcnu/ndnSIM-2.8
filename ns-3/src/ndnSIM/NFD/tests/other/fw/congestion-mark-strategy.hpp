@@ -42,22 +42,18 @@ namespace fw {
  *
  *  \note This strategy is not EndpointId-aware.
  */
-class CongestionMarkStrategy : public BestRouteStrategy2
-{
-public:
-  explicit
-  CongestionMarkStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+class CongestionMarkStrategy : public BestRouteStrategy2 {
+  public:
+    explicit CongestionMarkStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  static const Name&
-  getStrategyName();
+    static const Name& getStrategyName();
 
-  void
-  afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
-                       const shared_ptr<pit::Entry>& pitEntry) override;
+    void afterReceiveInterest(const FaceEndpoint& ingress, const Interest& interest,
+                              const shared_ptr<pit::Entry>& pitEntry) override;
 
-private:
-  uint64_t m_congestionMark;
-  bool m_shouldPreserveMark;
+  private:
+    uint64_t m_congestionMark;
+    bool m_shouldPreserveMark;
 };
 
 } // namespace fw

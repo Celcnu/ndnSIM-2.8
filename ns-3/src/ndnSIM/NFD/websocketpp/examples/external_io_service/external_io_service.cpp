@@ -31,16 +31,17 @@
 
 #include <iostream>
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
 
 typedef websocketpp::server<websocketpp::config::asio> ws_echo_server;
 
 // Define a callback to handle incoming messages
-void on_message(ws_echo_server* s, websocketpp::connection_hdl hdl, ws_echo_server::message_ptr msg) {
-    std::cout << "on_message called with hdl: " << hdl.lock().get()
-              << " and message: " << msg->get_payload()
+void
+on_message(ws_echo_server* s, websocketpp::connection_hdl hdl, ws_echo_server::message_ptr msg)
+{
+    std::cout << "on_message called with hdl: " << hdl.lock().get() << " and message: " << msg->get_payload()
               << std::endl;
 
     // check for a special command to instruct the server to stop listening so
@@ -52,13 +53,16 @@ void on_message(ws_echo_server* s, websocketpp::connection_hdl hdl, ws_echo_serv
 
     try {
         s->send(hdl, msg->get_payload(), msg->get_opcode());
-    } catch (websocketpp::exception const & e) {
+    }
+    catch (websocketpp::exception const& e) {
         std::cout << "Echo failed because: "
                   << "(" << e.what() << ")" << std::endl;
     }
 }
 
-int main() {
+int
+main()
+{
     asio::io_service service;
 
     // Add a TCP echo server on port 9003
@@ -74,7 +78,7 @@ int main() {
     ws_server.init_asio(&service);
 
     // Register our message handler
-    ws_server.set_message_handler(bind(&on_message,&ws_server,::_1,::_2));
+    ws_server.set_message_handler(bind(&on_message, &ws_server, ::_1, ::_2));
     ws_server.listen(9002);
     ws_server.start_accept();
 

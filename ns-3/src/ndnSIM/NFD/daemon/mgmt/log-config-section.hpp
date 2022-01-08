@@ -31,8 +31,7 @@
 namespace nfd {
 namespace log {
 
-void
-setConfigFile(ConfigFile& config);
+void setConfigFile(ConfigFile& config);
 
 } // namespace log
 } // namespace nfd

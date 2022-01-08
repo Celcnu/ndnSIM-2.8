@@ -46,53 +46,44 @@ namespace fw {
  *  and declare that specialization as a friend class.
  *  Then, invoke processNack from afterReceiveNack trigger.
  */
-class ProcessNackTraitsBase : noncopyable
-{
-protected:
-  virtual
-  ~ProcessNackTraitsBase() = default;
+class ProcessNackTraitsBase : noncopyable {
+  protected:
+    virtual ~ProcessNackTraitsBase() = default;
 
-  void
-  processNack(const Face& inFace, const lp::Nack& nack,
-              const shared_ptr<pit::Entry>& pitEntry);
+    void processNack(const Face& inFace, const lp::Nack& nack, const shared_ptr<pit::Entry>& pitEntry);
 
-private:
-  virtual void
-  sendNackForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const Face& outFace,
-                               const lp::NackHeader& header) = 0;
+  private:
+    virtual void sendNackForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const Face& outFace,
+                                              const lp::NackHeader& header) = 0;
 
-  virtual void
-  sendNacksForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry,
-                                const lp::NackHeader& header) = 0;
+    virtual void
+    sendNacksForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const lp::NackHeader& header) = 0;
 };
 
-template<typename S>
-class ProcessNackTraits : public ProcessNackTraitsBase
-{
-protected:
-  explicit
-  ProcessNackTraits(S* strategy)
-    : m_strategy(strategy)
-  {
-  }
+template <typename S>
+class ProcessNackTraits : public ProcessNackTraitsBase {
+  protected:
+    explicit ProcessNackTraits(S* strategy)
+      : m_strategy(strategy)
+    {
+    }
 
-private:
-  void
-  sendNackForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const Face& outFace,
-                               const lp::NackHeader& header) override
-  {
-    m_strategy->sendNack(pitEntry, FaceEndpoint(outFace, 0), header);
-  }
+  private:
+    void
+    sendNackForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const Face& outFace,
+                                 const lp::NackHeader& header) override
+    {
+        m_strategy->sendNack(pitEntry, FaceEndpoint(outFace, 0), header);
+    }
 
-  void
-  sendNacksForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry,
-                                const lp::NackHeader& header) override
-  {
-    m_strategy->sendNacks(pitEntry, header);
-  }
+    void
+    sendNacksForProcessNackTraits(const shared_ptr<pit::Entry>& pitEntry, const lp::NackHeader& header) override
+    {
+        m_strategy->sendNacks(pitEntry, header);
+    }
 
-private:
-  S* m_strategy;
+  private:
+    S* m_strategy;
 };
 
 } // namespace fw

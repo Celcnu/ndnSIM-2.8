@@ -33,45 +33,45 @@ BOOST_AUTO_TEST_SUITE(TestLogger)
 
 BOOST_AUTO_TEST_CASE(LegalAlphanumeric)
 {
-  Logger logger("ndnTest123");
-  auto mNames = Logging::getLoggerNames();
-  BOOST_CHECK_EQUAL(mNames.count("ndnTest123"), 1);
-  BOOST_CHECK(logger.isLevelEnabled(LogLevel::NONE));
-  Logging::get().removeLogger(logger);
+    Logger logger("ndnTest123");
+    auto mNames = Logging::getLoggerNames();
+    BOOST_CHECK_EQUAL(mNames.count("ndnTest123"), 1);
+    BOOST_CHECK(logger.isLevelEnabled(LogLevel::NONE));
+    Logging::get().removeLogger(logger);
 }
 
 BOOST_AUTO_TEST_CASE(AllLegalSymbols)
 {
-  Logger logger("ndn.~#%.test_<check>1-2-3");
-  auto mNames = Logging::getLoggerNames();
-  BOOST_CHECK_EQUAL(mNames.count("ndn.~#%.test_<check>1-2-3"), 1);
-  BOOST_CHECK(logger.isLevelEnabled(LogLevel::NONE));
-  Logging::get().removeLogger(logger);
+    Logger logger("ndn.~#%.test_<check>1-2-3");
+    auto mNames = Logging::getLoggerNames();
+    BOOST_CHECK_EQUAL(mNames.count("ndn.~#%.test_<check>1-2-3"), 1);
+    BOOST_CHECK(logger.isLevelEnabled(LogLevel::NONE));
+    Logging::get().removeLogger(logger);
 }
 
 BOOST_AUTO_TEST_CASE(EmptyLogger)
 {
-  BOOST_CHECK_THROW(Logger logger(""), std::invalid_argument);
+    BOOST_CHECK_THROW(Logger logger(""), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(InvalidSymbol)
 {
-  BOOST_CHECK_THROW(Logger logger("ndn.test.*"), std::invalid_argument);
+    BOOST_CHECK_THROW(Logger logger("ndn.test.*"), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(StartsWithPeriod)
 {
-  BOOST_CHECK_THROW(Logger logger(".ndn.test"), std::invalid_argument);
+    BOOST_CHECK_THROW(Logger logger(".ndn.test"), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(EndsWithPeriod)
 {
-  BOOST_CHECK_THROW(Logger logger("ndn.test."), std::invalid_argument);
+    BOOST_CHECK_THROW(Logger logger("ndn.test."), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(ConsecutivePeriods)
 {
-  BOOST_CHECK_THROW(Logger logger("ndn..test"), std::invalid_argument);
+    BOOST_CHECK_THROW(Logger logger("ndn..test"), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // TestLogger

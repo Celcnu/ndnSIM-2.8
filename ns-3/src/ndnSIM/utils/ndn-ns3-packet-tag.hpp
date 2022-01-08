@@ -28,26 +28,26 @@ namespace ns3 {
 namespace ndn {
 
 class Ns3PacketTag : public ::ndn::Tag {
-public:
-  static size_t
-  getTypeId()
-  {
-    return 0xaee87802; // md5("Ns3PacketTag")[0:8]
-  }
+  public:
+    static size_t
+    getTypeId()
+    {
+        return 0xaee87802; // md5("Ns3PacketTag")[0:8]
+    }
 
-  Ns3PacketTag(Ptr<const Packet> packet)
-    : m_packet(packet)
-  {
-  }
+    Ns3PacketTag(Ptr<const Packet> packet)
+      : m_packet(packet)
+    {
+    }
 
-  Ptr<const Packet>
-  getPacket() const
-  {
-    return m_packet;
-  }
+    Ptr<const Packet>
+    getPacket() const
+    {
+        return m_packet;
+    }
 
-private:
-  Ptr<const Packet> m_packet;
+  private:
+    Ptr<const Packet> m_packet;
 };
 
 } // namespace ndn
