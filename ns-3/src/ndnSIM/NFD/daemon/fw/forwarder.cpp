@@ -245,17 +245,24 @@ Forwarder::onContentStoreMiss(const FaceEndpoint& ingress, const shared_ptr<pit:
 // 不过以 ndn-simple.cpp 为例,因为包里面一个Payload的 1024B 里是随机的垃圾数据,所以基本上不可能出现
 // CS 命中
 // TODO: 命中是匹配名字, 和payload有什么关系呢?
+// 1-缓存命中
 void
 Forwarder::onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
                              const Interest& interest, const Data& data)
 {
     NFD_LOG_DEBUG("onContentStoreHit interest=" << interest.getName());
     ++m_counters.nCsHits;
-    afterCsHit(interest, data);
 
-    // 给数据包打上tag. 记录它进来的那个端口
+	// 我们用这个信号绑定了我们的计数器,但这个信号不是我们放在这的 → 但它好像没有连接别的地方
+    afterCsHit(interest, data); 
+
+    // 数据包加tag: 入端口是CS
     data.setTag(make_shared<lp::IncomingFaceIdTag>(face::FACEID_CONTENT_STORE));
     // FIXME Should we lookup PIT for other Interests that also match the data?
+
+	// chaochao: 手动删除hop字段,这里设置可生效 → data在上面就设置了!
+	// data.setTag(make_shared<lp::HopCountTag>(0));
+	data.removeTag<lp::HopCountTag>();
 
     pitEntry->isSatisfied = true; // 这是哪个pitEntry??? 命中节点上的吗?
     pitEntry->dataFreshnessPeriod =
@@ -263,7 +270,6 @@ Forwarder::onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::
 
     // set PIT expiry timer to now
     // 将这个pitEntry的到期时间设置为现在,到时候执行onInterestFinalize
-    // 到时候???
     this->setExpiryTimer(pitEntry, 0_ms);
 
     beforeSatisfyInterest(*pitEntry, *m_csFace, data);
@@ -465,6 +471,7 @@ Forwarder::onDataUnsolicited(const FaceEndpoint& ingress, const Data& data)
 }
 
 // 做完一些检查工作后, 准备发data包
+// 2-缓存命中-->发送数据
 void
 Forwarder::onOutgoingData(const Data& data, const FaceEndpoint& egress)
 {
@@ -486,8 +493,7 @@ Forwarder::onOutgoingData(const Data& data, const FaceEndpoint& egress)
     // TODO: 官方todo,计划下个版本添加流量管理 traffic manager
 
     // send Data
-    egress.face.sendData(data,
-                         egress.endpoint); // TODO: 这个sendData才是最复杂的! 需要调用底层的ns-3实现
+    egress.face.sendData(data, egress.endpoint);
     ++m_counters.nOutData;
 }
 

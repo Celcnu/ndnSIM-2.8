@@ -159,7 +159,7 @@ Consumer::SendPacket()
     if (!m_active)
         return;
 
-    NS_LOG_FUNCTION_NOARGS();
+    // NS_LOG_FUNCTION_NOARGS();
 
     uint32_t seq = std::numeric_limits<uint32_t>::max(); // invalid
 
@@ -222,10 +222,11 @@ Consumer::OnData(shared_ptr<const Data> data)
 
     // This could be a problem......
     uint32_t seq = data->getName().at(-1).toSequenceNumber();
-    NS_LOG_INFO("< DATA for " << seq);
+    // NS_LOG_INFO("< DATA for " << seq);
+
 
     int hopCount = 0;
-    auto hopCountTag = data->getTag<lp::HopCountTag>();
+    auto hopCountTag = data->getTag<lp::HopCountTag>(); // Data.hpp里没有getTag啊 ??? 它继承 TagHost
     if (hopCountTag != nullptr) { // e.g., packet came from local node's cache
         hopCount = *hopCountTag;
     } // 如果它是null呢? 什么时候会是null?
@@ -277,8 +278,9 @@ Consumer::OnTimeout(uint32_t sequenceNumber)
 void
 Consumer::WillSendOutInterest(uint32_t sequenceNumber)
 {
-    NS_LOG_DEBUG("Trying to add " << sequenceNumber << " with " << Simulator::Now() << ". already "
-                                  << m_seqTimeouts.size() << " items");
+	// TODO: 搞清楚后面这些的含义,现在先暂时注掉
+    // NS_LOG_DEBUG("Trying to add " << sequenceNumber << " with " << Simulator::Now() << ". already "
+    //                               << m_seqTimeouts.size() << " items");
 
     m_seqTimeouts.insert(SeqTimeout(sequenceNumber, Simulator::Now()));
     m_seqFullDelay.insert(SeqTimeout(sequenceNumber, Simulator::Now()));

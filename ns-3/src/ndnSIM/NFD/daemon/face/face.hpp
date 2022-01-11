@@ -178,6 +178,7 @@ Face::sendInterest(const Interest& interest, const EndpointId& endpointId)
     m_service->sendInterest(interest, endpointId);
 }
 
+// 3-缓存命中-->发送数据--->Face
 inline void
 Face::sendData(const Data& data, const EndpointId& endpointId)
 {

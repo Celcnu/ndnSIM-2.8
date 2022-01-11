@@ -84,12 +84,13 @@ class Cs : noncopyable {
      * 用发的interest在CS中最匹配的data包，得到目标对应m_table中的迭代器
      * 如果找到，执行回调函数hit，否则执行回调函数miss
      */
-    // 谁会调用这个find?
+    // 谁会调用这个find?  forwarder
     template <typename HitCallback, typename MissCallback>
     void
     find(const Interest& interest, HitCallback&& hit, MissCallback&& miss) const
     {
         auto match = findImpl(interest);
+		// 根据返回结果判断是否命中, 匹配数据直接传到CShit
         if (match == m_table.end()) {
             miss(interest);
             return;

@@ -67,6 +67,7 @@ LinkService::sendInterest(const Interest& interest, const EndpointId& endpoint)
     afterSendInterest(interest);
 }
 
+// 4-缓存命中-->发送数据--->Face--->LinkService
 void
 LinkService::sendData(const Data& data, const EndpointId& endpoint)
 {

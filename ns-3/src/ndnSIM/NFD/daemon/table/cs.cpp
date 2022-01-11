@@ -53,7 +53,7 @@ Cs::insert(const Data& data, bool isUnsolicited)
     if (!m_shouldAdmit || m_policy->getLimit() == 0) {
         return;
     }
-    NFD_LOG_DEBUG("insert " << data.getName());
+    // NFD_LOG_DEBUG("insert " << data.getName());
 
     // recognize CachePolicy
     // 尝试取出data的CachePolicyType，如果data没Tag，视为要求缓存
@@ -94,7 +94,12 @@ Cs::insert(const Data& data, bool isUnsolicited)
         m_policy->afterRefresh(it);
     }
     else {
-        m_policy->afterInsert(it);
+		// 打印过滤
+		std::string testStr = "/localhost/nfd/";
+		std::string dataName =data.getName().toUri();
+		std::string::size_type idx = dataName.find(testStr);
+		if (idx == std::string::npos)  
+			m_policy->afterInsert(it);
     }
 }
 
@@ -137,11 +142,22 @@ Cs::findImpl(const Interest& interest) const
       std::find_if(range.first, range.second, [&interest](const auto& entry) { return entry.canSatisfy(interest); });
 
     // 这里好像不只在匹配兴趣???
+	// 我们对打印作一些更改,设置为只打印内容相关的查询log
+	std::string testStr = "/localhost/nfd/";
+  	std::string interestName =prefix.toUri();
+  	std::string::size_type idx = interestName.find(testStr);
+  	bool printFlag = false;
+  	if (idx == std::string::npos) {
+		printFlag = true;
+  	} 
+
     if (match == range.second) {
-        NFD_LOG_DEBUG("find " << prefix << " no-match");
+		if (printFlag)
+			NFD_LOG_DEBUG("find " << prefix << " no-match");
         return m_table.end();
     }
-    NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
+	if (printFlag)
+    	NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
     m_policy->beforeUse(match);
     return match;
 }
@@ -168,6 +184,8 @@ Cs::setPolicy(unique_ptr<Policy> policy)
 void
 Cs::setPolicyImpl(unique_ptr<Policy> policy)
 {
+	// 每个节点会调用2次??? 为啥会有两次打印 ~
+	// 构造函数会调用 1 次, 后面setPolicy会删除前面构造时设置的那个
     NFD_LOG_DEBUG("set-policy " << policy->getName());
     m_policy = std::move(policy);
     m_beforeEvictConnection = m_policy->beforeEvict.connect([this](auto it) { m_table.erase(it); });

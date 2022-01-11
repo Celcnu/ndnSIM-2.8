@@ -106,6 +106,7 @@ GenericLinkService::doSendInterest(const Interest& interest, const EndpointId& e
 }
 
 // 把data转化为packet,执行encodeLpFields给包打上链路层标签
+// 5-缓存命中-->发送数据--->Face--->LinkService--->Generic
 void
 GenericLinkService::doSendData(const Data& data, const EndpointId& endpointId)
 {
@@ -127,6 +128,7 @@ GenericLinkService::doSendNack(const lp::Nack& nack, const EndpointId& endpointI
     this->sendNetPacket(std::move(lpPacket), endpointId, false);
 }
 
+// 6-缓存命中-->发送数据--->Face--->LinkService--->Generic--->encodeLp
 void
 GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lpPacket)
 {
@@ -161,10 +163,14 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
 
     shared_ptr<lp::HopCountTag> hopCountTag = netPkt.getTag<lp::HopCountTag>();
     if (hopCountTag != nullptr) {
-        lpPacket.add<lp::HopCountTagField>(*hopCountTag);
+		// 上游传过来的数据, 已经有hop字段 
+		// NFD_LOG_DEBUG("chaochao add hop: xxx");
+		lpPacket.add<lp::HopCountTagField>(*hopCountTag);
     }
     else {
-        lpPacket.add<lp::HopCountTagField>(0);
+		// 这个是源响应的数据 缓存服务应该也是这个, 需要新建1个hop为0的字段
+		// NFD_LOG_DEBUG("chaochao add hop: 0");
+        lpPacket.add<lp::HopCountTagField>(0); // 后面这个 0 应该是默认的初值?
     }
 
     if (m_options.enableGeoTags) {
@@ -429,6 +435,17 @@ GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt, 
     auto data = make_shared<Data>(netPkt);
 
     if (firstPkt.has<lp::HopCountTagField>()) {
+		// std::cout << "chaochao hop ++ " << std::endl; // 这个调用的次数(++)是对的
+		// +1之前先输出看一下
+		// int hopCount = 0;
+		// auto hopCountTag = make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>()); 
+		// if (hopCountTag != nullptr) { 
+		// 	hopCount = *hopCountTag;
+		// 	std::cout<< "Hop count: " << hopCount << std::endl;
+		// } else { // 这个一直没有输出过
+		// 	std::cout << "Hop count: null" << std::endl; 
+		// }
+		
         data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
     }
 
