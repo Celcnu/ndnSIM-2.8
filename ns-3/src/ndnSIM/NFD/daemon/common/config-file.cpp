@@ -108,6 +108,8 @@ ConfigFile::parse(std::istream& input, bool isDryRun, const std::string& filenam
 void
 ConfigFile::parse(const ConfigSection& config, bool isDryRun, const std::string& filename)
 {
+	// 这个为什么在init结束之前调用了3次? 后面的 L3Protocol::initializeRibManager() 调了2次
+	// std::cout << "ConfigFile::parse()" << std::endl;
     m_global = config;
     process(isDryRun, filename);
 }
@@ -115,6 +117,8 @@ ConfigFile::parse(const ConfigSection& config, bool isDryRun, const std::string&
 void
 ConfigFile::process(bool isDryRun, const std::string& filename) const
 {
+	// 对于每个配置项, 转到它们所绑定的handler来处理
+	// std::cout << "ConfigFile::process()" <<std::endl;
     BOOST_ASSERT(!filename.empty());
 
     for (const auto& i : m_global) {

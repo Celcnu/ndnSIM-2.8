@@ -39,7 +39,10 @@ TablesConfigSection::TablesConfigSection(Forwarder& forwarder)
 void
 TablesConfigSection::setConfigFile(ConfigFile& configFile)
 {
-    configFile.addSectionHandler("tables", bind(&TablesConfigSection::processConfig, this, _1, _2));
+	std::cout << "TablesConfigSection::setConfigFile()" << std::endl;
+	// 这里直接会执行 processConfig ? 不是, 是通过ConfigFile::process()
+    // 这里是把tables相关的配置绑定到processConfig来处理,在ConfigFile::process()里会用到
+	configFile.addSectionHandler("tables", bind(&TablesConfigSection::processConfig, this, _1, _2));
 }
 
 void
@@ -59,14 +62,18 @@ TablesConfigSection::ensureConfigured()
 void
 TablesConfigSection::processConfig(const ConfigSection& section, bool isDryRun)
 {
+	// std::cout << "TablesConfigSection::processConfig()" << std::endl;
+
+	// 最终是在这里实现具体的设置!
     size_t nCsMaxPackets = DEFAULT_CS_MAX_PACKETS;
-    OptionalConfigSection csMaxPacketsNode = section.get_child_optional("cs_max_packets");
+    OptionalConfigSection csMaxPacketsNode = section.get_child_optional("cs_max_packets"); // 拿到你设置的缓存容量
     if (csMaxPacketsNode) {
-        nCsMaxPackets = ConfigFile::parseNumber<size_t>(*csMaxPacketsNode, "cs_max_packets", "tables");
+		// std::cout << "\tread CS config..." << std::endl;
+        nCsMaxPackets = ConfigFile::parseNumber<size_t>(*csMaxPacketsNode, "cs_max_packets", "tables"); // 从前面我们设置的配置文件中读对应值
     }
 
     unique_ptr<cs::Policy> csPolicy;
-    OptionalConfigSection csPolicyNode = section.get_child_optional("cs_policy");
+    OptionalConfigSection csPolicyNode = section.get_child_optional("cs_policy"); // 拿到你设置的替换策略
     if (csPolicyNode) {
         std::string policyName = csPolicyNode->get_value<std::string>();
         csPolicy = cs::Policy::create(policyName);
@@ -83,8 +90,7 @@ TablesConfigSection::processConfig(const ConfigSection& section, bool isDryRun)
         if (unsolicitedDataPolicy == nullptr) {
             NDN_THROW(ConfigFile::Error("Unknown cs_unsolicited_policy '" + policyName + "' in section 'tables'"));
         }
-    }
-    else {
+    } else {
         unsolicitedDataPolicy = make_unique<fw::DefaultUnsolicitedDataPolicy>();
     }
 
@@ -102,9 +108,12 @@ TablesConfigSection::processConfig(const ConfigSection& section, bool isDryRun)
         return;
     }
 
+	// std::cout << "\tset CS config..." << std::endl;
     Cs& cs = m_forwarder.getCs();
     cs.setLimit(nCsMaxPackets);
-    if (cs.size() == 0 && csPolicy != nullptr) {
+    if (cs.size() == 0 && csPolicy != nullptr) { 
+		// size 是当前缓存的条目数
+		// 即设置策略只能在缓存为空的时候进行
         cs.setPolicy(std::move(csPolicy));
     }
 

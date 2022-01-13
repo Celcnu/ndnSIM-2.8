@@ -48,6 +48,10 @@ CsManager::CsManager(Cs& cs, const ForwarderCounters& fwCounters, Dispatcher& di
 void
 CsManager::changeConfig(const ControlParameters& parameters, const ndn::mgmt::CommandContinuation& done)
 {
+	// std::cout << "CsManager::changeConfig()" << std::endl;
+
+	// 这里也是实现Cs配置值的修改? ---> who called this ? 
+	// 这里我们没分析到, 猜测可能是Runtime的时候设置的 ?
     using ndn::nfd::CsFlagBit;
 
     if (parameters.hasCapacity()) {

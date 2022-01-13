@@ -110,6 +110,7 @@ class L3Protocol::Impl {
   private:
     Impl()
     {
+		// 这里是初始化的配置文件,里面都是默认值,不要去更改它.如果要改的话通过helpers去设置特定的NFD参数
         // Do not modify initial config file. Use helpers to set specific NFD parameters
         std::string initialConfig = "general\n"
                                     "{\n"
@@ -189,7 +190,7 @@ class L3Protocol::Impl {
 
     nfd::ConfigSection m_config;
 
-    PolicyCreationCallback m_policy;
+    PolicyCreationCallback m_policy; // nfd::cs::Policy
 };
 
 L3Protocol::L3Protocol()
@@ -206,7 +207,10 @@ L3Protocol::~L3Protocol()
 void
 L3Protocol::initialize()
 {
+	// std::cout << "L3Protocol::initialize()" << std::endl;
     m_impl->m_faceTable = make_unique<::nfd::FaceTable>();
+
+	// 这里调用Forwarder的构造函数 --> Cs作为它的对象成员调用自己的默认构造 
     m_impl->m_forwarder = make_shared<::nfd::Forwarder>(*m_impl->m_faceTable);
     m_impl->m_faceSystem = make_unique<::nfd::face::FaceSystem>(*m_impl->m_faceTable, nullptr);
 
@@ -215,6 +219,8 @@ L3Protocol::initialize()
 
     m_impl->m_forwarder->beforeSatisfyInterest.connect(std::ref(m_satisfiedInterests));
     m_impl->m_forwarder->beforeExpirePendingInterest.connect(std::ref(m_timedOutInterests));
+
+	// std::cout << "L3Protocol::initialize() FIN" << std::endl;
 }
 
 class IgnoreSections {
@@ -275,15 +281,18 @@ L3Protocol::initializeManagement()
       make_unique<::nfd::FaceManager>(*m_impl->m_faceSystem, *m_impl->m_dispatcher, *m_impl->m_authenticator);
     m_impl->m_fibManager = make_shared<::nfd::FibManager>(m_impl->m_forwarder->getFib(), *m_impl->m_faceTable,
                                                           *m_impl->m_dispatcher, *m_impl->m_authenticator);
-    m_impl->m_csManager =
+    
+	// 这里拿到的Cs是刚默认构造完的 --> 即将Forwarder的Cs和CsManager绑定上 ---> 后面没用到
+	// 这个的用法还需要再分析
+	m_impl->m_csManager =
       make_unique<::nfd::CsManager>(m_impl->m_forwarder->getCs(), m_impl->m_forwarder->getCounters(),
                                     *m_impl->m_dispatcher, *m_impl->m_authenticator);
+
     if (!this->getConfig().get<bool>("ndnSIM.disable_strategy_choice_manager", false)) {
         m_impl->m_strategyChoiceManager =
           make_unique<::nfd::StrategyChoiceManager>(m_impl->m_forwarder->getStrategyChoice(), *m_impl->m_dispatcher,
                                                     *m_impl->m_authenticator);
-    }
-    else {
+    } else {
         this->getConfig()
           .get_child("authorizations")
           .get_child("authorize")
@@ -295,8 +304,9 @@ L3Protocol::initializeManagement()
 
     forwarder->getCs().setPolicy(m_impl->m_policy());
 
+	// 这里执行所有table相关设置: 包括CS等
     TablesConfigSection tablesConfig(*forwarder);
-    tablesConfig.setConfigFile(config);
+    tablesConfig.setConfigFile(config); 
 
     m_impl->m_authenticator->setConfigFile(config);
 
@@ -305,7 +315,7 @@ L3Protocol::initializeManagement()
     // }
 
     // apply config
-    config.parse(m_impl->m_config, false, "ndnSIM.conf");
+    config.parse(m_impl->m_config, false, "ndnSIM.conf"); // 配置文件名,这个文件名在前面哪里指定的? TODO
 
     tablesConfig.ensureConfigured();
 
@@ -319,6 +329,7 @@ L3Protocol::initializeManagement()
 void
 L3Protocol::initializeRibManager()
 {
+	// 在这个函数内, 会调用两次 ConfigFile::parse(), 具体操作是在下面的 rib::Service::Service()
     using namespace nfd;
 
     std::tie(m_impl->m_internalRibFace, m_impl->m_internalRibClientFace) =
@@ -368,10 +379,12 @@ L3Protocol::getConfig()
 /*
  * This method is called by AddAgregate and completes the aggregation
  * by setting the node in the ndn stack
+ * 通过设置节点的NDN栈来完成聚合 --> 这个再往下的实现就搞不懂了.
  */
 void
 L3Protocol::NotifyNewAggregate()
 {
+	// std::cout << "L3Protocol::NotifyNewAggregate()" << std::endl;
     if (m_node == nullptr) {
         m_node = GetObject<Node>();
         if (m_node != nullptr) {

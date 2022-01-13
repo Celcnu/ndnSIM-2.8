@@ -162,6 +162,7 @@ StackHelper::Install(Ptr<Node> node) const
 void
 StackHelper::doInstall(Ptr<Node> node) const
 {
+	// std::cout << "StackHelper::doInstall()" << std::endl;
     // async install to ensure proper context
     Ptr<L3Protocol> ndn = m_ndnFactory.Create<L3Protocol>();
 
@@ -173,12 +174,13 @@ StackHelper::doInstall(Ptr<Node> node) const
         ndn->getConfig().put("ndnSIM.disable_strategy_choice_manager", true);
     }
 
-    ndn->getConfig().put("tables.cs_max_packets", m_maxCsSize);
+    ndn->getConfig().put("tables.cs_max_packets", m_maxCsSize); // 你手动设置的缓存容量,怎么和cs关联起来
 
     ndn->setCsReplacementPolicy(m_csPolicyCreationFunc);
 
-    // Aggregate L3Protocol on node (must be after setting ndnSIM CS)
-    node->AggregateObject(ndn);
+	// std::cout << "\tnode->AggregateObject(ndn)" << std::endl;
+    // Aggregate L3Protocol on node (must be after setting ndnSIM CS) 必须在设置CS之后?
+    node->AggregateObject(ndn); // 这里会转到 L3Protocol::NotifyNewAggregate()
 
     for (uint32_t index = 0; index < node->GetNDevices(); index++) {
         Ptr<NetDevice> device = node->GetDevice(index);

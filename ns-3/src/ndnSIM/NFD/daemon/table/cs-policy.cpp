@@ -66,6 +66,7 @@ Policy::Policy(const std::string& policyName)
 void
 Policy::setLimit(size_t nMaxEntries)
 {
+	// std::cout << "cc: Policy::setLimit() --> "<< nMaxEntries << std::endl;
     NFD_LOG_INFO("setLimit " << nMaxEntries);
     m_limit = nMaxEntries;
     this->evictEntries();
@@ -96,7 +97,7 @@ void
 Policy::beforeUse(EntryRef i)
 {
     BOOST_ASSERT(m_cs != nullptr);
-    this->doBeforeUse(i);
+    this->doBeforeUse(i); // 不同的策略有不同的处理
 }
 
 } // namespace cs
