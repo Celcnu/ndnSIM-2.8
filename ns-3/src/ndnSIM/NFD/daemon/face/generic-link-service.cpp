@@ -179,6 +179,17 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
             lpPacket.add<lp::GeoTagField>(*geoTag);
         }
     }
+
+	// chaochao 的 Tag
+	shared_ptr<lp::ChaoChaoTag> chaoChaoTag = netPkt.getTag<lp::ChaoChaoTag>();
+    if (chaoChaoTag != nullptr) {
+		lpPacket.add<lp::ChaoChaoTagField>(*chaoChaoTag);
+    }
+    else {
+        lpPacket.add<lp::ChaoChaoTagField>(0); 
+    }
+
+
 }
 
 // 这里会执行frag分片操作 ---> 后面的操作对于Interest和Data来说都是一样的!!!
@@ -447,6 +458,11 @@ GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt, 
 		// }
 		
         data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
+    }
+
+	// chaochao 的 Tag
+	if (firstPkt.has<lp::ChaoChaoTagField>()) {
+        data->setTag(make_shared<lp::ChaoChaoTag>(firstPkt.get<lp::ChaoChaoTagField>() + 100));
     }
 
     if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {

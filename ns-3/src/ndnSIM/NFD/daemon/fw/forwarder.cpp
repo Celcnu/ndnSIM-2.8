@@ -46,7 +46,7 @@ getDefaultStrategyName()
     return fw::BestRouteStrategy2::getStrategyName();
 }
 
-// TODO: 这些成员变量各自代表的含义?
+// 以下会先分别调用各自对象的构造函数,然后再执行Forwarder的构造函数
 // 构造函数 ---> 主要是在连接各种信号
 Forwarder::Forwarder(FaceTable& faceTable)
   : m_faceTable(faceTable)
@@ -57,6 +57,8 @@ Forwarder::Forwarder(FaceTable& faceTable)
   , m_strategyChoice(*this)
   , m_csFace(face::makeNullFace(FaceUri("contentstore://")))
 {
+	// std::cout << "Forwarder::Forwarder()" << std::endl;
+
     // 给 m_faceTable 添加保留一个接口( face ) contentstore:// (旧版本代码没有这一行)
     m_faceTable.addReserved(m_csFace, face::FACEID_CONTENT_STORE);
 
@@ -263,6 +265,7 @@ Forwarder::onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::
 	// chaochao: 手动删除hop字段,这里设置可生效 → data在上面就设置了!
 	// data.setTag(make_shared<lp::HopCountTag>(0));
 	data.removeTag<lp::HopCountTag>();
+	data.removeTag<lp::ChaoChaoTag>(); // 我们自己设置的tag也有同样的问题! 
 
     pitEntry->isSatisfied = true; // 这是哪个pitEntry??? 命中节点上的吗?
     pitEntry->dataFreshnessPeriod =

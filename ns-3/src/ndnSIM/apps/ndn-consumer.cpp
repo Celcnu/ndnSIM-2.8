@@ -229,8 +229,15 @@ Consumer::OnData(shared_ptr<const Data> data)
     auto hopCountTag = data->getTag<lp::HopCountTag>(); // Data.hpp里没有getTag啊 ??? 它继承 TagHost
     if (hopCountTag != nullptr) { // e.g., packet came from local node's cache
         hopCount = *hopCountTag;
-    } // 如果它是null呢? 什么时候会是null?
+    } // 如果它是null呢? 什么时候会是null? 上面说了,从本节点缓存响应
     NS_LOG_DEBUG("Hop count: " << hopCount);
+
+	int chaoTag = 0;
+	auto chaochaoTag = data->getTag<lp::ChaoChaoTag>();
+	if (chaochaoTag != nullptr) {
+		chaoTag = *chaochaoTag;
+	}
+	NS_LOG_DEBUG("chaochao TAG: " << chaoTag);
 
     SeqTimeoutsContainer::iterator entry = m_seqLastDelay.find(seq);
     if (entry != m_seqLastDelay.end()) {
@@ -278,9 +285,9 @@ Consumer::OnTimeout(uint32_t sequenceNumber)
 void
 Consumer::WillSendOutInterest(uint32_t sequenceNumber)
 {
-	// TODO: 搞清楚后面这些的含义,现在先暂时注掉
-    // NS_LOG_DEBUG("Trying to add " << sequenceNumber << " with " << Simulator::Now() << ". already "
-    //                               << m_seqTimeouts.size() << " items");
+	// TODO: 搞清楚后面这些的含义
+    NS_LOG_DEBUG("Trying to add " << sequenceNumber << " with " << Simulator::Now() << ". already "
+                                  << m_seqTimeouts.size() << " items");
 
     m_seqTimeouts.insert(SeqTimeout(sequenceNumber, Simulator::Now()));
     m_seqFullDelay.insert(SeqTimeout(sequenceNumber, Simulator::Now()));

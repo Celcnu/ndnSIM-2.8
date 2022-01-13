@@ -95,6 +95,13 @@ class Cs : noncopyable {
             miss(interest);
             return;
         }
+
+		// chaochao: 检查 Tag (应该全null才对) 
+		// match->getData().getAllTags();
+		// if (tag != nullptr) {
+		// 	std::cout << "chaochao match: " << *tag << std::endl;
+		// }
+
         hit(interest, match->getData());
     }
 

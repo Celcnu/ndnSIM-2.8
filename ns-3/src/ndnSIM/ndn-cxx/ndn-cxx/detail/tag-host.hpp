@@ -53,9 +53,21 @@ class TagHost {
     template <typename T>
     void removeTag() const;
 
+	// chaochao
+	// void getAllTags() const; 
+
   private:
     mutable std::map<int, shared_ptr<Tag>> m_tags;
+	// 它只负责提供方法, 不指定你如何设置, 或者设置哪些
+
 };
+
+// 不能自定义成员函数??? 报错multiple definition???
+// void 
+// TagHost::getAllTags() const
+// {
+// 	// std::cout << "CS match data with Tags: " << m_tags.size() << std::endl;
+// }
 
 template <typename T>
 shared_ptr<T>
