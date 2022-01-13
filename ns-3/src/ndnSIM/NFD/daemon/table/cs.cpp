@@ -41,8 +41,10 @@ makeDefaultPolicy()
     return Policy::create("lru");
 }
 
+// who called this constructor ?  Forwarder's constructor
 Cs::Cs(size_t nMaxPackets)
 {
+	// std::cout << "Cs::Cs()  --> default " << nMaxPackets << std::endl;
     setPolicyImpl(makeDefaultPolicy());
     m_policy->setLimit(nMaxPackets);
 }
@@ -83,23 +85,15 @@ Cs::insert(const Data& data, bool isUnsolicited)
     // fresh一下新来的这个包
     entry.updateFreshUntil();
 
-    // 如果不是新的包 ---> 缓存中已经存在
-    if (!isNewEntry) { // existing entry
+    if (!isNewEntry) { // 如果不是新的包 ---> 缓存中已经存在
         // TODO: ???
         // XXX This doesn't forbid unsolicited Data from refreshing a solicited entry.
         if (entry.isUnsolicited() && !isUnsolicited) {
             entry.clearUnsolicited();
         }
-
         m_policy->afterRefresh(it);
-    }
-    else {
-		// 打印过滤
-		std::string testStr = "/localhost/nfd/";
-		std::string dataName =data.getName().toUri();
-		std::string::size_type idx = dataName.find(testStr);
-		if (idx == std::string::npos)  
-			m_policy->afterInsert(it);
+    } else { // 如果是新的包 那你要准备插入了
+		m_policy->afterInsert(it);
     }
 }
 
@@ -138,10 +132,12 @@ Cs::findImpl(const Interest& interest) const
 
     const Name& prefix = interest.getName();
     auto range = findPrefixRange(prefix);
-    auto match =
+
+	// return iter
+	auto match =
       std::find_if(range.first, range.second, [&interest](const auto& entry) { return entry.canSatisfy(interest); });
 
-    // 这里好像不只在匹配兴趣???
+    // 这里好像不只在匹配兴趣??? 是的
 	// 我们对打印作一些更改,设置为只打印内容相关的查询log
 	std::string testStr = "/localhost/nfd/";
   	std::string interestName =prefix.toUri();
@@ -158,7 +154,10 @@ Cs::findImpl(const Interest& interest) const
     }
 	if (printFlag)
     	NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
-    m_policy->beforeUse(match);
+	
+	// 这里是匹配到data ---> 这里也不会涉及Tag的操作 ---> 这个Tag到底是哪里来的?
+    m_policy->beforeUse(match); // 更新队列
+
     return match;
 }
 
