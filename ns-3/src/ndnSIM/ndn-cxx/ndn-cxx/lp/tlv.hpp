@@ -50,6 +50,9 @@ enum {
     TxSequence = 840,
     NonDiscovery = 844,
     PrefixAnnouncement = 848,
+
+	// for chaochao
+	ChaoChaoTag = 90,
 };
 
 enum {
