@@ -85,6 +85,14 @@ typedef SimpleTag<uint64_t, 0x60000000> HopCountTag;
  *
  * This tag can be attached to Interest, Data, Nack.
  */
+
+/** \class ChaoChaoTag
+ *  \brief a packet tag for chaochao (under development)
+ *
+ * This tag can be attached to Interest, Data, Nack.
+ */
+typedef SimpleTag<uint64_t, 0x60000002> ChaoChaoTag;
+
 class GeoTag; // 0x60000001, defined directly in geo-tag.hpp
 
 } // namespace lp
