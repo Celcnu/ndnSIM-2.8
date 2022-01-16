@@ -90,6 +90,12 @@ typedef FieldDecl<field_location_tags::Header, uint16_t, tlv::HopCountTag, false
   HopCountTagField;
 BOOST_CONCEPT_ASSERT((Field<HopCountTagField>));
 
+// chaochao 的 field ---> 注意下面还要再声明一下!
+typedef FieldDecl<field_location_tags::Header, uint16_t, tlv::ChaoChaoTag, false, NonNegativeIntegerTag,
+                  NonNegativeIntegerTag>
+  ChaoChaoTagField;
+BOOST_CONCEPT_ASSERT((Field<ChaoChaoTagField>));
+
 typedef FieldDecl<field_location_tags::Header, GeoTag, tlv::GeoTag> GeoTagField;
 BOOST_CONCEPT_ASSERT((Field<GeoTagField>));
 
@@ -107,7 +113,7 @@ BOOST_CONCEPT_ASSERT((Field<FragmentField>));
  */
 typedef boost::mpl::set<FragmentField, SequenceField, FragIndexField, FragCountField, PitTokenField, NackField,
                         NextHopFaceIdField, IncomingFaceIdField, CachePolicyField, CongestionMarkField, AckField,
-                        TxSequenceField, NonDiscoveryField, PrefixAnnouncementField, HopCountTagField, GeoTagField>
+                        TxSequenceField, NonDiscoveryField, PrefixAnnouncementField, HopCountTagField, ChaoChaoTagField, GeoTagField>
   FieldSet;
 
 } // namespace lp
