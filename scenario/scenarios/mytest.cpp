@@ -39,7 +39,7 @@ main(int argc, char* argv[])
   // Installing applications
  
   // Consumer
-  ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+  ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCC1");
   // Consumer will request /prefix/0, /prefix/1, ...
   consumerHelper.SetPrefix("/prefix");
   consumerHelper.SetAttribute("Frequency", StringValue("10")); // 10 interests a second
