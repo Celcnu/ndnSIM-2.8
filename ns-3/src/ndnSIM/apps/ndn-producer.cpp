@@ -122,7 +122,7 @@ Producer::OnInterest(shared_ptr<const Interest> interest)
 
     // to create real wire encoding
     data->wireEncode();
-
+	 // just callback
     m_transmittedDatas(data, this, m_face);
     m_appLink->onReceiveData(*data);
 }

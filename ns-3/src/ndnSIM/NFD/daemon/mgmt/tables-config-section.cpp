@@ -39,7 +39,7 @@ TablesConfigSection::TablesConfigSection(Forwarder& forwarder)
 void
 TablesConfigSection::setConfigFile(ConfigFile& configFile)
 {
-	std::cout << "TablesConfigSection::setConfigFile()" << std::endl;
+	// std::cout << "TablesConfigSection::setConfigFile()" << std::endl;
 	// 这里直接会执行 processConfig ? 不是, 是通过ConfigFile::process()
     // 这里是把tables相关的配置绑定到processConfig来处理,在ConfigFile::process()里会用到
 	configFile.addSectionHandler("tables", bind(&TablesConfigSection::processConfig, this, _1, _2));

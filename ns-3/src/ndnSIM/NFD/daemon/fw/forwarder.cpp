@@ -103,8 +103,18 @@ Forwarder::~Forwarder() = default;
 void
 Forwarder::onIncomingInterest(const FaceEndpoint& ingress, const Interest& interest)
 {
+    // chaochao 的打印过滤
+    std::string testStr = "/localhost/";
+  	std::string interestName =interest.getName().toUri();
+  	std::string::size_type idx = interestName.find(testStr);
+  	bool printFlag = false;
+  	if (idx == std::string::npos) {
+		printFlag = true;
+  	} 
+
     // receive Interest
-    NFD_LOG_DEBUG("onIncomingInterest in=" << ingress << " interest=" << interest.getName());
+    if (printFlag)
+        NFD_LOG_DEBUG("onIncomingInterest in=" << ingress << " interest=" << interest.getName());
     // 给interest包打上IncomingFaceId标签
     interest.setTag(make_shared<lp::IncomingFaceIdTag>(ingress.face.getId()));
     ++m_counters.nInInterests;
@@ -202,7 +212,7 @@ void
 Forwarder::onContentStoreMiss(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
                               const Interest& interest)
 {
-    NFD_LOG_DEBUG("onContentStoreMiss interest=" << interest.getName());
+    // NFD_LOG_DEBUG("onContentStoreMiss interest=" << interest.getName());
 
     // TODO: 这两种方式的统计值都会偏高, 因为还有一些协议交互也会使用Interest/Data的方式
     ++m_counters.nCsMisses;
@@ -252,7 +262,7 @@ void
 Forwarder::onContentStoreHit(const FaceEndpoint& ingress, const shared_ptr<pit::Entry>& pitEntry,
                              const Interest& interest, const Data& data)
 {
-    NFD_LOG_DEBUG("onContentStoreHit interest=" << interest.getName());
+    // NFD_LOG_DEBUG("onContentStoreHit interest=" << interest.getName());
     ++m_counters.nCsHits;
 
 	// 我们用这个信号绑定了我们的计数器,但这个信号不是我们放在这的 → 但它好像没有连接别的地方
@@ -292,7 +302,7 @@ void
 Forwarder::onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, const FaceEndpoint& egress,
                               const Interest& interest)
 {
-    NFD_LOG_DEBUG("onOutgoingInterest out=" << egress << " interest=" << pitEntry->getName());
+    // NFD_LOG_DEBUG("onOutgoingInterest out=" << egress << " interest=" << pitEntry->getName());
 
     // insert out-record
     // 首先插入一个out-record（如果已经存在相同的接口就更新），记录下最后一个包的随机数和到期时间
@@ -310,8 +320,8 @@ Forwarder::onOutgoingInterest(const shared_ptr<pit::Entry>& pitEntry, const Face
 void
 Forwarder::onInterestFinalize(const shared_ptr<pit::Entry>& pitEntry)
 {
-    NFD_LOG_DEBUG("onInterestFinalize interest=" << pitEntry->getName()
-                                                 << (pitEntry->isSatisfied ? " satisfied" : " unsatisfied"));
+    // NFD_LOG_DEBUG("onInterestFinalize interest=" << pitEntry->getName()
+    //                                              << (pitEntry->isSatisfied ? " satisfied" : " unsatisfied"));
 
     if (!pitEntry->isSatisfied) {
         beforeExpirePendingInterest(*pitEntry);
@@ -343,7 +353,17 @@ Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
     // receive Data
     // 给data包打上IncomingFaceId标签, 指示它从哪个接口传回来的
     // 这个tag有什么用???
-    NFD_LOG_DEBUG("onIncomingData in=" << ingress << " data=" << data.getName());
+    // 这里打印过滤?
+    // chaochao 的打印过滤
+    std::string testStr = "/localhost/";
+  	std::string dataName =data.getName().toUri();
+  	std::string::size_type idx = dataName.find(testStr);
+  	bool printFlag = false;
+  	if (idx == std::string::npos) {
+		printFlag = true;
+  	} 
+    if (printFlag)
+        NFD_LOG_DEBUG("onIncomingData in=" << ingress << " data=" << data.getName());
     data.setTag(make_shared<lp::IncomingFaceIdTag>(ingress.face.getId()));
     ++m_counters.nInData;
 
@@ -375,8 +395,8 @@ Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
     // 只匹配到1个PIT条目
     if (pitMatches.size() == 1) {
         auto& pitEntry = pitMatches.front();
-
-        NFD_LOG_DEBUG("onIncomingData matching=" << pitEntry->getName());
+        if (printFlag)
+            NFD_LOG_DEBUG("onIncomingData matching=" << pitEntry->getName());
 
         // set PIT expiry timer to now
         // 设置PIT到期(即这个PIT已经搞定了,不需要继续pending了), 准备onOutgoingData
@@ -412,7 +432,8 @@ Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
 
         // 遍历把每个的in-record添加到“下一跳们”（后续集中处理）,不是下一跳们,是"有请求传入的接口们"
         for (const auto& pitEntry : pitMatches) {
-            NFD_LOG_DEBUG("onIncomingData matching=" << pitEntry->getName());
+            if (printFlag)
+                NFD_LOG_DEBUG("onIncomingData matching=" << pitEntry->getName());
 
             // remember pending downstreams
             for (const pit::InRecord& inRecord : pitEntry->getInRecords()) {
@@ -470,7 +491,7 @@ Forwarder::onDataUnsolicited(const FaceEndpoint& ingress, const Data& data)
         m_cs.insert(data, true);
     }
 
-    NFD_LOG_DEBUG("onDataUnsolicited in=" << ingress << " data=" << data.getName() << " decision=" << decision);
+    // NFD_LOG_DEBUG("onDataUnsolicited in=" << ingress << " data=" << data.getName() << " decision=" << decision);
 }
 
 // 做完一些检查工作后, 准备发data包
@@ -482,7 +503,7 @@ Forwarder::onOutgoingData(const Data& data, const FaceEndpoint& egress)
         NFD_LOG_WARN("onOutgoingData out=(invalid) data=" << data.getName());
         return;
     }
-    NFD_LOG_DEBUG("onOutgoingData out=" << egress << " data=" << data.getName());
+    // NFD_LOG_DEBUG("onOutgoingData out=" << egress << " data=" << data.getName());
 
     // /localhost scope control
     bool isViolatingLocalhost =

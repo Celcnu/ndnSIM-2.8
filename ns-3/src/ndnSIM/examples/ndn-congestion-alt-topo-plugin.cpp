@@ -70,7 +70,7 @@ main(int argc, char* argv[])
     // Install NDN stack on all nodes
     ndn::StackHelper ndnHelper;
     ndnHelper.setPolicy("nfd::cs::lru");
-    ndnHelper.setCsSize(1);
+    ndnHelper.setCsSize(1);  // 设置为 1 就是 disable 缓存 ~
     ndnHelper.InstallAll();
 
     // Set BestRoute strategy
@@ -87,6 +87,11 @@ main(int argc, char* argv[])
         NS_FATAL_ERROR("Error in topology: one nodes c1, c2, c3, c4, p1, p2, p3, or p4 is missing");
     }
 
+	/**
+	 * @brief 
+	 * 
+	 * 
+	 */
     for (int i = 0; i < 4; i++) {
         std::string prefix = "/data/" + Names::FindName(producers[i]);
 
@@ -94,11 +99,12 @@ main(int argc, char* argv[])
         // install consumer app on consumer node c_i to request data from producer p_i //
         /////////////////////////////////////////////////////////////////////////////////
 
-        ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
-        consumerHelper.SetAttribute("Frequency", StringValue("10")); // 100 interests a second
+        ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr"); // 这个应用会以固定频率发送请求
+		// 请求频率可以调整, 但是设的太小的话, 重传和延迟变化不明显
+        consumerHelper.SetAttribute("Frequency", StringValue("100")); // 100 interests a second
 
         consumerHelper.SetPrefix(prefix);
-        ApplicationContainer consumer = consumerHelper.Install(consumers[i]);
+        ApplicationContainer consumer = consumerHelper.Install(consumers[i]); // 每个节点以不同时间启动 / 结束
         consumer.Start(Seconds(i));     // start consumers at 0s, 1s, 2s, 3s
         consumer.Stop(Seconds(19 - i)); // stop consumers at 19s, 18s, 17s, 16s
 
@@ -110,35 +116,51 @@ main(int argc, char* argv[])
         producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
 
         // install producer that will satisfy Interests in /dst1 namespace
-        producerHelper.SetPrefix(prefix);
-        ApplicationContainer producer = producerHelper.Install(producers[i]);
+        producerHelper.SetPrefix(prefix); 
+        ApplicationContainer producer = producerHelper.Install(producers[i]); // 它不需要start ?
         // when Start/Stop time is not specified, the application is running throughout the simulation
     }
 
-    // Manually configure FIB routes
-    ndn::FibHelper::AddRoute("c1", "/data", "n1", 1); // link to n1
+	// FIB 和 strategy 的配置有什么关系 ?
+	// FIB 是配置有哪些路, stategy是决定从这些路当中选哪个 ~ 例如best默认就是选最近的 (跳数最少)
+
+    // Manually configure FIB routes 
+	// 注意! 这里没有用 gloubalroutinghelper 而是手动配置了路由. 两种方法是等效的, 官网有说明???
+	// gloubalroutinghelper ?
+    ndn::FibHelper::AddRoute("c1", "/data", "n1", 1); // link to n1, 即对于/data前缀的兴趣都转发到n1的链路, 下同
     ndn::FibHelper::AddRoute("c2", "/data", "n1", 1); // link to n1
     ndn::FibHelper::AddRoute("c3", "/data", "n1", 1); // link to n1
     ndn::FibHelper::AddRoute("c4", "/data", "n1", 1); // link to n1
 
-    ndn::FibHelper::AddRoute("n1", "/data", "n2", 1);  // link to n2
+    ndn::FibHelper::AddRoute("n1", "/data", "n2", 1);  // link to n2, 这里 n2 有两个转发接口/路径
     ndn::FibHelper::AddRoute("n1", "/data", "n12", 2); // link to n12
 
     ndn::FibHelper::AddRoute("n12", "/data", "n2", 1); // link to n2
 
-    ndn::FibHelper::AddRoute("n2", "/data/p1", "p1", 1); // link to p1
+    ndn::FibHelper::AddRoute("n2", "/data/p1", "p1", 1); // link to p1, 同上
     ndn::FibHelper::AddRoute("n2", "/data/p2", "p2", 1); // link to p2
     ndn::FibHelper::AddRoute("n2", "/data/p3", "p3", 1); // link to p3
     ndn::FibHelper::AddRoute("n2", "/data/p4", "p4", 1); // link to p4
 
     // Schedule simulation time and run the simulation
     Simulator::Stop(Seconds(20.0));
+
+	// 我们加一个延迟统计
+	ndn::AppDelayTracer::InstallAll("../chaochao-app-delays-trace.log"); // all? 这本来就是只安装到 consumer 的 ~
+
     Simulator::Run();
     Simulator::Destroy();
 
     return 0;
-}
 
+	/**
+	 * @brief 总结: 可以观测到随着负载的变化,内容获取延迟(排队延迟)的变化以及重传次数的增加,在packet(data)粒度
+	 * 但是拥塞控制? 没有,因为我们现在还是固定频率请求数据!
+	 * todo: 自定义Consumer应用,实现拥塞控制逻辑(即根据路径状态,例如RTT,调整兴趣发送速率)
+	 * 
+	 */
+
+}
 } // namespace ns3
 
 int
