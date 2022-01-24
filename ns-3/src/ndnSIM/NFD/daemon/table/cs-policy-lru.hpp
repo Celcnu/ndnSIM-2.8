@@ -67,7 +67,7 @@ class LruPolicy : public Policy {
     void insertToQueue(EntryRef i, bool isNewEntry);
 
   private:
-    Queue m_queue;
+    Queue m_queue;	// 这个Queue实现具体的排队管理(insert/evict)
 };
 
 } // namespace lru

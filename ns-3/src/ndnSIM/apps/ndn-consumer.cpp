@@ -233,7 +233,7 @@ Consumer::OnData(shared_ptr<const Data> data)
     NS_LOG_DEBUG("Hop count: " << hopCount);
 
 	int chaoTag = 0;
-	auto chaochaoTag = data->getTag<lp::ChaoChaoTag>();
+	auto chaochaoTag = data->getTag<lp::ChaoChaoTag>(); // tag 直接拿出来是一个指针才对！
 	if (chaochaoTag != nullptr) {
 		chaoTag = *chaochaoTag;
 	}

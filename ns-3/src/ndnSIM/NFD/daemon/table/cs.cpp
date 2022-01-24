@@ -49,52 +49,49 @@ Cs::Cs(size_t nMaxPackets)
     m_policy->setLimit(nMaxPackets);
 }
 
-void
+
+bool
 Cs::insert(const Data& data, bool isUnsolicited)
 {
-    if (!m_shouldAdmit || m_policy->getLimit() == 0) {
-        return;
-    }
-    // NFD_LOG_DEBUG("insert " << data.getName());
+	// NFD_LOG_DEBUG("insert " << data.getName());
 
-    // recognize CachePolicy
-    // 尝试取出data的CachePolicyType，如果data没Tag，视为要求缓存
-    // 如果tag指明不缓存 直接return
+    if (!m_shouldAdmit || m_policy->getLimit() == 0) {
+        return false;
+    }
+    
+    // 尝试取出data的CachePolicyTag: 如果data没Tag, 视为可以缓存; 如果tag指明不缓存 直接return
     shared_ptr<lp::CachePolicyTag> tag = data.getTag<lp::CachePolicyTag>();
     if (tag != nullptr) {
         lp::CachePolicyType policy = tag->get().getPolicy();
         if (policy == lp::CachePolicyType::NO_CACHE) {
-            return;
+            return false; 
         }
     }
 
-    // 缓存 ↓↓↓
+	// cache decision
+	bool cacheDecRes = cacheDecisionImpl(data);
+	if (!cacheDecRes) 
+		return false;
 
-    /**
-     * 尝试把(data, isUnsolicited)压入m_table表
-     * 压入后把自己在表中的迭代器返回给it（无论是否重复）
-     * 因为table是set类型，所以会调用data的重载operator==分析是否重复
-     * 如果有重复元素,说明不是NewEntry,isNewEntry=false
-     * 为什么会有newEntry? 不是new 说明缓存中已经有了? 或者之前已经存过?
-     */
-    const_iterator it;
+	// 后面的emplace, 这才是真正的缓存插入!
+	NFD_LOG_DEBUG("insert " << data.getName());
+
+	const_iterator it;
     bool isNewEntry = false;
-    std::tie(it, isNewEntry) = m_table.emplace(data.shared_from_this(), isUnsolicited);
+    std::tie(it, isNewEntry) = m_table.emplace(data.shared_from_this(), isUnsolicited); 
     Entry& entry = const_cast<Entry&>(*it);
+    entry.updateFreshUntil(); // fresh一下新来的这个包
 
-    // fresh一下新来的这个包
-    entry.updateFreshUntil();
-
-    if (!isNewEntry) { // 如果不是新的包 ---> 缓存中已经存在
-        // TODO: ???
-        // XXX This doesn't forbid unsolicited Data from refreshing a solicited entry.
+    if (!isNewEntry) {
         if (entry.isUnsolicited() && !isUnsolicited) {
             entry.clearUnsolicited();
         }
-        m_policy->afterRefresh(it);
-    } else { // 如果是新的包 那你要准备插入了
-		m_policy->afterInsert(it);
-    }
+        m_policy->afterRefresh(it); 
+    } 
+	else { // 如果是新的包 -> 插入缓存队列
+		m_policy->afterInsert(it); // cyc: 和 m_table 的区别 ? 这里两个表都在维护 CS ?
+	}
+	return true;
 }
 
 std::pair<Cs::const_iterator, Cs::const_iterator>
@@ -130,10 +127,16 @@ Cs::findImpl(const Interest& interest) const
         return m_table.end();
     }
 
+	// 把每个节点的所有缓存项都列出来
+	// NFD_LOG_DEBUG("cs-size " << m_table.size());
+	// std::set<Entry, std::less<>>::iterator it;
+	// for(it = m_table.begin(); it != m_table.end(); it++) 
+    // 	std::cout << "\t" << (*it).getName() << " " << std::endl;
+
     const Name& prefix = interest.getName();
     auto range = findPrefixRange(prefix);
 
-	// return iter
+	// 这里是在查 m_table
 	auto match =
       std::find_if(range.first, range.second, [&interest](const auto& entry) { return entry.canSatisfy(interest); });
 
@@ -152,8 +155,11 @@ Cs::findImpl(const Interest& interest) const
 			NFD_LOG_DEBUG("find " << prefix << " no-match");
         return m_table.end();
     }
-	if (printFlag)
-    	NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
+	NFD_LOG_DEBUG("find " << prefix << " matching " << match->getName());
+	// 查看此时一共缓存了多少内容项, 这个还会包含其它非内容项? 把所有insert的打印都打开
+	// 把所有缓存的内容都打印出来 ?
+
+	
 	
 	// 这里是匹配到data ---> 这里也不会涉及Tag的操作 ---> 这个Tag到底是哪里来的?
     m_policy->beforeUse(match); // 更新队列
@@ -185,7 +191,7 @@ Cs::setPolicyImpl(unique_ptr<Policy> policy)
 {
 	// 每个节点会调用2次??? 为啥会有两次打印 ~
 	// 构造函数会调用 1 次, 后面setPolicy会删除前面构造时设置的那个
-    NFD_LOG_DEBUG("set-policy " << policy->getName());
+    // NFD_LOG_DEBUG("set-policy " << policy->getName());
     m_policy = std::move(policy);
     m_beforeEvictConnection = m_policy->beforeEvict.connect([this](auto it) { m_table.erase(it); });
 
@@ -212,6 +218,45 @@ Cs::enableServe(bool shouldServe)
     m_shouldServe = shouldServe;
     NFD_LOG_INFO((shouldServe ? "Enabling" : "Disabling") << " Data serving");
 }
+
+// chaochao added ↓
+
+bool
+Cs::cacheDecisionImpl(const Data& data)
+{
+	return true; // LCE
+	// return cacheDecisionLCD(data); // LCD
+}
+
+bool
+Cs::cacheDecisionLCD(const Data& data) 
+{
+	// (1) if management protocol --> not insert
+	bool isData = true;
+	std::string testStr = "/localhost/nfd/";
+  	std::string dataName = data.getName().toUri();
+  	std::string::size_type idx = dataName.find(testStr);
+  	if (idx != std::string::npos) { // match ---> 即不是常规data项
+		isData = false;
+		// m_policy->afterInsert(it); // 直接缓存 or 全部不缓存,避免对我们的统计造成影响!
+		return false;
+	}
+
+	// (2) content  
+	auto chaochaoTag = data.getTag<lp::ChaoChaoTag>();  // Tag 是指针, 直接打印的输出是地址!
+	int cc_tag = 0;
+	if (chaochaoTag != nullptr) { 
+		cc_tag = *chaochaoTag;
+	} 
+	// NFD_LOG_DEBUG("cc_tag: " << cc_tag); 
+	if (cc_tag == 0) { // 有2种情形: (1) Producer响应数据,tag为null; (2) 缓存节点响应,*tag为0
+		// m_policy->afterInsert(it); // 后面操作的都是m_queue了! 所以insert在此之前可能就完成了? 这里都是after了?
+		return true;
+	} else {
+		return false; 
+	}
+}
+
 
 } // namespace cs
 } // namespace nfd

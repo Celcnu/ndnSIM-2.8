@@ -50,7 +50,7 @@ class Cs : noncopyable {
      * 1 识别数据的缓存策略+把data塞进m_table且Fresh data++
      * 2 使用当前FIFO缓存策略处理data在队列中的位置
      */
-    void insert(const Data& data, bool isUnsolicited = false);
+    bool insert(const Data& data, bool isUnsolicited = false);
 
     /** \brief asynchronously erases entries under \p prefix
      *  \tparam AfterEraseCallback `void f(size_t nErased)`
@@ -102,6 +102,7 @@ class Cs : noncopyable {
 		// 	std::cout << "chaochao match: " << *tag << std::endl;
 		// }
 
+		// Forwarder::OnContentStoreHit()
         hit(interest, match->getData());
     }
 
@@ -195,6 +196,14 @@ class Cs : noncopyable {
         return m_table.end();
     }
 
+
+
+  public: // caching strategy ---> chaochao
+	bool cacheDecisionImpl(const Data& data);
+	bool cacheDecisionLCD(const Data& data);
+
+
+
   private:
     // 用Table进行二分查找，获得前缀为prefix的区间
     std::pair<const_iterator, const_iterator> findPrefixRange(const Name& prefix) const;
@@ -212,7 +221,7 @@ class Cs : noncopyable {
     PUBLIC_WITH_TESTS_ELSE_PRIVATE : void dump(); // 显示m_table里全部内容，仅测试时可用
 
   private:
-    Table m_table;               // 存CS内容的表
+    Table m_table;               // 存CS内容的表   这两个之间是什么关系? CS的维护 & 缓存插入/逐出, 这些由谁来负责 ?
     unique_ptr<Policy> m_policy; // 存缓存(替换)策略
     signal::ScopedConnection m_beforeEvictConnection;
 

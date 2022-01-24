@@ -346,9 +346,12 @@ Forwarder::onInterestFinalize(const shared_ptr<pit::Entry>& pitEntry)
     m_pit.erase(pitEntry.get());
 }
 
+// 1) 从上游节点接收到的数据
+// 2) 本节点的应用层传下来的数据(准备转发出去)
+
 // 接收到 Data 包之后的处理, 即给PIT的每个in-record都发包
 void
-Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
+Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data) 
 {
     // receive Data
     // 给data包打上IncomingFaceId标签, 指示它从哪个接口传回来的
@@ -364,6 +367,7 @@ Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
   	} 
     if (printFlag)
         NFD_LOG_DEBUG("onIncomingData in=" << ingress << " data=" << data.getName());
+
     data.setTag(make_shared<lp::IncomingFaceIdTag>(ingress.face.getId()));
     ++m_counters.nInData;
 
@@ -388,8 +392,13 @@ Forwarder::onIncomingData(const FaceEndpoint& ingress, const Data& data)
 
     // CS insert
     // 尝试往CS里插入data
-    // TODO: 缓存决策, 你可以直接在这里实现, 也可以在insert里面实现
-    m_cs.insert(data);
+    // cyc: 缓存决策, 你可以直接在这里实现, 也可以在insert里面实现
+    bool cacheDecision = m_cs.insert(data);
+	if (cacheDecision) { 
+		data.setTag(make_shared<lp::ChaoChaoTag>(1)); 
+	}
+
+	// m_cs.insert(data);
 
     // when only one PIT entry is matched, trigger strategy: after receive Data
     // 只匹配到1个PIT条目

@@ -128,6 +128,8 @@ GenericLinkService::doSendNack(const lp::Nack& nack, const EndpointId& endpointI
     this->sendNetPacket(std::move(lpPacket), endpointId, false);
 }
 
+
+// 这个是共用的: Interest + Data
 // 6-缓存命中-->发送数据--->Face--->LinkService--->Generic--->encodeLp
 void
 GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lpPacket)
@@ -164,12 +166,10 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
     shared_ptr<lp::HopCountTag> hopCountTag = netPkt.getTag<lp::HopCountTag>();
     if (hopCountTag != nullptr) {
 		// 上游传过来的数据, 已经有hop字段 
-		// NFD_LOG_DEBUG("chaochao add hop: xxx");
 		lpPacket.add<lp::HopCountTagField>(*hopCountTag);
     }
     else {
-		// 这个是源响应的数据 缓存服务应该也是这个, 需要新建1个hop为0的字段
-		// NFD_LOG_DEBUG("chaochao add hop: 0");
+		// 如果没有hop字段: 例如源响应的数据, 缓存服务的数据, 需要新建1个hop为0的字段
         lpPacket.add<lp::HopCountTagField>(0); // 后面这个 0 应该是默认的初值?
     }
 
@@ -180,15 +180,16 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
         }
     }
 
-	// chaochao 的 Tag
+	// chaochao 的 Tag, 注意这里添加的是这个 tag 的 Field!
 	shared_ptr<lp::ChaoChaoTag> chaoChaoTag = netPkt.getTag<lp::ChaoChaoTag>();
-    if (chaoChaoTag != nullptr) {
+    if (chaoChaoTag != nullptr) { // 如果有这个tag, 直接去拿它的值
 		lpPacket.add<lp::ChaoChaoTagField>(*chaoChaoTag);
+		// std::cout << "lp::add( tag )" << std::endl;
     }
-    else {
+    else { // 如果没有 我们去添加这个tag 并将它的字段值设置为0 
+		// std::cout << "lp::add( 0 )" << std::endl;
         lpPacket.add<lp::ChaoChaoTagField>(0); 
-    }
-
+    } // 后面怎么显示没有这个tag??
 
 }
 
@@ -342,6 +343,7 @@ GenericLinkService::doReceivePacket(const Block& packet, const EndpointId& endpo
     }
 }
 
+// 解码 Packet
 void
 GenericLinkService::decodeNetPacket(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
 {
@@ -436,6 +438,7 @@ GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstP
     this->receiveInterest(*interest, endpointId);
 }
 
+// 解码 Data 
 // 类似Interest,将Block类型转码为Data,并打上各种tag
 void
 GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt, const EndpointId& endpointId)
@@ -460,9 +463,18 @@ GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt, 
         data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
     }
 
-	// chaochao 的 Tag
-	if (firstPkt.has<lp::ChaoChaoTagField>()) {
-        data->setTag(make_shared<lp::ChaoChaoTag>(firstPkt.get<lp::ChaoChaoTagField>() + 100));
+	/**
+	 * @brief 我们把这个Tag用作LCD了先,下面的操作没用了暂时,但是先保留,这是总结节点修改tag的方法
+	 * 
+	 */
+	// chaochao 的 Tag , 中间肯定要对这个tag去处理的啊
+	if (firstPkt.has<lp::ChaoChaoTagField>()) { // 收到的包 如果有tag了
+		int tag = firstPkt.get<lp::ChaoChaoTagField>(); // 不做改变 保持上面设置的值
+		// std::cout << "firstPkt : "<< tag << std::endl; // 这说明forwarder里的设置是生效的
+        // data->setTag(make_shared<lp::ChaoChaoTag>(tag)); // 这里可以确认能够正确设置上 前面已经set了 你这里再set一次?
+
+		// 不在此处修改这个字段 --> 报错??? --> 报错的不是它,是它会影响在哪些节点缓存!
+		data->setTag(make_shared<lp::ChaoChaoTag>(firstPkt.get<lp::ChaoChaoTagField>())); 
     }
 
     if (m_options.enableGeoTags && firstPkt.has<lp::GeoTagField>()) {

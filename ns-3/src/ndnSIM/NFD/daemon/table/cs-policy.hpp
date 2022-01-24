@@ -186,7 +186,7 @@ class Policy : noncopyable {
   private:
     std::string m_policyName; // 缓存(替换)策略名
     size_t m_limit;           // 缓存容量
-    Cs* m_cs;                 // 指向被维护的CS的指针
+    Cs* m_cs;                 // 指向被维护的CS的指针 它实际上维护的还是 Cs !
 };
 
 } // namespace cs

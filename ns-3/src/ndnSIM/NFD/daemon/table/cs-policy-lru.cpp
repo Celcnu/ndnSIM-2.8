@@ -41,7 +41,7 @@ LruPolicy::LruPolicy()
 void
 LruPolicy::doAfterInsert(EntryRef i)
 {
-    this->insertToQueue(i, true);
+    this->insertToQueue(i, true); // TODO: 这里还是操作m_table???
     this->evictEntries();
 }
 
@@ -81,9 +81,12 @@ LruPolicy::insertToQueue(EntryRef i, bool isNewEntry)
     Queue::iterator it;
     bool isNew = false;
     // push_back only if i does not exist
-    std::tie(it, isNew) = m_queue.push_back(i);
+    std::tie(it, isNew) = m_queue.push_back(i); // m_queue ??? Queue ???
+	// std::cout << "isNew : " << isNew << std::endl;
 
-    BOOST_ASSERT(isNew == isNewEntry);
+	// isNewEntry = false
+	// isNew 肯定也应该是false才对
+    BOOST_ASSERT(isNew == isNewEntry); // 如果表达式结果为假, 则返回错误并终止执行
     if (!isNewEntry) {
         m_queue.relocate(m_queue.end(), it);
     }
